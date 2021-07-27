@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance", "TB.DanceDa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Data.Models", "TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj", "{BB2AAA5D-20FC-4FFD-8849-D1EDC1618075}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.VideoLoader", "TB.DanceDance.VideoLoader\TB.DanceDance.VideoLoader.csproj", "{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{BB2AAA5D-20FC-4FFD-8849-D1EDC1618075}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB2AAA5D-20FC-4FFD-8849-D1EDC1618075}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB2AAA5D-20FC-4FFD-8849-D1EDC1618075}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
