@@ -10,8 +10,8 @@ using TB.DanceDance.Data;
 namespace TB.DanceDance.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210727225354_baseModel")]
-    partial class baseModel
+    [Migration("20210727232454_BaseVideoModel")]
+    partial class BaseVideoModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -219,6 +219,24 @@ namespace TB.DanceDance.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("TB.DanceDance.Data.Models.VideoInformation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("BlobId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VideosInformation");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
