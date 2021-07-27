@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using TB.DanceDance.Data.Models;
 
 namespace TB.DanceDance.Data
 {
@@ -12,5 +10,7 @@ namespace TB.DanceDance.Data
             : base(options)
         {
         }
+
+        public VideoInformation VideosInformation { get; set; }
     }
 }

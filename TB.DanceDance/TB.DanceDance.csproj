@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj" />
+  </ItemGroup>
+
 </Project>
