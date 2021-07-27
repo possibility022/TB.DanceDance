@@ -11,6 +11,6 @@ namespace TB.DanceDance.Data
         {
         }
 
-        public VideoInformation VideosInformation { get; set; }
+        public DbSet<VideoInformation> VideosInformation { get; set; }
     }
 }
