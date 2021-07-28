@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace TB.DanceDance.Data.Models
 {
@@ -12,5 +13,10 @@ namespace TB.DanceDance.Data.Models
         public string BlobId { get; set; }
 
         public DanceType Type { get; set; }
+
+        public DateTime CreationTimeUtc { get; set; }
+        public TimeSpan? Duration { get; set; }
+
+        public byte[] MetadataAsJson { get; set; }
     }
 }

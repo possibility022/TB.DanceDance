@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TB.DanceDance.Data;
 
 namespace TB.DanceDance.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210728123506_MoreDataInModel")]
+    partial class MoreDataInModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,11 +234,8 @@ namespace TB.DanceDance.Data.Migrations
                     b.Property<DateTime>("CreationTimeUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan?>("Duration")
+                    b.Property<TimeSpan>("Duration")
                         .HasColumnType("time");
-
-                    b.Property<byte[]>("MetadataAsJson")
-                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
