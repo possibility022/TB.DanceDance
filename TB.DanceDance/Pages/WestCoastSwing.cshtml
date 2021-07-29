@@ -1,32 +1,11 @@
 ﻿@page
-@model TB.DanceDance.Pages.WestCoastSwingModel
-@{
-}
+    @using TB.DanceDance.Data.Models
+    @model TB.DanceDance.Pages.WestCoastSwingModel
+    @{
+    }
 
-<p>Tomek testuje.</p>
+    <p>Tomek testuje.</p>
 
-
-<table class="table">
-<thead>
-<tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th></th>
-</tr>
-</thead>
-<tbody>
-@foreach (var video in Model.WestCoastSwingVideos)
-{
-    <tr>
-        <td> @video.Id  </td>
-        <td>@video.Name</td>
-        <td>
-            <a asp-page="./Edit" asp-route-id="@video.Id">Edit</a> |
-            <button type="submit" asp-page-handler="delete"
-                    asp-route-id="@video.Id">delete
-            </button>
-        </td>
-    </tr>
-}
-</tbody>
-</table>
+    <div>
+        @(await Component.InvokeAsync("VideoList", new { danceType = DanceType.WestCoastSwing}))
+    </div>

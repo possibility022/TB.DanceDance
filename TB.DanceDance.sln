@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance", "TB.DanceDance\TB.DanceDance.csproj", "{A8D96E02-2FE8-43F9-B4A3-9E4EA12EDAD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance", "TB.DanceDance\TB.DanceDance.csproj", "{A8D96E02-2FE8-43F9-B4A3-9E4EA12EDAD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Data.Models", "TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj", "{BB2AAA5D-20FC-4FFD-8849-D1EDC1618075}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Data.Models", "TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj", "{BB2AAA5D-20FC-4FFD-8849-D1EDC1618075}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.VideoLoader", "TB.DanceDance.VideoLoader\TB.DanceDance.VideoLoader.csproj", "{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.VideoLoader", "TB.DanceDance.VideoLoader\TB.DanceDance.VideoLoader.csproj", "{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
