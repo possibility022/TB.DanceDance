@@ -7,7 +7,7 @@ namespace TB.DanceDance.Data.Db
     {
 
         // Quick workaround
-        public static string ConnectionString = null;
+        public static string? ConnectionString = null;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

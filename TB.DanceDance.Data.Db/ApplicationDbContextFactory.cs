@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace TB.DanceDance.Data.Db
@@ -8,9 +9,20 @@ namespace TB.DanceDance.Data.Db
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer("Data Source=blog.db"); //todo change this.
 
+            var connectionString = TryGetConnectionStringFromEnvironmentVariables();
+            if (connectionString == null)
+                throw new Exception("Could not get connection string from environments.");  //todo change this.
+
+            optionsBuilder.UseSqlServer(connectionString);
+            
             return new ApplicationDbContext(optionsBuilder.Options);
+        }
+
+        public static string? TryGetConnectionStringFromEnvironmentVariables()
+        {
+            var connectionString = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString");
+            return connectionString;
         }
     }
 }
