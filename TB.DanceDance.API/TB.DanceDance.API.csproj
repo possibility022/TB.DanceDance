@@ -4,4 +4,9 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Data.Db\TB.DanceDance.Data.Db.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj" />
+  </ItemGroup>
+
 </Project>
