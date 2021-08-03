@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using NReco.VideoInfo;
 using Serilog;
 using TB.DanceDance.Data;
+using TB.DanceDance.Data.Db;
 using TB.DanceDance.Data.Models;
 using Directory = System.IO.Directory;
 
