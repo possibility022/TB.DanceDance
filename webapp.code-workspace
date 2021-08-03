@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "tb.dancedance.web"
+		}
+	],
+	"settings": {
+		"eslint.format.enable": true
+	}
+}
