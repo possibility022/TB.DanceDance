@@ -1,9 +1,9 @@
 import { combineReducers } from "redux"
-import songReducer from "./SongReducer"
+import videoReducer from "./VideoReducer"
 import playerReducer from "./PlayerReducer"
 
 const RootReducer = combineReducers({
-	song: songReducer,
+	song: videoReducer,
 	player: playerReducer
 })
 

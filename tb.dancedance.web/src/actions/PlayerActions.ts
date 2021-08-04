@@ -9,7 +9,7 @@ const SetSource = (songId: number) => async (dispatch: Dispatch<PlayerDispatchTy
 
 		dispatch({
 			type: STREAMING_SONG,
-			src: "https://localhost:44367/api/player/" + songId
+			src: "https://localhost:44328/api/player/" + songId
 		})
 	} catch (e) {
 		console.log(e)

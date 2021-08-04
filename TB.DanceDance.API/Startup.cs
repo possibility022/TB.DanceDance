@@ -27,6 +27,17 @@ namespace TB.DanceDance.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.AllowAnyHeader();
+                    builder.AllowAnyMethod();
+                    builder.AllowAnyOrigin();
+                });
+            });
+
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 var connectionString = ApplicationDbContextFactory.TryGetConnectionStringFromEnvironmentVariables();
@@ -51,6 +62,8 @@ namespace TB.DanceDance.API
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 

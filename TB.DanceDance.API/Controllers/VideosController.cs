@@ -8,7 +8,7 @@ using TB.DanceDance.Data.Models;
 namespace TB.DanceDance.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class VideosController : ControllerBase
     {
         private readonly ApplicationDbContext context;

@@ -1,8 +1,8 @@
 import ControlButtons from "./playerComponents/ControlButtons"
 import { useRef, useEffect, useState, SetStateAction } from "react"
-import Song from "../types/song"
+import Video from "../types/videoinformation"
 import React from "react"
-import SongsList from "./playerComponents/SongsList"
+import VideoList from "./playerComponents/VideoList"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../store/configureStore"
 import {PlayOrPause, SetSongIndex, StreamSong } from "../actions/PlayerActions"
@@ -45,15 +45,15 @@ export default function Player(): JSX.Element {
 		<div>
 			{/* <audio src={props.songs[props.currentSongIndex].src} ref={audioEl}></audio> */}
 			<audio src={source} ref={audioEl}></audio>
-			<h3>{songIndex !== undefined && songs[songIndex]?.title}</h3>
-			<h4>{songIndex !== undefined && songs[songIndex]?.artist}</h4>
+			<h3>{songIndex !== undefined && songs[songIndex]?.name}</h3>
+			<h4>{songIndex !== undefined && songs[songIndex]?.blobId}</h4>
 			<ControlButtons
 				isPlaying={isPlaying}
 				setIsPlaying={playOrPause}
 				skipSong={skipSong}
 			></ControlButtons>
 			<div>
-				<SongsList/>
+				<VideoList/>
 			</div>
 		</div>
 	)
