@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../store/configureStore"
 import {PlayOrPause, SetVideoIndex, SetSource } from "../actions/PlayerActions"
 import VideoInformation from "../types/videoinformation"
+import ReactPlayer from "react-player"
 
 export default function Player(): JSX.Element {
 
@@ -16,6 +17,9 @@ export default function Player(): JSX.Element {
 	const source = useSelector((state: RootState) => state.player.src)
 	const video = useSelector((state: RootState) => state.player.video)
 	const [videoId, setVideoId] = useState(-1)
+	const [played, setPlayed] = useState(0.0)
+
+	const [reactPlayer, setReactPlayer] = useState<ReactPlayer|undefined>()
 
 	const videoRef = useRef() as React.MutableRefObject<HTMLVideoElement>
 
@@ -46,21 +50,34 @@ export default function Player(): JSX.Element {
 		// }
 	}
 
+	const handleSeekChange = (e: any) => {
+		console.log(e)
+		setPlayed(parseFloat(e.target.value))
+
+		if (playerRef !== undefined){
+
+			const c = playerRef
+			if (c.current !== undefined){
+				c.current.seekTo(parseFloat(e.target.value))
+			}
+		}
+	}
+
+	const playerRef = useRef<any>()
+
 	return (
 		<div>
 			{/* <audio src={props.songs[props.currentSongIndex].src} ref={audioEl}></audio> */}
 
 			<div>
-				<video ref={videoRef} controls>
-					<source src={source} type="video/mp4"/>
-				</video>
-				<Video
-					className='video-class'
-					controls={true}
-					autoPlay={true}
-					remoteUrl={source}
-				/>
+				<ReactPlayer ref={playerRef} url={source} key={source} controls={true} played={played}></ReactPlayer>
 			</div>
+
+			<input
+				type='range' min={0} max={0.999999} step='any'
+				value={played}
+				onChange={handleSeekChange}
+			/>
 
 			{/* <video src={source} ref={audioEl}></audio> */}
 			{/* <h3>{songIndex !== undefined && songs[songIndex]?.name}</h3>

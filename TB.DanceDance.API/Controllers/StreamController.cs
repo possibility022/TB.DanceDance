@@ -28,42 +28,10 @@ namespace TB.DanceDance.API.Controllers
 
         [HttpGet]
         [Route("{blobId}")]
-        public async Task<Stream> GetStream(string blobId)
+        public async Task<FileStreamResult> GetStream(string blobId)
         {
-
-            var rangeHeader = Request.GetTypedHeaders().Range;
-            var from = rangeHeader?.Ranges?.FirstOrDefault()?.From;
-
-            if (@from is > 0)
-            {
-                // Return part of the video
-                //HttpResponseMessage partialResponse = new ;
-                //partialResponse.Content = new ByteRangeStreamContent(stream, Request.Headers.Range, mediaType);
-                //return partialResponse;
-                
-                    var stream = await blobService.OpenStream(blobId);
-                    stream.Seek(from.Value, SeekOrigin.Begin);
-
-                    return stream;
-            }
-            else
-            {
-                // Return complete video
-
-
-
-                var stream = await blobService.OpenStream(blobId);
-
-                //var response = new HttpResponseMessage(HttpStatusCode.OK);
-                //response.Content = new StreamContent(stream);
-
-                return stream;
-
-                //HttpResponseMessage fullResponse = Request.CreateResponse(HttpStatusCode.OK);
-                //fullResponse.Content = new StreamContent(stream);
-                //fullResponse.Content.Headers.ContentType = mediaType;
-                //return fullResponse;
-            }
+            var stream = await blobService.OpenStream(blobId);
+            return File(stream, "video/mp4", enableRangeProcessing: true);
         }
 
     }
