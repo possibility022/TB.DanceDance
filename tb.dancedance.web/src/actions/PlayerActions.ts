@@ -1,27 +1,27 @@
 import { Dispatch } from "redux"
-import { PlayerDispatchTypes, PLAYING_PAUSED, PLAYING_SONG, SET_SONG_INDEX, STREAMING_SONG, WAITING_FOR_STREAM } from "./PlayerActionTypes"
+import VideoInformation from "../types/videoinformation"
+import { PlayerDispatchTypes, PLAYING_PAUSED, PLAYING_VIDEO, SET_VIDEO, STREAMING_VIDEO, WAITING_FOR_STREAM } from "./PlayerActionTypes"
 
-const SetSource = (songId: number) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
+const SetSource = (videoBlobId: string) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
 	try {
 		dispatch({
 			type: WAITING_FOR_STREAM
 		})
 
 		dispatch({
-			type: STREAMING_SONG,
-			src: "https://localhost:44328/api/player/" + songId
+			type: STREAMING_VIDEO,
+			src: "https://localhost:44328/api/stream/" + videoBlobId
 		})
 	} catch (e) {
 		console.log(e)
 	}
 }
 
-
 const PlayOrPause = (play: boolean) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
 	try {
 		if (play){
 			dispatch({
-				type: PLAYING_SONG
+				type: PLAYING_VIDEO
 			})
 		} else {
 			dispatch({
@@ -33,11 +33,11 @@ const PlayOrPause = (play: boolean) => async (dispatch: Dispatch<PlayerDispatchT
 	}
 }
 
-const SetSongIndex = (songIndex: number) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
+const SetVideoIndex = (videoInformation: VideoInformation) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
 	dispatch({
-		type: SET_SONG_INDEX,
-		songIndex: songIndex
+		type: SET_VIDEO,
+		videoInformation: videoInformation
 	})
 }
 
-export {SetSource as StreamSong,  PlayOrPause, SetSongIndex}
+export {SetSource,  PlayOrPause, SetVideoIndex}

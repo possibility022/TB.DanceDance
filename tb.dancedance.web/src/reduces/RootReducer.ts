@@ -3,7 +3,7 @@ import videoReducer from "./VideoReducer"
 import playerReducer from "./PlayerReducer"
 
 const RootReducer = combineReducers({
-	song: videoReducer,
+	video: videoReducer,
 	player: playerReducer
 })
 

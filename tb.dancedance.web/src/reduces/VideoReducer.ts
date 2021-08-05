@@ -3,11 +3,11 @@ import { LOADING_VIDEOS, LOADING_VIDEOS_FAILED, LOADING_VIDEOS_SUCCESS, VideosDi
 
 interface DefaultState {
 	loading: boolean,
-	songs: Array<Song>
+	videos: Array<Song>
 }
 const defaultState: DefaultState = {
 	loading: false,
-	songs: []
+	videos: []
 }
 const videoReducer = (state : DefaultState = defaultState, action: VideosDispatchTypes) : DefaultState => {
 
@@ -26,7 +26,7 @@ const videoReducer = (state : DefaultState = defaultState, action: VideosDispatc
 		return{
 			...state,
 			loading: false,
-			songs: action.payload
+			videos: action.payload
 		}
 	}
 

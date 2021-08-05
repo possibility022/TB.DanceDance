@@ -1,4 +1,4 @@
-export default interface Video {
+export default interface VideoInformation {
     id: number
     name: string
     blobId: string

@@ -1,19 +1,20 @@
-import { PlayerDispatchTypes, PLAYING_PAUSED, PLAYING_SONG, SET_SONG_INDEX, STREAMING_SONG, WAITING_FOR_STREAM } from "../actions/PlayerActionTypes"
+import { PlayerDispatchTypes, PLAYING_PAUSED, PLAYING_VIDEO, SET_VIDEO, STREAMING_VIDEO, WAITING_FOR_STREAM } from "../actions/PlayerActionTypes"
+import VideoInformation from "../types/videoinformation"
 
-interface PLayerState {
+interface PlayerState {
 	playing: boolean,
 	src:  string | undefined,
-	songIndex: number | undefined
+	video: VideoInformation | undefined
 }
-const defaultState: PLayerState = {
+const defaultState: PlayerState = {
 	playing: false,
 	src: undefined,
-	songIndex: undefined
+	video: undefined
 }
-const playerReducer = (state : PLayerState = defaultState, action: PlayerDispatchTypes) : PLayerState => {
+const playerReducer = (state : PlayerState = defaultState, action: PlayerDispatchTypes) : PlayerState => {
 
 	switch(action.type){
-	case STREAMING_SONG:
+	case STREAMING_VIDEO:
 		return {
 			...state,
 			playing: true,
@@ -26,15 +27,15 @@ const playerReducer = (state : PLayerState = defaultState, action: PlayerDispatc
 			...state,
 			playing: false
 		}
-	case PLAYING_SONG:
+	case PLAYING_VIDEO:
 		return {
 			...state,
 			playing: true
 		}
-	case SET_SONG_INDEX:
+	case SET_VIDEO:
 		return {
 			...state,
-			songIndex: action.songIndex
+			video: action.videoInformation
 		}
 	}
 	return state

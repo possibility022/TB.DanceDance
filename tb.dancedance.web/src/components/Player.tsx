@@ -1,52 +1,70 @@
 import ControlButtons from "./playerComponents/ControlButtons"
 import { useRef, useEffect, useState, SetStateAction } from "react"
-import Video from "../types/videoinformation"
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// const Video = require("react-video-stream") // todo - do something with that in future.
+import { Video } from "react-video-stream"
 import React from "react"
 import VideoList from "./playerComponents/VideoList"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../store/configureStore"
-import {PlayOrPause, SetSongIndex, StreamSong } from "../actions/PlayerActions"
+import {PlayOrPause, SetVideoIndex, SetSource } from "../actions/PlayerActions"
+import VideoInformation from "../types/videoinformation"
 
 export default function Player(): JSX.Element {
 
-	const audioEl = useRef<HTMLAudioElement>(null)
 	const isPlaying = useSelector((state: RootState) => state.player.playing)
 	const source = useSelector((state: RootState) => state.player.src)
-	const songs = useSelector((state: RootState) => state.song.songs)
-	const songIndex = useSelector((state: RootState) => state.player.songIndex)
+	const video = useSelector((state: RootState) => state.player.video)
+	const [videoId, setVideoId] = useState(-1)
+
+	const videoRef = useRef() as React.MutableRefObject<HTMLVideoElement>
 
 	const dispatch = useDispatch()
-	const setSource = (songId: number) => { dispatch(StreamSong(songId))}
+	const setSource = (blobId: string) => { dispatch(SetSource(blobId))}
 	const playOrPause = (playing: boolean) => { dispatch(PlayOrPause(playing))}
-	const setSong = (songIndex: number) => dispatch(SetSongIndex(songIndex))
 
 	useEffect(() => {
-		if (null !== audioEl.current && source !== undefined)
-			if (isPlaying) {
-				audioEl.current.play()
-			} else {
-				audioEl.current.pause()
+		if (null !== video && video !== undefined && videoId != video.id)
+		{
+			setSource(video?.blobId)
+			setVideoId(video.id)
+			if (videoRef.current) {
+				videoRef.current.load()
 			}
+		}
 	})
 
 	const skipSong = (forwards = true) => {
 
-		if (songIndex === undefined)
-			return
+		// if (songIndex === undefined)
+		// 	return
 
-		if (forwards) {
-			setSong(songIndex + 1)
-		} else {
-			setSong(songIndex - 1)
-		}
+		// if (forwards) {
+		// 	setSong(songIndex + 1)
+		// } else {
+		// 	setSong(songIndex - 1)
+		// }
 	}
 
 	return (
 		<div>
 			{/* <audio src={props.songs[props.currentSongIndex].src} ref={audioEl}></audio> */}
-			<audio src={source} ref={audioEl}></audio>
-			<h3>{songIndex !== undefined && songs[songIndex]?.name}</h3>
-			<h4>{songIndex !== undefined && songs[songIndex]?.blobId}</h4>
+
+			<div>
+				<video ref={videoRef} controls>
+					<source src={source} type="video/mp4"/>
+				</video>
+				<Video
+					className='video-class'
+					controls={true}
+					autoPlay={true}
+					remoteUrl={source}
+				/>
+			</div>
+
+			{/* <video src={source} ref={audioEl}></audio> */}
+			{/* <h3>{songIndex !== undefined && songs[songIndex]?.name}</h3>
+			<h4>{songIndex !== undefined && songs[songIndex]?.blobId}</h4> */}
 			<ControlButtons
 				isPlaying={isPlaying}
 				setIsPlaying={playOrPause}
