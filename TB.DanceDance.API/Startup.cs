@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.Db;
 
 namespace TB.DanceDance.API
@@ -47,6 +48,8 @@ namespace TB.DanceDance.API
 
                 options.UseSqlServer(connectionString);
             });
+
+            services.AddScoped<IBlobDataService, BlobDataService>(provider => new BlobDataService(Configuration.GetConnectionString("BlobServiceConnectionString")));
 
             services.AddControllers();
         }
