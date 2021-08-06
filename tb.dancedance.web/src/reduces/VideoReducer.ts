@@ -1,12 +1,16 @@
 import Song from "../types/videoinformation"
-import { LOADING_VIDEOS, LOADING_VIDEOS_FAILED, LOADING_VIDEOS_SUCCESS, VideosDispatchTypes } from "../actions/VideosActionsTypes"
+import { LOADING_VIDEOS, LOADING_VIDEOS_FAILED, LOADING_VIDEOS_SUCCESS, LOGGING_USER, VideosDispatchTypes } from "../actions/VideosActionsTypes"
 
 interface DefaultState {
 	loading: boolean,
+	userLoggedIn: boolean,
+	userLoginHash: string,
 	videos: Array<Song>
 }
 const defaultState: DefaultState = {
 	loading: false,
+	userLoggedIn: false,
+	userLoginHash: "",
 	videos: []
 }
 const videoReducer = (state : DefaultState = defaultState, action: VideosDispatchTypes) : DefaultState => {
@@ -28,8 +32,13 @@ const videoReducer = (state : DefaultState = defaultState, action: VideosDispatc
 			loading: false,
 			videos: action.payload
 		}
+	case LOGGING_USER:
+		return{
+			...state,
+			userLoggedIn: action.userLoggedIn,
+			userLoginHash: action.userLoggingHash
+		}
 	}
-
 	return state
 }
 

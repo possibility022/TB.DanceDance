@@ -2,7 +2,7 @@ import { Dispatch } from "redux"
 import VideoInformation from "../types/videoinformation"
 import { PlayerDispatchTypes, PLAYING_PAUSED, PLAYING_VIDEO, SET_VIDEO, STREAMING_VIDEO, WAITING_FOR_STREAM } from "./PlayerActionTypes"
 
-const SetSource = (videoBlobId: string) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
+const SetSource = (videoBlobId: string, userHash: string) => async (dispatch: Dispatch<PlayerDispatchTypes>):Promise<void> => {
 	try {
 		dispatch({
 			type: WAITING_FOR_STREAM
@@ -10,7 +10,7 @@ const SetSource = (videoBlobId: string) => async (dispatch: Dispatch<PlayerDispa
 
 		dispatch({
 			type: STREAMING_VIDEO,
-			src: "https://localhost:44328/api/stream/" + videoBlobId
+			src: "https://localhost:44328/api/stream/" + videoBlobId + "?userHash=" + userHash
 		})
 	} catch (e) {
 		console.log(e)

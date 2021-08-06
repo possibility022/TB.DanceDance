@@ -9,8 +9,9 @@ export default function VideoList (): JSX.Element {
 
 	const videoState = useSelector((state: RootState) => state.video.videos)
 	const loading = useSelector((state: RootState) => state.video.loading)
+	const userHash = useSelector((state: RootState) => state.video.userLoginHash)
 	const dispatch = useDispatch()
-	const loadVideos = () => dispatch(GetVideos())
+	const loadVideos = () => dispatch(GetVideos(userHash))
 	const playVideo = (videoId: VideoInformation) => dispatch(SetVideoIndex(videoId))
 
 	const renderList = videoState.map((video) => {
@@ -31,8 +32,9 @@ export default function VideoList (): JSX.Element {
 	return (
 		<div>
 
+			<div>
 			Loading: {loading.toString()}
-
+			</div>
 			{loading === false &&
 			<button onClick={loadVideos}>Reload</button>
 			}

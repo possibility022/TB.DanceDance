@@ -28,8 +28,18 @@ namespace TB.DanceDance.API.Controllers
 
         [HttpGet]
         [Route("{blobId}")]
-        public async Task<FileStreamResult> GetStream(string blobId)
+        public async Task<IActionResult> GetStream(string blobId)
         {
+            if (!Request.Query.ContainsKey("userHash"))
+                return new UnauthorizedResult();
+
+            var hash = Request.Query["userHash"];
+            if (!LoginCache.CheckIfLoggedIn(hash))
+            {
+                return new UnauthorizedResult();
+            }
+
+
             var stream = await blobService.OpenStream(blobId);
             return File(stream, "video/mp4", enableRangeProcessing: true);
         }

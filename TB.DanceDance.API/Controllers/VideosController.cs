@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,15 @@ namespace TB.DanceDance.API.Controllers
         [HttpGet]
         public IEnumerable<VideoInformation> Get()
         {
+            if (!Request.Headers.ContainsKey("userHash"))
+                throw new Exception();
+
+            var hash = Request.Headers["userHash"].First();
+            if (!LoginCache.CheckIfLoggedIn(hash))
+            {
+                throw new Exception();
+            }
+
             return context.VideosInformation.AsEnumerable();
         }
     }
