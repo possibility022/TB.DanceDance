@@ -73,6 +73,8 @@ export default function Player(): JSX.Element {
 				<div className="container">
 					{/* <audio src={props.songs[props.currentSongIndex].src} ref={audioEl}></audio> */}
 
+					<h1>Dance Dance!</h1>
+
 					<div>
 						<ReactPlayer ref={playerRef} url={source} key={source} controls={true} played={played} ></ReactPlayer>
 					</div>
