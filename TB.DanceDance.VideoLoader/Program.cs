@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Serilog;
 using TB.DanceDance.Data.Models;
 
@@ -7,17 +8,22 @@ namespace TB.DanceDance.VideoLoader
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             ConfigureLogging();
 
+            var databaseConnectionString = File.ReadAllText("databaseConnectionString.txt");
 
-            var loader = new Loader(DanceType.WestCoastSwing, 
-                File.ReadAllText("databaseConnectionString.txt"),
-                File.ReadAllText("blobConnectionString.txt"));
+            //var loader = new Loader(DanceType.WestCoastSwing,
+            //    databaseConnectionString,
+            //    File.ReadAllText("blobConnectionString.txt"));
             
-            var task = loader.LoadData(@"C:\Users\TomaszBak\Downloads\West coast swing");
-            task.Wait();
+            //var task = loader.LoadData(@"C:\Users\TomaszBak\Downloads\West coast swing");
+            //task.Wait();
+
+            var rename = new VideoRename(databaseConnectionString);
+            await rename.Rename();
+
 
             Log.Information("Done");
         }
