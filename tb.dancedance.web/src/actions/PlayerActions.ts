@@ -8,9 +8,11 @@ const SetSource = (videoBlobId: string, userHash: string) => async (dispatch: Di
 			type: WAITING_FOR_STREAM
 		})
 
+		const url = process.env.REACT_APP_BASE_API_URL
+
 		dispatch({
 			type: STREAMING_VIDEO,
-			src: "https://localhost:44328/api/stream/" + videoBlobId + "?userHash=" + userHash
+			src: url + "/api/stream/" + videoBlobId + "?userHash=" + userHash
 		})
 	} catch (e) {
 		console.log(e)

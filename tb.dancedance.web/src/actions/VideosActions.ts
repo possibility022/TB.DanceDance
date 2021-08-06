@@ -15,10 +15,12 @@ export const GetVideos = (userHash: string) => async (dispatch: Dispatch<VideosD
 			rejectUnauthorized: true
 		})
 
-		const res = await axios.get<Array<Song>>("https://localhost:44328/api/videos",
+		const url = process.env.REACT_APP_BASE_API_URL
+
+		const res = await axios.get<Array<Song>>(url+"/api/videos",
 			{httpsAgent: agent, headers: {
 				"Access-Control-Allow-Headers": "*",
-				"Access-Control-Allow-Origin": "https://localhost:44328",
+				"Access-Control-Allow-Origin": url,
 				"userHash": userHash
 			}})
 
@@ -39,14 +41,16 @@ export const LogIn = (email: string, password: string) => async (dispatch: Dispa
 			rejectUnauthorized: true
 		})
 
-		const res = await axios.post<string>("https://localhost:44328/api/login",
+		const url = process.env.REACT_APP_BASE_API_URL
+
+		const res = await axios.post<string>(url + "/api/login",
 			{
 				email: email,
 				password: password
 			},
 			{httpsAgent: agent, headers: {
 				"Access-Control-Allow-Headers": "*",
-				"Access-Control-Allow-Origin": "https://localhost:44328",
+				"Access-Control-Allow-Origin": url,
 			}})
 
 		let hash = ""
