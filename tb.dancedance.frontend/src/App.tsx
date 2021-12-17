@@ -7,12 +7,10 @@ import { VideoInfoService, Video } from "./services/VideoInfoService"
 function App() {
 
 	const service = new VideoInfoService()
-	const [videos, setVideos] = useState<[Video]>();
 
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		service.LoadVideos().then((v) => {
-			setVideos(v)
 
 			const s = v.map(r => {
 				return <li key={r.id}>{r.id} - {r.name}</li>
@@ -32,10 +30,10 @@ function App() {
 			<section className="section">
 				<div className="container">
 					<h1 className="title">
-						Hello World
+						Dance Dance
 					</h1>
 					<p className="subtitle">
-						My first website with <strong>Bulma</strong>!
+						Zatańczmy <strong>Razem</strong>!
 					</p>
 
 					{videoList}

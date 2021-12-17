@@ -66,7 +66,7 @@ export function NavigationBar() {
                     <div className="navbar-item">
                         <div className="buttons">
                             <LoginButton />
-                            <LogoutButton></LogoutButton>
+                            {isAuthenticated && <LogoutButton />}
                         </div>
                     </div>
                 </div>
