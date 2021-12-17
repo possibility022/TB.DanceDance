@@ -4,13 +4,16 @@ import "./App.css"
 
 function App() {
 	return (
-		<div className="App">
-			<header className="App-header">
-				<p>
-          Edit <code>src/App.tsx</code> and save to reload.
+		<section className="section">
+			<div className="container">
+				<h1 className="title">
+					Hello World
+				</h1>
+				<p className="subtitle">
+					My first website with <strong>Bulma</strong>!
 				</p>
-			</header>
-		</div>
+			</div>
+		</section>
 	)
 }
 
