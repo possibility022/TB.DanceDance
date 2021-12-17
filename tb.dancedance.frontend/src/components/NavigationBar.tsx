@@ -54,7 +54,6 @@ export function NavigationBar() {
                 <div className="navbar-end">
                     <div className="navbar-item">
                         {
-
                             isAuthenticated && (
                                 <div>
                                     <h2>{user?.name}</h2>
@@ -65,7 +64,7 @@ export function NavigationBar() {
                     </div>
                     <div className="navbar-item">
                         <div className="buttons">
-                            <LoginButton />
+                            {!isLoading && !isAuthenticated && <LoginButton />}
                             {isAuthenticated && <LogoutButton />}
                         </div>
                     </div>
