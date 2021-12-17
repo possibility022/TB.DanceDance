@@ -11,9 +11,9 @@ export function NavigationBar() {
     return (
         <nav className="navbar" role="navigation" aria-label="main navigation">
             <div className="navbar-brand">
-                <a className="navbar-item" href="https://bulma.io">
-                    <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28" />
-                </a>
+                <h1 className="title App-logo">
+                    Dance Dance
+                </h1>
 
                 <a role="button" className="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                     <span aria-hidden="true"></span>
@@ -54,13 +54,9 @@ export function NavigationBar() {
                 <div className="navbar-end">
                     <div className="navbar-item">
                         {
-                            isAuthenticated && (
-                                <div>
-                                    <h2>{user?.name}</h2>
-                                    <p>{user?.email}</p>
-                                </div>
-
-                            )}
+                            isAuthenticated &&
+                            <h2>{user?.name} - {user?.email}</h2>
+                        }
                     </div>
                     <div className="navbar-item">
                         <div className="buttons">

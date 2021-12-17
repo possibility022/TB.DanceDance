@@ -29,9 +29,6 @@ function App() {
 			<NavigationBar></NavigationBar>
 			<section className="section">
 				<div className="container">
-					<h1 className="title">
-						Dance Dance
-					</h1>
 					<p className="subtitle">
 						Zatańczmy <strong>Razem</strong>!
 					</p>
