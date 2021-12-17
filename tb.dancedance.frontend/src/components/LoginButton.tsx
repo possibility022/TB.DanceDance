@@ -1,12 +1,10 @@
 import React from "react"
 import { useAuth0 } from "@auth0/auth0-react"
-import "bulma/css/bulma.min.css"
-import { Button } from "react-bulma-components"
 
 const LoginButton = () => {
 	const { loginWithRedirect } = useAuth0()
 
-	return <Button onClick={() => loginWithRedirect()}>Log In</Button>
+	return <button className="button" onClick={() => loginWithRedirect()}>Log In</button>
 }
 
 export default LoginButton
