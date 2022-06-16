@@ -1,12 +1,15 @@
-import { useAuth0 } from "@auth0/auth0-react"
+import { useAuth } from "oidc-react";
 import * as React from "react"
 import LoginButton from "./LoginButton"
 import LogoutButton from "./LogoutButton"
 
+interface INavigationBarProps {
+    userIsSignedIn: boolean
+}
 
-export function NavigationBar() {
+export function NavigationBar(props: INavigationBarProps) {
 
-    const { user, isAuthenticated, isLoading } = useAuth0()
+    const auth = useAuth();
 
     return (
         <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -54,14 +57,13 @@ export function NavigationBar() {
                 <div className="navbar-end">
                     <div className="navbar-item">
                         {
-                            isAuthenticated &&
-                            <h2>{user?.name} - {user?.email}</h2>
+                            props.userIsSignedIn &&
+                            <h2>{auth.userData?.profile.name} - {auth.userData?.profile.email}</h2>
                         }
                     </div>
                     <div className="navbar-item">
                         <div className="buttons">
-                            {!isLoading && !isAuthenticated && <LoginButton />}
-                            {isAuthenticated && <LogoutButton />}
+                            {!props.userIsSignedIn && <LoginButton />}
                         </div>
                     </div>
                 </div>

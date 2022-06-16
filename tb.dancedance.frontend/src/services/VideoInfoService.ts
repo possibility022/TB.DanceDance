@@ -1,8 +1,13 @@
+import axios from "axios";
+import { useAuth } from "oidc-react";
 import { DanceType } from "../types/common";
 import VideoInformations from "../types/VideoInformations";
 
 
 export class VideoInfoService {
+
+
+    // auth = useAuth();
 
     async LoadVideos(): Promise<Array<VideoInformations>> {
         const promise =
@@ -40,7 +45,8 @@ export class VideoInfoService {
                     }
                 ]);
             });
-
+        // const token = this.auth.userData?.access_token
+        // console.log(token)
         return promise
 
     }

@@ -5,6 +5,7 @@ import "bulma/css/bulma.min.css"
 import { VideoInfoService } from "./services/VideoInfoService"
 import { VideoList } from "./components/Videos/VideoList"
 import VideoInformations from "./types/VideoInformations"
+import { AuthProvider } from 'oidc-react'
 
 function App() {
 
@@ -21,9 +22,33 @@ function App() {
 
 	const [videos, setVideos] = useState<Array<VideoInformations>>([]);
 
+	const [userIsSignedIn, setUserIsSignedIn] = useState(false)
+
 	return (
-		<div>
-			<NavigationBar></NavigationBar>
+		<AuthProvider
+			authority="https://localhost:7068"
+			clientId="tbdancedancefront"
+			responseType
+			autoSignIn={true}
+			onSignIn={(user) => {
+				setUserIsSignedIn(true)
+			}}
+			onSignOut={(options) => {
+				setUserIsSignedIn(false)
+			}}
+			scope="openid profile tbdancedanceapi.read"
+			redirectUri="http://localhost:3000/"
+		>
+
+			<div>
+				{/* <button onClick={login}>Login</button>
+				<button id="api">Call API</button>
+				<button id="logout">Logout</button> */}
+
+				<pre id="results"></pre>
+			</div>
+
+			<NavigationBar userIsSignedIn={userIsSignedIn}></NavigationBar>
 			<section className="section">
 				<div className="container">
 					<p className="subtitle">
@@ -34,7 +59,7 @@ function App() {
 
 				</div>
 			</section>
-		</div>
+		</AuthProvider>
 	)
 }
 

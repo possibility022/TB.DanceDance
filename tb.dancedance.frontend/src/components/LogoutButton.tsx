@@ -1,11 +1,11 @@
+import { useAuth } from "oidc-react"
 import React from "react"
-import { useAuth0 } from "@auth0/auth0-react"
 
 const LogoutButton = () => {
-	const { logout } = useAuth0()
+	const auth = useAuth()
 
 	return (
-		<button className="button" onClick={() => logout({ returnTo: window.location.origin })}>
+		<button className="button" onClick={() => auth.signOut()}>
       Log Out
 		</button>
 	)
