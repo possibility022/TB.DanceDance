@@ -28,7 +28,6 @@ function App() {
 		<AuthProvider
 			authority="https://localhost:7068"
 			clientId="tbdancedancefront"
-			responseType
 			autoSignIn={true}
 			onSignIn={(user) => {
 				setUserIsSignedIn(true)
@@ -39,15 +38,6 @@ function App() {
 			scope="openid profile tbdancedanceapi.read"
 			redirectUri="http://localhost:3000/"
 		>
-
-			<div>
-				{/* <button onClick={login}>Login</button>
-				<button id="api">Call API</button>
-				<button id="logout">Logout</button> */}
-
-				<pre id="results"></pre>
-			</div>
-
 			<NavigationBar userIsSignedIn={userIsSignedIn}></NavigationBar>
 			<section className="section">
 				<div className="container">

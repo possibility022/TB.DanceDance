@@ -38,18 +38,23 @@ namespace TB.DanceDance.API
                 new Client
                 {
                     ClientId = "tbdancedancefront",
-
-                    // no interactive user, use the clientid/secret for authentication
                     AllowedGrantTypes = GrantTypes.Code,
-                    //RequirePkce = true,
+                    RequirePkce = true,
 
                     // secret for authentication
                     ClientSecrets =
                     {
                         new Secret("secret".Sha256())
                     },
+                    RequireClientSecret = false,
 
                     RedirectUris = { "http://localhost:3000/callback.html", "http://localhost:3000/" },
+                    
+                    AllowedCorsOrigins =
+                    {
+                        "http://localhost:3000",
+                        "https://localhost:3000"
+                    },
 
                     // scopes that client has access to
                     AllowedScopes = { "tbdancedanceapi.read", "openid", "profile" }
