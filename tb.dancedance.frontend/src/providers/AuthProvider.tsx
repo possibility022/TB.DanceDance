@@ -1,4 +1,4 @@
-import { User } from "oidc-client";
+import { User } from "oidc-client-ts";
 import React, { Component } from "react";
 import { AuthService, IAuthService } from "../services/AuthService";
 
@@ -26,9 +26,6 @@ class DummyIAuthService implements IAuthService{
         throw new Error("Method not implemented.");
     }
     signinSilentCallback(): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    createSigninRequest(): void {
         throw new Error("Method not implemented.");
     }
     logout(): Promise<void> {

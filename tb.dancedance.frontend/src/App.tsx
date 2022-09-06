@@ -3,6 +3,7 @@ import NavigationBar from "./components/NavigationBar"
 import "./App.css"
 import "bulma/css/bulma.min.css"
 import Home from "./pages/Home"
+import { PrivateScreen } from "./pages/PrivateScreen"
 
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
 import { Callback } from "./components/AuthComponents/Callback"
@@ -27,13 +28,13 @@ function App() {
 						<Route path="/" element={<Home />}>
 						</Route>
 
-						<Route path="/private" element={<PrivateRoute element={<Home></Home>} />} />
+						<Route path="/private" element={<PrivateRoute element={<PrivateScreen></PrivateScreen>} />} />
 
 						<Route path="/callback" element={<Callback />} />
 						<Route path="/logout" element={<Logout></Logout>} />
-						<Route path="/logout/callback" element={<LogoutCallback/>} />
+						<Route path="/logout/callback" element={<LogoutCallback />} />
 						{/* <Route path="/register" element={Register} /> */}
-						<Route path="/silentrenew" element={<SilentRenew/>} />
+						<Route path="/silentrenew" element={<SilentRenew />} />
 						{/* <Route path="/" element={PublicPage} /> */}
 
 					</Routes>

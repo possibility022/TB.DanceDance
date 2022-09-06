@@ -1,4 +1,4 @@
-import { Log, User, UserManager, WebStorageStateStore } from "oidc-client";
+import { Log, User, UserManager, WebStorageStateStore } from "oidc-client-ts";
 
 import { IDENTITY_CONFIG, METADATA_OIDC } from "../authConst";
 
@@ -11,7 +11,6 @@ export interface IAuthService {
     isAuthenticated(): boolean
     signinSilent(): void
     signinSilentCallback(): Promise<void>
-    createSigninRequest(): void
     logout(): Promise<void>
     signoutRedirectCallback(): Promise<void>
 }
@@ -28,8 +27,8 @@ export class AuthService implements IAuthService {
             }
         )
 
-        Log.logger = console
-        Log.level = Log.DEBUG
+        Log.setLogger(console)
+        Log.setLevel(Log.DEBUG)
 
         this.userManager.events.addUserLoaded((user) => {
             if (window.location.href.indexOf("signin-oidc") !== -1) {
@@ -99,8 +98,7 @@ export class AuthService implements IAuthService {
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const oidcStorage = JSON.parse(item)
-
-        // HERE IS THE PROBLEM !!!!!!
+        
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return (!!oidcStorage && !!oidcStorage.access_token)
     };
@@ -119,13 +117,10 @@ export class AuthService implements IAuthService {
         await this.userManager.signinSilentCallback();
     };
 
-    createSigninRequest = () => {
-        return this.userManager.createSigninRequest();
-    };
-
     logout = async () => {
+        const idToken = localStorage.getItem("id_token")
         await this.userManager.signoutRedirect({
-            id_token_hint: localStorage.getItem("id_token")
+            id_token_hint: idToken ?? undefined
         });
         await this.userManager.clearStaleState();
     };

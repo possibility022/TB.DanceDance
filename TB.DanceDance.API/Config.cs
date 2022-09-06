@@ -38,7 +38,7 @@ namespace TB.DanceDance.API
                 new Client
                 {
                     ClientId = "tbdancedancefront",
-                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowedGrantTypes = GrantTypes.Code,
                     RequirePkce = true,
 
                     // secret for authentication
