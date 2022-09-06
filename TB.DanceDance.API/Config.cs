@@ -38,7 +38,7 @@ namespace TB.DanceDance.API
                 new Client
                 {
                     ClientId = "tbdancedancefront",
-                    AllowedGrantTypes = GrantTypes.Code,
+                    AllowedGrantTypes = GrantTypes.Implicit,
                     RequirePkce = true,
 
                     // secret for authentication
@@ -48,7 +48,7 @@ namespace TB.DanceDance.API
                     },
                     RequireClientSecret = false,
 
-                    RedirectUris = { "http://localhost:3000/callback.html", "http://localhost:3000/" },
+                    RedirectUris = { "http://localhost:3000/callback", "http://localhost:3000/" },
                     
                     AllowedCorsOrigins =
                     {

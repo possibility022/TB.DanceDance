@@ -23,5 +23,5 @@
   "include": [
     "src",
     "src/*.d.ts"
-  ]
+, "setupRun.ts"  ]
 }

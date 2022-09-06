@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useAuth } from "oidc-react";
 import { DanceType } from "../types/common";
 import VideoInformations from "../types/VideoInformations";
 

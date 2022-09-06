@@ -4,38 +4,42 @@ import "./App.css"
 import "bulma/css/bulma.min.css"
 import Home from "./pages/Home"
 
-import { AuthProvider } from 'oidc-react'
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
+import { Callback } from "./components/AuthComponents/Callback"
+import { Logout } from "./components/AuthComponents/Logout"
+import { LogoutCallback } from "./components/AuthComponents/LogoutCallback"
+import { PrivateRoute } from "./components/AuthComponents/PrivateRoute"
+import { SilentRenew } from "./components/AuthComponents/SilentRenew"
+import { AuthProvider } from "./providers/AuthProvider"
 
 function App() {
+
 
 	const [userIsSignedIn, setUserIsSignedIn] = useState(false)
 
 	return (
-		<AuthProvider
-			authority="https://localhost:7068"
-			clientId="tbdancedancefront"
-			autoSignIn={true}
-			onSignIn={(user) => {
-				setUserIsSignedIn(true)
-			}}
-			onSignOut={(options) => {
-				setUserIsSignedIn(false)
-			}}
-			scope="openid profile tbdancedanceapi.read"
-			redirectUri="http://localhost:3000/"
-		>
+		<div>
 			<NavigationBar userIsSignedIn={userIsSignedIn}></NavigationBar>
 
-			<BrowserRouter>
-				<Routes>
-					<Route path="/" element={<Home />}>
-					</Route>
-				</Routes>
-			</BrowserRouter>
+			<AuthProvider>
+				<BrowserRouter>
+					<Routes>
+						<Route path="/" element={<Home />}>
+						</Route>
 
+						<Route path="/private" element={<PrivateRoute element={<Home></Home>} />} />
 
-		</AuthProvider>
+						<Route path="/callback" element={<Callback />} />
+						<Route path="/logout" element={<Logout></Logout>} />
+						<Route path="/logout/callback" element={<LogoutCallback/>} />
+						{/* <Route path="/register" element={Register} /> */}
+						<Route path="/silentrenew" element={<SilentRenew/>} />
+						{/* <Route path="/" element={PublicPage} /> */}
+
+					</Routes>
+				</BrowserRouter>
+			</AuthProvider>
+		</div>
 	)
 }
 
