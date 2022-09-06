@@ -16,13 +16,11 @@ import { AuthProvider } from "./providers/AuthProvider"
 function App() {
 
 
-	const [userIsSignedIn, setUserIsSignedIn] = useState(false)
-
 	return (
 		<div>
-			<NavigationBar userIsSignedIn={userIsSignedIn}></NavigationBar>
-
 			<AuthProvider>
+
+			<NavigationBar></NavigationBar>
 				<BrowserRouter>
 					<Routes>
 						<Route path="/" element={<Home />}>

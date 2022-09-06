@@ -6,7 +6,7 @@ interface INavigationBarProps {
     userIsSignedIn: boolean
 }
 
-export function NavigationBar(props: INavigationBarProps) {
+export function NavigationBar() {
 
 
     return (
@@ -39,8 +39,8 @@ export function NavigationBar(props: INavigationBarProps) {
                     </div>
                     <div className="navbar-item">
                         <div className="buttons">
-                            {!props.userIsSignedIn && <LoginButton />}
-                            {props.userIsSignedIn && <LogoutButton />}
+                            <LoginButton />
+                            <LogoutButton />
                         </div>
                     </div>
                 </div>
