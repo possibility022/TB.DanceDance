@@ -100,6 +100,7 @@ export class AuthService implements IAuthService {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const oidcStorage = JSON.parse(item)
 
+        // HERE IS THE PROBLEM !!!!!!
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return (!!oidcStorage && !!oidcStorage.access_token)
     };
