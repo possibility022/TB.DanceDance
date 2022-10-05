@@ -9,11 +9,10 @@ const Home = () => {
     const service = new VideoInfoService()
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         service.LoadVideos().then((v) => {
             setVideos(v)
         }).catch(r => {
-            console.log(r)
+            console.error(r)
         })
     }, []);
 
@@ -23,7 +22,7 @@ const Home = () => {
         <section className="section">
             <div className="container">
                 <p className="subtitle">
-                    Zatańczmy <strong>Razem</strong>!
+                    Zatańczmy!
                 </p>
 
                 <VideoList Videos={videos}></VideoList>

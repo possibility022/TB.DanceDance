@@ -1,14 +1,6 @@
-import * as React from "react"
-import LoginButton from "./LoginButton"
-import LogoutButton from "./LogoutButton"
-
-interface INavigationBarProps {
-    userIsSignedIn: boolean
-}
+import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
 
 export function NavigationBar() {
-
-
     return (
         <nav className="navbar" role="navigation" aria-label="main navigation">
             <div className="navbar-brand">
@@ -32,15 +24,8 @@ export function NavigationBar() {
 
                 <div className="navbar-end">
                     <div className="navbar-item">
-                        {
-                            // props.userIsSignedIn &&
-                            // <h2>{auth.userData?.profile.name} - {auth.userData?.profile.email}</h2>
-                        }
-                    </div>
-                    <div className="navbar-item">
                         <div className="buttons">
-                            <LoginButton />
-                            <LogoutButton />
+                            <LoginLogout />
                         </div>
                     </div>
                 </div>
