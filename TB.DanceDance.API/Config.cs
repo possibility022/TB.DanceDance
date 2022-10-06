@@ -1,4 +1,5 @@
 ﻿using IdentityServer4.Models;
+using static IdentityServer4.IdentityServerConstants;
 
 namespace TB.DanceDance.API
 {
@@ -7,7 +8,8 @@ namespace TB.DanceDance.API
         public static IEnumerable<ApiScope> ApiScopes =>
            new List<ApiScope>
            {
-               new ApiScope("tbdancedanceapi.read", "TB DanceDance API - read")
+               new ApiScope("tbdancedanceapi.read", "TB DanceDance API - read"),
+               new ApiScope(LocalApi.ScopeName),
            };
 
         public static IEnumerable<ApiResource> ApiResources =>
@@ -17,9 +19,8 @@ namespace TB.DanceDance.API
                 Scopes = {"read", "write" },
                 DisplayName = "TB DanceDance API",
                 ShowInDiscoveryDocument = true,
-                
-
-                }
+                },
+                new ApiResource(LocalApi.ScopeName),
            };
 
         public static IEnumerable<IdentityResource> GetIdentityResources()
@@ -49,7 +50,7 @@ namespace TB.DanceDance.API
                     RequireClientSecret = false,
 
                     RedirectUris = { "http://localhost:3000/callback", "http://localhost:3000/" },
-                    
+
                     AllowedCorsOrigins =
                     {
                         "http://localhost:3000",
@@ -57,7 +58,7 @@ namespace TB.DanceDance.API
                     },
 
                     // scopes that client has access to
-                    AllowedScopes = { "tbdancedanceapi.read", "openid", "profile" }
+                    AllowedScopes = { "tbdancedanceapi.read", "openid", "profile", LocalApi.ScopeName }
                 }
             };
     }

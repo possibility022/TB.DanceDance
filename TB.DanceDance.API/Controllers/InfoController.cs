@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace TB.DanceDance.API.Controllers;
 
-
-[Route("/-/{controller}")]
 public class InfoController : Controller
 {
     private readonly IEnumerable<EndpointDataSource> _endpointSources;
@@ -16,7 +14,7 @@ public class InfoController : Controller
         _endpointSources = endpointSources;
     }
 
-    [HttpGet("endpoints")]
+    [HttpGet("/.endpoints")]
     public async Task<ActionResult> ListAllEndpoints()
     {
         var endpoints = _endpointSources

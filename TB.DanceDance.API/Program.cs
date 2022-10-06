@@ -1,4 +1,4 @@
-using IdentityServer4.Models;
+using IdentityServer4.AccessTokenValidation;
 using IdentityServerHost.Quickstart.UI;
 using TB.DanceDance.API;
 
@@ -25,13 +25,21 @@ builder.Services.AddCors(setup =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 //builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
-builder.Services.AddIdentityServer()
+
+// This line enables build in authentication by IdentityServer4
+// http://docs.identityserver.io/en/latest/topics/add_apis.html
+builder.Services.AddLocalApiAuthentication();
+
+// Configuration of IdentityServer4
+builder.Services
+    .AddIdentityServer()
     .AddDeveloperSigningCredential()
     .AddInMemoryApiScopes(Config.ApiScopes)
     .AddInMemoryClients(Config.Clients)
     .AddInMemoryApiResources(Config.ApiResources)
     .AddInMemoryIdentityResources(Config.GetIdentityResources())
     .AddTestUsers(TestUsers.Users);
+
 
 
 var app = builder.Build();
@@ -48,6 +56,7 @@ app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseIdentityServer();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
