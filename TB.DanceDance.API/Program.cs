@@ -1,3 +1,4 @@
+using IdentityServer4;
 using IdentityServer4.AccessTokenValidation;
 using IdentityServerHost.Quickstart.UI;
 using TB.DanceDance.API;
@@ -28,7 +29,22 @@ builder.Services.AddCors(setup =>
 
 // This line enables build in authentication by IdentityServer4
 // http://docs.identityserver.io/en/latest/topics/add_apis.html
-builder.Services.AddLocalApiAuthentication();
+
+builder.Services.AddAuthorization(o =>
+{
+    o.AddPolicy(Config.ReadScope, c =>
+    {
+        c.AddAuthenticationSchemes(IdentityServerConstants.LocalApi.AuthenticationScheme);
+        c.RequireAuthenticatedUser();
+    });
+});
+
+builder.Services
+    .AddAuthentication()
+    .AddLocalApi(o =>
+{
+    o.ExpectedScope = Config.ReadScope;
+});
 
 // Configuration of IdentityServer4
 builder.Services

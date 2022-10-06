@@ -1,15 +1,18 @@
 ﻿using IdentityServer4.Models;
-using static IdentityServer4.IdentityServerConstants;
 
 namespace TB.DanceDance.API
 {
     public class Config
     {
+
+        public const string ReadScope = "tbdancedanceapi.read";
+        public const string WriteScope = "tbdancedanceapi.write";
+
         public static IEnumerable<ApiScope> ApiScopes =>
            new List<ApiScope>
            {
                new ApiScope("tbdancedanceapi.read", "TB DanceDance API - read"),
-               new ApiScope(LocalApi.ScopeName),
+               new ApiScope("tbdancedanceapi.write", "TB DanceDance API - write")
            };
 
         public static IEnumerable<ApiResource> ApiResources =>
@@ -19,8 +22,7 @@ namespace TB.DanceDance.API
                 Scopes = {"read", "write" },
                 DisplayName = "TB DanceDance API",
                 ShowInDiscoveryDocument = true,
-                },
-                new ApiResource(LocalApi.ScopeName),
+                }
            };
 
         public static IEnumerable<IdentityResource> GetIdentityResources()
@@ -58,7 +60,7 @@ namespace TB.DanceDance.API
                     },
 
                     // scopes that client has access to
-                    AllowedScopes = { "tbdancedanceapi.read", "openid", "profile", LocalApi.ScopeName }
+                    AllowedScopes = { "tbdancedanceapi.read", "openid", "profile" }
                 }
             };
     }

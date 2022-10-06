@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Models;
-using static IdentityServer4.IdentityServerConstants;
 
 namespace TB.DanceDance.API.Controllers;
 
-[Authorize(LocalApi.PolicyName)]
+[Authorize(Config.ReadScope)]
 public class VideoController : Controller
 {
     [Route("api/video/getinformations")]

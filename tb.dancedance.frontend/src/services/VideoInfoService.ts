@@ -44,8 +44,6 @@ export class VideoInfoService {
                     }
                 ]);
             });
-        // const token = this.auth.userData?.access_token
-        // console.log(token)
         return promise
 
     }
