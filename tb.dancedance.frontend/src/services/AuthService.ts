@@ -15,7 +15,15 @@ export interface IAuthService {
     signoutRedirectCallback(): Promise<void>
 }
 
-export class AuthService implements IAuthService {
+interface OidcStorage {
+    access_token: string
+}
+
+export interface TokenProvider {
+    getAccessToken(): string | null
+}
+
+export class AuthService implements IAuthService, TokenProvider {
 
     userManager: UserManager
 
@@ -43,6 +51,13 @@ export class AuthService implements IAuthService {
             console.log("token expired");
             this.signinSilent();
         });
+    }
+    getAccessToken = (): string | null => {
+        const oidcStorage = this.getOidcStorage()
+        if (oidcStorage?.access_token)
+            return oidcStorage.access_token
+        else
+            return null
     }
 
     signinRedirectCallback = async () => {
@@ -78,8 +93,7 @@ export class AuthService implements IAuthService {
         window.location.replace("/en/dashboard");
     };
 
-
-    isAuthenticated = () => {
+    private getOidcStorage = (): OidcStorage | null => {
 
         // this is not working due to:
         // https://stackoverflow.com/a/70452191
@@ -94,12 +108,20 @@ export class AuthService implements IAuthService {
 
         const item = sessionStorage.getItem(`oidc.user:${authEndpoint}:${clientId}`)
         if (item === null)
-            return false
+            return null
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const oidcStorage = JSON.parse(item)
+        const oidcStorage = JSON.parse(item) as OidcStorage
+        return oidcStorage
+    }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
+    isAuthenticated = () => {
+        const oidcStorage = this.getOidcStorage()
+
+        if (!oidcStorage)
+            return false
+
         return (!!oidcStorage && !!oidcStorage.access_token)
     };
 

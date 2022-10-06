@@ -12,8 +12,6 @@
     "TB.DanceDance.API": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "launchUrl": "swagger",
       "applicationUrl": "https://localhost:7068;http://localhost:5068",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

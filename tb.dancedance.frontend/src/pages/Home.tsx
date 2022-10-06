@@ -14,6 +14,12 @@ const Home = () => {
         }).catch(r => {
             console.error(r)
         })
+
+        service.LoadInformation()
+            .then(res => {
+                console.log(res)
+            }).catch(e => console.error(e))
+
     }, []);
 
     const [videos, setVideos] = useState<Array<VideoInformations>>([]);

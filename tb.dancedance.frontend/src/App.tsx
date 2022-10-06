@@ -14,13 +14,11 @@ import { SilentRenew } from "./components/AuthComponents/SilentRenew"
 import { AuthProvider } from "./providers/AuthProvider"
 
 function App() {
-
-
 	return (
 		<div>
 			<AuthProvider>
 
-			<NavigationBar></NavigationBar>
+				<NavigationBar></NavigationBar>
 				<BrowserRouter>
 					<Routes>
 						<Route path="/" element={<Home />}>

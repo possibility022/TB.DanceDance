@@ -1,13 +1,13 @@
-import axios from "axios";
 import { DanceType } from "../types/common";
 import VideoInformations from "../types/VideoInformations";
+import apiClient from "./HttpApiClient";
 
+interface VideoInfo {
+    videoName: string
+    videoId: string
+}
 
 export class VideoInfoService {
-
-
-    // auth = useAuth();
-
     async LoadVideos(): Promise<Array<VideoInformations>> {
         const promise =
             new Promise<Array<VideoInformations>>((resolve) => {
@@ -48,6 +48,11 @@ export class VideoInfoService {
         // console.log(token)
         return promise
 
+    }
+
+    async LoadInformation(): Promise<Array<VideoInfo>> {
+        const response = await apiClient.get<Array<VideoInfo>>('/api/video/getinformations')
+        return response.data
     }
 
 }
