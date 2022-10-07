@@ -12,17 +12,10 @@ namespace TB.DanceDance.VideoLoader
         {
             ConfigureLogging();
 
-            var databaseConnectionString = File.ReadAllText("databaseConnectionString.txt");
+            var loader = new Loader();
 
-            //var loader = new Loader(DanceType.WestCoastSwing,
-            //    databaseConnectionString,
-            //    File.ReadAllText("blobConnectionString.txt"));
-            
-            //var task = loader.LoadData(@"C:\Users\TomaszBak\Downloads\West coast swing");
-            //task.Wait();
-
-            var rename = new VideoRename(databaseConnectionString);
-            await rename.Rename();
+            var task = loader.LoadData(@"D:\temp\west");
+            task.Wait();
 
 
             Log.Information("Done");

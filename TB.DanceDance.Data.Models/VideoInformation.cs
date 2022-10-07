@@ -6,17 +6,18 @@ namespace TB.DanceDance.Data.Models
     public class VideoInformation
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
 
-        public string Name { get; set; }
+        public string Name { get; init; }
 
-        public string BlobId { get; set; }
+        public string BlobId { get; init; }
 
-        public DanceType Type { get; set; }
+        public DateTime CreationTimeUtc { get; init; }
+        public TimeSpan? Duration { get; init; }
 
-        public DateTime CreationTimeUtc { get; set; }
-        public TimeSpan? Duration { get; set; }
+        public string MetadataAsJson { get; init; }
 
-        public byte[] MetadataAsJson { get; set; }
+        public string PartitionKey { get => "VideoInformation"; set { if (value != "VideoInformation") throw new Exception("Wrong partition key."); } }
+
     }
 }

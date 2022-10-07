@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Data.Models;
 
 namespace TB.DanceDance.Data.Db
@@ -6,14 +7,16 @@ namespace TB.DanceDance.Data.Db
     public class ApplicationDbContext : DbContext
     {
 
-        // Quick workaround
-        public static string? ConnectionString = null;
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            if (ConnectionString != null)
-                optionsBuilder.UseSqlServer(ConnectionString);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.HasDefaultContainer("dancedance");
+            modelBuilder.Entity<VideoInformation>().HasPartitionKey(nameof(VideoInformation.PartitionKey));
         }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)

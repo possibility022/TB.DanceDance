@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -14,14 +15,18 @@ namespace TB.DanceDance.Data.Db
             if (connectionString == null)
                 throw new Exception("Could not get connection string from environments.");  //todo change this.
 
-            optionsBuilder.UseSqlServer(connectionString);
-            
+            //optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseCosmos(connectionString, "dancedanceapp", o =>
+            {
+                o.ConnectionMode(ConnectionMode.Direct);
+            });
+
             return new ApplicationDbContext(optionsBuilder.Options);
         }
 
         public static string? TryGetConnectionStringFromEnvironmentVariables()
         {
-            var connectionString = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString");
+            var connectionString = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString.Cosmos");
             return connectionString;
         }
     }

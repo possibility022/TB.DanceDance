@@ -5,10 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using MetadataExtractor;
-using Microsoft.EntityFrameworkCore;
-using NReco.VideoInfo;
 using Serilog;
-using TB.DanceDance.Data;
 using TB.DanceDance.Data.Db;
 using TB.DanceDance.Data.Models;
 using Directory = System.IO.Directory;
@@ -17,27 +14,17 @@ namespace TB.DanceDance.VideoLoader
 {
     public class Loader : IDisposable
     {
-        private readonly DanceType danceType;
-        private readonly string blobConnectionString;
         private readonly ApplicationDbContext context;
         private BlobContainerClient container;
 
-        public Loader(DanceType danceType, string databaseConnectionString, string blobConnectionString)
+        public Loader()
         {
-            if (danceType == DanceType.NotSpecified)
-                throw new ArgumentException("Dance type must be specified.");
+            var factory = new ApplicationDbContextFactory();
+            context = factory.CreateDbContext(Array.Empty<string>());
+            container = ConfigureBlob();
 
-            if (string.IsNullOrEmpty(databaseConnectionString))
-                throw new ArgumentNullException(nameof(databaseConnectionString));
-
-            if (string.IsNullOrEmpty(blobConnectionString))
-                throw new ArgumentNullException(nameof(blobConnectionString));
-
-            this.danceType = danceType;
-            this.blobConnectionString = blobConnectionString;
-            ApplicationDbContext.ConnectionString = databaseConnectionString;
-            context = new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>());
-            ConfigureBlob();
+            context.Database.EnsureCreated();
+            container.CreateIfNotExists();
         }
 
         public async Task LoadData(string folderPath)
@@ -46,7 +33,7 @@ namespace TB.DanceDance.VideoLoader
             {
                 var files = Directory.GetFiles(folderPath);
 
-                Console.WriteLine($"Are you sure to load {files.Length} files? We are going to set dance type to: {danceType} (y/N)");
+                Console.WriteLine($"Are you sure to load {files.Length} files?");
                 var input = Console.ReadLine();
                 if (input != null && input.Equals("y", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -63,10 +50,14 @@ namespace TB.DanceDance.VideoLoader
             }
         }
 
-        private void ConfigureBlob()
+        private BlobContainerClient ConfigureBlob()
         {
-            container = new BlobContainerClient(blobConnectionString, Constants.Infrastructure.VideoBlobContainerName);
-            container.CreateIfNotExists();
+            var connectionString = ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables();
+            if (connectionString == null)
+                throw new Exception("connection string is null");
+
+            container = new BlobContainerClient(connectionString, Constants.Infrastructure.VideoBlobContainerName);
+            return container;
         }
 
         private async Task LoadThemAll(ICollection<string> files)
@@ -74,12 +65,12 @@ namespace TB.DanceDance.VideoLoader
             int current = 0;
             foreach (var file in files)
             {
-                await LoadFile(file);
+                await LoadFile(file, current);
                 Log.Information("Loaded: {current}/{count}", current++, files.Count);
             }
         }
 
-        private async Task LoadFile(string file)
+        private async Task LoadFile(string file, int currentIndex)
         {
             Log.Information("Working on file {path}", file);
             string guid = Guid.NewGuid().ToString();
@@ -95,11 +86,11 @@ namespace TB.DanceDance.VideoLoader
 
             context.VideosInformation.Add(new VideoInformation()
             {
+                Id = currentIndex,
                 BlobId = guid,
                 Name = Path.GetFileName(file),
-                Type = danceType,
                 CreationTimeUtc = f.LastWriteTimeUtc,
-                MetadataAsJson = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(directories),
+                MetadataAsJson = System.Text.Json.JsonSerializer.Serialize(directories),
                 Duration = duration
             });
 
@@ -128,7 +119,7 @@ namespace TB.DanceDance.VideoLoader
             return null;
         }
 
-        private string GetValue(IEnumerable<MetadataExtractor.Directory> directories, string directoryName, string tagName)
+        private string? GetValue(IEnumerable<MetadataExtractor.Directory> directories, string directoryName, string tagName)
         {
             foreach (var directory in directories)
             {
