@@ -11,7 +11,7 @@ export function VideoList(props: ListOfVideos) {
         return (
             <tr key={r.id}>
                 <td>{r.name}</td>
-                <td>{r.recordingDate.toLocaleString()}</td>
+                <td>{r.creationTimeUtc.toLocaleString()}</td>
             </tr>
         )
     })

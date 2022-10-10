@@ -14,4 +14,13 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.23.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Data.Db\TB.DanceDance.Data.Db.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj" />
+  </ItemGroup>
+
 </Project>

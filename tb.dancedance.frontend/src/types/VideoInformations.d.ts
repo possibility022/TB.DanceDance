@@ -1,8 +1,8 @@
-import { DanceType } from "./common";
-
 export default interface VideoInformations {
     name: string
-    recordingDate: Date
+    creationTimeUtc: Date
     id: number
-    danceType: DanceType
+    blobId: string
+    duration: TimeRanges
+    MetadataAsJson: string
 }

@@ -1,7 +1,10 @@
 using IdentityServer4;
 using IdentityServer4.AccessTokenValidation;
 using IdentityServerHost.Quickstart.UI;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using TB.DanceDance.API;
+using TB.DanceDance.Data.Db;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +59,12 @@ builder.Services
     .AddInMemoryIdentityResources(Config.GetIdentityResources())
     .AddTestUsers(TestUsers.Users);
 
+//builder.Services.AddSingleton(new ApplicationDbContextFactory());
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    
+    ApplicationDbContextFactory.ApplyOptions(options);
+});
 
 
 var app = builder.Build();

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import NavigationBar from "./components/NavigationBar"
 import "./App.css"
 import "bulma/css/bulma.min.css"
 import Home from "./pages/Home"
 import { PrivateScreen } from "./pages/PrivateScreen"
 
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { Callback } from "./components/AuthComponents/Callback"
 import { Logout } from "./components/AuthComponents/Logout"
 import { LogoutCallback } from "./components/AuthComponents/LogoutCallback"
@@ -14,6 +14,7 @@ import { SilentRenew } from "./components/AuthComponents/SilentRenew"
 import { AuthProvider } from "./providers/AuthProvider"
 
 function App() {
+
 	return (
 		<div>
 			<AuthProvider>
@@ -25,7 +26,6 @@ function App() {
 						</Route>
 
 						<Route path="/private" element={<PrivateRoute element={<PrivateScreen></PrivateScreen>} />} />
-
 						<Route path="/callback" element={<Callback />} />
 						<Route path="/logout" element={<Logout></Logout>} />
 						<Route path="/logout/callback" element={<LogoutCallback />} />

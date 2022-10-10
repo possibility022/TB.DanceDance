@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { VideoList } from "../components/Videos/VideoList"
 import { VideoInfoService } from "../services/VideoInfoService"
 import VideoInformations from "../types/VideoInformations"
@@ -14,17 +14,12 @@ const Home = () => {
         }).catch(r => {
             console.error(r)
         })
-
-        service.LoadInformation()
-            .then(res => {
-                console.log(res)
-            }).catch(e => console.error(e))
-
     }, []);
 
     const [videos, setVideos] = useState<Array<VideoInformations>>([]);
 
     return (
+
         <section className="section">
             <div className="container">
                 <p className="subtitle">
@@ -35,6 +30,7 @@ const Home = () => {
 
             </div>
         </section>
+
     );
 };
 

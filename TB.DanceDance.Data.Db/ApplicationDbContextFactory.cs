@@ -11,6 +11,13 @@ namespace TB.DanceDance.Data.Db
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
+            ApplyOptions(optionsBuilder);
+
+            return new ApplicationDbContext(optionsBuilder.Options);
+        }
+
+        public static void ApplyOptions(DbContextOptionsBuilder optionsBuilder)
+        {
             var connectionString = TryGetConnectionStringFromEnvironmentVariables();
             if (connectionString == null)
                 throw new Exception("Could not get connection string from environments.");  //todo change this.
@@ -20,8 +27,6 @@ namespace TB.DanceDance.Data.Db
             {
                 o.ConnectionMode(ConnectionMode.Direct);
             });
-
-            return new ApplicationDbContext(optionsBuilder.Options);
         }
 
         public static string? TryGetConnectionStringFromEnvironmentVariables()
