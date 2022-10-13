@@ -16,13 +16,13 @@ builder.Services.AddCors(setup =>
     setup.AddDefaultPolicy(c =>
     {
         // Todo why this does not work?
-        //c.WithOrigins("http://localhost:3000/")
-        //        .AllowAnyHeader()
-        //        .AllowAnyMethod()
-        //        .SetIsOriginAllowedToAllowWildcardSubdomains();
-        c.AllowAnyHeader();
-        c.AllowAnyMethod();
-        c.AllowAnyOrigin();
+        c.WithOrigins("http://localhost:3000/", "http://localhost:3000", "https://localhost:3000/", "https://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowedToAllowWildcardSubdomains();
+        //c.AllowAnyHeader();
+        //c.AllowAnyMethod();
+        //c.AllowAnyOrigin();
 
     });
 });
