@@ -34,6 +34,9 @@ class DummyIAuthService implements IAuthService{
     signoutRedirectCallback(): Promise<void> {
         throw new Error("Method not implemented.");
     }
+    getAccessToken(): string | null {
+        throw new Error("Method not implemented.");
+    }
 
 }
 

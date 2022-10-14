@@ -25,7 +25,7 @@ function App() {
 						<Route path="/" element={<Home />}>
 						</Route>
 
-						<Route path="/private" element={<PrivateRoute element={<PrivateScreen></PrivateScreen>} />} />
+						<Route path="/private" element={<PrivateRoute element={<PrivateScreen videoUrl="https://localhost:7068/api/video/stream/8aea6fac-a1cb-420d-bffa-ffc56e4c43f0"></PrivateScreen>} />} />
 						<Route path="/callback" element={<Callback />} />
 						<Route path="/logout" element={<Logout></Logout>} />
 						<Route path="/logout/callback" element={<LogoutCallback />} />

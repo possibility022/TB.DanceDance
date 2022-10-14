@@ -7,4 +7,8 @@ export class VideoInfoService {
         const response = await apiClient.get<Array<VideoInformations>>('/api/video/getinformations')
         return response.data
     }
+
+    GetVideoUrl(videoInfo: VideoInformations) {
+        return apiClient.getUri() + 'api/video/stream/' + videoInfo.blobId
+    }
 }

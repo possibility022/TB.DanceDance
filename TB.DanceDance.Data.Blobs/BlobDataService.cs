@@ -14,7 +14,7 @@ namespace TB.DanceDance.Data.Blobs
 
         public BlobDataService(string blobConnectionString)
         {
-            this.blobConnectionString = blobConnectionString;
+            this.blobConnectionString = blobConnectionString ?? throw new ArgumentNullException(nameof(blobConnectionString));
             ConfigureBlob();
         }
 

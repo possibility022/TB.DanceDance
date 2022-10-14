@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.Db\TB.DanceDance.Data.Db.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj" />
   </ItemGroup>

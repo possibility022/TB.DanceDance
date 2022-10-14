@@ -2,7 +2,7 @@ import { Log, User, UserManager, WebStorageStateStore } from "oidc-client-ts";
 
 import { IDENTITY_CONFIG, METADATA_OIDC } from "../authConst";
 
-export interface IAuthService {
+export interface IAuthService extends TokenProvider  {
     signinRedirectCallback(): Promise<void>
     getUser(): Promise<User>
     parseJwt(token: string): object

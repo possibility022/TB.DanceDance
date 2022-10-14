@@ -4,6 +4,7 @@ using IdentityServerHost.Quickstart.UI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using TB.DanceDance.API;
+using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.Db;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,10 +60,14 @@ builder.Services
     .AddInMemoryIdentityResources(Config.GetIdentityResources())
     .AddTestUsers(TestUsers.Users);
 
+builder.Services
+    .AddSingleton<IBlobDataService>(new BlobDataService(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables()));
+
+// For some reason this does not work :(
 //builder.Services.AddSingleton(new ApplicationDbContextFactory());
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    
     ApplicationDbContextFactory.ApplyOptions(options);
 });
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using MetadataExtractor;
 using Serilog;
+using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.Db;
 using TB.DanceDance.Data.Models;
 using Directory = System.IO.Directory;
