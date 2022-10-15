@@ -39,11 +39,11 @@ namespace TB.DanceDance.VideoLoader
             this.ffmpgExecutionFile = ffmpgExecutionFile ?? throw new ArgumentNullException(nameof(ffmpgExecutionFile));
         }
 
-        public async Task LoadData(string folderPath)
+        public async Task LoadData(string folderPath, string searchPattern)
         {
             if (Directory.Exists(folderPath))
             {
-                var files = Directory.GetFiles(folderPath, "*.webm");
+                var files = Directory.GetFiles(folderPath, searchPattern);
 
                 Console.WriteLine($"Are you sure to load {files.Length} files?");
                 var input = Console.ReadLine();
@@ -74,7 +74,7 @@ namespace TB.DanceDance.VideoLoader
 
         private async Task LoadThemAll(ICollection<string> files)
         {
-            int current = 12;
+            int current = 13;
             foreach (var file in files)
             {
                 await LoadFile(file, current);
