@@ -12,9 +12,9 @@ namespace TB.DanceDance.VideoLoader
         {
             ConfigureLogging();
 
-            var loader = new Loader();
+            var loader = new Loader(@"C:\Users\TomaszBak\Downloads\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe");
 
-            var task = loader.LoadData(@"D:\temp\west");
+            var task = loader.LoadData(@"C:\Users\TomaszBak\Downloads\ffmpeg-master-latest-win64-gpl\bin");
             task.Wait();
 
 
