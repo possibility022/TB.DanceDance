@@ -74,11 +74,13 @@ namespace TB.DanceDance.VideoLoader
 
         private async Task LoadThemAll(ICollection<string> files)
         {
-            int current = 13;
+            var initial = context.VideosInformation.Count() + 1;
+            var all = initial + files.Count;
+            int current = initial;
             foreach (var file in files)
             {
                 await LoadFile(file, current);
-                Log.Information("Loaded: {current}/{count}", current++, files.Count);
+                Log.Information("Loaded: {current}/{count}", current++, all);
             }
         }
 

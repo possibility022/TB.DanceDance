@@ -14,7 +14,7 @@ namespace TB.DanceDance.VideoLoader
 
             var loader = new Loader(@"C:\Users\TomaszBak\Downloads\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe");
 
-            var task = loader.LoadData(@"G:\West\WebM", "*.webm");
+            var task = loader.LoadData(@"G:\West\WebM2", "*.webm");
             task.Wait();
 
 
