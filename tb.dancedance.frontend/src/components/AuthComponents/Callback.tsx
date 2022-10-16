@@ -11,7 +11,7 @@ export const Callback = () => {
         {({ signinRedirectCallback }: IAuthService) => {
             signinRedirectCallback()
                 .then(() => {
-                    navigate('/private')
+                    // todo: check why redirect urls stays in URL address
                 })
                 .catch(e => console.error(e));
             return <span>:D</span>;

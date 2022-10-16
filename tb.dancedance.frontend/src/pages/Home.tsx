@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { VideoList } from "../components/Videos/VideoList"
+import { useNavigate } from 'react-router-dom';
+import LoginButton from '../components/LoginLogoutComponents/LoginButton';
+import { AuthConsumer } from '../providers/AuthProvider';
+import { IAuthService } from '../services/AuthService';
 import { VideoInfoService } from "../services/VideoInfoService"
 import VideoInformations from "../types/VideoInformations"
 
@@ -7,6 +10,7 @@ import VideoInformations from "../types/VideoInformations"
 const Home = () => {
 
     const service = new VideoInfoService()
+    const navigate = useNavigate();
 
     useEffect(() => {
         service.LoadVideos().then((v) => {
@@ -18,20 +22,22 @@ const Home = () => {
 
     const [videos, setVideos] = useState<Array<VideoInformations>>([]);
 
-    return (
+    return <AuthConsumer>
+        {({ isAuthenticated, getAccessToken, signinRedirect }: IAuthService) => {
+            return (
 
-        <section className="section">
-            <div className="container">
-                <p className="subtitle">
-                    Zatańczmy!
-                </p>
+                <section className="section">
+                    <div className="container">
+                        {isAuthenticated() ?
+                            <button className="button" onClick={() => { navigate('/videos') }}>Zatańczmy</button>
+                            : <LoginButton signinRedirect={signinRedirect}></LoginButton>
+                        }
+                    </div>
+                </section>
 
-                <VideoList Videos={videos}></VideoList>
-
-            </div>
-        </section>
-
-    );
+            );
+        }}
+    </AuthConsumer>
 };
 
 export default Home;
