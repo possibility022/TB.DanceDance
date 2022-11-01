@@ -20,6 +20,8 @@ const Home = () => {
         })
     }, []);
 
+    const envVariables = JSON.stringify(process.env)
+
     const [videos, setVideos] = useState<Array<VideoInformations>>([]);
 
     return <AuthConsumer>
@@ -32,6 +34,9 @@ const Home = () => {
                             <button className="button" onClick={() => { navigate('/videos') }}>Zatańczmy</button>
                             : <LoginButton signinRedirect={signinRedirect}></LoginButton>
                         }
+                    </div>
+                    <div hidden={true}>
+                        <p>{envVariables}</p>
                     </div>
                 </section>
 
