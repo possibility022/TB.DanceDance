@@ -5,8 +5,16 @@ import { AuthService, TokenProvider } from './AuthService';
 const tokenProvider: TokenProvider = new AuthService()
 
 export const apiClientFactory = () => {
+
+    let baseUrl = process.env.REACT_APP_API_BASE_URL
+
+    if (!baseUrl)
+    {
+        baseUrl = 'https://localhost:7068'
+    }
+    
     const instance = axios.create({
-        baseURL: 'https://localhost:7068'
+        baseURL: baseUrl
     });
 
     applyInterceptor(instance)

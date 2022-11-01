@@ -1,8 +1,8 @@
 import { Log, User, UserManager, WebStorageStateStore } from "oidc-client-ts";
 
-import { IDENTITY_CONFIG, METADATA_OIDC } from "../authConst";
+import { IDENTITY_CONFIG, METADATA_OIDC, replaceValues } from "../authConst";
 
-export interface IAuthService extends TokenProvider  {
+export interface IAuthService extends TokenProvider {
     signinRedirectCallback(): Promise<void>
     getUser(): Promise<User>
     parseJwt(token: string): object
@@ -28,9 +28,15 @@ export class AuthService implements IAuthService, TokenProvider {
     userManager: UserManager
 
     constructor() {
+
+        // todo
+        const identityConfig = replaceValues(IDENTITY_CONFIG)
+        if (!identityConfig)
+            throw new Error("Something wrong with identity config. It is null or undefined");
+
         this.userManager = new UserManager(
             {
-                ...IDENTITY_CONFIG,
+                ...identityConfig,
                 userStore: new WebStorageStateStore({ store: window.sessionStorage })
             }
         )
@@ -103,8 +109,17 @@ export class AuthService implements IAuthService, TokenProvider {
         // if (!process.env.REACT_APP_IDENTITY_CLIENT_ID)
         //     throw new Error("SETTINGS NOT CONFIGURED")
 
-        const authEndpoint = METADATA_OIDC.authorization_endpoint;
-        const clientId = IDENTITY_CONFIG.client_id
+        // todo
+        const identityConfig = replaceValues(IDENTITY_CONFIG)
+        if (!identityConfig)
+            throw new Error("Something wrong with identity config. It is null or undefined");
+
+        const metadataOidc = replaceValues(METADATA_OIDC)
+        if (!metadataOidc)
+            throw new Error("Something wrong with identity config. It is null or undefined");
+
+        const authEndpoint = metadataOidc.authorization_endpoint;
+        const clientId = identityConfig.client_id
 
         const item = sessionStorage.getItem(`oidc.user:${authEndpoint}:${clientId}`)
         if (item === null)
