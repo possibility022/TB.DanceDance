@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
-    <PackageReference Include="MetadataExtractor" Version="2.6.0" />
+    <PackageReference Include="MetadataExtractor" Version="2.7.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.8" />
     <PackageReference Include="NReco.VideoConverter" Version="1.1.4" />
     <PackageReference Include="NReco.VideoInfo" Version="1.1.1" />
@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Data.Db\TB.DanceDance.Data.Db.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Data.Models\TB.DanceDance.Data.Models.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Services\TB.DanceDance.Services.csproj" />
   </ItemGroup>
 
 </Project>

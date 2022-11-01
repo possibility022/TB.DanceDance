@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using TB.DanceDance.Data.Db;
 
 namespace TB.DanceDance.Data.Blobs
 {
@@ -12,15 +11,15 @@ namespace TB.DanceDance.Data.Blobs
         private readonly string blobConnectionString;
         private BlobContainerClient container;
 
-        public BlobDataService(string blobConnectionString)
+        public BlobDataService(string blobConnectionString, string containerName)
         {
             this.blobConnectionString = blobConnectionString ?? throw new ArgumentNullException(nameof(blobConnectionString));
-            ConfigureBlob();
+            ConfigureBlob(containerName);
         }
 
-        private void ConfigureBlob()
+        private void ConfigureBlob(string containerName)
         {
-            container = new BlobContainerClient(blobConnectionString, Constants.Infrastructure.VideoBlobContainerName);
+            container = new BlobContainerClient(blobConnectionString, containerName);
             container.CreateIfNotExists();
         }
 
@@ -30,10 +29,17 @@ namespace TB.DanceDance.Data.Blobs
             return client.OpenReadAsync(new BlobOpenReadOptions(false));
         }
 
+        public Task Upload(string blobId, Stream stream)
+        {
+            var client = container.GetBlobClient(blobId);
+            return client.UploadAsync(stream);
+        }
+
     }
 
     public interface IBlobDataService
     {
         Task<Stream> OpenStream(string blobName);
+        Task Upload(string blobId, Stream stream);
     }
 }

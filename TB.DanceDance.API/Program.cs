@@ -1,11 +1,12 @@
 using IdentityServer4;
-using IdentityServer4.AccessTokenValidation;
 using IdentityServerHost.Quickstart.UI;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
+using MongoDB.Driver;
 using TB.DanceDance.API;
+using TB.DanceDance.Configurations;
 using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.Db;
+using TB.DanceDance.Data.MongoDb;
+using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,33 @@ builder.Services.AddAuthorization(o =>
     });
 });
 
+
+var config = new MongoDbConfiguration();
+builder.Services
+    .AddSingleton<IMongoClient>((services) =>
+    {
+        return MongoDatabaseFactory.GetClient();
+    })
+    .AddSingleton<IMongoDatabase>((services) =>
+    {
+        var mongoClient = services.GetRequiredService<IMongoClient>();
+        var db = mongoClient.GetDatabase(config.Database);
+        return db;
+    })
+    .AddSingleton<IMongoCollection<VideoInformation>>(services =>
+    {
+        var db = services.GetRequiredService<IMongoDatabase>();
+        var collection = db.GetCollection<VideoInformation>(config.VideoCollection);
+        return collection;
+    });
+
+var blobConfig = new BlobConfiguration();
+
+builder.Services
+    .AddSingleton<IBlobDataService>(new BlobDataService(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables(), blobConfig.BlobContainer))
+    .AddScoped<IVideoService, VideoService>()
+    .AddScoped<IVideoFileLoader, FakeFileLoader>();
+
 builder.Services
     .AddAuthentication()
     .AddLocalApi(o =>
@@ -60,16 +88,8 @@ builder.Services
     .AddInMemoryIdentityResources(Config.GetIdentityResources())
     .AddTestUsers(TestUsers.Users);
 
-builder.Services
-    .AddSingleton<IBlobDataService>(new BlobDataService(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables()));
 
-// For some reason this does not work :(
-//builder.Services.AddSingleton(new ApplicationDbContextFactory());
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    ApplicationDbContextFactory.ApplyOptions(options);
-});
 
 
 var app = builder.Build();

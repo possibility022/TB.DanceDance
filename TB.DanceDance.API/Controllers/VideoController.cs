@@ -1,11 +1,9 @@
 ﻿using IdentityServer4;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.Db;
-using TB.DanceDance.Data.Models;
+using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Controllers;
 
@@ -13,25 +11,21 @@ namespace TB.DanceDance.API.Controllers;
 public class VideoController : Controller
 {
 
-    public VideoController(ApplicationDbContext dbContext, IBlobDataService videoBlobService, ITokenValidator tokenValidator)
+    public VideoController(IVideoService videoService, ITokenValidator tokenValidator)
     {
-        this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        this.videoBlobService = videoBlobService ?? throw new ArgumentNullException(nameof(videoBlobService));
-        this.tokenValidator = tokenValidator ?? throw new ArgumentNullException(nameof(tokenValidator));
+        this.videoService = videoService;
+        this.tokenValidator = tokenValidator;
     }
 
-    public ApplicationDbContext dbContext;
-    private readonly IBlobDataService videoBlobService;
+    private readonly IVideoService videoService;
     private readonly ITokenValidator tokenValidator;
 
     [Route("api/video/getinformations")]
     [HttpGet]
-    public IEnumerable<VideoInformation> GetInformations()
+    public async Task<IEnumerable<VideoInformation>> GetInformationsAsync()
     {
-        return dbContext.VideosInformation;
+        return await videoService.GetVideos();
     }
-
-
 
     [Route("api/video/stream/{guid}")]
     [HttpGet]
@@ -48,7 +42,7 @@ public class VideoController : Controller
         if (validationRes.IsError)
             return Unauthorized();
 
-        var stream = await videoBlobService.OpenStream(guid);
+        var stream = await videoService.OpenStream(guid);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 }

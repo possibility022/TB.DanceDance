@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MetadataExtractor" Version="2.7.2" />
+    <PackageReference Include="xFFmpeg.NET" Version="7.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.MongoDb\TB.DanceDance.Data.MongoDb.csproj" />
+  </ItemGroup>
+
+</Project>
