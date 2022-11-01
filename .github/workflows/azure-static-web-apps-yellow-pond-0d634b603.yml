@@ -23,7 +23,7 @@ jobs:
         env:
           CI: ""
           REACT_APP_REDIRECT_URI: ${{ secrets.REACT_APP_REDIRECT_URI }}
-          REACT_APP_AUTH_URL_TO_REPLACE: ${{ secrets.REACT_APP_AUTH_URL }}
+          REACT_APP_AUTH_URL: ${{ secrets.REACT_APP_AUTH_URL }}
           REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL }}
         uses: Azure/static-web-apps-deploy@v1
         with:
