@@ -1,6 +1,7 @@
 import * as React from 'react';
 import VideoInformations from '../../types/VideoInformations';
-import { IonIcon } from "react-ion-icon";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
 import { Button } from '../Button';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,8 +25,8 @@ export function VideoList(props: ListOfVideos) {
                 <td>{r.creationTimeUtc.toLocaleString()}</td>
                 <td>
                     <Button
-                        onClick={e => goToVideo(r)}
-                        content={<IonIcon size='large' name="play-outline" />} />
+                        onClick={() => goToVideo(r)}
+                        content={<FontAwesomeIcon icon={faPlayCircle} />} />
                 </td>
 
             </tr>

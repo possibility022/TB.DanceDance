@@ -1,5 +1,4 @@
 import React from "react";
-import { Route } from "react-router-dom";
 import { AuthConsumer } from "../../providers/AuthProvider";
 import { IAuthService } from "../../services/AuthService";
 

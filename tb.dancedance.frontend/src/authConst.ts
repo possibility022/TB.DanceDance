@@ -64,7 +64,7 @@ type MetadataOidc = {
 // todo get rid of this
 export function replaceValues<T>(input: T) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const c: any = { input }
+    const c: any = { ...input }
     let autUrl = process.env.REACT_APP_AUTH_URL as string
 
     if (!autUrl) {
@@ -72,16 +72,17 @@ export function replaceValues<T>(input: T) {
     }
 
     let redirectUri = process.env.REACT_APP_REDIRECT_URI
-    if (!redirectUri)
-    {
+    if (!redirectUri) {
         redirectUri = REACT_APP_REDIRECT_URI_TO_REPLACE
     }
 
     for (const key in c) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const v = c[key] as string
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        c[key] = v.replaceAll(REACT_APP_AUTH_URL_TO_REPLACE, autUrl).replaceAll(REACT_APP_REDIRECT_URI_TO_REPLACE, redirectUri)
+        const v = c[key]
+        if (typeof v === 'string') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            c[key] = v.replaceAll(REACT_APP_AUTH_URL_TO_REPLACE, autUrl).replaceAll(REACT_APP_REDIRECT_URI_TO_REPLACE, redirectUri)
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return

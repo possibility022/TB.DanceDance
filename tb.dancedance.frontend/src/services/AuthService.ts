@@ -44,7 +44,7 @@ export class AuthService implements IAuthService, TokenProvider {
         Log.setLogger(console)
         Log.setLevel(Log.DEBUG)
 
-        this.userManager.events.addUserLoaded((user) => {
+        this.userManager.events.addUserLoaded(() => {
             if (window.location.href.indexOf("signin-oidc") !== -1) {
                 this.navigateToScreen();
             }
