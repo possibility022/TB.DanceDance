@@ -7,5 +7,6 @@ namespace TB.DanceDance.Services
     {
         Task<Stream> OpenStream(string blobName);
         Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null);
+        Task<VideoInformation> UploadVideoAsync(string filePath, CancellationToken cancellationToken);
     }
 }

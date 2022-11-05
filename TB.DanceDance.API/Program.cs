@@ -1,10 +1,9 @@
 using IdentityServer4;
 using IdentityServer4.Models;
 using MongoDB.Driver;
-using TB.DanceDance.API;
-using TB.DanceDance.API.Extensions;
-using TB.DanceDance.API.IdentityServerStore;
 using TB.DanceDance.Configurations;
+using TB.DanceDance.Core;
+using TB.DanceDance.Core.IdentityServerStore;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.MongoDb;
 using TB.DanceDance.Data.MongoDb.Models;
@@ -52,32 +51,9 @@ builder.Services.AddAuthorization(o =>
     });
 });
 
-
-var mongoDbConfig = new MongoDbConfiguration();
 builder.Services
-    .AddSingleton<IMongoClient>((services) =>
-    {
-        return MongoDatabaseFactory.GetClient();
-    })
-    .AddSingleton<IMongoDatabase>((services) =>
-    {
-        var mongoClient = services.GetRequiredService<IMongoClient>();
-        var db = mongoClient.GetDatabase(mongoDbConfig.Database);
-        return db;
-    })
-    .AddMongoCollection<ApiResource>(mongoDbConfig.ApiResourceCollection)
-    .AddMongoCollection<IdentityResource>(mongoDbConfig.IdentityResourceCollection)
-    .AddMongoCollection<ApiScope>(mongoDbConfig.ApiScopeCollection)
-    .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection)
-    .AddMongoCollection<Client>(mongoDbConfig.ApiClientCollection)
-    .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection);
-
-var blobConfig = new BlobConfiguration();
-
-builder.Services
-    .AddSingleton<IBlobDataService>(new BlobDataService(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables(), blobConfig.BlobContainer))
-    .AddScoped<IVideoService, VideoService>()
-    .AddScoped<IVideoFileLoader, FakeFileLoader>();
+    .ConfigureDb()
+    .ConfigureVideoServices();
 
 builder.Services
     .AddAuthentication()
@@ -102,7 +78,9 @@ if (setIdentityServerAsProduction)
 }
 else
 {
-    builder.Services.AddSingleton<TestUsersService>();
+    builder.Services
+        .AddSingleton<IUserService, TestUsersService>();
+
     identityBuilder
         .AddDeveloperSigningCredential()
         .AddInMemoryApiScopes(Config.ApiScopes)

@@ -3,11 +3,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
-using TB.DanceDance.Configurations;
-using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.MongoDb;
-using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using TB.DanceDance.Core;
+using TB.DanceDance.Core.IdentityServerStore;
 
 namespace TB.DanceDance.VideoLoader
 {
@@ -17,22 +17,24 @@ namespace TB.DanceDance.VideoLoader
 
         static async Task Main(string[] args)
         {
-            ConfigureLogging();
+            var buidler = Host.CreateDefaultBuilder();
 
-            var mongoConfig = new MongoDbConfiguration();
-            var blobConfig = new BlobConfiguration();
+            buidler.ConfigureServices(services =>
+            {
+                services.ConfigureDb()
+                    .ConfigureVideoServices(null, (s) => new VideoFileLoader(FFMPGPath))
+                    .ConfigureIdentityStorage();
+            });
 
-            var mongoClient = MongoDatabaseFactory.GetClient();
-            var db = mongoClient.GetDatabase(mongoConfig.Database);
-            
+            buidler.UseSerilog();
 
-            var collection = db.GetCollection<VideoInformation>(mongoConfig.VideoCollection);
 
-            var blobService = new BlobDataService(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables(), blobConfig.BlobContainer);
+            var app = buidler.Build();
 
-            var videoFileLoader = new VideoFileLoader(FFMPGPath);
+            await SetBasicIdentityConfiguration(app.Services.GetRequiredService<IdentityResourceMongoStore>(), app.Services.GetRequiredService<IdentityClientMongoStore>());
+            return;
 
-            var service = new VideoService(collection, blobService, videoFileLoader);
+            var service = app.Services.GetRequiredService<IVideoService>();
 
             var files = Directory.GetFiles("G:\\West\\WebM2");
 
@@ -45,7 +47,22 @@ namespace TB.DanceDance.VideoLoader
             Log.Information("Done");
         }
 
-        private static void ConfigureLogging()
+        public static async Task SetBasicIdentityConfiguration(IdentityResourceMongoStore resources, IdentityClientMongoStore clientStore)
+        {
+            foreach (var ir in Config.GetIdentityResources())
+                await resources.AddIdentityResource(ir);
+
+            foreach (var apiRes in Config.ApiResources)
+                await resources.AddApiResource(apiRes);
+
+            foreach (var apiScope in Config.ApiScopes)
+                await resources.AddApiScopeAsync(apiScope);
+
+            foreach (var client in Config.Clients)
+                await clientStore.AddClientAsync(client);
+        }
+
+        private static void ConfigureLogging(IServiceCollection services)
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.MongoDb\TB.DanceDance.Data.MongoDb.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Identity\TB.DanceDance.Identity.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Services\TB.DanceDance.Services.csproj" />
+  </ItemGroup>
+
+</Project>

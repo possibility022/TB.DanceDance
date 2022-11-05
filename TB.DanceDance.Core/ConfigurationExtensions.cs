@@ -1,18 +1,24 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 
-namespace TB.DanceDance.API.Extensions
+namespace TB.DanceDance.Core
 {
     public static class ConfigurationExtensions
     {
-        public static IServiceCollection AddMongoCollection<T>(this IServiceCollection services, string collectionName, bool makeSureCreated = true)
+        public static IServiceCollection AddMongoCollection<T>(this IServiceCollection services,
+            string collectionName,
+            string? idProperty = null,
+            bool makeSureCreated = false)
         {
-            return services.AddSingleton<IMongoCollection<T>>(s =>
+            return services.AddSingleton(s =>
             {
                 var db = s.GetRequiredService<IMongoDatabase>();
 
                 if (makeSureCreated)
                 {
-                    var col = db.ListCollectionNames()
+                    var col = db
+                        .ListCollectionNames()
                         .ToList();
 
                     if (!col.Contains(collectionName))
