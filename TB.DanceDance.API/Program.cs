@@ -1,6 +1,7 @@
 using IdentityServer4;
 using IdentityServer4.Models;
 using MongoDB.Driver;
+using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
@@ -72,9 +73,18 @@ var setIdentityServerAsProduction = builder.Environment.IsProduction();
 if (setIdentityServerAsProduction)
 {
     builder.Services.AddScoped<IUserService, UserService>();
+
+    var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
+    if (cert == null)
+        throw new Exception("Cert is not available in environment variables");
+
+    var password = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCertPassword");
+    var certBytes = Convert.FromBase64String(cert);
+
     identityBuilder
         .AddClientStore<IdentityClientMongoStore>()
-        .AddResourceStore<IdentityResourceMongoStore>();
+        .AddResourceStore<IdentityResourceMongoStore>()
+        .AddSigningCredential(new X509Certificate2(certBytes, password));
 }
 else
 {
