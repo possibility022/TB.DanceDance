@@ -31,9 +31,6 @@ namespace TB.DanceDance.VideoLoader
 
             var app = buidler.Build();
 
-            await SetBasicIdentityConfiguration(app.Services.GetRequiredService<IdentityResourceMongoStore>(), app.Services.GetRequiredService<IdentityClientMongoStore>());
-            return;
-
             var service = app.Services.GetRequiredService<IVideoService>();
 
             var files = Directory.GetFiles("G:\\West\\WebM2");
