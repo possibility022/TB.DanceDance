@@ -7,7 +7,7 @@ namespace TB.DanceDance.Services.Models
     public class UserModel
     {
         [BsonId]
-        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         public string? SubjectId { get; set; }
 
         /// <summary>
