@@ -84,7 +84,7 @@ if (setIdentityServerAsProduction)
     identityBuilder
         .AddClientStore<IdentityClientMongoStore>()
         .AddResourceStore<IdentityResourceMongoStore>()
-        .AddSigningCredential(new X509Certificate2(certBytes, password));
+        .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else
 {
