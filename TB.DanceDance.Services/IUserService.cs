@@ -6,5 +6,7 @@ namespace TB.DanceDance.Services
     {
         Task<UserModel> FindUserByNameAsync(string name);
         bool ValidateCredentials(string username, string password);
+
+        Task AddUpsertUserAsync(UserModel model);
     }
 }
