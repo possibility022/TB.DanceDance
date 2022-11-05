@@ -1,12 +1,15 @@
 using IdentityServer4;
-using IdentityServerHost.Quickstart.UI;
+using IdentityServer4.Models;
 using MongoDB.Driver;
 using TB.DanceDance.API;
+using TB.DanceDance.API.Extensions;
+using TB.DanceDance.API.IdentityServerStore;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.MongoDb;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Services;
+using TB.DanceDance.Services.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +53,7 @@ builder.Services.AddAuthorization(o =>
 });
 
 
-var config = new MongoDbConfiguration();
+var mongoDbConfig = new MongoDbConfiguration();
 builder.Services
     .AddSingleton<IMongoClient>((services) =>
     {
@@ -59,15 +62,15 @@ builder.Services
     .AddSingleton<IMongoDatabase>((services) =>
     {
         var mongoClient = services.GetRequiredService<IMongoClient>();
-        var db = mongoClient.GetDatabase(config.Database);
+        var db = mongoClient.GetDatabase(mongoDbConfig.Database);
         return db;
     })
-    .AddSingleton<IMongoCollection<VideoInformation>>(services =>
-    {
-        var db = services.GetRequiredService<IMongoDatabase>();
-        var collection = db.GetCollection<VideoInformation>(config.VideoCollection);
-        return collection;
-    });
+    .AddMongoCollection<ApiResource>(mongoDbConfig.ApiResourceCollection)
+    .AddMongoCollection<IdentityResource>(mongoDbConfig.IdentityResourceCollection)
+    .AddMongoCollection<ApiScope>(mongoDbConfig.ApiScopeCollection)
+    .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection)
+    .AddMongoCollection<Client>(mongoDbConfig.ApiClientCollection)
+    .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection);
 
 var blobConfig = new BlobConfiguration();
 
@@ -83,19 +86,30 @@ builder.Services
     o.ExpectedScope = Config.ReadScope;
 });
 
+
 // Configuration of IdentityServer4
-builder.Services
-    .AddIdentityServer()
-    .AddDeveloperSigningCredential()
-    .AddInMemoryApiScopes(Config.ApiScopes)
-    .AddInMemoryClients(Config.Clients)
-    .AddInMemoryApiResources(Config.ApiResources)
-    .AddInMemoryIdentityResources(Config.GetIdentityResources())
-    .AddTestUsers(TestUsers.Users);
+var identityBuilder = builder.Services
+    .AddIdentityServer();
 
+var setIdentityServerAsProduction = builder.Environment.IsProduction();
 
-
-
+if (setIdentityServerAsProduction)
+{
+    builder.Services.AddScoped<IUserService, UserService>();
+    identityBuilder
+        .AddClientStore<IdentityClientMongoStore>()
+        .AddResourceStore<IdentityResourceMongoStore>();
+}
+else
+{
+    builder.Services.AddSingleton<TestUsersService>();
+    identityBuilder
+        .AddDeveloperSigningCredential()
+        .AddInMemoryApiScopes(Config.ApiScopes)
+        .AddInMemoryClients(Config.Clients)
+        .AddInMemoryApiResources(Config.ApiResources)
+        .AddInMemoryIdentityResources(Config.GetIdentityResources());
+}
 
 var app = builder.Build();
 app.UseCors();
@@ -107,7 +121,6 @@ app.UseCors();
 //    app.UseSwaggerUI();
 //}
 
-
 app.UseHttpsRedirection();
 
 app.UseIdentityServer();
@@ -115,3 +128,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+
