@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using TB.DanceDance.Services;
 
 namespace IdentityServerHost.Quickstart.UI
 {
@@ -21,27 +22,25 @@ namespace IdentityServerHost.Quickstart.UI
     [AllowAnonymous]
     public class ExternalController : Controller
     {
-        private readonly TestUserStore _users;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly ILogger<ExternalController> _logger;
         private readonly IEventService _events;
+        private readonly IUserService users;
 
         public ExternalController(
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IEventService events,
-            ILogger<ExternalController> logger,
-            TestUserStore users = null)
+            IUserService users,
+            ILogger<ExternalController> logger)
         {
-            // if the TestUserStore is not in DI, then we'll just use the global users collection
-            // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-            _users = users ?? new TestUserStore(TestUsers.Users);
 
             _interaction = interaction;
             _clientStore = clientStore;
             _logger = logger;
             _events = events;
+            this.users = users;
         }
 
         /// <summary>
@@ -162,15 +161,17 @@ namespace IdentityServerHost.Quickstart.UI
             var providerUserId = userIdClaim.Value;
 
             // find external user
-            var user = _users.FindByExternalProvider(provider, providerUserId);
+            throw new NotImplementedException();
+            // var user = users.FindByExternalProvider(provider, providerUserId);
 
-            return (user, provider, providerUserId, claims);
+            //return (user, provider, providerUserId, claims);
         }
 
         private TestUser AutoProvisionUser(string provider, string providerUserId, IEnumerable<Claim> claims)
         {
-            var user = _users.AutoProvisionUser(provider, providerUserId, claims.ToList());
-            return user;
+            throw new NotImplementedException();
+            //var user = users.AutoProvisionUser(provider, providerUserId, claims.ToList());
+            //return user;
         }
 
         // if the external login is OIDC-based, there are certain things we need to preserve to make logout work

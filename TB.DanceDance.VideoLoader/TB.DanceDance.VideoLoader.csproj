@@ -13,14 +13,14 @@
     <PackageReference Include="NReco.VideoConverter" Version="1.1.4" />
     <PackageReference Include="NReco.VideoInfo" Version="1.1.1" />
     <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="xFFmpeg.NET" Version="7.1.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Core\TB.DanceDance.Core.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Services\TB.DanceDance.Services.csproj" />
   </ItemGroup>
 

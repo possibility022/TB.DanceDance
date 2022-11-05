@@ -2,6 +2,7 @@
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.Core;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Services;
 
