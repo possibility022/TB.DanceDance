@@ -32,6 +32,14 @@ namespace TB.DanceDance.Services
                 .Find(f => f.Username == username && f.Password == password)
                 .Any();
         }
+
+        public Task AddUpsertUserAsync(UserModel model)
+        {
+            return usersCollection.ReplaceOneAsync(f => f.SubjectId == model.SubjectId, model, new ReplaceOptions()
+            {
+                IsUpsert = true
+            });
+        }
     }
 
     public class TestUsersService : IUserService
@@ -83,6 +91,11 @@ namespace TB.DanceDance.Services
                         }
                     }
                 };
+        }
+
+        public Task AddUpsertUserAsync(UserModel model)
+        {
+            throw new NotSupportedException();
         }
 
         public Task<UserModel> FindUserByNameAsync(string name)

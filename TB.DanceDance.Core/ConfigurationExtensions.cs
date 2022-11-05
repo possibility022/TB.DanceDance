@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace TB.DanceDance.Core
@@ -8,7 +7,6 @@ namespace TB.DanceDance.Core
     {
         public static IServiceCollection AddMongoCollection<T>(this IServiceCollection services,
             string collectionName,
-            string? idProperty = null,
             bool makeSureCreated = false)
         {
             return services.AddSingleton(s =>
@@ -17,6 +15,8 @@ namespace TB.DanceDance.Core
 
                 if (makeSureCreated)
                 {
+                    // todo - make that record id is confgured here, not by properties and attributes.
+
                     var col = db
                         .ListCollectionNames()
                         .ToList();

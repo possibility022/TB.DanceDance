@@ -54,7 +54,7 @@ namespace TB.DanceDance.Core
             {
                 new()
                 {
-                    ClientId = "tbdancedancefront",
+                    ClientId = "tbdancedancefrontlocal",
                     AllowedGrantTypes = GrantTypes.Code,
                     RequirePkce = true,
 

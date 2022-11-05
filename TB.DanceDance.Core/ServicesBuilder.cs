@@ -14,7 +14,9 @@ namespace TB.DanceDance.Core
 {
     public static class ServicesBuilder
     {
-        public static IServiceCollection ConfigureDb(this IServiceCollection services, MongoDbConfiguration? mongoDbConfig = null)
+        public static IServiceCollection ConfigureDb(this IServiceCollection services,
+            MongoDbConfiguration? mongoDbConfig = null,
+            bool makeSureCollectionCreated = false)
         {
             if (mongoDbConfig == null)
                 mongoDbConfig = new MongoDbConfiguration();
@@ -29,12 +31,12 @@ namespace TB.DanceDance.Core
                     var db = mongoClient.GetDatabase(mongoDbConfig.Database);
                     return db;
                 })
-                .AddMongoCollection<ApiResourceRecord>(mongoDbConfig.ApiResourceCollection, "Name")
-                .AddMongoCollection<IdentityResourceRecord>(mongoDbConfig.IdentityResourceCollection, "Name")
-                .AddMongoCollection<ApiScopeRecord>(mongoDbConfig.ApiScopeCollection, "Name")
-                .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection, "SubjectId")
-                .AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, "ClientId")
-                .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection);
+                .AddMongoCollection<ApiResourceRecord>(mongoDbConfig.ApiResourceCollection, makeSureCollectionCreated)
+                .AddMongoCollection<IdentityResourceRecord>(mongoDbConfig.IdentityResourceCollection, makeSureCollectionCreated)
+                .AddMongoCollection<ApiScopeRecord>(mongoDbConfig.ApiScopeCollection, makeSureCollectionCreated)
+                .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection, makeSureCollectionCreated)
+                .AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, makeSureCollectionCreated)
+                .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated);
         }
 
         public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
