@@ -28,6 +28,8 @@ export function VideoPlayerScreen() {
                     <h4 className="title is-4">Triple step</h4>
                     <h5 className="title is-5">Triple step</h5>
                     <ReactPlayer
+                        width='100%'
+                        height='100%'
                         controls={true}
                         config={{ file: {attributes: {controlsList: 'nodownload'}} }}
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
