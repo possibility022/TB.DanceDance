@@ -29,7 +29,10 @@ export function VideoPlayerScreen() {
                     <h5 className="title is-5">Triple step</h5>
                     <ReactPlayer
                         controls={true}
-                        config={{ file: {} }}
+                        config={{ file: {attributes: {controlsList: 'nodownload'}} }}
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                        onContextMenu={(e: Event) => e.preventDefault()}
+
                         url={constructUrl(getAccessToken())
 
                         } />
