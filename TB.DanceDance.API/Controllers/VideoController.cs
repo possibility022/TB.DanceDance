@@ -1,5 +1,5 @@
-﻿using IdentityServer4;
-using IdentityServer4.Validation;
+﻿using Duende.IdentityServer;
+using Duende.IdentityServer.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.Core;
