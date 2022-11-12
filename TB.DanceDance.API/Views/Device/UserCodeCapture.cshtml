@@ -1,22 +1,22 @@
 @model string
 
-<div class="page-device-code">
-    <div class="lead">
+<div >
+    <div >
         <h1>User Code</h1>
         <p>Please enter the code displayed on your device.</p>
     </div>
 
     <partial name="_ValidationSummary" />
 
-    <div class="row">
-        <div class="col-sm-6">
+    <div >
+        <div >
             <form asp-action="UserCodeCapture">
-                <div class="form-group">
+                <div >
                     <label for="userCode">User Code:</label>
-                    <input class="form-control" for="userCode" name="userCode" autofocus />
+                    <input  for="userCode" name="userCode" autofocus />
                 </div>
 
-                <button class="btn btn-primary" name="button">Submit</button>
+                <button  name="button">Submit</button>
             </form>
         </div>
     </div>

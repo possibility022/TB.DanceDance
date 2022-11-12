@@ -1,17 +1,17 @@
 @model DiagnosticsViewModel
 
-<div class="diagnostics-page">
-    <div class="lead">
+<div >
+    <div >
         <h1>Authentication Cookie</h1>
     </div>
 
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
+    <div >
+        <div >
+            <div >
+                <div >
                     <h2>Claims</h2>
                 </div>
-                <div class="card-body">
+                <div >
                     <dl>
                         @foreach (var claim in Model.AuthenticateResult.Principal.Claims)
                         {
@@ -23,12 +23,12 @@
             </div>
         </div>
         
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
+        <div >
+            <div >
+                <div >
                     <h2>Properties</h2>
                 </div>
-                <div class="card-body">
+                <div >
                     <dl>
                         @foreach (var prop in Model.AuthenticateResult.Properties.Items)
                         {

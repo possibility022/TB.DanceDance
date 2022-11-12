@@ -1,8 +1,8 @@
 ﻿@model ScopeViewModel
 
-<li class="list-group-item">
+<li >
     <label>
-        <input class="consent-scopecheck"
+        <input 
                type="checkbox"
                name="ScopesConsented"
                id="scopes_@Model.Value"
@@ -18,7 +18,7 @@
         <strong>@Model.DisplayName</strong>
         @if (Model.Emphasize)
         {
-            <span class="glyphicon glyphicon-exclamation-sign"></span>
+            <span ></span>
         }
     </label>
     @if (Model.Required)
@@ -27,7 +27,7 @@
     }
     @if (Model.Description != null)
     {
-        <div class="consent-description">
+        <div >
             <label for="scopes_@Model.Value">@Model.Description</label>
         </div>
     }
