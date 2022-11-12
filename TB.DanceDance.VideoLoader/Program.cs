@@ -9,11 +9,10 @@ using Microsoft.Extensions.Hosting;
 using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
 using IdentityModel;
-using IdentityServer4;
-using static IdentityServer4.Models.IdentityResources;
 using System.Security.Claims;
 using TB.DanceDance.Services.Models;
 using System.Text.Json;
+using Duende.IdentityServer;
 
 namespace TB.DanceDance.VideoLoader
 {

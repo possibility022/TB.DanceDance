@@ -1,7 +1,6 @@
-using IdentityServer4;
-using IdentityServer4.Models;
 using MongoDB.Driver;
 using System.Security.Cryptography.X509Certificates;
+using Duende.IdentityServer;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
