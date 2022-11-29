@@ -1,8 +1,8 @@
 ﻿using IdentityModel;
+using IdentityServer4;
 using MongoDB.Driver;
 using System.Security.Claims;
 using System.Text.Json;
-using Duende.IdentityServer;
 using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services

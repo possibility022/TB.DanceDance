@@ -1,5 +1,5 @@
-﻿using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Stores;
+﻿using IdentityServer4.Models;
+using IdentityServer4.Stores;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 

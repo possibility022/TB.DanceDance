@@ -1,4 +1,4 @@
-﻿using Duende.IdentityServer.Models;
+﻿using IdentityServer4.Models;
 using TB.DanceDance.Core.IdentityServerStore;
 
 namespace TB.DanceDance.Core
