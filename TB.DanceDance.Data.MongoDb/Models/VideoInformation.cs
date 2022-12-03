@@ -2,6 +2,7 @@
 
 namespace TB.DanceDance.Data.MongoDb.Models
 {
+    // Todo, make a record
     public class VideoInformation
     {
         [BsonId]
