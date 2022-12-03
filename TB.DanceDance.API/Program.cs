@@ -79,7 +79,6 @@ if (setIdentityServerAsProduction)
     identityBuilder
         .AddClientStore<IdentityClientMongoStore>()
         .AddResourceStore<IdentityResourceMongoStore>()
-        .AddProfileService<ProfileService>()
         .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else
@@ -89,7 +88,6 @@ else
 
     identityBuilder
         .AddDeveloperSigningCredential()
-        .AddProfileService<ProfileService>()
         .AddInMemoryApiScopes(Config.ApiScopes)
         .AddInMemoryClients(Config.Clients)
         .AddInMemoryApiResources(Config.ApiResources)
