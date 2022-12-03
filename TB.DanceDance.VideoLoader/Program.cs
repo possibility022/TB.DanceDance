@@ -1,6 +1,5 @@
 ﻿using System;
-using System.IO;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Serilog;
 using TB.DanceDance.Services;
@@ -10,16 +9,20 @@ using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
 using IdentityModel;
 using IdentityServer4;
-using static IdentityServer4.Models.IdentityResources;
 using System.Security.Claims;
-using TB.DanceDance.Services.Models;
 using System.Text.Json;
+using MongoDB.Driver;
+using TB.DanceDance.Data.MongoDb.Models;
 
 namespace TB.DanceDance.VideoLoader
 {
     class Program
     {
         const string FFMPGPath = @"C:\Users\TomaszBak\Downloads\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe";
+
+        private const string TomekUserId = "1234567890123";
+
+        private static IHost app;
 
         static async Task Main(string[] args)
         {
@@ -35,22 +38,96 @@ namespace TB.DanceDance.VideoLoader
             buidler.UseSerilog();
 
 
-            var app = buidler.Build();
+            app = buidler.Build();
 
-            await SetUsersAccounts(app.Services.GetRequiredService<IUserService>());
-            return;
+            //await CreateOwnersAsync();
+            await SetVideoOwnerAsync();
 
-            var service = app.Services.GetRequiredService<IVideoService>();
+            // await SetUsersAccounts(app.Services.GetRequiredService<IUserService>());
+            // return;
 
-            var files = Directory.GetFiles("G:\\West\\WebM2");
+            // var service = app.Services.GetRequiredService<IVideoService>();
+            //
+            // var files = Directory.GetFiles("G:\\West\\WebM2");
+            //
+            // foreach (var file in files)
+            // {
+            //     Log.Information("Uploading {0}", file);
+            //     await service.UploadVideoAsync(file, CancellationToken.None);
+            // }
+            //
+            // Log.Information("Done");
+        }
 
-            foreach (var file in files)
+        private static async Task SetVideoOwnerAsync()
+        {
+            var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
+            var find  = await videos.FindAsync(FilterDefinition<VideoInformation>.Empty);
+            var videosList = find.ToList();
+
+            foreach (var videoInformation in videosList)
             {
-                Log.Information("Uploading {0}", file);
-                await service.UploadVideoAsync(file, CancellationToken.None);
+                if (videoInformation.Name.Contains("Footworki"))
+                {
+                    videoInformation.VideoOwner = new VideoOwner()
+                    {
+                        OwnerId = Constants.WarsztatyFootworki2022,
+                        OwnerType = OwnerType.Event
+                    };
+                } else if (videoInformation.Name.Contains("Rama"))
+                {
+                    videoInformation.VideoOwner = new VideoOwner()
+                    {
+                        OwnerId = Constants.WarsztatyRama2022,
+                        OwnerType = OwnerType.Event
+                    };
+                }
+                else
+                {
+                    videoInformation.VideoOwner = new VideoOwner()
+                    {
+                        OwnerId = Constants.GroupSroda1730,
+                        OwnerType = OwnerType.Group
+                    };
+                }
+            
+                await videos.ReplaceOneAsync((s) => s.Id == videoInformation.Id, videoInformation);
             }
+        }
 
-            Log.Information("Done");
+        private static async Task CreateOwnersAsync()
+        {
+            var attenders = new List<string>() { TomekUserId };
+            
+            var events = app.Services.GetRequiredService<IMongoCollection<Event>>();
+            await events.InsertManyAsync(new []
+            {
+                new Event()
+                {
+                    Id = Constants.WarsztatyFootworki2022,
+                    Attenders = attenders,
+                    Date = new DateTimeOffset(DateTime.Parse("2022-07-01T22:00:00.000+00:00")),
+                    Name = "Warsztaty - Footworki - 2022"
+                },
+                new Event()
+                {
+                    Id = Constants.WarsztatyRama2022,
+                    Attenders = attenders,
+                    Date = new DateTimeOffset(DateTime.Parse("2022-09-30T22:00:00.000+00:00")),
+                    Name = "Warsztaty - Rama - 2022"
+                }
+            });
+
+            var groups = app.Services.GetRequiredService<IMongoCollection<Group>>();
+            await groups.InsertManyAsync(new[]
+            {
+                new Group()
+                {
+                    Id = Constants.GroupSroda1730,
+                    People = attenders,
+                    GroupName = "Środy 17:30"
+                }
+            });
         }
 
         private static Task SetUsersAccounts(IUserService userService)
