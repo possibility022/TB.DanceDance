@@ -3,6 +3,14 @@ import { Link, NavLink } from "react-router-dom"
 import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
 
 export function NavigationBar() {
+
+    const onMenuClick = () => {
+        const element = document.getElementById('navbarBasicExample');
+        const burgetButton = document.getElementById('navbar-burger-button');
+        element?.classList.toggle('is-active')
+        burgetButton?.classList.toggle('is-active')
+    }
+
     return (
         <React.Fragment>
             <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -11,7 +19,7 @@ export function NavigationBar() {
                         Dance Dance
                     </h1>
 
-                    <a role="button" className="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                    <a role="button" id='navbar-burger-button' className="navbar-burger" aria-label="menu" aria-expanded="false" onClick={onMenuClick} data-target="navbarBasicExample">
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
                         <span aria-hidden="true"></span>
