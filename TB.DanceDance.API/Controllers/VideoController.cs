@@ -12,7 +12,6 @@ namespace TB.DanceDance.API.Controllers;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class VideoController : Controller
 {
-
     public VideoController(IVideoService videoService, ITokenValidator tokenValidator, IUserService userService)
     {
         this.videoService = videoService;
@@ -34,7 +33,7 @@ public class VideoController : Controller
         {
             return Array.Empty<VideoInformation>();
         }
-        
+
         var userAssociations = await userService.GetUserVideosAssociationsIds(user);
 
         var filterBuilder = new FilterDefinitionBuilder<VideoInformation>();
@@ -50,13 +49,22 @@ public class VideoController : Controller
     public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string token)
     {
         // todo create better authentication. Send send tokens in headers
-        var validationRes = await tokenValidator.ValidateAccessTokenAsync(token ?? string.Empty);
+        var validationRes = await tokenValidator.ValidateAccessTokenAsync(token);
         if (validationRes == null)
             // Idk when this can happen
             throw new Exception("Results of validation are null.");
 
         if (validationRes.IsError)
             return Unauthorized();
+
+        var userSubjectId = validationRes.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+        if (userSubjectId == null)
+            return BadRequest();
+
+        var hasAccess = await videoService.DoesUserHasAccessAsync(guid, userSubjectId);
+        if (!hasAccess)
+            return new UnauthorizedResult();
 
         var stream = await videoService.OpenStream(guid);
         return File(stream, "video/mp4", enableRangeProcessing: true);
