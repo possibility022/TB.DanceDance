@@ -3,6 +3,8 @@ using IdentityServer4;
 using MongoDB.Driver;
 using System.Security.Claims;
 using System.Text.Json;
+using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services
@@ -10,13 +12,19 @@ namespace TB.DanceDance.Services
     public class UserService : IUserService
     {
         private readonly IMongoCollection<UserModel> usersCollection;
+        private readonly IMongoCollection<Event> events;
+        private readonly IMongoCollection<Group> groups;
 
-        public UserService(IMongoCollection<UserModel> usersCollection)
+        public UserService(IMongoCollection<UserModel> usersCollection
+        , IMongoCollection<Event> events
+        , IMongoCollection<Group> groups)
         {
             this.usersCollection = usersCollection;
+            this.events = events;
+            this.groups = groups;
         }
 
-        public async Task<UserModel> FindUserByNameAsync(string name)
+        public async Task<UserModel?> FindUserByNameAsync(string name)
         {
             var filter = new FilterDefinitionBuilder<UserModel>()
                 .Eq(r => r.Username, name);
@@ -39,6 +47,26 @@ namespace TB.DanceDance.Services
             {
                 IsUpsert = true
             });
+        }
+
+        public async Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
+        {
+            List<Group> userGroups = null;
+            List<Event> userEvents = null;
+            
+            var getGroups = this.groups.FindAsync(r => r.People.Contains(userName))
+                    .ContinueWith(async r => userGroups = await r.Result.ToListAsync());
+            
+            var getEvents = this.events.FindAsync(r => r.Attenders.Contains(userName))
+                .ContinueWith(async r => userEvents = await r.Result.ToListAsync());
+
+            await Task.WhenAll(getGroups, getEvents);
+
+            if (userGroups == null || userEvents == null)
+                throw new Exception("Groups or events list is null.");
+
+            return userGroups.Select(r => r.Id)
+                .Concat(userEvents.Select(e => e.Id));
         }
     }
 
@@ -98,7 +126,15 @@ namespace TB.DanceDance.Services
             throw new NotSupportedException();
         }
 
-        public Task<UserModel> FindUserByNameAsync(string name)
+        public Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
+        {
+            IEnumerable<string> enumerable = this.users.Select(r => r.SubjectId).Concat(new[]
+                { Constants.GroupSroda1730, Constants.WarsztatyFootworki2022, Constants.WarsztatyRama2022 })!;
+            
+            return Task.FromResult(enumerable);
+        }
+
+        public Task<UserModel?> FindUserByNameAsync(string name)
         {
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
             return Task.FromResult(users.Find(f => f.Username == name));

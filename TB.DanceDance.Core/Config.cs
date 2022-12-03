@@ -1,19 +1,16 @@
 ﻿using IdentityServer4.Models;
 using TB.DanceDance.Core.IdentityServerStore;
+using TB.DanceDance.Identity.IdentityResources;
 
 namespace TB.DanceDance.Core
 {
     public class Config
     {
-
-        public const string ReadScope = "tbdancedanceapi.read";
-        public const string WriteScope = "tbdancedanceapi.write";
-
         public static IEnumerable<ApiScopeRecord> ApiScopes =>
            new List<ApiScopeRecord>
            {
-               new ("tbdancedanceapi.read", "TB DanceDance API - read"),
-               new ("tbdancedanceapi.write", "TB DanceDance API - write")
+               new (DanceDanceResources.WestCoastSwing.Scopes.ReadScope, "TB DanceDance API - read"),
+               new (DanceDanceResources.WestCoastSwing.Scopes.WriteScope, "TB DanceDance API - write"),
            };
 
         public static IEnumerable<ApiResourceRecord> ApiResources =>
@@ -74,7 +71,7 @@ namespace TB.DanceDance.Core
                     },
 
                     // scopes that client has access to
-                    AllowedScopes = { "tbdancedanceapi.read", "openid", "profile" }
+                    AllowedScopes = { DanceDanceResources.WestCoastSwing.Scopes.ReadScope, "openid", "profile" }
                 }
             };
     }

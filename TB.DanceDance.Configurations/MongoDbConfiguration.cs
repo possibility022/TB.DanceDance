@@ -2,12 +2,13 @@
 {
     public class MongoDbConfiguration
     {
-        public string Database { get; set; } = "danceDb";
-        public string VideoCollection { get; set; } = "videoCollection";
-        public string ApiResourceCollection { get; set; } = "apiResource";
-        public string ApiScopeCollection { get; set; } = "apiScope";
-        public string IdentityResourceCollection { get; set; } = "identityResource";
-        public string UserCollection { get; set; } = "users";
-        public string ApiClientCollection { get; set; } = "apiClients";
+        public string Database => "danceDb";
+        public string VideoCollection => "videoCollection";
+        public string OwnersCollection => "owners";
+        public string ApiResourceCollection => "apiResource";
+        public string ApiScopeCollection => "apiScope";
+        public string IdentityResourceCollection => "identityResource";
+        public string UserCollection => "users";
+        public string ApiClientCollection => "apiClients";
     }
 }

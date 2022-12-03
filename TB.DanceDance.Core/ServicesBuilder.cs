@@ -22,21 +22,26 @@ namespace TB.DanceDance.Core
                 mongoDbConfig = new MongoDbConfiguration();
 
             return services.AddSingleton<IMongoClient>((services) =>
-                 {
-                     return MongoDatabaseFactory.GetClient();
-                 })
-                .AddSingleton((services) =>
-                {
-                    var mongoClient = services.GetRequiredService<IMongoClient>();
-                    var db = mongoClient.GetDatabase(mongoDbConfig.Database);
-                    return db;
-                })
-                .AddMongoCollection<ApiResourceRecord>(mongoDbConfig.ApiResourceCollection, makeSureCollectionCreated)
-                .AddMongoCollection<IdentityResourceRecord>(mongoDbConfig.IdentityResourceCollection, makeSureCollectionCreated)
-                .AddMongoCollection<ApiScopeRecord>(mongoDbConfig.ApiScopeCollection, makeSureCollectionCreated)
-                .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection, makeSureCollectionCreated)
-                .AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, makeSureCollectionCreated)
-                .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated);
+                    {
+                        return MongoDatabaseFactory.GetClient();
+                    })
+                    .AddSingleton((services) =>
+                    {
+                        var mongoClient = services.GetRequiredService<IMongoClient>();
+                        var db = mongoClient.GetDatabase(mongoDbConfig.Database);
+                        return db;
+                    })
+                    .AddMongoCollection<ApiResourceRecord>(mongoDbConfig.ApiResourceCollection,
+                        makeSureCollectionCreated)
+                    .AddMongoCollection<IdentityResourceRecord>(mongoDbConfig.IdentityResourceCollection,
+                        makeSureCollectionCreated)
+                    .AddMongoCollection<ApiScopeRecord>(mongoDbConfig.ApiScopeCollection, makeSureCollectionCreated)
+                    .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection, makeSureCollectionCreated)
+                    .AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, makeSureCollectionCreated)
+                    .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated)
+                    .AddMongoCollection<Event>(mongoDbConfig.OwnersCollection)
+                    .AddMongoCollection<Group>(mongoDbConfig.OwnersCollection)
+                ;
         }
 
         public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,

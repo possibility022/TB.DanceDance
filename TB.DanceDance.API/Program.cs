@@ -1,15 +1,10 @@
 using IdentityServer4;
-using IdentityServer4.Models;
-using MongoDB.Driver;
 using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
-using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.MongoDb;
-using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
-using TB.DanceDance.Services.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +40,7 @@ builder.Services.AddCors(setup =>
 
 builder.Services.AddAuthorization(o =>
 {
-    o.AddPolicy(Config.ReadScope, c =>
+    o.AddPolicy(DanceDanceResources.WestCoastSwing.Scopes.ReadScope, c =>
     {
         c.AddAuthenticationSchemes(IdentityServerConstants.LocalApi.AuthenticationScheme);
         c.RequireAuthenticatedUser();
@@ -60,7 +55,7 @@ builder.Services
     .AddAuthentication()
     .AddLocalApi(o =>
 {
-    o.ExpectedScope = Config.ReadScope;
+    o.ExpectedScope = DanceDanceResources.WestCoastSwing.Scopes.ReadScope;
 });
 
 
@@ -84,6 +79,7 @@ if (setIdentityServerAsProduction)
     identityBuilder
         .AddClientStore<IdentityClientMongoStore>()
         .AddResourceStore<IdentityResourceMongoStore>()
+        .AddProfileService<ProfileService>()
         .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else
@@ -93,6 +89,7 @@ else
 
     identityBuilder
         .AddDeveloperSigningCredential()
+        .AddProfileService<ProfileService>()
         .AddInMemoryApiScopes(Config.ApiScopes)
         .AddInMemoryClients(Config.Clients)
         .AddInMemoryApiResources(Config.ApiResources)

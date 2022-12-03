@@ -2,30 +2,46 @@
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.Core;
+using MongoDB.Driver;
 using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Controllers;
 
-[Authorize(Config.ReadScope)]
+[Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class VideoController : Controller
 {
 
-    public VideoController(IVideoService videoService, ITokenValidator tokenValidator)
+    public VideoController(IVideoService videoService, ITokenValidator tokenValidator, IUserService userService)
     {
         this.videoService = videoService;
         this.tokenValidator = tokenValidator;
+        this.userService = userService;
     }
 
     private readonly IVideoService videoService;
     private readonly ITokenValidator tokenValidator;
+    private readonly IUserService userService;
 
     [Route("api/video/getinformations")]
     [HttpGet]
     public async Task<IEnumerable<VideoInformation>> GetInformationsAsync()
     {
-        return await videoService.GetVideos();
+        string? user = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+        if (user == null)
+        {
+            return Array.Empty<VideoInformation>();
+        }
+        
+        var userAssociations = await userService.GetUserVideosAssociationsIds(user);
+
+        var filterBuilder = new FilterDefinitionBuilder<VideoInformation>();
+        var f = filterBuilder
+            .In(information => information.VideoOwner.OwnerId, userAssociations);
+
+        return await videoService.GetVideos(f);
     }
 
     [Route("api/video/stream/{guid}")]
