@@ -2,7 +2,6 @@ import { BlobServiceClient, BlockBlobClient, ContainerClient } from "@azure/stor
 import UploadVideoInformation from "../types/UploadInformation";
 import VideoInformations from "../types/VideoInformations";
 import { apiClientFactory } from "./HttpApiClient";
-import { Buffer } from "buffer";
 
 const apiClient = apiClientFactory()
 
@@ -21,7 +20,7 @@ export class VideoInfoService {
         return apiClient.getUri() + '/api/video/stream/' + videoBlob
     }
 
-    public async UploadVideo(){
+    public async UploadVideo(file: File) {
 
         const uploadUrl = await apiClient.get<UploadVideoInformation>('/api/video/getuploadurl');
 
@@ -30,8 +29,7 @@ export class VideoInfoService {
           );
 
           const client = containerClient.getBlockBlobClient()
-          const buffer = Buffer.from("testing :)", 'utf-8')
-          await client.uploadData(buffer)
+          await client.uploadData(file)
     }
 }
 
