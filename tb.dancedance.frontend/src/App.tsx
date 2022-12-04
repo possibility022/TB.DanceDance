@@ -12,6 +12,7 @@ import { SilentRenew } from "./components/AuthComponents/SilentRenew"
 import { AuthProvider } from "./providers/AuthProvider"
 import { VideoScreen } from "./pages/VideosScreen"
 import { VideoPlayerScreen } from "./pages/VideoPlayerScreen"
+import { UploadVideo } from "./pages/UploadVideo"
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
 						<Route path="videos/" element={<PrivateRoute element={<VideoScreen></VideoScreen>} />}>
 						</Route>
 						<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
+						<Route path="video/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
 						<Route path="callback" element={<Callback />} />
 						<Route path="logout" element={<Logout></Logout>} />
 						<Route path="logout/callback" element={<LogoutCallback />} />
