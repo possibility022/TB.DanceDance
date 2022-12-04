@@ -1,5 +1,6 @@
 ﻿using IdentityServer4.Models;
 using IdentityServer4.Stores;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using TB.DanceDance.Configurations;
@@ -45,15 +46,12 @@ namespace TB.DanceDance.Core
         }
 
         public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
-            BlobConfiguration? blobConfig = null,
             Func<IServiceProvider, IVideoFileLoader>? videoFileLoader = null)
         {
-            if (blobConfig == null)
-                blobConfig = new BlobConfiguration();
-
             services
-                .AddSingleton<IBlobDataService>(new BlobDataService(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables(), blobConfig.BlobContainer))
-                .AddScoped<IVideoService, VideoService>();
+                .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables()))
+                .AddScoped<IVideoService, VideoService>()
+                .AddScoped<IVideoUploaderService, VideoUploaderService>();
 
             if (videoFileLoader != null)
             {

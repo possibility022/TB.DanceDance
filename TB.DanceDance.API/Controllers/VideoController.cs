@@ -6,22 +6,26 @@ using MongoDB.Driver;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
+using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.API.Controllers;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class VideoController : Controller
 {
-    public VideoController(IVideoService videoService, ITokenValidator tokenValidator, IUserService userService)
+    public VideoController(IVideoService videoService, ITokenValidator tokenValidator, IUserService userService,
+        IVideoUploaderService videoUploaderService)
     {
         this.videoService = videoService;
         this.tokenValidator = tokenValidator;
         this.userService = userService;
+        this.videoUploaderService = videoUploaderService;
     }
 
     private readonly IVideoService videoService;
     private readonly ITokenValidator tokenValidator;
     private readonly IUserService userService;
+    private readonly IVideoUploaderService videoUploaderService;
 
     [Route("api/video/getinformations")]
     [HttpGet]
@@ -69,4 +73,17 @@ public class VideoController : Controller
         var stream = await videoService.OpenStream(guid);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
+
+    [Route("/api/video/getUploadUrl")]
+    public Task<UploadVideoInformation> GetUploadInformation()
+    {
+        var sas = videoUploaderService.GetSasUri();
+        return Task.FromResult(new UploadVideoInformation()
+        {
+            Url = sas.ToString(),
+            User = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value ?? ""
+        });
+    }
+
+    
 }
