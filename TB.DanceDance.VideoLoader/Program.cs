@@ -31,7 +31,7 @@ namespace TB.DanceDance.VideoLoader
             buidler.ConfigureServices(services =>
             {
                 services.ConfigureDb()
-                    .ConfigureVideoServices(null, (s) => new VideoFileLoader(FFMPGPath))
+                    .ConfigureVideoServices((s) => new VideoFileLoader(FFMPGPath))
                     .ConfigureIdentityStorage();
             });
 
