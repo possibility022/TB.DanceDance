@@ -15,13 +15,13 @@ namespace TB.DanceDance.Services
         public VideoService(IMongoCollection<VideoInformation> videoCollection,
             IMongoCollection<Event> events,
             IMongoCollection<Group> groups,
-            IBlobDataService blobService,
+            IBlobDataServiceFactory blobServiceFactory,
             IVideoFileLoader videoFileLoader)
         {
             this.videoCollection = videoCollection ?? throw new ArgumentNullException(nameof(videoCollection));
             this.events = events;
             this.groups = groups;
-            this.blobService = blobService ?? throw new ArgumentNullException(nameof(blobService));
+            this.blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
             this.videoFileLoader = videoFileLoader ?? throw new ArgumentNullException(nameof(videoFileLoader));
         }
 
