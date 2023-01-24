@@ -1,12 +1,8 @@
-﻿using IdentityServer4.Models;
-using IdentityServer4.Stores;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core.IdentityServerStore;
 using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.MongoDb;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Services;
 using TB.DanceDance.Services.Models;
@@ -22,11 +18,7 @@ namespace TB.DanceDance.Core
             if (mongoDbConfig == null)
                 mongoDbConfig = new MongoDbConfiguration();
 
-            return services.AddSingleton<IMongoClient>((services) =>
-                    {
-                        return MongoDatabaseFactory.GetClient();
-                    })
-                    .AddSingleton((services) =>
+            return services.AddSingleton((services) =>
                     {
                         var mongoClient = services.GetRequiredService<IMongoClient>();
                         var db = mongoClient.GetDatabase(mongoDbConfig.Database);
