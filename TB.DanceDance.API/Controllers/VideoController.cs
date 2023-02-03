@@ -42,7 +42,7 @@ public class VideoController : Controller
 
         var filterBuilder = new FilterDefinitionBuilder<VideoInformation>();
         var f = filterBuilder
-            .In(information => information.VideoOwner.OwnerId, userAssociations);
+            .In(information => information.SharedWith.OwnerId, userAssociations);
 
         return await videoService.GetVideos(f);
     }

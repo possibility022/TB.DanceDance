@@ -69,14 +69,14 @@ namespace TB.DanceDance.VideoLoader
             {
                 if (videoInformation.Name.Contains("Footworki"))
                 {
-                    videoInformation.VideoOwner = new VideoOwner()
+                    videoInformation.SharedWith = new VideoOwner()
                     {
                         OwnerId = Constants.WarsztatyFootworki2022,
                         OwnerType = OwnerType.Event
                     };
                 } else if (videoInformation.Name.Contains("Rama"))
                 {
-                    videoInformation.VideoOwner = new VideoOwner()
+                    videoInformation.SharedWith = new VideoOwner()
                     {
                         OwnerId = Constants.WarsztatyRama2022,
                         OwnerType = OwnerType.Event
@@ -84,7 +84,7 @@ namespace TB.DanceDance.VideoLoader
                 }
                 else
                 {
-                    videoInformation.VideoOwner = new VideoOwner()
+                    videoInformation.SharedWith = new VideoOwner()
                     {
                         OwnerId = Constants.GroupSroda1730,
                         OwnerType = OwnerType.Group
