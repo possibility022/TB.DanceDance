@@ -12,10 +12,15 @@ namespace TB.DanceDance.Data.MongoDb.Models
         public string Name { get; init; }
 
         public string BlobId { get; init; }
-        
-        public VideoOwner VideoOwner { get; set; }
+
+        public VideoOwner UploadedBy { get; set; }
+
+        public VideoOwner SharedWith { get; set; }
 
         public DateTime CreationTimeUtc { get; init; }
+        public DateTime RecordedTimeUtc { get; init; }
+        public DateTime SharedDateTimeUtc { get; set; }
+
         public TimeSpan? Duration { get; init; }
 
         public string MetadataAsJson { get; init; }
@@ -58,6 +63,12 @@ namespace TB.DanceDance.Data.MongoDb.Models
         /// </summary>
         public string OwnerId { get; init; }
         public OwnerType OwnerType { get; init; }
+    }
+
+    public record SharedVideos()
+    {
+        public VideoInformation VideoInformation { get; init; }
+        public DateTimeOffset Shared { get; init; }
     }
 
     public enum OwnerType
