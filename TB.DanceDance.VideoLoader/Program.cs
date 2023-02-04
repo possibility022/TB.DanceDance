@@ -69,25 +69,25 @@ namespace TB.DanceDance.VideoLoader
             {
                 if (videoInformation.Name.Contains("Footworki"))
                 {
-                    videoInformation.SharedWith = new VideoOwner()
+                    videoInformation.SharedWith = new SharingScope()
                     {
-                        OwnerId = Constants.WarsztatyFootworki2022,
-                        OwnerType = OwnerType.Event
+                        EntityId = Constants.WarsztatyFootworki2022,
+                        Assignment = AssignmentType.Event
                     };
                 } else if (videoInformation.Name.Contains("Rama"))
                 {
-                    videoInformation.SharedWith = new VideoOwner()
+                    videoInformation.SharedWith = new SharingScope()
                     {
-                        OwnerId = Constants.WarsztatyRama2022,
-                        OwnerType = OwnerType.Event
+                        EntityId = Constants.WarsztatyRama2022,
+                        Assignment = AssignmentType.Event
                     };
                 }
                 else
                 {
-                    videoInformation.SharedWith = new VideoOwner()
+                    videoInformation.SharedWith = new SharingScope()
                     {
-                        OwnerId = Constants.GroupSroda1730,
-                        OwnerType = OwnerType.Group
+                        EntityId = Constants.GroupSroda1730,
+                        Assignment = AssignmentType.Group
                     };
                 }
             

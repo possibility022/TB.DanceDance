@@ -5,6 +5,7 @@
         public string Database => "danceDb";
         public string VideoCollection => "videoCollection";
         public string OwnersCollection => "owners";
+        public string SharedVideos => "toConvert";
         public string ApiResourceCollection => "apiResource";
         public string ApiScopeCollection => "apiScope";
         public string IdentityResourceCollection => "identityResource";
