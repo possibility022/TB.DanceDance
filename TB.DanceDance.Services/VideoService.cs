@@ -25,43 +25,45 @@ namespace TB.DanceDance.Services
             this.videoFileLoader = videoFileLoader ?? throw new ArgumentNullException(nameof(videoFileLoader));
         }
 
-        public async Task<VideoOwner> GetVideoOwner(string videoBlobId)
+        public async Task<SharingScope> GetSharedWith(string videoBlobId)
         {
             var res = await videoCollection.Find(r => r.BlobId == videoBlobId)
                 .SingleAsync();
 
-            return res.VideoOwner;
+            return res.SharedWith;
         }
 
         public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
         {
-            var owner = await GetVideoOwner(videoBlobId);
-            var allowedUsers = await GetOwnerAssociatedUsers(owner);
+            var sharingScope = await GetSharedWith(videoBlobId);
+            var allowedUsers = await GetOwnerAssociatedUsers(sharingScope);
             return allowedUsers.Contains(userId);
         }
 
-        private async Task<ICollection<string>> GetOwnerAssociatedUsers(VideoOwner owner)
+        private async Task<ICollection<string>> GetOwnerAssociatedUsers(SharingScope owner)
         {
-            if (owner.OwnerType == OwnerType.Event)
+            if (owner.Assignment == AssignmentType.Event)
             {
-                var ownerEntity = await events.Find(r => r.Id == owner.OwnerId)
+                var ownerEntity = await events.Find(r => r.Id == owner.EntityId)
                     .SingleAsync();
 
                 return ownerEntity.Attenders;
-            } else if (owner.OwnerType == OwnerType.Group)
+            }
+            else if (owner.Assignment == AssignmentType.Group)
             {
-                var ownerEntity = await groups.Find(r => r.Id == owner.OwnerId)
+                var ownerEntity = await groups.Find(r => r.Id == owner.EntityId)
                     .SingleAsync();
 
                 return ownerEntity.People;
-            } else if (owner.OwnerType == OwnerType.Person)
+            }
+            else if (owner.Assignment == AssignmentType.Person)
             {
-                return new[] { owner.OwnerId };
+                return new[] { owner.EntityId };
             }
 
-            throw new ArgumentOutOfRangeException(nameof(owner.OwnerType), "Could not resolve associations for owner type: " + owner.OwnerType.ToString());
+            throw new ArgumentOutOfRangeException(nameof(owner.Assignment), "Could not resolve associations for owner type: " + owner.Assignment.ToString());
         }
-        
+
 
         public async Task<VideoInformation> UploadVideoAsync(string filePath, CancellationToken cancellationToken)
         {
@@ -97,5 +99,21 @@ namespace TB.DanceDance.Services
             return blobService.OpenStream(blobName);
         }
 
+        public Task<Event> GetEvent(string id)
+        {
+            return events.Find(@event => @event.Id == id)
+                .SingleAsync();
+        }
+
+        public Task<Group> GetGroup(string id)
+        {
+            return groups.Find(group => group.Id == id)
+                .SingleAsync();
+        }
+
+        public Task SaveSharedVideoInformations(SharedVideo sharedVideo)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

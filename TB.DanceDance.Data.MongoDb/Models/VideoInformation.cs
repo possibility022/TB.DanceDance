@@ -13,11 +13,10 @@ namespace TB.DanceDance.Data.MongoDb.Models
 
         public string BlobId { get; init; }
 
-        public VideoOwner UploadedBy { get; set; }
+        public SharingScope UploadedBy { get; set; }
 
-        public VideoOwner SharedWith { get; set; }
+        public SharingScope SharedWith { get; set; }
 
-        public DateTime CreationTimeUtc { get; init; }
         public DateTime RecordedTimeUtc { get; init; }
         public DateTime SharedDateTimeUtc { get; set; }
 
@@ -55,23 +54,22 @@ namespace TB.DanceDance.Data.MongoDb.Models
         public ICollection<string> People { get; set; }
     }
 
-    // Todo, make a record
-    public class VideoOwner
+    public record SharingScope
     {
         /// <summary>
         /// Id of a group, event or person.
         /// </summary>
-        public string OwnerId { get; init; }
-        public OwnerType OwnerType { get; init; }
+        public string EntityId { get; init; }
+        public AssignmentType Assignment { get; init; }
     }
 
-    public record SharedVideos()
+    public record SharedVideo()
     {
         public VideoInformation VideoInformation { get; init; }
         public DateTimeOffset Shared { get; init; }
     }
 
-    public enum OwnerType
+    public enum AssignmentType
     {
         NotSpecified,
         Person,

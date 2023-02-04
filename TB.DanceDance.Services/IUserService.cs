@@ -10,5 +10,7 @@ namespace TB.DanceDance.Services
         Task AddUpsertUserAsync(UserModel model);
 
         Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName);
+
+        Task<bool> UserIsAssociatedWith(string userName, string entityId);
     }
 }

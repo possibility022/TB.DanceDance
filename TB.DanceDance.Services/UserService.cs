@@ -4,7 +4,6 @@ using MongoDB.Driver;
 using System.Security.Claims;
 using System.Text.Json;
 using TB.DanceDance.Data.MongoDb.Models;
-using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services
@@ -67,6 +66,12 @@ namespace TB.DanceDance.Services
 
             return userGroups.Select(r => r.Id)
                 .Concat(userEvents.Select(e => e.Id));
+        }
+
+        public async Task<bool> UserIsAssociatedWith(string userName, string entityId)
+        {
+            var associatedTo = await GetUserVideosAssociationsIds(userName);
+            return associatedTo.Any(r => r == entityId);
         }
     }
 
@@ -144,6 +149,12 @@ namespace TB.DanceDance.Services
         public bool ValidateCredentials(string username, string password)
         {
             return users.Any(f => f.Username == username && f.Password == password);
+        }
+
+        public async Task<bool> UserIsAssociatedWith(string userName, string entityId)
+        {
+            var associatedTo = await GetUserVideosAssociationsIds(userName);
+            return associatedTo.Any(r => r == entityId);
         }
     }
 }
