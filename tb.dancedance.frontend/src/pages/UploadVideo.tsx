@@ -5,14 +5,11 @@ import { useState } from 'react';
 import { Button } from '../components/Button';
 import { Dropdown } from '../components/Dropdown';
 
-export interface IUploadVideoProps {
-  some?: string
-}
 
 import videoInfoService from '../services/VideoInfoService'
 import ISharingScopeModel from '../types/SharingScopeModel';
 
-export function UploadVideo(props: IUploadVideoProps) {
+export function UploadVideo() {
 
   const [file, setFile] = useState<File>()
   const [availableGroups, setAvailableGroups] = useState<Array<ISharingScopeModel>>([]);
@@ -20,11 +17,13 @@ export function UploadVideo(props: IUploadVideoProps) {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [groupSelectionIsValid, setGroupSelectionIsValid] = useState(false);
-
-
-  const [videoName, setVideoName] = useState<string>()
+  const [videoName, setVideoName] = useState<string>('')
   const [videoNameIsValid, setVideoNameIsValid] = useState(false);
+  const [groupSelectionIsValid, setGroupSelectionIsValid] = useState(false);
+  const [fileSelectionIsValid, setFileSelectionIsValid] = useState(false);
+
+  const [bytesTransfered, setBytesTransfered] = useState(0);
+  const [bytestToTransfer, setBytestToTransfer] = useState(0);
 
   const [wasTryingToSend, setWasTryingToSend] = useState(false);
 
@@ -61,30 +60,53 @@ export function UploadVideo(props: IUploadVideoProps) {
       isValid = false
     }
     setVideoNameIsValid(isValid)
+    return isValid
   }
 
   const validateGroupSelection = () => {
-    const isValid =  availableGroups.length > 0 && selectedGroupIndex >= 0
+    const isValid = availableGroups.length > 0 && selectedGroupIndex >= 0
     setGroupSelectionIsValid(isValid)
+    return isValid
+  }
+
+  const validateFile = () => {
+    let res: boolean
+    if (file != undefined)
+      res = true
+    else
+      res = false
+
+    setFileSelectionIsValid(res)
+    return res
   }
 
   const validateInput = (): boolean => {
-    validateGroupSelection()
-    validateVideoName()
+    const groupIsValid = validateGroupSelection()
+    const videoNameIsValid = validateVideoName()
+    const fileIsValid = validateFile()
 
     setWasTryingToSend(true)
-    return videoNameIsValid && groupSelectionIsValid
+    return groupIsValid && videoNameIsValid && fileIsValid
   }
 
   const upload = () => {
 
     const inputIsValid = validateInput()
 
-    if (file && inputIsValid)
-      videoInfoService.UploadVideo(file)
+    if (file && inputIsValid) {
+      setBytestToTransfer(file.size)
+      setBytesTransfered(0)
+      videoInfoService.UploadVideo({
+        nameOfVideo: videoName,
+        // todo, recorder property is not being deserialized on backend side - fix it
+        recorded: new Date(file.lastModified),
+        sharedWith: availableGroups[selectedGroupIndex]
+      }, file,
+        (e) => setBytesTransfered(e))
         .catch(e => {
           console.error(e)
         })
+    }
   }
 
   const getNameVeryficationMessage = () => {
@@ -92,7 +114,7 @@ export function UploadVideo(props: IUploadVideoProps) {
       return null
 
     if (videoNameIsValid)
-      return <p className="help is-success" > Jest git</p>
+      return <p className="help is-success"> Jest git</p>
     else
       return <p className="help is-danger">Coś jest nie tak. Nie wszystkie znaki specjalne są dozwolone :( </p>
   }
@@ -104,13 +126,13 @@ export function UploadVideo(props: IUploadVideoProps) {
       return <p className="help is-danger">Musisz wybrać grupę</p>
   }
 
-  const message = () => {
-    if (file?.name) {
-      <div>{file.name}</div>
-    } else {
-      <div>Wybierz plik</div>
-    }
+  const getFileVerificationMessage = () => {
+    if (!wasTryingToSend)
+      return null
+    if (!fileSelectionIsValid)
+      return <p className="help is-danger">Musisz wybrać poprawny plik.</p>
   }
+
 
   return (
     <div>
@@ -136,13 +158,11 @@ export function UploadVideo(props: IUploadVideoProps) {
           startWithUnselected={true}
           unselectedText='Do jakiej grupy chcesz dodać filmik?'
           isLoading={isLoading}
+          onSelected={(v, i) => setSelectedGroupIndex(i)}
         />
         {getGroupVeryficationMessage()}
       </div>
-
-      {message()}
       <br></br>
-
 
       <div className="file has-name is-fullwidth">
         <label className="file-label">
@@ -160,6 +180,7 @@ export function UploadVideo(props: IUploadVideoProps) {
             {file?.name}
           </span>
         </label>
+        {getFileVerificationMessage()}
       </div>
 
       <div className="field">
@@ -169,6 +190,8 @@ export function UploadVideo(props: IUploadVideoProps) {
           </Button>
         </p>
       </div>
+
+      <progress className="progress is-success" value={bytesTransfered} max={bytestToTransfer}></progress>
     </div>
   );
 }
