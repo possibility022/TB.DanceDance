@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="03e6c131-a5f3-4e54-8c91-4bf7d4007b15" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/TB.DanceDance.VideoLoader/ConvertAllFiles.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/TB.DanceDance.VideoLoader/ConvertAllFiles.ps1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tb.dancedance.frontend/src/pages/UploadVideo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/tb.dancedance.frontend/src/pages/UploadVideo.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tb.dancedance.frontend/src/services/VideoInfoService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tb.dancedance.frontend/src/services/VideoInfoService.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tb.dancedance.frontend/src/types/UploadInformation.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tb.dancedance.frontend/src/types/UploadInformation.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/fbec7c84-ceb1-4eea-9ac9-72f26f34567d.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/fbec7c84-ceb1-4eea-9ac9-72f26f34567d.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -4,465 +4,546 @@
     <root id="1">
       <ServerVersion>5.0.14</ServerVersion>
     </root>
-    <schema id="2" parent="1" name="admin"/>
-    <schema id="3" parent="1" name="danceDb">
+    <schema id="2" parent="1" name="danceDb">
       <Current>1</Current>
     </schema>
+    <schema id="3" parent="1" name="admin"/>
     <schema id="4" parent="1" name="local"/>
-    <table id="5" parent="3" name="apiClients"/>
-    <table id="6" parent="3" name="apiResource"/>
-    <table id="7" parent="3" name="apiScope"/>
-    <table id="8" parent="3" name="identityResource"/>
-    <table id="9" parent="3" name="owners"/>
-    <table id="10" parent="3" name="users"/>
-    <table id="11" parent="3" name="videoCollection"/>
-    <column id="12" parent="5" name="_id">
+    <table id="5" parent="2" name="apiClients"/>
+    <table id="6" parent="2" name="apiResource"/>
+    <table id="7" parent="2" name="apiScope"/>
+    <table id="8" parent="2" name="identityResource"/>
+    <table id="9" parent="2" name="owners"/>
+    <table id="10" parent="2" name="toConvert"/>
+    <table id="11" parent="2" name="users"/>
+    <table id="12" parent="2" name="videoCollection"/>
+    <column id="13" parent="5" name="_id">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="13" parent="5" name="AbsoluteRefreshTokenLifetime">
+    <column id="14" parent="5" name="AbsoluteRefreshTokenLifetime">
       <DasType>Int32|4s</DasType>
       <Position>1</Position>
     </column>
-    <column id="14" parent="5" name="AllowedCorsOrigins">
+    <column id="15" parent="5" name="AllowedCorsOrigins">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="15" parent="5" name="AuthorizationCodeLifetime">
+    <column id="16" parent="5" name="AuthorizationCodeLifetime">
       <DasType>Int32|4s</DasType>
       <Position>1</Position>
     </column>
-    <column id="16" parent="5" name="Claims">
+    <column id="17" parent="5" name="Claims">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="17" parent="5" name="ClientClaimsPrefix">
+    <column id="18" parent="5" name="ClientClaimsPrefix">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="18" parent="5" name="Description">
+    <column id="19" parent="5" name="Description">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="19" parent="5" name="DeviceCodeLifetime">
+    <column id="20" parent="5" name="DeviceCodeLifetime">
       <DasType>Int32|4s</DasType>
       <Position>1</Position>
     </column>
-    <column id="20" parent="5" name="EnableLocalLogin">
+    <column id="21" parent="5" name="EnableLocalLogin">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="21" parent="5" name="Enabled">
+    <column id="22" parent="5" name="Enabled">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="22" parent="5" name="FrontChannelLogoutSessionRequired">
+    <column id="23" parent="5" name="FrontChannelLogoutSessionRequired">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="23" parent="5" name="IdentityProviderRestrictions">
+    <column id="24" parent="5" name="IdentityProviderRestrictions">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="24" parent="5" name="LogoUri">
+    <column id="25" parent="5" name="LogoUri">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="25" parent="5" name="PairWiseSubjectSalt">
+    <column id="26" parent="5" name="PairWiseSubjectSalt">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="26" parent="5" name="PostLogoutRedirectUris">
+    <column id="27" parent="5" name="PostLogoutRedirectUris">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="27" parent="5" name="Properties">
+    <column id="28" parent="5" name="Properties">
       <DasType>Object|4999544s</DasType>
       <Position>1</Position>
     </column>
-    <column id="28" parent="5" name="ProtocolType">
+    <column id="29" parent="5" name="ProtocolType">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="29" parent="5" name="RedirectUris">
+    <column id="30" parent="5" name="RedirectUris">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="30" parent="5" name="SlidingRefreshTokenLifetime">
+    <column id="31" parent="5" name="SlidingRefreshTokenLifetime">
       <DasType>Int32|4s</DasType>
       <Position>1</Position>
     </column>
-    <column id="31" parent="5" name="UserCodeType">
+    <column id="32" parent="5" name="UserCodeType">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="32" parent="5" name="AccessTokenLifetime">
+    <column id="33" parent="5" name="AccessTokenLifetime">
       <DasType>Int32|4s</DasType>
       <Position>2</Position>
     </column>
-    <column id="33" parent="5" name="AllowedGrantTypes">
+    <column id="34" parent="5" name="AllowedGrantTypes">
       <DasType>Array|2003s</DasType>
       <Position>2</Position>
     </column>
-    <column id="34" parent="5" name="BackChannelLogoutSessionRequired">
+    <column id="35" parent="5" name="BackChannelLogoutSessionRequired">
       <DasType>Boolean|12s</DasType>
       <Position>2</Position>
     </column>
-    <column id="35" parent="5" name="ClientId">
+    <column id="36" parent="5" name="ClientId">
       <DasType>String|12s</DasType>
       <Position>2</Position>
     </column>
-    <column id="36" parent="5" name="FrontChannelLogoutUri">
+    <column id="37" parent="5" name="FrontChannelLogoutUri">
       <DasType>String|12s</DasType>
       <Position>2</Position>
     </column>
-    <column id="37" parent="5" name="IdentityTokenLifetime">
+    <column id="38" parent="5" name="IdentityTokenLifetime">
       <DasType>Int32|4s</DasType>
       <Position>2</Position>
     </column>
-    <column id="38" parent="5" name="RefreshTokenExpiration">
+    <column id="39" parent="5" name="RefreshTokenExpiration">
       <DasType>Int32|4s</DasType>
       <Position>2</Position>
     </column>
-    <column id="39" parent="5" name="UpdateAccessTokenClaimsOnRefresh">
+    <column id="40" parent="5" name="UpdateAccessTokenClaimsOnRefresh">
       <DasType>Boolean|12s</DasType>
       <Position>2</Position>
     </column>
-    <column id="40" parent="5" name="UserSsoLifetime">
+    <column id="41" parent="5" name="UserSsoLifetime">
       <DasType>String|12s</DasType>
       <Position>2</Position>
     </column>
-    <column id="41" parent="5" name="AccessTokenType">
+    <column id="42" parent="5" name="AccessTokenType">
       <DasType>Int32|4s</DasType>
       <Position>3</Position>
     </column>
-    <column id="42" parent="5" name="AllowedIdentityTokenSigningAlgorithms">
+    <column id="43" parent="5" name="AllowedIdentityTokenSigningAlgorithms">
       <DasType>list|4999545s</DasType>
       <Position>3</Position>
     </column>
-    <column id="43" parent="5" name="BackChannelLogoutUri">
+    <column id="44" parent="5" name="BackChannelLogoutUri">
       <DasType>String|12s</DasType>
       <Position>3</Position>
     </column>
-    <column id="44" parent="5" name="ClientName">
+    <column id="45" parent="5" name="ClientName">
       <DasType>String|12s</DasType>
       <Position>3</Position>
     </column>
-    <column id="45" parent="5" name="IncludeJwtId">
+    <column id="46" parent="5" name="IncludeJwtId">
       <DasType>Boolean|12s</DasType>
       <Position>3</Position>
     </column>
-    <column id="46" parent="5" name="RefreshTokenUsage">
+    <column id="47" parent="5" name="RefreshTokenUsage">
       <DasType>Int32|4s</DasType>
       <Position>3</Position>
     </column>
-    <column id="47" parent="5" name="AllowAccessTokensViaBrowser">
+    <column id="48" parent="5" name="AllowAccessTokensViaBrowser">
       <DasType>Boolean|12s</DasType>
       <Position>4</Position>
     </column>
-    <column id="48" parent="5" name="AllowedScopes">
+    <column id="49" parent="5" name="AllowedScopes">
       <DasType>Array|2003s</DasType>
       <Position>4</Position>
     </column>
-    <column id="49" parent="5" name="ClientSecrets">
+    <column id="50" parent="5" name="ClientSecrets">
       <DasType>list|4999545s</DasType>
       <Position>4</Position>
     </column>
-    <column id="50" parent="5" name="RequireClientSecret">
+    <column id="51" parent="5" name="RequireClientSecret">
       <DasType>Boolean|12s</DasType>
       <Position>4</Position>
     </column>
-    <column id="51" parent="5" name="AllowOfflineAccess">
+    <column id="52" parent="5" name="AllowOfflineAccess">
       <DasType>Boolean|12s</DasType>
       <Position>5</Position>
     </column>
-    <column id="52" parent="5" name="AlwaysIncludeUserClaimsInIdToken">
+    <column id="53" parent="5" name="AlwaysIncludeUserClaimsInIdToken">
       <DasType>Boolean|12s</DasType>
       <Position>5</Position>
     </column>
-    <column id="53" parent="5" name="ClientSecrets.Description">
+    <column id="54" parent="5" name="ClientSecrets.Description">
       <DasType>String|12s</DasType>
       <Position>5</Position>
     </column>
-    <column id="54" parent="5" name="RequireConsent">
+    <column id="55" parent="5" name="RequireConsent">
       <DasType>Boolean|12s</DasType>
       <Position>5</Position>
     </column>
-    <column id="55" parent="5" name="AllowPlainTextPkce">
+    <column id="56" parent="5" name="AllowPlainTextPkce">
       <DasType>Boolean|12s</DasType>
       <Position>6</Position>
     </column>
-    <column id="56" parent="5" name="AlwaysSendClientClaims">
+    <column id="57" parent="5" name="AlwaysSendClientClaims">
       <DasType>Boolean|12s</DasType>
       <Position>6</Position>
     </column>
-    <column id="57" parent="5" name="ClientSecrets.Expiration">
+    <column id="58" parent="5" name="ClientSecrets.Expiration">
       <DasType>String|12s</DasType>
       <Position>6</Position>
     </column>
-    <column id="58" parent="5" name="RequirePkce">
+    <column id="59" parent="5" name="RequirePkce">
       <DasType>Boolean|12s</DasType>
       <Position>6</Position>
     </column>
-    <column id="59" parent="5" name="AllowRememberConsent">
+    <column id="60" parent="5" name="AllowRememberConsent">
       <DasType>Boolean|12s</DasType>
       <Position>7</Position>
     </column>
-    <column id="60" parent="5" name="ClientSecrets.Type">
+    <column id="61" parent="5" name="ClientSecrets.Type">
       <DasType>String|12s</DasType>
       <Position>7</Position>
     </column>
-    <column id="61" parent="5" name="RequireRequestObject">
+    <column id="62" parent="5" name="RequireRequestObject">
       <DasType>Boolean|12s</DasType>
       <Position>7</Position>
     </column>
-    <column id="62" parent="5" name="ClientSecrets.Value">
+    <column id="63" parent="5" name="ClientSecrets.Value">
       <DasType>String|12s</DasType>
       <Position>8</Position>
     </column>
-    <column id="63" parent="5" name="ClientUri">
+    <column id="64" parent="5" name="ClientUri">
       <DasType>String|12s</DasType>
       <Position>9</Position>
     </column>
-    <column id="64" parent="5" name="ConsentLifetime">
+    <column id="65" parent="5" name="ConsentLifetime">
       <DasType>String|12s</DasType>
       <Position>10</Position>
     </column>
-    <column id="65" parent="6" name="_id">
+    <column id="66" parent="6" name="_id">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="66" parent="6" name="AllowedAccessTokenSigningAlgorithms">
+    <column id="67" parent="6" name="AllowedAccessTokenSigningAlgorithms">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="67" parent="6" name="ApiSecrets">
+    <column id="68" parent="6" name="ApiSecrets">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="68" parent="6" name="Description">
+    <column id="69" parent="6" name="Description">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="69" parent="6" name="DisplayName">
+    <column id="70" parent="6" name="DisplayName">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="70" parent="6" name="Enabled">
+    <column id="71" parent="6" name="Enabled">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="71" parent="6" name="Name">
+    <column id="72" parent="6" name="Name">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="72" parent="6" name="Properties">
+    <column id="73" parent="6" name="Properties">
       <DasType>Object|4999544s</DasType>
       <Position>1</Position>
     </column>
-    <column id="73" parent="6" name="Scopes">
+    <column id="74" parent="6" name="Scopes">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="74" parent="6" name="ShowInDiscoveryDocument">
+    <column id="75" parent="6" name="ShowInDiscoveryDocument">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="75" parent="6" name="UserClaims">
+    <column id="76" parent="6" name="UserClaims">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="76" parent="7" name="_id">
+    <column id="77" parent="7" name="_id">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="77" parent="7" name="Description">
+    <column id="78" parent="7" name="Description">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="78" parent="7" name="DisplayName">
+    <column id="79" parent="7" name="DisplayName">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="79" parent="7" name="Emphasize">
+    <column id="80" parent="7" name="Emphasize">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="80" parent="7" name="Enabled">
+    <column id="81" parent="7" name="Enabled">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="81" parent="7" name="Name">
+    <column id="82" parent="7" name="Name">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="82" parent="7" name="Properties">
+    <column id="83" parent="7" name="Properties">
       <DasType>Object|4999544s</DasType>
       <Position>1</Position>
     </column>
-    <column id="83" parent="7" name="Required">
+    <column id="84" parent="7" name="Required">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="84" parent="7" name="ShowInDiscoveryDocument">
+    <column id="85" parent="7" name="ShowInDiscoveryDocument">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="85" parent="7" name="UserClaims">
+    <column id="86" parent="7" name="UserClaims">
       <DasType>list|4999545s</DasType>
       <Position>1</Position>
     </column>
-    <column id="86" parent="8" name="_id">
+    <column id="87" parent="8" name="_id">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="87" parent="8" name="Description">
+    <column id="88" parent="8" name="Description">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="88" parent="8" name="DisplayName">
+    <column id="89" parent="8" name="DisplayName">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="89" parent="8" name="Emphasize">
+    <column id="90" parent="8" name="Emphasize">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="90" parent="8" name="Enabled">
+    <column id="91" parent="8" name="Enabled">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="91" parent="8" name="Name">
+    <column id="92" parent="8" name="Name">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="92" parent="8" name="Properties">
+    <column id="93" parent="8" name="Properties">
       <DasType>Object|4999544s</DasType>
       <Position>1</Position>
     </column>
-    <column id="93" parent="8" name="Required">
+    <column id="94" parent="8" name="Required">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="94" parent="8" name="ShowInDiscoveryDocument">
+    <column id="95" parent="8" name="ShowInDiscoveryDocument">
       <DasType>Boolean|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="95" parent="8" name="UserClaims">
+    <column id="96" parent="8" name="UserClaims">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="96" parent="9" name="_id">
+    <column id="97" parent="9" name="_id">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="97" parent="9" name="Attenders">
+    <column id="98" parent="9" name="Attenders">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="98" parent="9" name="Date">
+    <column id="99" parent="9" name="Date">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="99" parent="9" name="GroupName">
+    <column id="100" parent="9" name="GroupName">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="100" parent="9" name="Name">
+    <column id="101" parent="9" name="Name">
       <DasType>String|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="101" parent="9" name="People">
+    <column id="102" parent="9" name="People">
       <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="102" parent="10" name="_id">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="103" parent="10" name="Claims">
-      <DasType>list|4999545s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="104" parent="10" name="IsActive">
-      <DasType>Boolean|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="105" parent="10" name="Password">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="106" parent="10" name="ProviderName">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="107" parent="10" name="Username">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="108" parent="10" name="Claims.Issuer">
-      <DasType>String|12s</DasType>
-      <Position>2</Position>
-    </column>
-    <column id="109" parent="10" name="ProviderSubjectId">
-      <DasType>String|12s</DasType>
-      <Position>2</Position>
-    </column>
-    <column id="110" parent="10" name="Claims.OriginalIssuer">
-      <DasType>String|12s</DasType>
-      <Position>3</Position>
-    </column>
-    <column id="111" parent="10" name="Claims.Subject">
-      <DasType>String|12s</DasType>
-      <Position>4</Position>
-    </column>
-    <column id="112" parent="10" name="Claims.Type">
-      <DasType>String|12s</DasType>
-      <Position>5</Position>
-    </column>
-    <column id="113" parent="10" name="Claims.Value">
-      <DasType>String|12s</DasType>
-      <Position>6</Position>
-    </column>
-    <column id="114" parent="10" name="Claims.ValueType">
-      <DasType>String|12s</DasType>
-      <Position>7</Position>
-    </column>
-    <column id="115" parent="11" name="_id">
+    <column id="103" parent="10" name="_id">
       <DasType>ObjectId|12s</DasType>
       <Position>1</Position>
     </column>
-    <column id="116" parent="11" name="BlobId">
-      <DasType>String|12s</DasType>
+    <column id="104" parent="10" name="Shared">
+      <DasType>Array|2003s</DasType>
       <Position>1</Position>
     </column>
-    <column id="117" parent="11" name="CreationTimeUtc">
-      <DasType>ISODate|91s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="118" parent="11" name="Duration">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="119" parent="11" name="MetadataAsJson">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="120" parent="11" name="Name">
-      <DasType>String|12s</DasType>
-      <Position>1</Position>
-    </column>
-    <column id="121" parent="11" name="VideoOwner">
+    <column id="105" parent="10" name="VideoInformation">
       <DasType>Object|4999544s</DasType>
       <Position>1</Position>
     </column>
-    <column id="122" parent="11" name="VideoOwner.OwnerId">
+    <column id="106" parent="10" name="VideoInformation.BlobId">
       <DasType>String|12s</DasType>
       <Position>2</Position>
     </column>
-    <column id="123" parent="11" name="VideoOwner.OwnerType">
+    <column id="107" parent="10" name="VideoInformation.Duration">
+      <DasType>String|12s</DasType>
+      <Position>3</Position>
+    </column>
+    <column id="108" parent="10" name="VideoInformation.MetadataAsJson">
+      <DasType>String|12s</DasType>
+      <Position>4</Position>
+    </column>
+    <column id="109" parent="10" name="VideoInformation.Name">
+      <DasType>String|12s</DasType>
+      <Position>5</Position>
+    </column>
+    <column id="110" parent="10" name="VideoInformation.RecordedTimeUtc">
+      <DasType>ISODate|91s</DasType>
+      <Position>6</Position>
+    </column>
+    <column id="111" parent="10" name="VideoInformation.SharedDateTimeUtc">
+      <DasType>ISODate|91s</DasType>
+      <Position>7</Position>
+    </column>
+    <column id="112" parent="10" name="VideoInformation.SharedWith">
+      <DasType>Object|4999544s</DasType>
+      <Position>8</Position>
+    </column>
+    <column id="113" parent="10" name="VideoInformation.SharedWith.Assignment">
+      <DasType>Int32|4s</DasType>
+      <Position>9</Position>
+    </column>
+    <column id="114" parent="10" name="VideoInformation.SharedWith.EntityId">
+      <DasType>String|12s</DasType>
+      <Position>10</Position>
+    </column>
+    <column id="115" parent="10" name="VideoInformation.UploadedBy">
+      <DasType>Object|4999544s</DasType>
+      <Position>11</Position>
+    </column>
+    <column id="116" parent="10" name="VideoInformation.UploadedBy.Assignment">
+      <DasType>Int32|4s</DasType>
+      <Position>12</Position>
+    </column>
+    <column id="117" parent="10" name="VideoInformation.UploadedBy.EntityId">
+      <DasType>String|12s</DasType>
+      <Position>13</Position>
+    </column>
+    <column id="118" parent="10" name="VideoInformation._id">
+      <DasType>String|12s</DasType>
+      <Position>14</Position>
+    </column>
+    <column id="119" parent="11" name="_id">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="120" parent="11" name="Claims">
+      <DasType>list|4999545s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="121" parent="11" name="IsActive">
+      <DasType>Boolean|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="122" parent="11" name="Password">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="123" parent="11" name="ProviderName">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="124" parent="11" name="Username">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="125" parent="11" name="Claims.Issuer">
+      <DasType>String|12s</DasType>
+      <Position>2</Position>
+    </column>
+    <column id="126" parent="11" name="ProviderSubjectId">
+      <DasType>String|12s</DasType>
+      <Position>2</Position>
+    </column>
+    <column id="127" parent="11" name="Claims.OriginalIssuer">
+      <DasType>String|12s</DasType>
+      <Position>3</Position>
+    </column>
+    <column id="128" parent="11" name="Claims.Subject">
+      <DasType>String|12s</DasType>
+      <Position>4</Position>
+    </column>
+    <column id="129" parent="11" name="Claims.Type">
+      <DasType>String|12s</DasType>
+      <Position>5</Position>
+    </column>
+    <column id="130" parent="11" name="Claims.Value">
+      <DasType>String|12s</DasType>
+      <Position>6</Position>
+    </column>
+    <column id="131" parent="11" name="Claims.ValueType">
+      <DasType>String|12s</DasType>
+      <Position>7</Position>
+    </column>
+    <column id="132" parent="12" name="_id">
+      <DasType>ObjectId|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="133" parent="12" name="BlobId">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="134" parent="12" name="Duration">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="135" parent="12" name="MetadataAsJson">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="136" parent="12" name="Name">
+      <DasType>String|12s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="137" parent="12" name="RecordedTimeUtc">
+      <DasType>ISODate|91s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="138" parent="12" name="SharedDateTimeUtc">
+      <DasType>ISODate|91s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="139" parent="12" name="UploadedBy">
+      <DasType>Object|4999544s</DasType>
+      <Position>1</Position>
+    </column>
+    <column id="140" parent="12" name="SharedWith">
+      <DasType>Object|4999544s</DasType>
+      <Position>2</Position>
+    </column>
+    <column id="141" parent="12" name="UploadedBy.Assignment">
+      <DasType>Int32|4s</DasType>
+      <Position>2</Position>
+    </column>
+    <column id="142" parent="12" name="SharedWith.Assignment">
       <DasType>Int32|4s</DasType>
       <Position>3</Position>
+    </column>
+    <column id="143" parent="12" name="UploadedBy.EntityId">
+      <DasType>String|12s</DasType>
+      <Position>3</Position>
+    </column>
+    <column id="144" parent="12" name="SharedWith.EntityId">
+      <DasType>String|12s</DasType>
+      <Position>4</Position>
     </column>
   </database-model>
 </dataSource>

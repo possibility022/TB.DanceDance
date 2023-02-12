@@ -16,6 +16,7 @@ export function UploadVideo() {
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(-1);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [wasSentSuccessfully, setWasSentSuccessfully] = useState<boolean | null>(null);
 
   const [videoName, setVideoName] = useState<string>('')
   const [videoNameIsValid, setVideoNameIsValid] = useState(false);
@@ -53,7 +54,7 @@ export function UploadVideo() {
   const validateVideoName = () => {
     const regex = new RegExp('^[-^:) _a-zA-Z0-9]*$')
     let isValid = false
-    if (videoName && regex.test(videoName)) {
+    if (videoName && videoName.length > 5 && videoName.length < 100 && regex.test(videoName)) {
       isValid = true
     }
     else {
@@ -89,6 +90,8 @@ export function UploadVideo() {
     return groupIsValid && videoNameIsValid && fileIsValid
   }
 
+
+
   const upload = () => {
 
     const inputIsValid = validateInput()
@@ -103,10 +106,22 @@ export function UploadVideo() {
         sharedWith: availableGroups[selectedGroupIndex]
       }, file,
         (e) => setBytesTransfered(e))
+        .then(() => {
+          setWasSentSuccessfully(true)
+        })
         .catch(e => {
           console.error(e)
+          setWasSentSuccessfully(false)
         })
+
     }
+  }
+
+  const getSentSuccessfullyMessage = () => {
+    if (wasSentSuccessfully === true)
+      return <p className="help is-success">Udało się</p>
+    else if (wasSentSuccessfully === false)
+      return <p className="help is-danger">Coś poszło nie tak :(</p>
   }
 
   const getNameVeryficationMessage = () => {
@@ -116,7 +131,7 @@ export function UploadVideo() {
     if (videoNameIsValid)
       return null
     else
-      return <p className="help is-danger">Coś jest nie tak. Nie wszystkie znaki specjalne są dozwolone :(. Nazwa musi być dłuższa niż 5 znaków i nie dłuższa niż 100. </p>
+      return <p className="help is-danger">Coś jest nie tak. Nie wszystkie znaki specjalne są dozwolone :(. Nazwa musi zawierać conajmniej 5 znaków i nie więcej niż 100. </p>
   }
 
   const getGroupVeryficationMessage = () => {
@@ -192,6 +207,8 @@ export function UploadVideo() {
       </div>
 
       <progress className="progress is-success" value={bytesTransfered} max={bytestToTransfer}></progress>
+      {getSentSuccessfullyMessage()}
+
     </div>
   );
 }
