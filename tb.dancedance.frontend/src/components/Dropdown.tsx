@@ -7,7 +7,7 @@ export interface IDropdownProps {
     startWithUnselected: boolean
     unselectedText?: string
     isLoading: boolean
-    onSelected?: (selectedItem: string) => void
+    onSelected?: (selectedItem: string, selectedIndex: number) => void
 }
 
 export function Dropdown(props: IDropdownProps) {
@@ -21,6 +21,8 @@ export function Dropdown(props: IDropdownProps) {
         const index = Number.parseInt(key)
         setSelectedItem(props.items[index])
         dropdownDiv.current?.classList.remove("is-active")
+        if (props.onSelected)
+            props.onSelected(props.items[index], index)
     }
 
     const toogleDropdown = () => {

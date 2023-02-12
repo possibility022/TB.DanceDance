@@ -3,8 +3,10 @@ import UploadVideoInformation from "../types/UploadInformation";
 import VideoInformations from "../types/VideoInformations";
 import ISharingScopeModel from "../types/SharingScopeModel";
 import { apiClientFactory } from "./HttpApiClient";
+import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
 
 const apiClient = apiClientFactory()
+
 
 
 export class VideoInfoService {
@@ -26,16 +28,20 @@ export class VideoInfoService {
         return response.data
     }
 
-    public async UploadVideo(file: File) {
+    public async UploadVideo(data: ISharedVideoInformation, file: File, onProgress: (loadedBytes: number) => void) {
 
-        const uploadUrl = await apiClient.get<UploadVideoInformation>('/api/video/getuploadurl');
+        const uploadUrl = await apiClient.post<UploadVideoInformation>('/api/video/getuploadurl',
+            data
+        );
 
         const containerClient = new BlockBlobClient(
             uploadUrl.data.sas
-          );
+        );
 
-          const client = containerClient.getBlockBlobClient()
-          await client.uploadData(file)
+        const blobBlock = containerClient.getBlockBlobClient()
+        await blobBlock.uploadData(file, {
+            onProgress: (e) => onProgress(e.loadedBytes)
+        });
     }
 }
 
