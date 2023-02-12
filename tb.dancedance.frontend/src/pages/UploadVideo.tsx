@@ -114,9 +114,9 @@ export function UploadVideo() {
       return null
 
     if (videoNameIsValid)
-      return <p className="help is-success"> Jest git</p>
+      return null
     else
-      return <p className="help is-danger">Coś jest nie tak. Nie wszystkie znaki specjalne są dozwolone :( </p>
+      return <p className="help is-danger">Coś jest nie tak. Nie wszystkie znaki specjalne są dozwolone :(. Nazwa musi być dłuższa niż 5 znaków i nie dłuższa niż 100. </p>
   }
 
   const getGroupVeryficationMessage = () => {
