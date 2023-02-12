@@ -1,4 +1,5 @@
-﻿using TB.DanceDance.Services.Models;
+﻿using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services
 {
@@ -8,6 +9,8 @@ namespace TB.DanceDance.Services
         bool ValidateCredentials(string username, string password);
 
         Task AddUpsertUserAsync(UserModel model);
+
+        Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroups(string userName);
 
         Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName);
 

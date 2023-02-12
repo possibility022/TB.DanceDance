@@ -24,9 +24,9 @@ export function VideoList(props: ListOfVideos) {
                 <td>{r.name}</td>
                 <td>{r.recordedTimeUtc.toLocaleString()}</td>
                 <td>
-                    <Button
-                        onClick={() => goToVideo(r)}
-                        content={<FontAwesomeIcon icon={faPlayCircle} />} />
+                    <Button onClick={() => goToVideo(r)}>
+                    <FontAwesomeIcon icon={faPlayCircle} />
+                        </Button>
                 </td>
 
             </tr>

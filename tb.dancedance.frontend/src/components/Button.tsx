@@ -2,11 +2,10 @@ import * as React from 'react';
 
 export interface IButtonProps {
     onClick?(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void
-    content: JSX.Element
 }
 
-export function Button(props: IButtonProps) {
+export function Button(props: React.PropsWithChildren<IButtonProps>) {
     return (
-        <button className="button" onClick={(e) => { if (props.onClick) props.onClick(e) }}> {props.content} </button>
+        <button className="button"  onClick={(e) => { if (props.onClick) props.onClick(e) }}> {props.children} </button>
     );
 }
