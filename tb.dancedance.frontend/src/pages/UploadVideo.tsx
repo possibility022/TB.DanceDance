@@ -146,7 +146,7 @@ export function UploadVideo(props: IUploadVideoProps) {
 
       <div className="file has-name is-fullwidth">
         <label className="file-label">
-          <input className="file-input" type="file" name="resume" value={videoName} onChange={(e) => onFileChange(e)} />
+          <input className="file-input" type="file" name="resume" onChange={(e) => onFileChange(e)} />
           <span className="file-cta">
             <span className="file-icon">
               <FontAwesomeIcon icon={faUpload} />

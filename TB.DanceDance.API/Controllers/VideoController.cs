@@ -1,4 +1,5 @@
 ﻿using IdentityServer4;
+using IdentityServer4.Extensions;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -74,6 +75,32 @@ public class VideoController : Controller
 
         var stream = await videoService.OpenStream(guid);
         return File(stream, "video/mp4", enableRangeProcessing: true);
+    }
+
+    [Route("/api/video/getAvailableGroups")]
+    public async Task<ICollection<SharingScopeModel>> GetAvailabeGroups()
+    {
+        var user = User.GetSubject();
+        (var groups, var evenets) = await userService.GetUserEventsAndGroups(user);
+
+        var list = new List<SharingScopeModel>(groups.Count + evenets.Count);
+
+        // todo automapper?
+        list.AddRange(groups.Select(r => new SharingScopeModel()
+        {
+            Assignment = AssignmentType.Group,
+            Id = r.Id,
+            Name = r.GroupName,
+        }));
+
+        list.AddRange(evenets.Select(e => new SharingScopeModel()
+        {
+            Assignment = AssignmentType.Event,
+            Id = e.Id,
+            Name = e.Name,
+        }));
+
+        return list;
     }
 
     [Route("/api/video/getUploadUrl")]
