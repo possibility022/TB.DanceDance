@@ -37,7 +37,7 @@ namespace TB.DanceDance.Data.Blobs
             return client.UploadAsync(stream);
         }
 
-        public Uri CreateUploadSas()
+        public SharedBlob CreateUploadSas()
         {
             var blobClient = container.GetBlobClient(Guid.NewGuid().ToString());
             var sasBuilder = new BlobSasBuilder();
@@ -51,15 +51,25 @@ namespace TB.DanceDance.Data.Blobs
             //sasBuilder.StartsOn = DateTimeOffset.Now.AddMinutes(-25);
             sasBuilder.ExpiresOn = DateTimeOffset.Now.AddMinutes(60);
             sasBuilder.SetPermissions(BlobSasPermissions.Create);
-            var sas =blobClient.GenerateSasUri(sasBuilder);
-            return sas;
+            var sas = blobClient.GenerateSasUri(sasBuilder);
+            return new SharedBlob()
+            {
+                BlobClient = blobClient,
+                Sas = sas,
+            };
         }
+    }
+
+    public class SharedBlob
+    {
+        public BlobClient BlobClient { get; set; }
+        public Uri Sas { get; set; }
     }
 
     public interface IBlobDataService
     {
         Task<Stream> OpenStream(string blobName);
         Task Upload(string blobId, Stream stream);
-        public Uri CreateUploadSas();
+        public SharedBlob CreateUploadSas();
     }
 }

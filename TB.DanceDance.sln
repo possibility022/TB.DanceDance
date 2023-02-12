@@ -15,9 +15,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Services", "T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Configurations", "TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj", "{70472B21-FFD3-4ED9-BBF8-4675B2CCEFD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Core", "TB.DanceDance.Core\TB.DanceDance.Core.csproj", "{CCCDE9DE-D14E-4A91-B996-607876B22088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Core", "TB.DanceDance.Core\TB.DanceDance.Core.csproj", "{CCCDE9DE-D14E-4A91-B996-607876B22088}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Identity", "TB.DanceDance.Identity\TB.DanceDance.Identity.csproj", "{11E920D5-80A7-4CE5-A41A-FD9D3139BD39}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8000402B-0818-4F27-820E-96A76C9C5B19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.API.Tests", "TB.DanceDance.API.Tests\TB.DanceDance.API.Tests.csproj", "{38A530DD-86D1-4E26-BB25-F50DFBC4377D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,9 +61,16 @@ Global
 		{11E920D5-80A7-4CE5-A41A-FD9D3139BD39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11E920D5-80A7-4CE5-A41A-FD9D3139BD39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11E920D5-80A7-4CE5-A41A-FD9D3139BD39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38A530DD-86D1-4E26-BB25-F50DFBC4377D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38A530DD-86D1-4E26-BB25-F50DFBC4377D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38A530DD-86D1-4E26-BB25-F50DFBC4377D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38A530DD-86D1-4E26-BB25-F50DFBC4377D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{38A530DD-86D1-4E26-BB25-F50DFBC4377D} = {8000402B-0818-4F27-820E-96A76C9C5B19}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7B62DD5-B1F0-42D1-B42B-CFDE4BEE15D9}

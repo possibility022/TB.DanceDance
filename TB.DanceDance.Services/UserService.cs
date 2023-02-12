@@ -4,7 +4,6 @@ using MongoDB.Driver;
 using System.Security.Claims;
 using System.Text.Json;
 using TB.DanceDance.Data.MongoDb.Models;
-using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services
@@ -49,24 +48,37 @@ namespace TB.DanceDance.Services
             });
         }
 
-        public async Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
+        public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroups(string userName)
         {
-            List<Group> userGroups = null;
-            List<Event> userEvents = null;
-            
+            if (userName is null)
+                throw new ArgumentNullException(nameof(userName));
+
+            List<Group> userGroups = null!;
+            List<Event> userEvents = null!;
+
             var getGroups = this.groups.FindAsync(r => r.People.Contains(userName))
                     .ContinueWith(async r => userGroups = await r.Result.ToListAsync());
-            
+
             var getEvents = this.events.FindAsync(r => r.Attenders.Contains(userName))
                 .ContinueWith(async r => userEvents = await r.Result.ToListAsync());
 
             await Task.WhenAll(getGroups, getEvents);
 
-            if (userGroups == null || userEvents == null)
-                throw new Exception("Groups or events list is null.");
+            return (userGroups, userEvents);
+        }
+
+        public async Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
+        {
+            (var userGroups, var userEvents) = await GetUserEventsAndGroups(userName);
 
             return userGroups.Select(r => r.Id)
                 .Concat(userEvents.Select(e => e.Id));
+        }
+
+        public async Task<bool> UserIsAssociatedWith(string userName, string entityId)
+        {
+            var associatedTo = await GetUserVideosAssociationsIds(userName);
+            return associatedTo.Any(r => r == entityId);
         }
     }
 
@@ -130,7 +142,7 @@ namespace TB.DanceDance.Services
         {
             IEnumerable<string> enumerable = this.users.Select(r => r.SubjectId).Concat(new[]
                 { Constants.GroupSroda1730, Constants.WarsztatyFootworki2022, Constants.WarsztatyRama2022 })!;
-            
+
             return Task.FromResult(enumerable);
         }
 
@@ -144,6 +156,41 @@ namespace TB.DanceDance.Services
         public bool ValidateCredentials(string username, string password)
         {
             return users.Any(f => f.Username == username && f.Password == password);
+        }
+
+        public async Task<bool> UserIsAssociatedWith(string userName, string entityId)
+        {
+            var associatedTo = await GetUserVideosAssociationsIds(userName);
+            return associatedTo.Any(r => r == entityId);
+        }
+
+        public Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroups(string userName)
+        {
+            var groups = new Group[] { new Group()
+            {
+                Id = Constants.GroupSroda1730,
+                GroupName = "Sroda 1800",
+                People = new string[] {userName}
+            } };
+
+            var events = new Event[] {
+                new Event()
+                {
+                    Id = Constants.WarsztatyFootworki2022,
+                    Attenders= new[] {userName},
+                    Date = new DateTime(2022, 05, 05),
+                    Name = "Warsztaty Footworki 2022"
+                },
+                new Event()
+                {
+                    Id = Constants.WarsztatyRama2022,
+                    Attenders= new[] {userName},
+                    Date = new DateTime(2022, 05, 05),
+                    Name = "Warsztaty Rama 2022"
+                }
+            };
+
+            return Task.FromResult<(ICollection<Group>, ICollection<Event>)>(new (groups, events));
         }
     }
 }

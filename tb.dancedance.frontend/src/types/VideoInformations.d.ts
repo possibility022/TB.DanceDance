@@ -1,6 +1,6 @@
 export default interface VideoInformations {
     name: string
-    creationTimeUtc: Date
+    recordedTimeUtc: Date
     id: number
     blobId: string
     duration: TimeRanges
