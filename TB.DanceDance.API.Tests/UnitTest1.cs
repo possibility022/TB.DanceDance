@@ -76,10 +76,10 @@ namespace TB.DanceDance.API.Tests
             {
                 NameOfVideo = "name",
                 RecordedTimeUtc = DateTime.Now,
-                SharedWith = new SharingScope()
+                SharedWith = new SharingScopeModel()
                 {
                     Assignment = AssignmentType.Event,
-                    EntityId = "123"
+                    Id = "123"
                 }
             };
 
@@ -111,7 +111,7 @@ namespace TB.DanceDance.API.Tests
                 v.VideoInformation.BlobId == "BlobName")), Times.Once);
 
             videoService.Verify(r => r.SaveSharedVideoInformations(It.Is<SharedVideo>(v =>
-                v.VideoInformation.SharedWith == requestBody.SharedWith)), Times.Once);
+                v.VideoInformation.SharedWith.EntityId == requestBody.SharedWith.Id)), Times.Once);
 
             videoService.Verify(r => r.SaveSharedVideoInformations(It.Is<SharedVideo>(v =>
                 v.VideoInformation.UploadedBy == uploadedBy)), Times.Once);
@@ -127,10 +127,10 @@ namespace TB.DanceDance.API.Tests
             {
                 NameOfVideo = "name",
                 RecordedTimeUtc = DateTime.Now,
-                SharedWith = new SharingScope()
+                SharedWith = new SharingScopeModel()
                 {
                     Assignment = AssignmentType.Event,
-                    EntityId = "123"
+                    Id = "123"
                 }
             };
 
