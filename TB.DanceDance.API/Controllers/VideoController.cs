@@ -104,12 +104,12 @@ public class VideoController : Controller
     }
 
     [Route("/api/video/getUploadUrl")]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation(SharedVideoInformation sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody]SharedVideoInformation sharedVideoInformations)
     {
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;
 
-        if (string.IsNullOrEmpty(sharedWith?.EntityId))
+        if (string.IsNullOrEmpty(sharedWith?.Id))
         {
             ModelState.AddModelError(nameof(sharedVideoInformations.SharedWith), "EntityId within SharedWith is empty.");
         }
@@ -118,10 +118,10 @@ public class VideoController : Controller
             if (sharedWith.Assignment == AssignmentType.Event || sharedWith.Assignment == AssignmentType.Group)
             {
                 user = User.GetSubject();
-                var isAssigned = await userService.UserIsAssociatedWith(user, sharedWith.EntityId);
+                var isAssigned = await userService.UserIsAssociatedWith(user, sharedWith.Id);
                 if (!isAssigned)
                 {
-                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}. Assigment type: {2}", user, sharedWith.EntityId, sharedWith.Assignment);
+                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}. Assigment type: {2}", user, sharedWith.Id, sharedWith.Assignment);
                     return new UnauthorizedResult();
                 }
             }
@@ -143,7 +143,7 @@ public class VideoController : Controller
             Shared = DateTime.UtcNow,
             VideoInformation = new VideoInformation()
             {
-                SharedWith = sharedVideoInformations.SharedWith,
+                SharedWith = new SharingScope() { Assignment = sharedVideoInformations.SharedWith.Assignment, EntityId = sharedVideoInformations.SharedWith.Id },
                 BlobId = sharedBlob.BlobClient.Name,
                 Name = sharedVideoInformations.NameOfVideo,
                 SharedDateTimeUtc = DateTime.UtcNow,

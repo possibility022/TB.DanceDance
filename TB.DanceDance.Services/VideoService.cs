@@ -9,18 +9,21 @@ namespace TB.DanceDance.Services
         readonly IMongoCollection<VideoInformation> videoCollection;
         private readonly IMongoCollection<Event> events;
         private readonly IMongoCollection<Group> groups;
+        private readonly IMongoCollection<SharedVideo> sharedVideos;
         private readonly IBlobDataService blobService;
         private readonly IVideoFileLoader videoFileLoader;
 
         public VideoService(IMongoCollection<VideoInformation> videoCollection,
             IMongoCollection<Event> events,
             IMongoCollection<Group> groups,
+            IMongoCollection<SharedVideo> sharedVideos,
             IBlobDataServiceFactory blobServiceFactory,
             IVideoFileLoader videoFileLoader)
         {
             this.videoCollection = videoCollection ?? throw new ArgumentNullException(nameof(videoCollection));
             this.events = events;
             this.groups = groups;
+            this.sharedVideos = sharedVideos;
             this.blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
             this.videoFileLoader = videoFileLoader ?? throw new ArgumentNullException(nameof(videoFileLoader));
         }
@@ -111,9 +114,9 @@ namespace TB.DanceDance.Services
                 .SingleAsync();
         }
 
-        public Task SaveSharedVideoInformations(SharedVideo sharedVideo)
+        public async Task SaveSharedVideoInformations(SharedVideo sharedVideo)
         {
-            throw new NotImplementedException();
+            await sharedVideos.InsertOneAsync(sharedVideo);
         }
     }
 }
