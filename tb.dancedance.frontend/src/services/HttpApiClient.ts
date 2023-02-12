@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { AuthProvider } from '../providers/AuthProvider';
 import { AuthService, TokenProvider } from './AuthService';
 
 
@@ -12,7 +13,7 @@ export const apiClientFactory = () => {
     {
         baseUrl = 'https://localhost:7068'
     }
-    
+
     const instance = axios.create({
         baseURL: baseUrl
     });

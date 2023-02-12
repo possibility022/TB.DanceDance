@@ -1,4 +1,4 @@
-$ffmpg = "C:\Users\TomaszBak\Downloads\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe";
+$ffmpg = "D:\Programy\ffmpeg-2022-12-04-git-6c814093d8-full_build\bin\ffmpeg.exe";
 $commandArgs = '-i [INPUT_FILE_PATH] -c:v libvpx-vp9 -b:v 2M [OUTPUT_FILE_PATH]'
 $folderWithVideos = "G:\West"
 

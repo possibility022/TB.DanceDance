@@ -31,7 +31,7 @@ namespace TB.DanceDance.Services
             {
                 BlobId = guid,
                 Name = Path.GetFileName(filePath),
-                CreationTimeUtc = recorded,
+                RecordedTimeUtc = recorded,
                 MetadataAsJson = System.Text.Json.JsonSerializer.Serialize(metadataAsJson),
                 Duration = duration
             };

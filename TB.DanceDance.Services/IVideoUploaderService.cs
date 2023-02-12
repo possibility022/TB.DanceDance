@@ -4,7 +4,7 @@ namespace TB.DanceDance.Services;
 
 public interface IVideoUploaderService
 {
-    Uri GetSasUri();
+    SharedBlob GetSasUri();
 }
 
 public class VideoUploaderService : IVideoUploaderService
@@ -16,7 +16,7 @@ public class VideoUploaderService : IVideoUploaderService
         blobDataService = factory.GetBlobDataService(BlobContainer.VideosToConvert);
     }
     
-    public Uri GetSasUri()
+    public SharedBlob GetSasUri()
     {
         return blobDataService.CreateUploadSas();
     }

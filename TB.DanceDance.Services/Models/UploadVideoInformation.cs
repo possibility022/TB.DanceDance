@@ -2,6 +2,6 @@
 
 public class UploadVideoInformation
 {
-    public string Url { get; set; }
+    public string Sas { get; set; }
     public string User { get; set; }
 }
