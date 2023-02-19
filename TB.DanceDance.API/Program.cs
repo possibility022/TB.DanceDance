@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
+using TB.DanceDance.Data.MongoDb;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 
@@ -48,8 +49,8 @@ builder.Services.AddAuthorization(o =>
 });
 
 builder.Services
-    .ConfigureDb()
-    .ConfigureVideoServices();
+    .ConfigureDb(builder.Configuration.GetMongoDbConfig())
+    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(builder.Configuration));
 
 builder.Services
     .AddAuthentication()

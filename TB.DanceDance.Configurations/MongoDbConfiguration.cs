@@ -2,6 +2,8 @@
 {
     public class MongoDbConfiguration
     {
+
+        public string? ConnectionString { get; set; }
         public string Database => "danceDb";
         public string VideoCollection => "videoCollection";
         public string OwnersCollection => "owners";
