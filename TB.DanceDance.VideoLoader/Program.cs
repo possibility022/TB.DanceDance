@@ -29,7 +29,7 @@ namespace TB.DanceDance.VideoLoader
         {
             var builder = Host.CreateDefaultBuilder();
 
-            //var environment = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
+            var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
             var configurationBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
