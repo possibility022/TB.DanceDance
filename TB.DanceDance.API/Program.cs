@@ -9,6 +9,10 @@ using TB.DanceDance.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile("appsettings.Development.json", optional: true);
+
 // Add services to the container.
 
 builder.Services.AddControllersWithViews();
