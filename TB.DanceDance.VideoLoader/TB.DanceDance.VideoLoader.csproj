@@ -5,12 +5,15 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <UserSecretsId>76b0dd76-61c4-4a28-a39f-109d587bd5c0</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="MetadataExtractor" Version="2.7.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="NReco.VideoConverter" Version="1.1.4" />
     <PackageReference Include="NReco.VideoInfo" Version="1.1.1" />
     <PackageReference Include="Serilog" Version="2.10.0" />
