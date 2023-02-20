@@ -6,8 +6,8 @@ using TB.DanceDance.Configurations;
 using TB.DanceDance.Core.IdentityServerStore;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Identity;
 using TB.DanceDance.Services;
-using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Core
 {

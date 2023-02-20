@@ -142,35 +142,35 @@ namespace TB.DanceDance.VideoLoader
             });
         }
 
-        private static Task SetUsersAccounts(IUserService userService)
-        {
-            var address = new
-            {
-                street_address = "Somwhere",
-                locality = "In",
-                postal_code = 1337,
-                country = "Poland"
-            };
+        //private static Task SetUsersAccounts(IUserService userService)
+        //{
+        //    var address = new
+        //    {
+        //        street_address = "Somwhere",
+        //        locality = "In",
+        //        postal_code = 1337,
+        //        country = "Poland"
+        //    };
 
-            return userService.AddUpsertUserAsync(new Services.Models.UserModel()
-            {
+        //    return userService.AddUpsertUserAsync(new Services.Models.UserModel()
+        //    {
 
-                SubjectId = "818727",
-                Username = "alice",
-                Password = "alice",
-                Claims =
-                        {
-                            new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Alice"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
-                        new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                            new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                            new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
-                        }
+        //        SubjectId = "818727",
+        //        Username = "alice",
+        //        Password = "alice",
+        //        Claims =
+        //                {
+        //                    new Claim(JwtClaimTypes.Name, "Alice Smith"),
+        //                    new Claim(JwtClaimTypes.GivenName, "Alice"),
+        //                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
+        //                    new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
+        //                new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+        //                    new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
+        //                    new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
+        //                }
 
-            });
-        }
+        //    });
+        //}
 
         public static async Task SetBasicIdentityConfiguration(IdentityResourceMongoStore resources, IdentityClientMongoStore clientStore)
         {
