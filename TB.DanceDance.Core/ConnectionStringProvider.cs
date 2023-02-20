@@ -37,5 +37,21 @@ namespace TB.DanceDance.Core
 
             return cs;
         }
+
+        public static string GetMongoDbConnectionStringForIdentityStore(IConfiguration configuration)
+        {
+            var section = configuration.GetRequiredSection("ConnectionStrings:MongoDBIdentityStore");
+
+            var cs = section.Value;
+
+            if (cs == null)
+                cs = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString.MongoDBIdentityStore");
+
+
+            if (string.IsNullOrEmpty(cs))
+                throw new Exception("Could not resolve connection string for MongoDBIdentityStore.");
+
+            return cs;
+        }
     }
 }
