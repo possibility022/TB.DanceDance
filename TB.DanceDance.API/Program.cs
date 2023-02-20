@@ -114,10 +114,10 @@ var identityBuilder = builder.Services
 
 var setIdentityServerAsProduction = builder.Environment.IsProduction();
 
+builder.Services.AddScoped<IUserService, UserService>();
 
 if (setIdentityServerAsProduction)
 {
-    builder.Services.AddScoped<IUserService, UserService>();
 
     var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
     if (cert == null)
@@ -133,9 +133,6 @@ if (setIdentityServerAsProduction)
 }
 else
 {
-    builder.Services
-        .AddSingleton<IUserService, TestUsersService>();
-
     identityBuilder
         .AddAspNetIdentity<UserModel>()
         .AddDeveloperSigningCredential()
