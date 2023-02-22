@@ -4,6 +4,9 @@ import { AuthService, IAuthService } from "../services/AuthService";
 
 
 class DummyIAuthService implements IAuthService{
+    getAccessTokenNoRefresh(): Promise<string | null> {
+        throw new Error("Method not implemented.");
+    }
     signinRedirectCallback(): Promise<void> {
         throw new Error("Method not implemented.");
     }
@@ -34,24 +37,13 @@ class DummyIAuthService implements IAuthService{
     signoutRedirectCallback(): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    getAccessToken(): string | null {
+    getAccessToken(): Promise<string | null> {
         throw new Error("Method not implemented.");
     }
 
 }
 
-const AuthContext = React.createContext<IAuthService>(new DummyIAuthService());
+export const AuthContext = React.createContext<IAuthService>(new DummyIAuthService());
+export const authService = new AuthService()
 
 export const AuthConsumer = AuthContext.Consumer;
-
-export class AuthProvider extends Component {
-    authService;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    constructor(props: {} | Readonly<{}>) {
-        super(props);
-        this.authService = new AuthService();
-    }
-    render() {
-        return <AuthContext.Provider value={this.authService}>{this.props.children}</AuthContext.Provider>;
-    }
-}
