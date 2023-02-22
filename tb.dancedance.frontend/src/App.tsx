@@ -9,17 +9,16 @@ import { Logout } from "./components/AuthComponents/Logout"
 import { LogoutCallback } from "./components/AuthComponents/LogoutCallback"
 import { PrivateRoute } from "./components/AuthComponents/PrivateRoute"
 import { SilentRenew } from "./components/AuthComponents/SilentRenew"
-import { AuthProvider } from "./providers/AuthProvider"
 import { VideoScreen } from "./pages/VideosScreen"
 import { VideoPlayerScreen } from "./pages/VideoPlayerScreen"
 import { UploadVideo } from "./pages/UploadVideo"
+import { AuthContext, authService } from "./providers/AuthProvider"
 
 function App() {
 
 	return (
 		<div className="container">
-			<AuthProvider>
-
+			<AuthContext.Provider value={authService}>
 				<BrowserRouter>
 				<NavigationBar></NavigationBar>
 					<Routes>
@@ -38,7 +37,7 @@ function App() {
 
 					</Routes>
 				</BrowserRouter>
-			</AuthProvider>
+			</AuthContext.Provider>
 		</div>
 	)
 }

@@ -1,10 +1,6 @@
-import { Blob } from 'buffer';
-import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import ReactPlayer from 'react-player';
-import { AuthConsumer } from '../providers/AuthProvider';
-import { AuthService, IAuthService, TokenProvider } from '../services/AuthService';
-import { VideoInfoService } from '../services/VideoInfoService';
+import { AuthContext } from '../providers/AuthProvider';
 
 interface IVideoPlayProps {
   videoUrl: string
@@ -12,21 +8,29 @@ interface IVideoPlayProps {
 
 export function PrivateScreen(props: IVideoPlayProps) {
 
-  const constructUrl = (originalUrl: string, token: string | null) => {
-    if (token)
-      // todo, improve authorization way
-      return `${originalUrl}?token=${token}`
-    return originalUrl
-  }
+  const authContext = useContext(AuthContext)
 
-  return <AuthConsumer>
-    {
-      ({ getAccessToken }: IAuthService) => {
-        return (
-          <ReactPlayer controls={true} url={constructUrl(props.videoUrl, getAccessToken())}
-          ></ReactPlayer>
-        )
+  const [url, setUrl] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    authContext.getAccessToken()
+      .then((token) => {
+        if (token)
+          // todo, improve authorization way
+          setUrl(`${props.videoUrl}?token=${token}`)
+        setUrl(props.videoUrl)
+
+      })
+      .catch(e => console.log(e))
+
+      return () => {
+        // todo cleanup / aboard
       }
-    }
-  </AuthConsumer >
+  }, [])
+
+
+  return (
+    <ReactPlayer controls={true} url={url}
+    ></ReactPlayer>
+  )
 }
