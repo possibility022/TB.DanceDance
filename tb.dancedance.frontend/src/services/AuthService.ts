@@ -20,7 +20,8 @@ interface OidcStorage {
 }
 
 export interface TokenProvider {
-    getAccessToken(): string | null
+    getAccessToken(): Promise<string | null>
+    getAccessTokenNoRefresh(): Promise<string | null>
 }
 
 export class AuthService implements IAuthService, TokenProvider {
@@ -55,13 +56,40 @@ export class AuthService implements IAuthService, TokenProvider {
 
         this.userManager.events.addAccessTokenExpired(() => {
             console.log("token expired");
-            this.signinSilent();
+            this.signinSilent()
+                .catch(e => console.log(e));
         });
     }
-    getAccessToken = (): string | null => {
+
+    getAccessTokenNoRefresh = (): Promise<string | null> => {
+        return this.getAccessTokenInternal(false)
+    }
+
+    getAccessToken = (): Promise<string | null> => {
+        return this.getAccessTokenInternal(true)
+    }
+
+    private getTokenFromStorage = (): string | null => {
         const oidcStorage = this.getOidcStorage()
-        if (oidcStorage?.access_token)
-            return oidcStorage.access_token
+        return oidcStorage?.access_token ?? null
+    }
+
+    private getAccessTokenInternal = async (refreshTokenIfExpired: boolean): Promise<string | null> => {
+        const token = this.getTokenFromStorage()
+        if (token) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const o = this.parseJwt(token)
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const expireAt = o?.exp as number
+            const expire = new Date(expireAt * 1000)
+
+            if (expire < new Date() && refreshTokenIfExpired) {
+                await this.signinSilent()
+                return this.getTokenFromStorage()
+            }
+
+            return token
+        }
         else
             return null
     }
@@ -140,14 +168,9 @@ export class AuthService implements IAuthService, TokenProvider {
         return (!!oidcStorage && !!oidcStorage.access_token)
     };
 
-    signinSilent = () => {
-        this.userManager.signinSilent()
-            .then((user) => {
-                console.log("signed in", user);
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+    signinSilent = async () => {
+        const user = await this.userManager.signinSilent()
+        console.log("signed in", user);
     };
 
     signinSilentCallback = async () => {
@@ -156,10 +179,11 @@ export class AuthService implements IAuthService, TokenProvider {
 
     logout = async () => {
         const idToken = localStorage.getItem("id_token")
-        await this.userManager.signoutRedirect({
+        const requestArgs = {
             id_token_hint: idToken ?? undefined
-        });
+        }
         await this.userManager.clearStaleState();
+        await this.userManager.signoutRedirect(requestArgs);
     };
 
     signoutRedirectCallback = async () => {

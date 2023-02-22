@@ -1,5 +1,4 @@
 import axios, { AxiosInstance } from 'axios';
-import { AuthProvider } from '../providers/AuthProvider';
 import { AuthService, TokenProvider } from './AuthService';
 
 
@@ -24,7 +23,7 @@ export const apiClientFactory = () => {
 }
 
 const applyInterceptor = (axiosInstance: AxiosInstance) => {
-    axiosInstance.interceptors.request.use(c => {
+    axiosInstance.interceptors.request.use(async c => {
 
         let config = c
 
@@ -34,7 +33,7 @@ const applyInterceptor = (axiosInstance: AxiosInstance) => {
         if (c.headers && c.headers['Authorization']) {
             // authorization header is already set, nothing to do
         } else {
-            const token = tokenProvider.getAccessToken()
+            const token = await tokenProvider.getAccessToken()
             if (token) {
                 const fullToken = `Bearer ${token}`
                 if (c.headers) {
