@@ -1,10 +1,8 @@
-﻿using IdentityModel;
-using IdentityServer4;
+﻿using AspNetCore.Identity.MongoDbCore.Models;
+using IdentityModel;
 using MongoDB.Driver;
-using System.Security.Claims;
-using System.Text.Json;
 using TB.DanceDance.Data.MongoDb.Models;
-using TB.DanceDance.Services.Models;
+using TB.DanceDance.Identity;
 
 namespace TB.DanceDance.Services
 {
@@ -26,7 +24,7 @@ namespace TB.DanceDance.Services
         public async Task<UserModel?> FindUserByNameAsync(string name)
         {
             var filter = new FilterDefinitionBuilder<UserModel>()
-                .Eq(r => r.Username, name);
+                .Eq(r => r.UserName, name);
 
             var res = await usersCollection.FindAsync(filter);
             return await res.FirstAsync();
@@ -36,13 +34,13 @@ namespace TB.DanceDance.Services
         {
             // todo migrate to asp net identity
             return usersCollection
-                .Find(f => f.Username == username && f.Password == password)
+                .Find(f => f.UserName == username && f.PasswordHash == password)
                 .Any();
         }
 
         public Task AddUpsertUserAsync(UserModel model)
         {
-            return usersCollection.ReplaceOneAsync(f => f.SubjectId == model.SubjectId, model, new ReplaceOptions()
+            return usersCollection.ReplaceOneAsync(f => f.Id == model.Id, model, new ReplaceOptions()
             {
                 IsUpsert = true
             });
@@ -88,46 +86,48 @@ namespace TB.DanceDance.Services
 
         public TestUsersService()
         {
-            var address = new
-            {
-                street_address = "One Hacker Way",
-                locality = "Heidelberg",
-                postal_code = 69118,
-                country = "Germany"
-            };
-
             users = new List<UserModel>
                 {
                     new UserModel
                     {
-                        SubjectId = "818727",
-                        Username = "alice",
-                        Password = "alice",
+                        Id = Guid.Parse("edaddb7a-6dfc-4e0b-bf15-ecec4ef75de1"),
+                        UserName = "alice",
+                        PasswordHash = "alice", //todo hash
                         Claims =
                         {
-                            new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Alice"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
-                            new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                            new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                            new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
+                            new MongoClaim
+                            {
+                                Type = JwtClaimTypes.Name,
+                                Value = "Alice Smith"
+                            },
+                            new MongoClaim()
+                            {
+                                Type = JwtClaimTypes.GivenName,
+                                Value = "Alice"
+                            },
+                            new MongoClaim () {
+                                Type = JwtClaimTypes.FamilyName,
+                                Value = "Smith"
+                            },
+                            new MongoClaim () { Type = JwtClaimTypes.Email, Value = "AliceSmith@email.com" },
+                            new MongoClaim () { Type = JwtClaimTypes.EmailVerified, Value = "true" },
+                            new MongoClaim () { Type = JwtClaimTypes.WebSite, Value = "http://alice.com" },
                         }
                     },
+
                     new UserModel
                     {
-                        SubjectId = "88421113",
-                        Username = "bob",
-                        Password = "bob",
+                        Id = Guid.Parse("f8db4ddd-5e50-4526-9281-392edd47c5c4"),
+                        UserName = "bob",
+                        PasswordHash = "bob", //todo hash
                         Claims =
                         {
-                            new Claim(JwtClaimTypes.Name, "Bob Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Bob"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.Email, "BobSmith@email.com"),
-                            new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                            new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
-                            new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
+                            new MongoClaim () { Type = JwtClaimTypes.Name, Value = "Bob Smith" },
+                            new MongoClaim () { Type = JwtClaimTypes.GivenName, Value = "Bob" },
+                            new MongoClaim () { Type = JwtClaimTypes.FamilyName, Value = "Smith" },
+                            new MongoClaim () { Type = JwtClaimTypes.Email, Value = "BobSmith@email.com" },
+                            new MongoClaim () { Type = JwtClaimTypes.EmailVerified, Value = "true" },
+                            new MongoClaim () { Type = JwtClaimTypes.WebSite, Value = "http://bob.com" },
                         }
                     }
                 };
@@ -140,7 +140,7 @@ namespace TB.DanceDance.Services
 
         public Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
         {
-            IEnumerable<string> enumerable = this.users.Select(r => r.SubjectId).Concat(new[]
+            IEnumerable<string> enumerable = this.users.Select(r => r.Id.ToString()).Concat(new[]
                 { Constants.GroupSroda1730, Constants.WarsztatyFootworki2022, Constants.WarsztatyRama2022 })!;
 
             return Task.FromResult(enumerable);
@@ -149,13 +149,13 @@ namespace TB.DanceDance.Services
         public Task<UserModel?> FindUserByNameAsync(string name)
         {
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-            return Task.FromResult(users.Find(f => f.Username == name));
+            return Task.FromResult(users.Find(f => f.UserName == name));
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
         }
 
         public bool ValidateCredentials(string username, string password)
         {
-            return users.Any(f => f.Username == username && f.Password == password);
+            return users.Any(f => f.UserName == username && f.PasswordHash == password);
         }
 
         public async Task<bool> UserIsAssociatedWith(string userName, string entityId)
@@ -190,7 +190,7 @@ namespace TB.DanceDance.Services
                 }
             };
 
-            return Task.FromResult<(ICollection<Group>, ICollection<Event>)>(new (groups, events));
+            return Task.FromResult<(ICollection<Group>, ICollection<Event>)>(new(groups, events));
         }
     }
 }

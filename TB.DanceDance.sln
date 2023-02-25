@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Identity", "T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8000402B-0818-4F27-820E-96A76C9C5B19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.API.Tests", "TB.DanceDance.API.Tests\TB.DanceDance.API.Tests.csproj", "{38A530DD-86D1-4E26-BB25-F50DFBC4377D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Tests", "TB.DanceDance.API.Tests\TB.DanceDance.API.Tests.csproj", "{38A530DD-86D1-4E26-BB25-F50DFBC4377D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
