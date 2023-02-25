@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using MongoDB.Driver;
 using TB.DanceDance.Data.MongoDb.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace TB.DanceDance.VideoLoader
 {
@@ -26,19 +27,29 @@ namespace TB.DanceDance.VideoLoader
 
         static async Task Main(string[] args)
         {
-            var buidler = Host.CreateDefaultBuilder();
+            var builder = Host.CreateDefaultBuilder();
 
-            buidler.ConfigureServices(services =>
+            var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
+            var configurationBuilder = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddUserSecrets("76b0dd76-61c4-4a28-a39f-109d587bd5c0") // This is the same as in API Project
+                //.AddJsonFile($"appsettings.{environment}.json", optional: true)
+                .AddEnvironmentVariables();
+
+            var config = configurationBuilder.Build();
+
+            builder.ConfigureServices((context, services) =>
             {
-                services.ConfigureDb()
-                    .ConfigureVideoServices((s) => new VideoFileLoader(FFMPGPath))
+                services.ConfigureDb(config.GetMongoDbConfig())
+                    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config) ,(s) => new VideoFileLoader(FFMPGPath))
                     .ConfigureIdentityStorage();
             });
 
-            buidler.UseSerilog();
+            builder.UseSerilog();
 
 
-            app = buidler.Build();
+            app = builder.Build();
 
             //await CreateOwnersAsync();
             await SetVideoOwnerAsync();
@@ -62,7 +73,7 @@ namespace TB.DanceDance.VideoLoader
         private static async Task SetVideoOwnerAsync()
         {
             var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
-            var find  = await videos.FindAsync(FilterDefinition<VideoInformation>.Empty);
+            var find = await videos.FindAsync(FilterDefinition<VideoInformation>.Empty);
             var videosList = find.ToList();
 
             foreach (var videoInformation in videosList)
@@ -74,7 +85,8 @@ namespace TB.DanceDance.VideoLoader
                         EntityId = Constants.WarsztatyFootworki2022,
                         Assignment = AssignmentType.Event
                     };
-                } else if (videoInformation.Name.Contains("Rama"))
+                }
+                else if (videoInformation.Name.Contains("Rama"))
                 {
                     videoInformation.SharedWith = new SharingScope()
                     {
@@ -90,7 +102,7 @@ namespace TB.DanceDance.VideoLoader
                         Assignment = AssignmentType.Group
                     };
                 }
-            
+
                 await videos.ReplaceOneAsync((s) => s.Id == videoInformation.Id, videoInformation);
             }
         }
@@ -98,9 +110,9 @@ namespace TB.DanceDance.VideoLoader
         private static async Task CreateOwnersAsync()
         {
             var attenders = new List<string>() { TomekUserId };
-            
+
             var events = app.Services.GetRequiredService<IMongoCollection<Event>>();
-            await events.InsertManyAsync(new []
+            await events.InsertManyAsync(new[]
             {
                 new Event()
                 {
@@ -130,35 +142,35 @@ namespace TB.DanceDance.VideoLoader
             });
         }
 
-        private static Task SetUsersAccounts(IUserService userService)
-        {
-            var address = new
-            {
-                street_address = "Somwhere",
-                locality = "In",
-                postal_code = 1337,
-                country = "Poland"
-            };
+        //private static Task SetUsersAccounts(IUserService userService)
+        //{
+        //    var address = new
+        //    {
+        //        street_address = "Somwhere",
+        //        locality = "In",
+        //        postal_code = 1337,
+        //        country = "Poland"
+        //    };
 
-            return userService.AddUpsertUserAsync(new Services.Models.UserModel()
-            {
+        //    return userService.AddUpsertUserAsync(new Services.Models.UserModel()
+        //    {
 
-                SubjectId = "818727",
-                Username = "alice",
-                Password = "alice",
-                Claims =
-                        {
-                            new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Alice"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
-                        new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                            new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                            new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
-                        }
+        //        SubjectId = "818727",
+        //        Username = "alice",
+        //        Password = "alice",
+        //        Claims =
+        //                {
+        //                    new Claim(JwtClaimTypes.Name, "Alice Smith"),
+        //                    new Claim(JwtClaimTypes.GivenName, "Alice"),
+        //                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
+        //                    new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
+        //                new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+        //                    new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
+        //                    new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
+        //                }
 
-            });
-        }
+        //    });
+        //}
 
         public static async Task SetBasicIdentityConfiguration(IdentityResourceMongoStore resources, IdentityClientMongoStore clientStore)
         {

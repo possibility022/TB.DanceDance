@@ -9,15 +9,15 @@ using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
-using IdentityServer4.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using TB.DanceDance.Services;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text.Encodings.Web;
+using System.Text;
+using TB.DanceDance.Identity;
+using TB.DanceDance.API.Quickstart.Account;
 
 namespace IdentityServerHost.Quickstart.UI
 {
@@ -35,20 +35,26 @@ namespace IdentityServerHost.Quickstart.UI
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
-        private readonly IUserService users;
+        private readonly UserManager<UserModel> userManager;
+        private readonly SignInManager<UserModel> signInManager;
+        private readonly ILogger<AccountController> logger;
 
         public AccountController(
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
-            IUserService users)
+            UserManager<UserModel> userManager,
+            SignInManager<UserModel> signInManager,
+            ILogger<AccountController> logger)
         {
             _interaction = interaction;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
-            this.users = users;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -109,10 +115,12 @@ namespace IdentityServerHost.Quickstart.UI
             if (ModelState.IsValid)
             {
                 // validate username/password against in-memory store
-                if (users.ValidateCredentials(model.Username, model.Password))
+                var res = await signInManager.PasswordSignInAsync(model.Username, model.Password, true, false);
+                if (res.Succeeded)
                 {
-                    var user = await users.FindUserByNameAsync(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username, clientId: context?.Client.ClientId));
+                    var user = await userManager.FindByNameAsync(model.Username);
+                    //var user = await users.FindUserByNameAsync(model.Username);
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName, clientId: context?.Client.ClientId));
 
                     // only set explicit expiration here if user chooses "remember me". 
                     // otherwise we rely upon expiration configured in cookie middleware.
@@ -127,9 +135,9 @@ namespace IdentityServerHost.Quickstart.UI
                     };
 
                     // issue authentication cookie with subject ID and username
-                    var isuser = new IdentityServerUser(user.SubjectId)
+                    var isuser = new IdentityServerUser(user.UserName)
                     {
-                        DisplayName = user.Username
+                        DisplayName = user.UserName
                     };
 
                     await HttpContext.SignInAsync(isuser, props);
@@ -163,7 +171,7 @@ namespace IdentityServerHost.Quickstart.UI
                     }
                 }
 
-                await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
+                await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId: context?.Client.ClientId));
                 ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
             }
 
@@ -172,7 +180,68 @@ namespace IdentityServerHost.Quickstart.UI
             return View(vm);
         }
 
-        
+        [HttpGet]
+        public IActionResult Register(string returnUrl)
+        {
+            return View(new RegisterViewModel()
+            {
+                ReturnUrl = returnUrl
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel input)
+        {
+            var returnUrl = input.ReturnUrl ?? Url.Content("~/");
+            //var ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync())
+            //                                      .ToList();
+            if (ModelState.IsValid)
+            {
+                var user = new UserModel { UserName = input.Email, Email = input.Email };
+                var result = await userManager.CreateAsync(user, input.Password);
+                if (result.Succeeded)
+                {
+                    logger.LogInformation("User created a new account with password.");
+
+                    // TODO - Email Verification
+                    //var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                    //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    //var callbackUrl = Url.Page(
+                    //    "/Account/ConfirmEmail",
+                    //    pageHandler: null,
+                    //    values: new { area = "Identity", userId = user.Id, code = code },
+                    //    protocol: Request.Scheme);
+
+                    //await emailSender.SendEmailAsync(input.Email, "Confirm your email",
+                    //$"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                    if (userManager.Options.SignIn.RequireConfirmedAccount)
+                    {
+                        return RedirectToPage("RegisterConfirmation",
+                                              new { email = input.Email });
+                    }
+                    else
+                    {
+                        await signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
+                }
+                else
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(new RegisterViewModel()
+            {
+                ReturnUrl = returnUrl
+            });
+        }
+
+
         /// <summary>
         /// Show logout page
         /// </summary>
@@ -202,8 +271,10 @@ namespace IdentityServerHost.Quickstart.UI
             // build a model so the logged out page knows what to display
             var vm = await BuildLoggedOutViewModelAsync(model.LogoutId);
 
+
             if (User?.Identity.IsAuthenticated == true)
             {
+                await signInManager.SignOutAsync();
                 // delete local authentication cookie
                 await HttpContext.SignOutAsync();
 

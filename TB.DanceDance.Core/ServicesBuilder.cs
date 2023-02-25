@@ -1,30 +1,26 @@
-﻿using IdentityServer4.Models;
-using IdentityServer4.Stores;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core.IdentityServerStore;
 using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.MongoDb;
 using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Identity;
 using TB.DanceDance.Services;
-using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Core
 {
     public static class ServicesBuilder
     {
         public static IServiceCollection ConfigureDb(this IServiceCollection services,
-            MongoDbConfiguration? mongoDbConfig = null,
+            MongoDbConfiguration mongoDbConfig,
             bool makeSureCollectionCreated = false)
         {
-            if (mongoDbConfig == null)
-                mongoDbConfig = new MongoDbConfiguration();
 
             return services.AddSingleton<IMongoClient>((services) =>
                     {
-                        return MongoDatabaseFactory.GetClient();
+                        return new MongoClient(mongoDbConfig.ConnectionString);
                     })
                     .AddSingleton((services) =>
                     {
@@ -46,11 +42,26 @@ namespace TB.DanceDance.Core
                 ;
         }
 
+        public static MongoDbConfiguration GetMongoDbConfig(this IConfiguration configuration)
+        {
+            var cs = ConnectionStringProvider.GetMongoDbConnectionString(configuration);
+
+            return new MongoDbConfiguration()
+            {
+                ConnectionString = cs
+            };
+        }
+
         public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
+            string connectionString,
             Func<IServiceProvider, IVideoFileLoader>? videoFileLoader = null)
         {
+
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException(nameof(connectionString));
+
             services
-                .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(ApplicationBlobContainerFactory.TryGetConnectionStringFromEnvironmentVariables()))
+                .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(connectionString))
                 .AddScoped<IVideoService, VideoService>()
                 .AddScoped<IVideoUploaderService, VideoUploaderService>();
 
