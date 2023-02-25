@@ -135,7 +135,7 @@ namespace IdentityServerHost.Quickstart.UI
                     };
 
                     // issue authentication cookie with subject ID and username
-                    var isuser = new IdentityServerUser(user.UserName)
+                    var isuser = new IdentityServerUser(user.Id.ToString())
                     {
                         DisplayName = user.UserName
                     };
@@ -198,7 +198,24 @@ namespace IdentityServerHost.Quickstart.UI
             //                                      .ToList();
             if (ModelState.IsValid)
             {
-                var user = new UserModel { UserName = input.Email, Email = input.Email };
+                var user = new UserModel
+                {
+                    UserName = input.Email,
+                    Email = input.Email,
+                    Claims = {
+                        new AspNetCore.Identity.MongoDbCore.Models.MongoClaim()
+                        {
+                            Type = JwtClaimTypes.GivenName ,
+                            Value = input.FirstName
+                        },
+                        new AspNetCore.Identity.MongoDbCore.Models.MongoClaim()
+                        {
+                            Type = JwtClaimTypes.FamilyName ,
+                            Value = input.LastName
+                        }
+                    }
+                };
+
                 var result = await userManager.CreateAsync(user, input.Password);
                 if (result.Succeeded)
                 {
@@ -235,10 +252,10 @@ namespace IdentityServerHost.Quickstart.UI
             }
 
             // If we got this far, something failed, redisplay form
-            return View(new RegisterViewModel()
-            {
-                ReturnUrl = returnUrl
-            });
+            input.Password = string.Empty;
+            input.ConfirmPassword = string.Empty;
+
+            return View(input);
         }
 
 
