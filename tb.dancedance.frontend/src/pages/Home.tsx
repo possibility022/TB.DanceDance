@@ -1,29 +1,16 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AccessToVideoRequestForm } from '../components/AccessToVideoReqest/AccessToVideoRequestForm';
 import LoginButton from '../components/LoginLogoutComponents/LoginButton';
 import { AuthContext } from '../providers/AuthProvider';
-import { VideoInfoService } from "../services/VideoInfoService"
-import VideoInformations from "../types/VideoInformations"
 
 
 const Home = () => {
 
-    const service = new VideoInfoService()
     const navigate = useNavigate();
     const authContext = useContext(AuthContext)
 
-    useEffect(() => {
-        service.LoadVideos().then((v) => {
-            setVideos(v)
-        }).catch(r => {
-            console.error(r)
-        })
-    }, []);
-
     const envVariables = JSON.stringify(process.env)
-
-    const [videos, setVideos] = useState<Array<VideoInformations>>([]);
 
     return (
 
