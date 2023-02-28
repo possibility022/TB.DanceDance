@@ -46,5 +46,27 @@ namespace TB.DanceDance.API.Controllers
                 }).ToList()
             };
         }
+
+        [Route("api/events/requestassigment")]
+        [HttpPost]
+        public async Task<IActionResult> RequestAssigment([FromBody] RequestEventAssigmentModel requests)
+        {
+            if (requests == null)
+                return BadRequest();
+
+            var user = User.GetSubject();
+
+            var tasks = new Task[] { Task.CompletedTask, Task.CompletedTask };
+
+            if (requests.Events?.Count > 0)
+                tasks[0] = userService.SaveEventsAssigmentRequest(user, requests.Events);
+
+            if (requests.Groups?.Count > 0)
+                tasks[1] = userService.SaveGroupsAssigmentRequests(user, requests.Groups);
+
+            await Task.WhenAll(tasks);
+
+            return Ok();
+        }
     }
 }

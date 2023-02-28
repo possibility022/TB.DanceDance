@@ -50,14 +50,18 @@ namespace TB.DanceDance.Services
                 var ownerEntity = await events.Find(r => r.Id == owner.EntityId)
                     .SingleAsync();
 
-                return ownerEntity.Attenders;
+                return ownerEntity.Attenders
+                    .Select(r => r.ToString()) //todo use guids
+                    .ToList();
             }
             else if (owner.Assignment == AssignmentType.Group)
             {
                 var ownerEntity = await groups.Find(r => r.Id == owner.EntityId)
                     .SingleAsync();
 
-                return ownerEntity.People;
+                return ownerEntity.People
+                    .Select(r => r.ToString()) //todo use guids
+                    .ToList();
             }
             else if (owner.Assignment == AssignmentType.Person)
             {
