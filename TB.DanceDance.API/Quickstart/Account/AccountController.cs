@@ -241,7 +241,7 @@ namespace IdentityServerHost.Quickstart.UI
                     else
                     {
                         await signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        return Redirect(returnUrl);
                     }
                 }
                 else
