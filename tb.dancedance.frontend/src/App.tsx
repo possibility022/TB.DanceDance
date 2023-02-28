@@ -13,6 +13,7 @@ import { VideoScreen } from "./pages/VideosScreen"
 import { VideoPlayerScreen } from "./pages/VideoPlayerScreen"
 import { UploadVideo } from "./pages/UploadVideo"
 import { AuthContext, authService } from "./providers/AuthProvider"
+import { RequestAssignmentScreen } from "./pages/RequestAssignmentScreen"
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
 						<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
 						<Route path="video/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
 						<Route path="callback" element={<Callback />} />
+						<Route path="/video/requestassignment" element={<RequestAssignmentScreen />} />
 						<Route path="logout" element={<Logout></Logout>} />
 						<Route path="logout/callback" element={<LogoutCallback />} />
 						{/* <Route path="/register" element={Register} /> */}

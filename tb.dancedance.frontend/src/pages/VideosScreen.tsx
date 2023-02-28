@@ -12,13 +12,18 @@ export function VideoScreen() {
 
     const [videos, setVideos] = useState<Array<VideoInformations>>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [weHaveAnyVideos, setWeHaveAnyVideos] = useState<boolean>(true)
 
     const navigate = useNavigate()
 
     useEffect(() => {
         setIsLoading(true)
         videoService.LoadVideos()
-            .then(v => setVideos(v))
+            .then(v => {
+                setVideos(v)
+                setWeHaveAnyVideos(v.length > 0)
+
+            })
             .catch(e => console.log(e))
             .finally(() => setIsLoading(false))
 
@@ -29,7 +34,17 @@ export function VideoScreen() {
 
     const loadingBar = () => {
         if (isLoading)
-        return <progress className="progress is-large is-info" max="100">60%</progress>
+            return <progress className="progress is-large is-info" max="100">60%</progress>
+    }
+
+    const askForVideos = () => {
+        if (!weHaveAnyVideos)
+            return <div>
+                <h3>Wygląda na to, że nie masz dostępu do nagrań.</h3>
+                Możesz poprosić o dostęp klikając <Button onClick={() => {
+                    navigate('/video/requestassignment')
+                }}>tutaj</Button>
+            </div>
     }
 
     return (
@@ -40,6 +55,7 @@ export function VideoScreen() {
             </Button>
             <VideoList videos={videos}></VideoList>
             {loadingBar()}
+            {askForVideos()}
         </Fragment>)
 
 }

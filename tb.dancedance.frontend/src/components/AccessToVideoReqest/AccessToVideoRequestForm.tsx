@@ -8,11 +8,6 @@ import { IAssignedEventSharingScopeModel, ISharingScopeModel } from '../../types
 import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
-
-export interface IAccessToVideoRequestFormProps {
-    placeholder: string
-}
-
 interface IRequestState {
     wasSend: boolean
     areWeWaiting: boolean
@@ -36,7 +31,7 @@ type Action =
     | "receivedOk"
     | "receivedFailed"
 
-export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) {
+export function AccessToVideoRequestForm() {
 
     const [events, setEvents] = useState<Array<IItemToSelect<string>>>([])
     const [workshops, setWorkshops] = useState<Array<IItemToSelect<string>>>([])
