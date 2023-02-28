@@ -1,8 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
-import { AuthService, TokenProvider } from './AuthService';
+import { authService } from '../providers/AuthProvider';
+import { TokenProvider } from './AuthService';
 
 
-const tokenProvider: TokenProvider = new AuthService()
+const tokenProvider: TokenProvider = authService
 
 export const apiClientFactory = () => {
 

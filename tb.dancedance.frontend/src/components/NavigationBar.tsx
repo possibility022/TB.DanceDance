@@ -1,5 +1,7 @@
 import React from "react"
-import { Link, NavLink } from "react-router-dom"
+import { Link } from "react-router-dom"
+import { authService } from "../providers/AuthProvider";
+import { Button } from "./Button";
 import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
 
 export function NavigationBar() {
@@ -36,6 +38,9 @@ export function NavigationBar() {
                         <div className="navbar-item">
                             <div className="buttons">
                                 <LoginLogout />
+                                <Button onClick={() => window.location.href = authService.getRegisterUri()}>
+                                    Register
+                                </Button>
                             </div>
                         </div>
                     </div>
