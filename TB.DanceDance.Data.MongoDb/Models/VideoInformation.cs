@@ -26,15 +26,14 @@ namespace TB.DanceDance.Data.MongoDb.Models
 
     }
 
-    
-    // Todo, make a record
-    public class Event
+    public record Event
     {
         [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         public string Id { get; set; }
         public string Name { get; init; }
         public DateTimeOffset Date { get; init; }
-        
+        public EventType EventType { get; init; }
+
         /// <summary>
         /// A lit of user subjects.
         /// </summary>
@@ -47,7 +46,7 @@ namespace TB.DanceDance.Data.MongoDb.Models
         [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         public string Id { get; set; }
         public string GroupName { get; set; }
-        
+
         /// <summary>
         /// A list of user subjects.
         /// </summary>
@@ -69,11 +68,19 @@ namespace TB.DanceDance.Data.MongoDb.Models
         public DateTimeOffset Shared { get; init; }
     }
 
+    public enum EventType
+    {
+        Unknown = 0,
+        PointedEvent,
+        MediumNotPointed,
+        SmallWorkshop
+    }
+
     public enum AssignmentType
     {
         NotSpecified,
         Person,
         Group,
         Event
-    } 
+    }
 }
