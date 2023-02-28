@@ -1,20 +1,20 @@
-import * as React from 'react';
 import { SelectableButton } from '../SelectableButton';
 
-export interface IItemToSelect {
+export interface IItemToSelect<T extends number | string> {
     text: string
-    key: React.Key
+    selectionDisabled?: boolean
+    key: T
 }
 
-export interface ISelectableListProps {
+export interface ISelectableListProps<T extends number | string> {
     header: string
     text: string
-    options: Array<IItemToSelect>
-    onItemSelected(item: IItemToSelect): void
+    options: Array<IItemToSelect<T>>
+    onItemStatusChange(item: IItemToSelect<T>, isSelected: boolean): void
     articleClassName: string
 }
 
-export function SelectableList(props: ISelectableListProps) {
+export function SelectableList<T extends number | string>(props: ISelectableListProps<T>) {
 
 
     return (
@@ -25,7 +25,7 @@ export function SelectableList(props: ISelectableListProps) {
                 {props.options.map((v, i) => {
                     return (
                         <div className='field is-medium is-centered' key={v.key}>
-                            <SelectableButton isSelected={false}>
+                            <SelectableButton isSelected={false} isDisabled={v.selectionDisabled}>
                                 {v.text}
                             </SelectableButton>
                         </div>)

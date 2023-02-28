@@ -4,6 +4,7 @@ import { useState } from 'react';
 export interface ISelectableButtonProps {
     onClick?(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void
     isSelected: boolean
+    isDisabled?: boolean
 }
 
 export function SelectableButton(props: React.PropsWithChildren<ISelectableButtonProps>) {
