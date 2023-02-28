@@ -1,3 +1,5 @@
+import { faCheck, faCheckSquare, faHouseFloodWater, faSpinner, faUserCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as React from 'react';
 import { useState } from 'react';
 import videoInfoService from '../../services/VideoInfoService';
@@ -10,6 +12,29 @@ import { IItemToSelect, SelectableList } from './SelectableList';
 export interface IAccessToVideoRequestFormProps {
     placeholder: string
 }
+
+interface IRequestState {
+    wasSend: boolean
+    areWeWaiting: boolean
+    wasOk: boolean
+}
+
+const requestStatusReducer: React.Reducer<IRequestState, Action> = (state: IRequestState, action: Action) => {
+    if (action === 'sending')
+        return { ...state, areWeWaiting: true, wasSend: true }
+    if (action === 'receivedFailed')
+        return { ...state, areWeWaiting: false, wasOk: false }
+    if (action === 'receivedOk')
+        return { ...state, areWeWaiting: false, wasOk: true }
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    throw new Error(`Argument out of range. Action: ${action}`)
+}
+
+type Action =
+    | "sending"
+    | "receivedOk"
+    | "receivedFailed"
 
 export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) {
 
@@ -26,7 +51,7 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
         groups: []
     })
 
-    const [selectedScopes, setSelectedScopes] = useState<Map<string, boolean>>(new Map<string, boolean>())
+    const [selectedScopes] = useState<Map<string, boolean>>(new Map<string, boolean>())
 
     const mapToItemToSelect = (item: IAssignedEventSharingScopeModel) => {
         const itemToSelect: IItemToSelect<string> = {
@@ -83,8 +108,8 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
 
             let anySelected = false
 
-            selectedScopes.forEach((v, k) => {
-                if (v == true) { anySelected = true }
+            selectedScopes.forEach((isSelected, eventKey) => {
+                if (isSelected == true) { anySelected = true }
             })
 
             if (!anySelected)
@@ -92,16 +117,72 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
         }
     }
 
+    const [requestStatus, requestStatusDispatch] = React.useReducer(requestStatusReducer, {
+        areWeWaiting: false,
+        wasOk: false,
+        wasSend: false
+    })
+
+    const buttonIcon = () => {
+
+        if (!requestStatus.wasSend)
+            return "Wyślij"
+
+        if (requestStatus.areWeWaiting)
+            return <FontAwesomeIcon className="fa-pulse" icon={faSpinner} />
+
+        if (requestStatus.wasSend) {
+            if (requestStatus.wasOk)
+                return <span className="icon-text has-text-info">
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faCheck} />
+                    </span>
+                    <span>Wysłano</span>
+                </span>
+            else
+                return <span className="icon-text has-text-danger">
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faCheck} />
+                    </span>
+                    <span>Coś poszło nie tak :(</span>
+                </span>
+        }
+
+        throw new Error("Out of range exception. " + JSON.stringify(requestStatus))
+    }
+
+
+
     const sendRequest = () => {
-        console.log()
+
+        requestStatusDispatch('sending')
+
+        const events = new Array<string>()
+
+        selectedScopes.forEach((isSelected, eventId) => {
+            if (isSelected)
+                events.push(eventId)
+        })
+
+        let groups: Array<string> | undefined = undefined
+        if (selectedGroup)
+            groups = [selectedGroup?.id]
+
+        const promise = videoInfoService.SendAssigmentRequest(events, groups)
+            .then(e => {
+                requestStatusDispatch('receivedOk')
+            })
+            .catch((e) => {
+                requestStatusDispatch('receivedFailed')
+                console.log(e)
+            })
     }
 
     return (
         <div>
             <div className="content">
-                <h1>Wybierz grupy West Coast Swing!</h1>
                 <h2>Wybierz swoją podstawową grupę do której regularnie uczęszczasz na zajęcia.</h2>
-                <p>Dodatkowo, możesz wybrać wydarzenia na jakich byłeś i gdzie brałeś udział. Wydarzenia np. takie jak Karnawał WestLove, Baltic Swing, Halloween.</p>
+                <h3>Dodatkowo, możesz wybrać wydarzenia na jakich byłeś i gdzie brałeś udział. Wydarzenia np. takie jak Karnawał WestLove, Baltic Swing, Halloween.</h3>
                 <p>Wybierz również warsztaty w jakich brałeś udział. Są to mniejsze wydarzenia.</p>
                 <p>Pamietaj, że Twój wybór będzie weryfikowany!</p>
             </div>
@@ -137,7 +218,7 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
             <div className='columns is-mobile is-centered has-text-centered'>
                 <div className='column is-centered'>
                     <Button disabled={!isSendButtonEnabled} classNames='is-large' onClick={() => sendRequest()}>
-                        Wyślij
+                        {buttonIcon()}
                     </Button>
                 </div>
             </div>
