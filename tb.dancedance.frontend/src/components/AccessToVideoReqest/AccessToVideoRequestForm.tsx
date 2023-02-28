@@ -187,12 +187,13 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
                 <p>Pamietaj, że Twój wybór będzie weryfikowany!</p>
             </div>
             <div className='columns'>
-                <div className='column is-full'>
+                <div className='column is-centered has-text-centered'>
                     <Dropdown isLoading={false}
                         items={availableGroupNames}
                         unselectedText={"Wybierz grupę"}
                         selectedItemIndex={0}
                         onSelected={onGroupSelected}
+                        classNames={'is-large'}
                         startWithUnselected={true} />
                 </div>
             </div>
