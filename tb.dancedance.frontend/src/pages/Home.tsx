@@ -21,9 +21,6 @@ const Home = () => {
                     : <LoginButton signinRedirect={() => authContext.signinRedirect()}></LoginButton>
                 }
             </div>
-            <div>
-                <AccessToVideoRequestForm placeholder=''></AccessToVideoRequestForm>
-            </div>
             <div hidden={true}>
                 <p>{envVariables}</p>
             </div>
