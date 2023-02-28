@@ -25,7 +25,7 @@ export function SelectableList<T extends number | string>(props: ISelectableList
                 {props.options.map((v, i) => {
                     return (
                         <div className='field is-medium is-centered' key={v.key}>
-                            <SelectableButton isSelected={false} isDisabled={v.selectionDisabled}>
+                            <SelectableButton isSelected={false} isDisabled={v.selectionDisabled} onClick={(e, isSelected) => props.onItemStatusChange(v, isSelected)}>
                                 {v.text}
                             </SelectableButton>
                         </div>)
