@@ -127,6 +127,13 @@ export class AuthService implements IAuthService, TokenProvider {
         window.location.replace("/en/dashboard");
     };
 
+    private getIdentityConfig = () => {
+        const identityConfig = replaceValues(IDENTITY_CONFIG)
+        if (!identityConfig)
+            throw new Error("Something wrong with identity config. It is null or undefined");
+        return identityConfig
+    }
+
     private getOidcStorage = (): OidcStorage | null => {
 
         // this is not working due to:
@@ -138,9 +145,8 @@ export class AuthService implements IAuthService, TokenProvider {
         //     throw new Error("SETTINGS NOT CONFIGURED")
 
         // todo
-        const identityConfig = replaceValues(IDENTITY_CONFIG)
-        if (!identityConfig)
-            throw new Error("Something wrong with identity config. It is null or undefined");
+
+        const identityConfig = this.getIdentityConfig()
 
         const metadataOidc = replaceValues(METADATA_OIDC)
         if (!metadataOidc)
@@ -156,6 +162,11 @@ export class AuthService implements IAuthService, TokenProvider {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const oidcStorage = JSON.parse(item) as OidcStorage
         return oidcStorage
+    }
+
+    getRegisterUri = () => {
+        const config = this.getIdentityConfig()
+        return config.register + "?returnUrl=" + window.location.href
     }
 
 

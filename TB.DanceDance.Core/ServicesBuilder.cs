@@ -36,8 +36,9 @@ namespace TB.DanceDance.Core
                     .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection, makeSureCollectionCreated)
                     .AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, makeSureCollectionCreated)
                     .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated)
-                    .AddMongoCollection<Event>(mongoDbConfig.OwnersCollection)
-                    .AddMongoCollection<Group>(mongoDbConfig.OwnersCollection)
+                    .AddMongoCollection<Event>(mongoDbConfig.Events)
+                    .AddMongoCollection<Group>(mongoDbConfig.Groups)
+                    .AddMongoCollection<RequestedAssigment>(mongoDbConfig.RequestedAssignmentCollection)
                     .AddMongoCollection<SharedVideo>(mongoDbConfig.SharedVideos)
                 ;
         }

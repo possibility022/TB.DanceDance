@@ -8,6 +8,7 @@ export interface IDropdownProps {
     unselectedText?: string
     isLoading: boolean
     onSelected?: (selectedItem: string, selectedIndex: number) => void
+    classNames?: string
 }
 
 export function Dropdown(props: IDropdownProps) {
@@ -39,10 +40,20 @@ export function Dropdown(props: IDropdownProps) {
         )
     }
 
+    const buttonClass = () => {
+        let base = "button"
+        if (props.isLoading)
+            base += " is-loading"
+        if (props.classNames)
+            base += " " + props.classNames
+
+        return base
+    }
+
     return (
         <div ref={dropdownDiv} className="dropdown">
             <div className="dropdown-trigger">
-                <button className={props.isLoading ? "button is-loading" : "button"} aria-haspopup="true" aria-controls="dropdown-menu" onClick={() => toogleDropdown()} >
+                <button className={buttonClass()} aria-haspopup="true" aria-controls="dropdown-menu" onClick={() => toogleDropdown()} >
                     <span>{selectedItem}</span>
                     <span className="icon is-small">
                         <i className="fas fa-angle-down" aria-hidden="true"></i>

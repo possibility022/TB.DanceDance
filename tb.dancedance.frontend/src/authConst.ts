@@ -10,6 +10,7 @@ export const IDENTITY_CONFIG: IdentityConfig = {
     redirect_uri: REACT_APP_REDIRECT_URI_TO_REPLACE, //The URI of your client application to receive a response from the OIDC provider.
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     login: `${REACT_APP_AUTH_URL_TO_REPLACE}/login`,
+    register: `${REACT_APP_AUTH_URL_TO_REPLACE}/account/register`,
     automaticSilentRenew: false, //(boolean, default: false): Flag to indicate if there should be an automatic attempt to renew the access token prior to its expiration.
     loadUserInfo: false, //(boolean, default: true): Flag to control if additional identity data is loaded from the user info endpoint in order to populate the user's profile.
     //silent_redirect_uri: process.env.REACT_APP_SILENT_REDIRECT_URL, //(string): The URL for the page containing the code handling the silent renew.
@@ -26,6 +27,7 @@ type IdentityConfig = {
     client_id: string
     redirect_uri: string
     login: string
+    register: string
     automaticSilentRenew: boolean
     loadUserInfo: boolean
     //silent_redirect_uri: process.env.REACT_APP_SILENT_REDIRECT_URL, //(string): The URL for the page containing the code handling the silent renew.
