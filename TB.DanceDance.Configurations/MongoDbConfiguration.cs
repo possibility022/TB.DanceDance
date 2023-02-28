@@ -11,6 +11,7 @@
         public string SharedVideos => "toConvert";
         public string ApiResourceCollection => "apiResource";
         public string ApiScopeCollection => "apiScope";
+        public string RequestedAssignmentCollection => "requestedAssignment";
         public string IdentityResourceCollection => "identityResource";
         public string UserCollection => "users";
         public string ApiClientCollection => "apiClients";

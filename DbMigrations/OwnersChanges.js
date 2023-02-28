@@ -12,7 +12,17 @@ db.groups.insertMany(groups)
 
 db.getCollection("owners").drop()
 
-db.owners.updateMany(
+db.events.updateMany(
 {},
 {$set:{"EventType": 3}}
 )
+
+db.groups.updateMany({},
+{$set: {"People": []} }
+)
+
+db.events.updateMany({},
+{$set: {"Attenders": []}}
+)
+
+db.createCollection("requestedAssignment")

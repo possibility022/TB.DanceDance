@@ -38,6 +38,7 @@ namespace TB.DanceDance.Core
                     .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated)
                     .AddMongoCollection<Event>(mongoDbConfig.Events)
                     .AddMongoCollection<Group>(mongoDbConfig.Groups)
+                    .AddMongoCollection<RequestedAssigment>(mongoDbConfig.RequestedAssignmentCollection)
                     .AddMongoCollection<SharedVideo>(mongoDbConfig.SharedVideos)
                 ;
         }
