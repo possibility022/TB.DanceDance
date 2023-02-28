@@ -134,10 +134,10 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
                 </div>
             </div>
 
-            <div className='columns'>
-                <div className='column is-half is-offset-one-third'>
+            <div className='columns is-mobile is-centered has-text-centered'>
+                <div className='column is-centered'>
                     <Button disabled={!isSendButtonEnabled} classNames='is-large' onClick={() => sendRequest()}>
-                        Wyślij prośbę o przypisanie
+                        Wyślij
                     </Button>
                 </div>
             </div>
