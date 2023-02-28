@@ -77,7 +77,7 @@ public class VideoController : Controller
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 
-    [Route("/api/video/getAvailableGroups")]
+    [Route("/api/video/getassignments")]
     public async Task<ICollection<SharingScopeModel>> GetAvailabeGroups()
     {
         var user = User.GetSubject();
@@ -104,7 +104,7 @@ public class VideoController : Controller
     }
 
     [Route("/api/video/getUploadUrl")]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody]SharedVideoInformation sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformation sharedVideoInformations)
     {
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;

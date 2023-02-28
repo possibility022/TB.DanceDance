@@ -8,4 +8,9 @@ namespace TB.DanceDance.API.Models
         public string Id { get; init; }
         public AssignmentType Assignment { get; init; }
     }
+
+    public record EventSharingSharingScope : SharingScopeModel
+    {
+        public EventType Type { get; init; }
+    }
 }
