@@ -42,6 +42,22 @@ export class VideoInfoService {
         }
     }
 
+    public async SendAssigmentRequest(events?: Array<string>, groups?: Array<string>) {
+
+        if (!events && !groups)
+            throw new Error("Argument events or groups must me provided. Both are not provided.")
+
+        const response = await apiClient.post('/api/events/requestassigment', {
+            events: events,
+            groups: groups
+        })
+
+        if (response.status !== 200)
+            return false;
+
+        return true;
+    }
+
     public async GetAssignments() {
         const response = await apiClient.get<Array<ISharingScopeModel>>('/api/video/getassignments')
         return response.data
