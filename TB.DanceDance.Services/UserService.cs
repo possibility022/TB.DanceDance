@@ -65,6 +65,20 @@ namespace TB.DanceDance.Services
             return (userGroups, userEvents);
         }
 
+        public async Task<ICollection<Event>> GetAllEvents(string user)
+        {
+            var cursor = await this.events.FindAsync(FilterDefinition<Event>.Empty);
+            var list = await cursor.ToListAsync();
+            return list;
+        }
+
+        public async Task<ICollection<Group>> GetAllGroups(string user)
+        {
+            var cursor = await this.groups.FindAsync(FilterDefinition<Group>.Empty);
+            var list = await cursor.ToListAsync();
+            return list;
+        }
+
         public async Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
         {
             (var userGroups, var userEvents) = await GetUserEventsAndGroups(userName);
@@ -78,6 +92,8 @@ namespace TB.DanceDance.Services
             var associatedTo = await GetUserVideosAssociationsIds(userName);
             return associatedTo.Any(r => r == entityId);
         }
+
+
     }
 
     public class TestUsersService : IUserService
@@ -191,6 +207,16 @@ namespace TB.DanceDance.Services
             };
 
             return Task.FromResult<(ICollection<Group>, ICollection<Event>)>(new(groups, events));
+        }
+
+        public Task<ICollection<Event>> GetAllEvents(string user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ICollection<Group>> GetAllGroups(string user)
+        {
+            throw new NotImplementedException();
         }
     }
 }
