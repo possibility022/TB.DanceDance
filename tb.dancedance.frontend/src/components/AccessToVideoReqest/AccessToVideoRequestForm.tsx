@@ -3,6 +3,7 @@ import { useState } from 'react';
 import videoInfoService from '../../services/VideoInfoService';
 import { EventType } from '../../types/EventType';
 import { IAssignedEventSharingScopeModel, ISharingScopeModel } from '../../types/SharingScopeModel';
+import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
 
@@ -17,8 +18,15 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
 
     const [availableGroupNames, setAvailableGroupNames] = useState<Array<string>>([])
 
-    let allSharingScopes: {events: Array<IAssignedEventSharingScopeModel>, groups: Array<ISharingScopeModel>}
-    const selectedScopes = new Map<string, boolean>()
+    const [isSendButtonEnabled, setIsSendButtonEnabled] = useState(false)
+    const [selectedGroup, setSelectedGroup] = useState<ISharingScopeModel>()
+
+    const [allSharingScopes, setAllSharingScopes] = useState<{ events: Array<IAssignedEventSharingScopeModel>, groups: Array<ISharingScopeModel> }>({
+        events: [],
+        groups: []
+    })
+
+    const [selectedScopes, setSelectedScopes] = useState<Map<string, boolean>>(new Map<string, boolean>())
 
     const mapToItemToSelect = (item: IAssignedEventSharingScopeModel) => {
         const itemToSelect: IItemToSelect<string> = {
@@ -34,7 +42,7 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
         videoInfoService.GetAvailableEventsAndGroups()
             .then(sharringScopes => {
 
-                allSharingScopes = sharringScopes
+                setAllSharingScopes(sharringScopes)
 
                 const eventsToSet = new Array<IItemToSelect<string>>()
                 const workshopsToSet = new Array<IItemToSelect<string>>()
@@ -56,8 +64,36 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
             .catch(e => console.error(e))
     }, [])
 
-    const groupSelected = (item: IItemToSelect<string>, isSelected: boolean) => {
+    const onGroupSelected = (selectedItem: string, selectedIndex: number) => {
+        if (selectedIndex >= 0) {
+            setIsSendButtonEnabled(true)
+            setSelectedGroup(allSharingScopes.groups[selectedIndex])
+        }
+    }
+
+    const eventSelected = (item: IItemToSelect<string>, isSelected: boolean) => {
         selectedScopes.set(item.key, isSelected)
+
+        if (isSelected)
+            setIsSendButtonEnabled(true)
+        else {
+
+            if (selectedGroup)
+                return
+
+            let anySelected = false
+
+            selectedScopes.forEach((v, k) => {
+                if (v == true) { anySelected = true }
+            })
+
+            if (!anySelected)
+                setIsSendButtonEnabled(false)
+        }
+    }
+
+    const sendRequest = () => {
+        console.log()
     }
 
     return (
@@ -71,7 +107,12 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
             </div>
             <div className='columns'>
                 <div className='column is-full'>
-                    <Dropdown isLoading={false} items={availableGroupNames} unselectedText={"Wybierz grupę"} selectedItemIndex={0} startWithUnselected={true} />
+                    <Dropdown isLoading={false}
+                        items={availableGroupNames}
+                        unselectedText={"Wybierz grupę"}
+                        selectedItemIndex={0}
+                        onSelected={onGroupSelected}
+                        startWithUnselected={true} />
                 </div>
             </div>
             <div className="columns">
@@ -79,7 +120,7 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
                     <SelectableList<string>
                         articleClassName='is-info'
                         header='Wydarzenia'
-                        onItemStatusChange={groupSelected}
+                        onItemStatusChange={eventSelected}
                         text='Wybierz wydarzenia w których brałeś udział!'
                         options={events} />
                 </div>
@@ -87,9 +128,17 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
                     <SelectableList<string>
                         articleClassName='is-warning'
                         header='Warsztaty'
-                        onItemStatusChange={groupSelected}
+                        onItemStatusChange={eventSelected}
                         text='Wybierz warsztaty gdzie próbowałaś swoich sił!'
                         options={workshops} />
+                </div>
+            </div>
+
+            <div className='columns'>
+                <div className='column is-half is-offset-one-third'>
+                    <Button disabled={!isSendButtonEnabled} classNames='is-large' onClick={() => sendRequest()}>
+                        Wyślij prośbę o przypisanie
+                    </Button>
                 </div>
             </div>
         </div>
