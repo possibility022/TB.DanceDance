@@ -7,7 +7,7 @@ import { Dropdown } from '../components/Dropdown';
 
 
 import videoInfoService from '../services/VideoInfoService'
-import ISharingScopeModel from '../types/SharingScopeModel';
+import { ISharingScopeModel } from '../types/SharingScopeModel';
 
 export function UploadVideo() {
 
@@ -39,7 +39,7 @@ export function UploadVideo() {
 
   React.useEffect(() => {
     setIsLoading(true)
-    videoInfoService.GetAvailableGroups()
+    videoInfoService.GetAssignments()
       .then(v => {
         setAvailableGroups(v)
         setIsLoading(false)

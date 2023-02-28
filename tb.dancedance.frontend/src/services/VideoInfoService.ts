@@ -1,7 +1,7 @@
-import { BlobServiceClient, BlockBlobClient, ContainerClient } from "@azure/storage-blob";
+import { BlockBlobClient } from "@azure/storage-blob";
 import UploadVideoInformation from "../types/UploadInformation";
 import VideoInformations from "../types/VideoInformations";
-import ISharingScopeModel from "../types/SharingScopeModel";
+import { IAssignedEventSharingScopeModel, IEventsAndGroupsModel, ISharingScopeModel } from "../types/SharingScopeModel";
 import { apiClientFactory } from "./HttpApiClient";
 import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
 
@@ -23,8 +23,27 @@ export class VideoInfoService {
         return apiClient.getUri() + '/api/video/stream/' + videoBlob
     }
 
-    public async GetAvailableGroups() {
-        const response = await apiClient.get<Array<ISharingScopeModel>>('/api/video/getAvailableGroups')
+    public async GetAvailableEventsAndGroups() {
+        const sharingScopes = await apiClient.get<IEventsAndGroupsModel>('/api/events/getall')
+        const availableGroups = await this.GetAssignments()
+        const availableGroupsMap = new Map(availableGroups.map((v) => [v.id, v]))
+
+        const extendedModel = new Array<IAssignedEventSharingScopeModel>
+
+        for (const el of sharingScopes.data.events) {
+
+            const isAlreadyAssigned = availableGroupsMap.has(el.id)
+            extendedModel.push({ ...el, isAssigned: isAlreadyAssigned })
+        }
+
+        return {
+            events: extendedModel,
+            groups: sharingScopes.data.groups
+        }
+    }
+
+    public async GetAssignments() {
+        const response = await apiClient.get<Array<ISharingScopeModel>>('/api/video/getassignments')
         return response.data
     }
 

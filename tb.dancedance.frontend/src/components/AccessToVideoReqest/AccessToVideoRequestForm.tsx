@@ -1,4 +1,8 @@
 import * as React from 'react';
+import { useState } from 'react';
+import videoInfoService from '../../services/VideoInfoService';
+import { EventType } from '../../types/EventType';
+import { IAssignedEventSharingScopeModel, ISharingScopeModel } from '../../types/SharingScopeModel';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
 
@@ -8,16 +12,52 @@ export interface IAccessToVideoRequestFormProps {
 
 export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) {
 
+    const [events, setEvents] = useState<Array<IItemToSelect<string>>>([])
+    const [workshops, setWorkshops] = useState<Array<IItemToSelect<string>>>([])
 
-    const events: Array<string> = ['Event a', 'Event a', 'Event a', 'Event a', 'Event a', 'Event a', 'Event a', 'Event a', 'Event a', 'Event a']
-    const workshops: Array<string> = ['Workshop ABC ABC ABC', 'Workshop ABC ABC ABC', 'Workshop ABC ABC ABC', 'Workshop ABC ABC ABC', 'Workshop ABC ABC ABC', 'Workshop ABC ABC ABC']
+    const [availableGroupNames, setAvailableGroupNames] = useState<Array<string>>([])
 
-    const eventSelected = (item: IItemToSelect) => {
-        console.log(item)
+    let allSharingScopes: {events: Array<IAssignedEventSharingScopeModel>, groups: Array<ISharingScopeModel>}
+    const selectedScopes = new Map<string, boolean>()
+
+    const mapToItemToSelect = (item: IAssignedEventSharingScopeModel) => {
+        const itemToSelect: IItemToSelect<string> = {
+            key: item.id,
+            text: item.name,
+            selectionDisabled: item.isAssigned
+        }
+
+        return itemToSelect
     }
 
-    const workshopSelected = (item: IItemToSelect) => {
-        console.log(item)
+    React.useEffect(() => {
+        videoInfoService.GetAvailableEventsAndGroups()
+            .then(sharringScopes => {
+
+                allSharingScopes = sharringScopes
+
+                const eventsToSet = new Array<IItemToSelect<string>>()
+                const workshopsToSet = new Array<IItemToSelect<string>>()
+
+                for (const el of sharringScopes.events) {
+                    const mapped = mapToItemToSelect(el)
+                    if (el.type == EventType.SmallWorkshop)
+                        workshopsToSet.push(mapped)
+                    else {
+                        eventsToSet.push(mapped)
+                    }
+                }
+
+                setEvents(eventsToSet)
+                setWorkshops(workshopsToSet)
+
+                setAvailableGroupNames(sharringScopes.groups.map(r => r.name))
+            })
+            .catch(e => console.error(e))
+    }, [])
+
+    const groupSelected = (item: IItemToSelect<string>, isSelected: boolean) => {
+        selectedScopes.set(item.key, isSelected)
     }
 
     return (
@@ -31,25 +71,25 @@ export function AccessToVideoRequestForm(props: IAccessToVideoRequestFormProps) 
             </div>
             <div className='columns'>
                 <div className='column is-full'>
-                    <Dropdown isLoading={false} items={['x']} unselectedText={"Wybierz grupę"} selectedItemIndex={0} startWithUnselected={true} />
+                    <Dropdown isLoading={false} items={availableGroupNames} unselectedText={"Wybierz grupę"} selectedItemIndex={0} startWithUnselected={true} />
                 </div>
             </div>
             <div className="columns">
                 <div className="column">
-                    <SelectableList
+                    <SelectableList<string>
                         articleClassName='is-info'
                         header='Wydarzenia'
-                        onItemSelected={eventSelected}
+                        onItemStatusChange={groupSelected}
                         text='Wybierz wydarzenia w których brałeś udział!'
-                        options={[]} />
+                        options={events} />
                 </div>
                 <div className="column">
-                    <SelectableList
+                    <SelectableList<string>
                         articleClassName='is-warning'
                         header='Warsztaty'
-                        onItemSelected={workshopSelected}
+                        onItemStatusChange={groupSelected}
                         text='Wybierz warsztaty gdzie próbowałaś swoich sił!'
-                        options={[]} />
+                        options={workshops} />
                 </div>
             </div>
         </div>
