@@ -243,10 +243,8 @@ namespace IdentityServerHost.Quickstart.UI
                         // There is a bug. First token is issued with subject value equal to email instead of id.
                         // That is why I am not logging in a user here but redirecting back to page
                         //return RedirectToPage("login", input.ReturnUrl);
-                        if (string.IsNullOrEmpty(input.ReturnUrl))
-                            return RedirectToPage("Login");
-
-                        return Redirect(input.ReturnUrl);
+                        await signInManager.SignInAsync(user, isPersistent: false);
+                        return Redirect(returnUrl);
                     }
                 }
                 else

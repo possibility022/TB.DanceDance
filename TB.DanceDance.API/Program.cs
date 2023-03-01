@@ -131,6 +131,7 @@ if (setIdentityServerAsProduction)
     var certBytes = Convert.FromBase64String(cert);
 
     identityBuilder
+        .AddAspNetIdentity<UserModel>()
         .AddClientStore<IdentityClientMongoStore>()
         .AddResourceStore<IdentityResourceMongoStore>()
         .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
