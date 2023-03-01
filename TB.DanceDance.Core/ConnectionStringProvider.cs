@@ -4,54 +4,38 @@ namespace TB.DanceDance.Core
 {
     public static class ConnectionStringProvider
     {
-        public static string GetMongoDbConnectionString(IConfiguration configuration)
+        private static string GetConnectionString(IConfiguration configuration, string connectionStringName, string appSettingsKey, string environmentSettingName)
         {
-            var section = configuration.GetRequiredSection("ConnectionStrings:MongoDB");
+            var cs = configuration.GetConnectionString(connectionStringName);
 
-            var cs = section.Value;
+            if (cs != null)
+                return cs;
 
-            if (cs == null)
-                cs = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString.Mongo");
+            var section = configuration.GetRequiredSection(appSettingsKey);
+            if (section?.Value != null)
+                return section.Value;
 
+            cs = Environment.GetEnvironmentVariable(environmentSettingName);
 
             if (string.IsNullOrEmpty(cs))
-                throw new Exception("Could not resolve connection string for mongo db.");
+                throw new Exception("Could not resolve connection string.");
 
             return cs;
+        }
+
+        public static string GetMongoDbConnectionString(IConfiguration configuration)
+        {
+            return GetConnectionString(configuration, "MongoDB", "ConnectionStrings:MongoDB", "TB.DanceDance.ConnectionString.Mongo");
         }
 
         public static string GetBlobConnectionString(IConfiguration configuration)
         {
-            // I know I know, it is a copy-paste...
-
-            var section = configuration.GetRequiredSection("ConnectionStrings:Blob");
-
-            var cs = section.Value;
-
-            if (cs == null)
-                cs = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString.Blob");
-
-
-            if (string.IsNullOrEmpty(cs))
-                throw new Exception("Could not resolve connection string for mongo db.");
-
-            return cs;
+            return GetConnectionString(configuration, "Blob", "ConnectionStrings:Blob", "TB.DanceDance.ConnectionString.Blob");
         }
 
         public static string GetMongoDbConnectionStringForIdentityStore(IConfiguration configuration)
         {
-            var section = configuration.GetRequiredSection("ConnectionStrings:MongoDBIdentityStore");
-
-            var cs = section.Value;
-
-            if (cs == null)
-                cs = Environment.GetEnvironmentVariable("TB.DanceDance.ConnectionString.MongoDBIdentityStore");
-
-
-            if (string.IsNullOrEmpty(cs))
-                throw new Exception("Could not resolve connection string for MongoDBIdentityStore.");
-
-            return cs;
+            return GetConnectionString(configuration, "MongoDBIdentityStore", "ConnectionStrings:MongoDBIdentityStore", "TB.DanceDance.ConnectionString.MongoDBIdentityStore");
         }
     }
 }
