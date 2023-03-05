@@ -52,7 +52,7 @@ public class VideoController : Controller
 
     [Route("api/video/stream/{guid}")]
     [HttpGet]
-    [Authorize(AuthenticationSchemes = IdentityServerConstants.DefaultCookieAuthenticationScheme)]
+    [AllowAnonymous]
     public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string token)
     {
         // todo create better authentication. Send send tokens in headers
