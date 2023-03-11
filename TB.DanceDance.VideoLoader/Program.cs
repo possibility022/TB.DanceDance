@@ -14,12 +14,14 @@ using System.Text.Json;
 using MongoDB.Driver;
 using TB.DanceDance.Data.MongoDb.Models;
 using Microsoft.Extensions.Configuration;
+using System.IO;
+using System.Threading;
 
 namespace TB.DanceDance.VideoLoader
 {
     class Program
     {
-        const string FFMPGPath = @"C:\Users\TomaszBak\Downloads\ffmpeg-master-latest-win64-gpl\bin\ffmpeg.exe";
+        const string FFMPGPath = @"D:\Programy\ffmpeg-2022-12-04-git-6c814093d8-full_build\bin\ffmpeg.exe";
 
         private const string TomekUserId = "1234567890123";
 
@@ -27,7 +29,7 @@ namespace TB.DanceDance.VideoLoader
 
         static async Task Main(string[] args)
         {
-            var builder = Host.CreateDefaultBuilder();
+             var builder = Host.CreateDefaultBuilder();
 
             var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
@@ -50,24 +52,34 @@ namespace TB.DanceDance.VideoLoader
 
 
             app = builder.Build();
+            using var scope = app.Services.CreateScope();
 
             //await CreateOwnersAsync();
-            await SetVideoOwnerAsync();
+            //await SetVideoOwnerAsync();
 
             // await SetUsersAccounts(app.Services.GetRequiredService<IUserService>());
             // return;
 
-            // var service = app.Services.GetRequiredService<IVideoService>();
-            //
-            // var files = Directory.GetFiles("G:\\West\\WebM2");
-            //
-            // foreach (var file in files)
-            // {
-            //     Log.Information("Uploading {0}", file);
-            //     await service.UploadVideoAsync(file, CancellationToken.None);
-            // }
-            //
-            // Log.Information("Done");
+            var service = scope.ServiceProvider.GetRequiredService<IVideoService>();
+
+            var files = Directory.GetFiles("E:\\NONONOWestCoastSwing", "*.webm");
+            var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
+
+            foreach (var file in files)
+            {
+                Log.Information("Uploading {0}", file);
+                var uploaded = await service.UploadVideoAsync(file, CancellationToken.None);
+                uploaded.SharedWith = new SharingScope()
+                {
+                    EntityId = Constants.GroupSroda1730,
+                    Assignment = AssignmentType.Group
+                };
+
+                await videos.ReplaceOneAsync(s => s.Id == uploaded.Id, uploaded);
+
+            }
+
+            Log.Information("Done");
         }
 
         private static async Task SetVideoOwnerAsync()
