@@ -32,7 +32,7 @@ export function VideoList(props: ListOfVideos) {
     })
 
     return (
-        <table className="table">
+        <table className="table is-striped is-hoverable is-fullwidth">
             <tbody>
                 {list}
             </tbody>
