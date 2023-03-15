@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 
-const REACT_APP_AUTH_URL_TO_REPLACE = 'https://localhost:7068'
-const REACT_APP_REDIRECT_URI_TO_REPLACE = 'http://localhost:3000/callback'
+export const REACT_APP_AUTH_URL_TO_REPLACE = 'https://localhost:7068'
+export const REACT_APP_REDIRECT_URI_TO_REPLACE = 'http://localhost:3000/callback'
 
 export const IDENTITY_CONFIG: IdentityConfig = {
     authority: REACT_APP_AUTH_URL_TO_REPLACE, //(string): The URL of the OIDC provider.
@@ -22,7 +22,7 @@ export const IDENTITY_CONFIG: IdentityConfig = {
     webAuthResponseType: "id_token token"
 }
 
-type IdentityConfig = {
+export type IdentityConfig = {
     authority: string
     client_id: string
     redirect_uri: string
@@ -51,7 +51,7 @@ export const METADATA_OIDC: MetadataOidc = {
     introspection_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/introspect"
 }
 
-type MetadataOidc = {
+export type MetadataOidc = {
     issuer: string
     jwks_uri: string
     authorization_endpoint: string
@@ -61,32 +61,4 @@ type MetadataOidc = {
     check_session_iframe: string
     revocation_endpoint: string
     introspection_endpoint: string
-}
-
-// todo get rid of this
-export function replaceValues<T>(input: T) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const c: any = { ...input }
-    let autUrl = process.env.REACT_APP_AUTH_URL as string
-
-    if (!autUrl) {
-        autUrl = REACT_APP_AUTH_URL_TO_REPLACE
-    }
-
-    let redirectUri = process.env.REACT_APP_REDIRECT_URI
-    if (!redirectUri) {
-        redirectUri = REACT_APP_REDIRECT_URI_TO_REPLACE
-    }
-
-    for (const key in c) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const v = c[key]
-        if (typeof v === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            c[key] = v.replaceAll(REACT_APP_AUTH_URL_TO_REPLACE, autUrl).replaceAll(REACT_APP_REDIRECT_URI_TO_REPLACE, redirectUri)
-        }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return c as T
 }

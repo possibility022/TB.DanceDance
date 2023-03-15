@@ -5,7 +5,7 @@ import { TokenProvider } from './AuthService';
 
 const tokenProvider: TokenProvider = authService
 
-export const apiClientFactory = () => {
+const apiClientFactory = () => {
 
     let baseUrl = process.env.REACT_APP_API_BASE_URL
 
@@ -22,6 +22,10 @@ export const apiClientFactory = () => {
 
     return instance
 }
+
+// singleton instance
+const AppApiClient = apiClientFactory()
+export default AppApiClient
 
 const applyInterceptor = (axiosInstance: AxiosInstance) => {
     axiosInstance.interceptors.request.use(async c => {

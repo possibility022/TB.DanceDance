@@ -2,16 +2,13 @@ import { BlockBlobClient } from "@azure/storage-blob";
 import UploadVideoInformation from "../types/UploadInformation";
 import VideoInformations from "../types/VideoInformations";
 import { IAssignedEventSharingScopeModel, IEventsAndGroupsModel, ISharingScopeModel } from "../types/SharingScopeModel";
-import { apiClientFactory } from "./HttpApiClient";
+import AppApiClient from "./HttpApiClient";
 import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
-
-const apiClient = apiClientFactory()
-
 
 
 export class VideoInfoService {
     public async LoadVideos(): Promise<Array<VideoInformations>> {
-        const response = await apiClient.get<Array<VideoInformations>>('/api/video/getinformation')
+        const response = await AppApiClient.get<Array<VideoInformations>>('/api/video/getinformation')
         return response.data
     }
 
@@ -20,17 +17,17 @@ export class VideoInfoService {
     }
 
     public GetVideUrlByBlobId(videoBlob: string) {
-        return apiClient.getUri() + '/api/video/stream/' + videoBlob
+        return AppApiClient.getUri() + '/api/video/stream/' + videoBlob
     }
 
     public async GetVideoInfo(videoId: string){
         const url = '/api/video/' + videoId + '/getinformation'
-        const response = await apiClient.get<VideoInformations>(url)
+        const response = await AppApiClient.get<VideoInformations>(url)
         return response.data
     }
 
     public async GetAvailableEventsAndGroups() {
-        const sharingScopes = await apiClient.get<IEventsAndGroupsModel>('/api/events/getall')
+        const sharingScopes = await AppApiClient.get<IEventsAndGroupsModel>('/api/events/getall')
         const availableGroups = await this.GetAssignments()
         const availableGroupsMap = new Map(availableGroups.map((v) => [v.id, v]))
 
@@ -53,7 +50,7 @@ export class VideoInfoService {
         if (!events && !groups)
             throw new Error("Argument events or groups must me provided. Both are not provided.")
 
-        const response = await apiClient.post('/api/events/requestassigment', {
+        const response = await AppApiClient.post('/api/events/requestassigment', {
             events: events,
             groups: groups
         })
@@ -65,13 +62,13 @@ export class VideoInfoService {
     }
 
     public async GetAssignments() {
-        const response = await apiClient.get<Array<ISharingScopeModel>>('/api/video/getassignments')
+        const response = await AppApiClient.get<Array<ISharingScopeModel>>('/api/video/getassignments')
         return response.data
     }
 
     public async UploadVideo(data: ISharedVideoInformation, file: File, onProgress: (loadedBytes: number) => void) {
 
-        const uploadUrl = await apiClient.post<UploadVideoInformation>('/api/video/getuploadurl',
+        const uploadUrl = await AppApiClient.post<UploadVideoInformation>('/api/video/getuploadurl',
             data
         );
 

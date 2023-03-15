@@ -1,12 +1,21 @@
-import React from "react"
+import appClient from "../../services/AppClient"
 
 interface ILoginButtonProps {
 	signinRedirect(): Promise<void>
 }
 
-const LoginButton = (props: ILoginButtonProps) =>
-(
-	<button className="button" onClick={() => { props.signinRedirect().catch(e => console.error(e)) }}>Log In</button>
-)
+const LoginButton = (props: ILoginButtonProps) => {
+
+	const loginAction = async () => {
+		await appClient.warmupRequest()
+		await props.signinRedirect()
+	}
+
+	return (
+		<button className="button" onClick={() => {
+			loginAction().catch(e => console.error(e))
+		}}>Log In</button>
+	)
+}
 
 export default LoginButton

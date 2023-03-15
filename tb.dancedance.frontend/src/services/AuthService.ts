@@ -1,6 +1,5 @@
 import { Log, User, UserManager, WebStorageStateStore } from "oidc-client-ts";
-
-import { IDENTITY_CONFIG, METADATA_OIDC, replaceValues } from "../authConst";
+import ConfigProvider from "./ConfigProvider";
 
 export interface IAuthService extends TokenProvider {
     signinRedirectCallback(): Promise<void>
@@ -31,9 +30,7 @@ export class AuthService implements IAuthService, TokenProvider {
     constructor() {
 
         // todo
-        const identityConfig = replaceValues(IDENTITY_CONFIG)
-        if (!identityConfig)
-            throw new Error("Something wrong with identity config. It is null or undefined");
+        const identityConfig = ConfigProvider.getIdentityConfig()
 
         this.userManager = new UserManager(
             {
@@ -127,12 +124,7 @@ export class AuthService implements IAuthService, TokenProvider {
         window.location.replace("/en/dashboard");
     };
 
-    private getIdentityConfig = () => {
-        const identityConfig = replaceValues(IDENTITY_CONFIG)
-        if (!identityConfig)
-            throw new Error("Something wrong with identity config. It is null or undefined");
-        return identityConfig
-    }
+
 
     private getOidcStorage = (): OidcStorage | null => {
 
@@ -146,11 +138,8 @@ export class AuthService implements IAuthService, TokenProvider {
 
         // todo
 
-        const identityConfig = this.getIdentityConfig()
-
-        const metadataOidc = replaceValues(METADATA_OIDC)
-        if (!metadataOidc)
-            throw new Error("Something wrong with identity config. It is null or undefined");
+        const identityConfig = ConfigProvider.getIdentityConfig()
+        const metadataOidc = ConfigProvider.getMetadataConfig()
 
         const authEndpoint = metadataOidc.authorization_endpoint;
         const clientId = identityConfig.client_id
@@ -165,7 +154,7 @@ export class AuthService implements IAuthService, TokenProvider {
     }
 
     getRegisterUri = () => {
-        const config = this.getIdentityConfig()
+        const config = ConfigProvider.getIdentityConfig()
         return config.register + "?returnUrl=" + window.location.href
     }
 
