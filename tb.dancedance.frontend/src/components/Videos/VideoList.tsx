@@ -2,11 +2,19 @@ import * as React from 'react';
 import VideoInformations from '../../types/VideoInformations';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
-import { Button } from '../Button';
 import { useNavigate } from 'react-router-dom';
+import { format, parseISO } from 'date-fns'
+import { pl } from 'date-fns/locale';
 
 export interface ListOfVideos {
     videos: VideoInformations[]
+}
+
+const formatDate = (date: Date) => {
+    // don't ask me
+    // todo: find out why I need to cast it to string
+    const d = Date.parse(date.toLocaleString())
+    return format(d, 'dd MMMM yyyy', { locale: pl })
 }
 
 export function VideoList(props: ListOfVideos) {
@@ -22,7 +30,7 @@ export function VideoList(props: ListOfVideos) {
         return (
             <tr key={r.id}>
                 <td>{r.name}</td>
-                <td>{r.recordedTimeUtc.toLocaleString()}</td>
+                <td>{formatDate(r.recordedTimeUtc)}</td>
                 <td>
                     <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(r)} />
                 </td>
