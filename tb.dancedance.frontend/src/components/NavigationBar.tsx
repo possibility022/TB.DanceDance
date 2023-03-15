@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { authService } from "../providers/AuthProvider";
 import appClient from "../services/AppClient";
@@ -6,6 +6,8 @@ import { Button } from "./Button";
 import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
 
 export function NavigationBar() {
+
+    const [registrationIsWaiting, setRegistrationIsWaiting] = useState(false)
 
     const onMenuClick = () => {
         const element = document.getElementById('navbarBasicExample');
@@ -15,7 +17,9 @@ export function NavigationBar() {
     }
 
     const registerAction = async () => {
+        setRegistrationIsWaiting(true)
         await appClient.warmupRequest()
+        setRegistrationIsWaiting(false)
         window.location.href = authService.getRegisterUri()
     }
 
@@ -44,7 +48,13 @@ export function NavigationBar() {
                         <div className="navbar-item">
                             <div className="buttons">
                                 <LoginLogout />
-                                <Button onClick={() => { registerAction().catch(e => console.error(e)) }}>
+                                <Button 
+                                isLoading={registrationIsWaiting}
+                                onClick={() => {
+                                    registerAction()
+                                    .catch(e => console.error(e))
+                                    .finally(() => setRegistrationIsWaiting(false))
+                                }}>
                                     Register
                                 </Button>
                             </div>

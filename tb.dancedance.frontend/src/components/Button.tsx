@@ -4,13 +4,27 @@ export interface IButtonProps {
     onClick?(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void
     classNames?: string
     disabled?: boolean
+    isLoading?: boolean
 }
 
 export function Button(props: React.PropsWithChildren<IButtonProps>) {
+
+    const getClasses = () => {
+        let classNames = "button";
+
+        if (props.classNames)
+            classNames += " " + props.classNames
+
+        if (props.isLoading)
+            classNames += " " + "is-loading"
+
+        return classNames
+    }
+
     return (
         <button
             disabled={props.disabled === true}
-            className={props.classNames ? "button " + props.classNames : "button"}
+            className={getClasses()}
             onClick={(e) => { if (props.onClick) props.onClick(e) }}> {props.children}
         </button>
     );
