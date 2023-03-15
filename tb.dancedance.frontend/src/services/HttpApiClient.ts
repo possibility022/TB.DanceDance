@@ -23,10 +23,6 @@ const apiClientFactory = () => {
     return instance
 }
 
-// singleton instance
-const AppApiClient = apiClientFactory()
-export default AppApiClient
-
 const applyInterceptor = (axiosInstance: AxiosInstance) => {
     axiosInstance.interceptors.request.use(async c => {
 
@@ -54,3 +50,7 @@ const applyInterceptor = (axiosInstance: AxiosInstance) => {
         return c
     })
 }
+
+// singleton instance
+const AppApiClient = apiClientFactory()
+export default AppApiClient
