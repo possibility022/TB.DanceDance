@@ -90,12 +90,17 @@ namespace TB.DanceDance.Services
             return info;
         }
 
-        public async Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null)
+        public async Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null)
         {
             if (filter == null)
                 filter = FilterDefinition<VideoInformation>.Empty;
 
             var find = videoCollection.Find(filter);
+
+            if (limit.HasValue)
+                find.Limit(limit);
+
+            
 
             var list = await find.ToListAsync();
             return list;
@@ -121,6 +126,15 @@ namespace TB.DanceDance.Services
         public async Task SaveSharedVideoInformations(SharedVideo sharedVideo)
         {
             await sharedVideos.InsertOneAsync(sharedVideo);
+        }
+
+        public async Task RenameVideoAsync(string guid, string newName)
+        {
+            var updateBuilder = new UpdateDefinitionBuilder<VideoInformation>();
+            updateBuilder.Set(r => r.Name, newName);
+            var update = updateBuilder.Combine();
+
+            await videoCollection.UpdateOneAsync(f => f.Id == guid, update);
         }
     }
 }

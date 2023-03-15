@@ -11,7 +11,7 @@ const apiClient = apiClientFactory()
 
 export class VideoInfoService {
     public async LoadVideos(): Promise<Array<VideoInformations>> {
-        const response = await apiClient.get<Array<VideoInformations>>('/api/video/getinformations')
+        const response = await apiClient.get<Array<VideoInformations>>('/api/video/getinformation')
         return response.data
     }
 
@@ -21,6 +21,12 @@ export class VideoInfoService {
 
     public GetVideUrlByBlobId(videoBlob: string) {
         return apiClient.getUri() + '/api/video/stream/' + videoBlob
+    }
+
+    public async GetVideoInfo(videoId: string){
+        const url = '/api/video/' + videoId + '/getinformation'
+        const response = await apiClient.get<VideoInformations>(url)
+        return response.data
     }
 
     public async GetAvailableEventsAndGroups() {

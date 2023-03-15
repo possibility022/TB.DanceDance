@@ -3,6 +3,7 @@ using IdentityServer4.Extensions;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Models;
@@ -35,9 +36,9 @@ public class VideoController : Controller
     private readonly IVideoUploaderService videoUploaderService;
     private readonly ILogger<VideoController> logger;
 
-    [Route("api/video/getinformations")]
+    [Route("api/video/getinformation")]
     [HttpGet]
-    public async Task<IEnumerable<VideoInformation>> GetInformationsAsync()
+    public async Task<IEnumerable<VideoInformation>> GetInformationAsync()
     {
         string user = User.GetSubject();
 
@@ -48,6 +49,21 @@ public class VideoController : Controller
             .In(information => information.SharedWith.EntityId, userAssociations);
 
         return await videoService.GetVideos(f);
+    }
+
+    [Route("api/video/{guid}/getinformation")]
+    [HttpGet]
+    public async Task<VideoInformation> GetInformationAsync(string guid)
+    {
+        string user = User.GetSubject();
+
+        var userAssociations = await userService.GetUserVideosAssociationsIds(user);
+
+        var filterBuilder = new FilterDefinitionBuilder<VideoInformation>();
+        var f = filterBuilder.Eq(info => info.BlobId, guid);
+
+        var info = await videoService.GetVideos(f, 1);
+        return info.First();
     }
 
     [Route("api/video/stream/{guid}")]
@@ -101,6 +117,15 @@ public class VideoController : Controller
         }));
 
         return list;
+    }
+
+    [Route("api/video/{guid}/rename")]
+    [HttpPost]
+    public async Task<OkResult> RenameVideo(string guid, [FromBody]VideoRenameModel input)
+    {
+        await videoService.RenameVideoAsync(guid, input.NewName);
+
+        return Ok();
     }
 
     [Route("/api/video/getUploadUrl")]
