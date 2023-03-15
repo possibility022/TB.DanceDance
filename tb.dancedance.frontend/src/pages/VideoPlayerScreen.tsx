@@ -3,7 +3,7 @@ import { useState, useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
 import { VideoInfoService } from '../services/VideoInfoService';
-import VideoInformations from '../types/VideoInformations';
+import VideoInformation from '../types/VideoInformation';
 
 
 const videoService = new VideoInfoService()
@@ -13,7 +13,7 @@ export function VideoPlayerScreen() {
     const params = useParams();
     const authContext = useContext(AuthContext)
 
-    const [videoInfo, setVideoInfo] = useState<VideoInformations>()
+    const [videoInfo, setVideoInfo] = useState<VideoInformation>()
 
     const [url, setUrl] = useState<string | undefined>()
 

@@ -1,18 +1,18 @@
 import { BlockBlobClient } from "@azure/storage-blob";
 import UploadVideoInformation from "../types/UploadInformation";
-import VideoInformations from "../types/VideoInformations";
 import { IAssignedEventSharingScopeModel, IEventsAndGroupsModel, ISharingScopeModel } from "../types/SharingScopeModel";
 import AppApiClient from "./HttpApiClient";
 import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
+import VideoInformation from "../types/VideoInformation";
 
 
 export class VideoInfoService {
-    public async LoadVideos(): Promise<Array<VideoInformations>> {
-        const response = await AppApiClient.get<Array<VideoInformations>>('/api/video/getinformation')
+    public async LoadVideos(): Promise<Array<VideoInformation>> {
+        const response = await AppApiClient.get<Array<VideoInformation>>('/api/video/getinformation')
         return response.data
     }
 
-    public GetVideoUrl(videoInfo: VideoInformations) {
+    public GetVideoUrl(videoInfo: VideoInformation) {
         return this.GetVideUrlByBlobId(videoInfo.blobId)
     }
 
@@ -22,7 +22,7 @@ export class VideoInfoService {
 
     public async GetVideoInfo(videoId: string){
         const url = '/api/video/' + videoId + '/getinformation'
-        const response = await AppApiClient.get<VideoInformations>(url)
+        const response = await AppApiClient.get<VideoInformation>(url)
         return response.data
     }
 

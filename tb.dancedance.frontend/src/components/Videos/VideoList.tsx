@@ -1,13 +1,12 @@
-import * as React from 'react';
-import VideoInformations from '../../types/VideoInformations';
+import VideoInformation from '../../types/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
 import { useNavigate } from 'react-router-dom';
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 
 export interface ListOfVideos {
-    videos: VideoInformations[]
+    videos: VideoInformation[]
 }
 
 const formatDate = (date: Date) => {
@@ -21,7 +20,7 @@ export function VideoList(props: ListOfVideos) {
 
     const navigate = useNavigate()
 
-    const goToVideo = (vid: VideoInformations) => {
+    const goToVideo = (vid: VideoInformation) => {
         const url = '/videos/' + vid.blobId
         navigate(url)
     }

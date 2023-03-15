@@ -1,4 +1,4 @@
-export default interface VideoInformations {
+export default interface VideoInformation {
     name: string
     recordedTimeUtc: Date
     id: number
