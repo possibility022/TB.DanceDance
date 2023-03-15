@@ -1,6 +1,7 @@
 import React from "react"
 import { Link } from "react-router-dom"
 import { authService } from "../providers/AuthProvider";
+import appClient from "../services/AppClient";
 import { Button } from "./Button";
 import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
 
@@ -11,6 +12,11 @@ export function NavigationBar() {
         const burgetButton = document.getElementById('navbar-burger-button');
         element?.classList.toggle('is-active')
         burgetButton?.classList.toggle('is-active')
+    }
+
+    const registerAction = async () => {
+        await appClient.warmupRequest()
+        window.location.href = authService.getRegisterUri()
     }
 
     return (
@@ -38,7 +44,7 @@ export function NavigationBar() {
                         <div className="navbar-item">
                             <div className="buttons">
                                 <LoginLogout />
-                                <Button onClick={() => window.location.href = authService.getRegisterUri()}>
+                                <Button onClick={() => { registerAction().catch(e => console.error(e)) }}>
                                     Register
                                 </Button>
                             </div>
