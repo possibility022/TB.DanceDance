@@ -95,7 +95,11 @@ namespace TB.DanceDance.Services
             if (filter == null)
                 filter = FilterDefinition<VideoInformation>.Empty;
 
-            var find = videoCollection.Find(filter);
+            var sortBuilder = new SortDefinitionBuilder<VideoInformation>();
+            var sort = sortBuilder.Descending(f => f.RecordedTimeUtc);
+
+            var find = videoCollection.Find(filter, new FindOptions() { })
+                .Sort(sort);
 
             if (limit.HasValue)
                 find.Limit(limit);
