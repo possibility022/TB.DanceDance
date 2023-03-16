@@ -37,6 +37,10 @@ export function Dropdown(props: IDropdownProps) {
             <div className="dropdown-item" role="menuitem" data-key={i} key={i++} onClick={(e) => setSelected(e)} >
                 {r}
             </div>
+
+            // todo implement that divider:
+            // <hr className="dropdown-divider"></hr>
+            // It should be divide groups and events
         )
     }
 

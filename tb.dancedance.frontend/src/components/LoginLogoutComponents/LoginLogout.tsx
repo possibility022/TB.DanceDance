@@ -1,21 +1,22 @@
 import * as React from 'react';
-import { AuthConsumer } from '../../providers/AuthProvider';
-import { IAuthService } from '../../services/AuthService';
+import { AuthContext } from '../../providers/AuthProvider';
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
 
 export function LoginLogout() {
+
+    const authContext = React.useContext(AuthContext)
+
+    const content = () => {
+        if (authContext.isAuthenticated()) {
+            return <LogoutButton singoutRedired={async () => authContext.logout()} />
+        } else {
+            return <LoginButton signinRedirect={async () => authContext.signinRedirect()} />
+        }
+    }
+
     return (
-        <AuthConsumer>
-            {({ isAuthenticated, signinRedirect, logout }: IAuthService) => {
-                if (isAuthenticated()) {
-                    return <LogoutButton singoutRedired={logout} />
-                } else {
-                    return <LoginButton signinRedirect={signinRedirect} />
-                }
-            }
-            }
-        </AuthConsumer>
+        content()
     );
 }
 
