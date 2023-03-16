@@ -3,6 +3,7 @@ import { useState, useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
 import { VideoInfoService } from '../services/VideoInfoService';
+import VideoInformation from '../types/VideoInformation';
 
 
 const videoService = new VideoInfoService()
@@ -12,19 +13,30 @@ export function VideoPlayerScreen() {
     const params = useParams();
     const authContext = useContext(AuthContext)
 
+    const [videoInfo, setVideoInfo] = useState<VideoInformation>()
+
     const [url, setUrl] = useState<string | undefined>()
 
 
     useEffect(() => {
+
+        const videoId = params.videoId as string
+
         authContext.getAccessToken()
             .then((token) => {
-                if (token && params.videoId) {
+                if (token && videoId) {
                     // todo, improve authorization way
-                    const videoUrl = videoService.GetVideUrlByBlobId(params.videoId)
+                    const videoUrl = videoService.GetVideUrlByBlobId(videoId)
                     setUrl(`${videoUrl}?token=${token}`)
                 }
             })
-            .catch(e => console.log(e))
+            .catch(e => console.error(e))
+
+        videoService.GetVideoInfo(videoId)
+            .then(videoInfo => {
+                setVideoInfo(videoInfo)
+            })
+            .catch(e => console.error(e))
 
         return () => {
             // todo, cleanup
@@ -35,8 +47,8 @@ export function VideoPlayerScreen() {
 
     return (
         <div className='container'>
-            <h4 className="title is-4">Triple step</h4>
-            <h5 className="title is-5">Triple step</h5>
+            <h4 className="title is-5">{videoInfo?.name}</h4>
+            
             <ReactPlayer
                 width='100%'
                 height='100%'

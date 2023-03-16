@@ -22,7 +22,7 @@ namespace TB.DanceDance.Data.MongoDb.Models
 
         public TimeSpan? Duration { get; init; }
 
-        public string MetadataAsJson { get; init; }
+        public string? MetadataAsJson { get; init; }
 
     }
 

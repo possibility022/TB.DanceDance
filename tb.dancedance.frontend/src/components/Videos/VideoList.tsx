@@ -1,28 +1,40 @@
-import * as React from 'react';
-import VideoInformations from '../../types/VideoInformations';
+import VideoInformation from '../../types/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
-import { Button } from '../Button';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns'
+import { pl } from 'date-fns/locale';
+import { faCalendar, faCalendarAlt, faCalendarCheck, faCalendarTimes, faCalendarXmark } from '@fortawesome/free-solid-svg-icons';
+import { AssigmentType } from '../../types/AssigmentType';
 
 export interface ListOfVideos {
-    videos: VideoInformations[]
+    videos: VideoInformation[]
+}
+
+const formatDate = (date: Date) => {
+    // don't ask me
+    // todo: find out why I need to cast it to string
+    const d = Date.parse(date.toLocaleString())
+    return format(d, 'dd MMMM yyyy', { locale: pl })
 }
 
 export function VideoList(props: ListOfVideos) {
 
     const navigate = useNavigate()
 
-    const goToVideo = (vid: VideoInformations) => {
+    const goToVideo = (vid: VideoInformation) => {
         const url = '/videos/' + vid.blobId
         navigate(url)
     }
 
     const list = props.videos.map(r => {
+
+        const icon = r.sharedWith.assignment == AssigmentType.Event ? "💃🕺" : "📅"
+
         return (
             <tr key={r.id}>
-                <td>{r.name}</td>
-                <td>{r.recordedTimeUtc.toLocaleString()}</td>
+                <td>{icon} {r.name}</td>
+                <td>{formatDate(r.recordedTimeUtc)}</td>
                 <td>
                     <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(r)} />
                 </td>
@@ -32,7 +44,7 @@ export function VideoList(props: ListOfVideos) {
     })
 
     return (
-        <table className="table">
+        <table className="table is-striped is-hoverable is-fullwidth">
             <tbody>
                 {list}
             </tbody>

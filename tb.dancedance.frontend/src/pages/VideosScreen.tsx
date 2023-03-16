@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { VideoList } from '../components/Videos/VideoList';
 import { VideoInfoService } from '../services/VideoInfoService';
-import VideoInformations from '../types/VideoInformations';
+import VideoInformation from '../types/VideoInformation';
 
 
 const videoService = new VideoInfoService()
 
 export function VideoScreen() {
 
-    const [videos, setVideos] = useState<Array<VideoInformations>>([]);
+    const [videos, setVideos] = useState<Array<VideoInformation>>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [weHaveAnyVideos, setWeHaveAnyVideos] = useState<boolean>(true)
 
