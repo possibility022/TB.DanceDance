@@ -5,6 +5,6 @@ export default interface VideoInformation {
     id: number
     blobId: string
     duration: TimeRanges
-    MetadataAsJson?: string
+    metadataAsJson?: string
     sharedWith: ISharingScopeModel
 }
