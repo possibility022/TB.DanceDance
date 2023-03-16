@@ -6,7 +6,7 @@ namespace TB.DanceDance.Services
     public interface IVideoService
     {
         Task<Stream> OpenStream(string blobName);
-        Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null);
+        Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null, bool includeMetadataAsJson = false);
         Task<SharingScope> GetSharedWith(string videoBlobId);
         Task<VideoInformation> UploadVideoAsync(string filePath, CancellationToken cancellationToken);
 

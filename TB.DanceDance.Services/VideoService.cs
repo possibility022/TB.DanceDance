@@ -90,7 +90,7 @@ namespace TB.DanceDance.Services
             return info;
         }
 
-        public async Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null)
+        public async Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null, bool includeMetadataAsJson = false)
         {
             if (filter == null)
                 filter = FilterDefinition<VideoInformation>.Empty;
@@ -101,8 +101,12 @@ namespace TB.DanceDance.Services
             var find = videoCollection.Find(filter, new FindOptions() { })
                 .Sort(sort);
 
+            if (!includeMetadataAsJson)
+                find = find.Project<VideoInformation>(Builders<VideoInformation>.Projection.Exclude(vi => vi.MetadataAsJson));
+
             if (limit.HasValue)
                 find.Limit(limit);
+
 
             
 
