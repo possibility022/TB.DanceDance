@@ -42,10 +42,7 @@ export function NavigationBar() {
                     <div className="navbar-start">
                         <Link className='navbar-item' to="">Home</Link>
                         <div className="navbar-item has-dropdown is-hoverable">
-                            <a className="navbar-link">
-                                <Link className='navbar-item' to="videos">Videos</Link>
-                            </a>
-
+                            <Link className='navbar-item' to="videos">Videos</Link>
                             <div className="navbar-dropdown">
                                 <Link className='navbar-item' to="videos">Videos</Link>
                                 <Link className='navbar-item' to="video/requestassignment">Request Access</Link>
