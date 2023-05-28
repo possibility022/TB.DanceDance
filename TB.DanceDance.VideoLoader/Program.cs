@@ -16,6 +16,8 @@ using TB.DanceDance.Data.MongoDb.Models;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Threading;
+using TB.DanceDance.Data.PostgreSQL;
+using Microsoft.EntityFrameworkCore;
 
 namespace TB.DanceDance.VideoLoader
 {
@@ -46,6 +48,11 @@ namespace TB.DanceDance.VideoLoader
                 services.ConfigureDb(config.GetMongoDbConfig())
                     .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config) ,(s) => new VideoFileLoader(FFMPGPath))
                     .ConfigureIdentityStorage();
+
+                services.AddDbContext<DanceDbContext>(options =>
+                {
+                    options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(config));
+                });
             });
 
             builder.UseSerilog();
@@ -54,32 +61,41 @@ namespace TB.DanceDance.VideoLoader
             app = builder.Build();
             using var scope = app.Services.CreateScope();
 
+            var dbMig = new DbMigration(
+                scope.ServiceProvider.GetRequiredService<DanceDbContext>(),
+                scope.ServiceProvider.GetRequiredService<IMongoCollection<VideoInformation>>(),
+                scope.ServiceProvider.GetRequiredService<IMongoCollection<Group>>(),
+                scope.ServiceProvider.GetRequiredService<IMongoCollection<Event>>());
+
+            await dbMig.MigrateAsync();
+
+
             //await CreateOwnersAsync();
             //await SetVideoOwnerAsync();
 
             // await SetUsersAccounts(app.Services.GetRequiredService<IUserService>());
             // return;
 
-            var service = scope.ServiceProvider.GetRequiredService<IVideoService>();
+            //var service = scope.ServiceProvider.GetRequiredService<IVideoService>();
 
-            var files = Directory.GetFiles("E:\\NONONOWestCoastSwing", "*.webm");
-            var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
+            //var files = Directory.GetFiles("E:\\NONONOWestCoastSwing", "*.webm");
+            //var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
 
-            foreach (var file in files)
-            {
-                Log.Information("Uploading {0}", file);
-                var uploaded = await service.UploadVideoAsync(file, CancellationToken.None);
-                uploaded.SharedWith = new SharingScope()
-                {
-                    EntityId = Constants.GroupSroda1730,
-                    Assignment = AssignmentType.Group
-                };
+            //foreach (var file in files)
+            //{
+            //    Log.Information("Uploading {0}", file);
+            //    var uploaded = await service.UploadVideoAsync(file, CancellationToken.None);
+            //    uploaded.SharedWith = new SharingScope()
+            //    {
+            //        EntityId = Constants.GroupSroda1730,
+            //        Assignment = AssignmentType.Group
+            //    };
 
-                await videos.ReplaceOneAsync(s => s.Id == uploaded.Id, uploaded);
+            //    await videos.ReplaceOneAsync(s => s.Id == uploaded.Id, uploaded);
 
-            }
+            //}
 
-            Log.Information("Done");
+            //Log.Information("Done");
         }
 
         private static async Task SetVideoOwnerAsync()

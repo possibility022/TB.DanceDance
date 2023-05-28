@@ -8,10 +8,10 @@ public class Video
 
     // User Id
     public required string UploadedBy { get; init; }
-    public required DateTimeOffset RecordedDateTime { get; init; }
-    public required DateTimeOffset SharedDateTime { get; init; }
-    public required TimeOnly Duration { get; init; }
-    public Guid MetadataAsJson { get; init; }
+    public required DateTime RecordedDateTime { get; init; }
+    public required DateTime SharedDateTime { get; init; }
+    public required TimeSpan? Duration { get; init; }
+    public string? MetadataAsJson { get; init; }
 
     // Navigation properties
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
@@ -56,7 +56,7 @@ public class Event
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    public required DateTimeOffset Date { get; init; }
+    public required DateTime Date { get; init; }
     public required EventType Type { get; init; }
 
     public ICollection<SharedWith> HasSharedVideos { get; set; } = null!;

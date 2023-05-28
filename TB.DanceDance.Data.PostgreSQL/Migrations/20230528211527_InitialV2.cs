@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class InitialV2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Date = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -45,10 +45,10 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     BlobId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     UploadedBy = table.Column<string>(type: "text", nullable: false),
-                    RecordedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    SharedDateTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    Duration = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
-                    MetadataAsJson = table.Column<Guid>(type: "uuid", nullable: false)
+                    RecordedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    SharedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Duration = table.Column<TimeSpan>(type: "interval", nullable: true),
+                    MetadataAsJson = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

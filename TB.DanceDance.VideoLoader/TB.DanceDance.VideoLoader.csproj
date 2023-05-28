@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TB.DanceDance.Core\TB.DanceDance.Core.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.PostgreSQL\TB.DanceDance.Data.PostgreSQL.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Services\TB.DanceDance.Services.csproj" />
   </ItemGroup>
 

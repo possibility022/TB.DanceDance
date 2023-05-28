@@ -28,7 +28,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("Date")
+                    b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
@@ -138,20 +138,20 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<TimeOnly>("Duration")
-                        .HasColumnType("time without time zone");
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("interval");
 
-                    b.Property<Guid>("MetadataAsJson")
-                        .HasColumnType("uuid");
+                    b.Property<string>("MetadataAsJson")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("RecordedDateTime")
+                    b.Property<DateTime>("RecordedDateTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset>("SharedDateTime")
+                    b.Property<DateTime>("SharedDateTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UploadedBy")

@@ -37,5 +37,10 @@ namespace TB.DanceDance.Core
         {
             return GetConnectionString(configuration, "MongoDBIdentityStore", "ConnectionStrings:MongoDBIdentityStore", "TB.DanceDance.ConnectionString.MongoDBIdentityStore");
         }
+
+        public static string GetPostgreSqlDbConnectionString(IConfiguration configuration)
+        {
+            return GetConnectionString(configuration, "PostgreDb", "ConnectionStrings:PostgreDb", "TB.DanceDance.ConnectionString.PostgreDb");
+        }
     }
 }

@@ -15,12 +15,12 @@ namespace TB.DanceDance.Data.PostgreSQL
             
         }
 
-        DbSet<Video> Videos { get; set; }
-        DbSet<GroupAssigmentRequest> GroupAssigmentRequests { get; set; }
-        DbSet<EventAssigmentRequest> EventAssigmentRequests { get; set; }
-        DbSet<SharedWith> SharedWith { get; set; }
-        DbSet<Group> Groups { get; set; }
-        DbSet<Event> Events { get; set; }
+        public DbSet<Video> Videos { get; set; }
+        public DbSet<GroupAssigmentRequest> GroupAssigmentRequests { get; set; }
+        public DbSet<EventAssigmentRequest> EventAssigmentRequests { get; set; }
+        public DbSet<SharedWith> SharedWith { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<Event> Events { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
