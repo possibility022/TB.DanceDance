@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Data.PostgreSQL;
@@ -98,6 +100,96 @@ namespace TB.DanceDance.VideoLoader
             context.SaveChanges();
         }
 
+        private async Task MigrateAssigments()
+        {
+            var cursor = videosMongo.Find(FilterDefinition<VideoInformation>.Empty);
+            var viedos = await cursor.ToListAsync();
+
+            var eventCursor = await events.FindAsync(FilterDefinition<Data.MongoDb.Models.Event>.Empty);
+            var allEvents = eventCursor.ToList().ToDictionary(r => r.Id);
+
+            var groupsCursor = await groups.FindAsync(FilterDefinition<Data.MongoDb.Models.Group>.Empty);
+            var allGroups = groupsCursor.ToList().ToDictionary(r => r.Id);
+
+            var allNewVideos = context.Videos.ToDictionary(r => r.Name);
+            var allNewEvents = context.Events.ToDictionary(r => r.Name);
+            var allNewGroups = context.Groups.ToDictionary(r => r.Name);
+
+            foreach (var v in viedos)
+            {
+                var sharedWith = new SharedWith()
+                {
+                    UserId = "f98c2a17-1577-481f-9a7b-605825763bb4",
+                    VideoId = allNewVideos[v.Name].Id
+                };
+
+                switch (v.SharedWith.Assignment)
+                {
+                    case AssignmentType.Person:
+                        break;
+
+                    case AssignmentType.Event:
+                        var oldEventName = allEvents[v.SharedWith.EntityId].Name;
+                        sharedWith.EventId = allNewEvents[oldEventName].Id;
+                        break;
+
+                    case AssignmentType.Group:
+                        var oldGroupName = allGroups[v.SharedWith.EntityId].GroupName;
+                        sharedWith.GroupId = allNewGroups[oldGroupName].Id;
+                        break;
+
+                    case AssignmentType.NotSpecified:
+                        throw new NotSupportedException();
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                context.Add(sharedWith);
+            }
+
+            context.SaveChanges();
+        }
+
+        private async Task MigrateUsersAssigments()
+        {
+            var eventCursor = await events.FindAsync(FilterDefinition<Data.MongoDb.Models.Event>.Empty);
+            var allEvents = eventCursor.ToList().ToDictionary(r => r.Id);
+
+            var groupsCursor = await groups.FindAsync(FilterDefinition<Data.MongoDb.Models.Group>.Empty);
+            var allGroups = groupsCursor.ToList().ToDictionary(r => r.Id);
+
+            var allNewEvents = context.Events.ToDictionary(r => r.Name);
+            var allNewGroups = context.Groups.ToDictionary(r => r.Name);
+
+            foreach(var group in allGroups)
+            {
+                foreach(var userId in group.Value.People)
+                {
+                    context.Add(new AssignedToGroup()
+                    {
+                        UserId = userId,
+                        GroupId = allNewGroups[group.Value.GroupName].Id
+                    });
+                }
+            }
+
+
+            foreach (var e in allEvents)
+            {
+                foreach (var userId in e.Value.Attenders)
+                {
+                    context.Add(new AssignedToEvent()
+                    {
+                        UserId = userId,
+                        EventId = allNewEvents[e.Value.Name].Id
+                    });
+                }
+            }
+
+            context.SaveChanges();
+        }
+
         private Data.PostgreSQL.Models.EventType MapEvent(Data.MongoDb.Models.EventType eventType)
         {
             switch (eventType)
@@ -123,6 +215,8 @@ namespace TB.DanceDance.VideoLoader
         {
             await MigrateVideosAsync();
             await MigrateEventsAndGroups();
+            await MigrateAssigments();
+            await MigrateUsersAssigments();
         }
     }
 }

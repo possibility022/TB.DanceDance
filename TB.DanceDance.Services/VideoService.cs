@@ -1,11 +1,14 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Data.PostgreSQL;
 
 namespace TB.DanceDance.Services
 {
     public class VideoService : IVideoService
     {
+        private readonly DanceDbContext dbContext;
         readonly IMongoCollection<VideoInformation> videoCollection;
         private readonly IMongoCollection<Event> events;
         private readonly IMongoCollection<Group> groups;
@@ -13,13 +16,16 @@ namespace TB.DanceDance.Services
         private readonly IBlobDataService blobService;
         private readonly IVideoFileLoader videoFileLoader;
 
-        public VideoService(IMongoCollection<VideoInformation> videoCollection,
+        public VideoService(
+            DanceDbContext dbContext,
+            IMongoCollection<VideoInformation> videoCollection,
             IMongoCollection<Event> events,
             IMongoCollection<Group> groups,
             IMongoCollection<SharedVideo> sharedVideos,
             IBlobDataServiceFactory blobServiceFactory,
             IVideoFileLoader videoFileLoader)
         {
+            this.dbContext = dbContext;
             this.videoCollection = videoCollection ?? throw new ArgumentNullException(nameof(videoCollection));
             this.events = events;
             this.groups = groups;
@@ -92,26 +98,32 @@ namespace TB.DanceDance.Services
 
         public async Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null, bool includeMetadataAsJson = false)
         {
-            if (filter == null)
-                filter = FilterDefinition<VideoInformation>.Empty;
+            var query = dbContext
+                .Videos
+                .Include(r => r.SharedWith)
+                .OrderByDescending(r => r.RecordedDateTime)
+                .Select(r => new VideoInformation()
+                {
+                    BlobId = r.BlobId,
+                    Duration = r.Duration,
+                    Id = r.Id.ToString(),
+                    RecordedTimeUtc = r.RecordedDateTime,
+                    Name = r.Name,
+                    SharedDateTimeUtc = r.SharedDateTime,
+                    UploadedBy = new SharingScope
+                    {
+                        Assignment = AssignmentType.Person,
+                        EntityId = r.UploadedBy
+                    }
+                });
 
-            var sortBuilder = new SortDefinitionBuilder<VideoInformation>();
-            var sort = sortBuilder.Descending(f => f.RecordedTimeUtc);
-
-            var find = videoCollection.Find(filter, new FindOptions() { })
-                .Sort(sort);
-
-            if (!includeMetadataAsJson)
-                find = find.Project<VideoInformation>(Builders<VideoInformation>.Projection.Exclude(vi => vi.MetadataAsJson));
+            // todo support MetadataAsJson = r.MetadataAsJson,
 
             if (limit.HasValue)
-                find.Limit(limit);
+                query = query.Take(limit.Value);
 
-
-            
-
-            var list = await find.ToListAsync();
-            return list;
+            var results = await query.ToListAsync();
+            return results;
         }
 
         public Task<Stream> OpenStream(string blobName)
