@@ -21,6 +21,8 @@ namespace TB.DanceDance.Data.PostgreSQL
         public DbSet<SharedWith> SharedWith { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<Event> Events { get; set; }
+        public DbSet<AssignedToGroup> AssingedToGroups { get; set; }
+        public DbSet<AssignedToEvent> AssingedToEvents { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

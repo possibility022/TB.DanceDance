@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.MongoDb\TB.DanceDance.Data.MongoDb.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Data.PostgreSQL\TB.DanceDance.Data.PostgreSQL.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Identity\TB.DanceDance.Identity.csproj" />
   </ItemGroup>
 
