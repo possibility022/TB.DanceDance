@@ -11,10 +11,16 @@ public class Video
     public required DateTime RecordedDateTime { get; init; }
     public required DateTime SharedDateTime { get; init; }
     public required TimeSpan? Duration { get; init; }
-    public string? MetadataAsJson { get; init; }
 
     // Navigation properties
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
+}
+
+public class VideoMetadata
+{
+    public Guid Id { get; set; }
+    public Guid VideoId { get; set; }
+    public byte[] Metadata { get; set; } = null!;
 }
 
 public class GroupAssigmentRequest

@@ -23,6 +23,7 @@ namespace TB.DanceDance.Data.PostgreSQL
         public DbSet<Event> Events { get; set; }
         public DbSet<AssignedToGroup> AssingedToGroups { get; set; }
         public DbSet<AssignedToEvent> AssingedToEvents { get; set; }
+        public DbSet<VideoMetadata> VideoMetadata { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -41,6 +42,12 @@ namespace TB.DanceDance.Data.PostgreSQL
                 .HasOne<Group>()
                 .WithMany()
                 .HasForeignKey(e => e.GroupId)
+                .IsRequired();
+
+            modelBuilder.Entity<VideoMetadata>()
+                .HasOne<Video>()
+                .WithMany()
+                .HasForeignKey(e => e.VideoId)
                 .IsRequired();
         }
 
