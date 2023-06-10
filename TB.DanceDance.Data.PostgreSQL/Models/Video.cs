@@ -16,6 +16,29 @@ public class Video
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
 }
 
+public class VideosToTranform
+{
+    public Guid Id { get; set; }
+    public required string BlobId { get; init; }
+    public string Name { get; set; }
+
+    // User Id
+    public required string UploadedBy { get; init; }
+    public required DateTime RecordedDateTime { get; init; }
+    public required DateTime SharedDateTime { get; init; }
+    public required TimeSpan? Duration { get; init; }
+
+    /// <summary>
+    /// Pointing to event or group. Based on AssignedToEvent flag
+    /// </summary>
+    public required Guid SharedWithId { get; set; }
+
+    /// <summary>
+    /// If true, SharedWithId is pointing to event, if false, SharedWithId is pointing to group
+    /// </summary>
+    public required bool AssignedToEvent { get; set; }
+}
+
 public class VideoMetadata
 {
     public Guid Id { get; set; }
