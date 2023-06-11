@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Data.PostgreSQL;
@@ -34,18 +36,34 @@ namespace TB.DanceDance.VideoLoader
         {
             var cursor = videosMongo.Find(FilterDefinition<VideoInformation>.Empty);
             var viedos = await cursor.ToListAsync();
+            var addedVideos = new Dictionary<string, Video>();
 
             foreach (var v in viedos)
             {
-                context.Add(new Video()
+                var video = new Video()
                 {
                     BlobId = v.BlobId,
                     Duration = v.Duration,
                     RecordedDateTime = SetKindUtc(v.RecordedTimeUtc),
                     SharedDateTime = SetKindUtc(v.SharedDateTimeUtc),
                     UploadedBy = "Tomek",
-                    MetadataAsJson = v.MetadataAsJson,
                     Name = v.Name,
+                };
+                context.Add(video);
+                addedVideos.Add(video.BlobId, video);
+            }
+
+            context.SaveChanges();
+
+            foreach(var v in viedos)
+            {
+                if (string.IsNullOrEmpty(v.MetadataAsJson))
+                    continue;
+
+                context.Add(new VideoMetadata()
+                {
+                    VideoId = addedVideos[v.BlobId].Id,
+                    Metadata = Encoding.UTF8.GetBytes(v.MetadataAsJson)
                 });
             }
 

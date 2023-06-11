@@ -16,7 +16,7 @@ public class Video
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
 }
 
-public class VideosToTranform
+public class VideoToTranform
 {
     public Guid Id { get; set; }
     public required string BlobId { get; init; }

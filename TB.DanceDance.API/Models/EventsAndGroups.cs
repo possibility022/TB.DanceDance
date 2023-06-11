@@ -1,11 +1,11 @@
-﻿using TB.DanceDance.Data.MongoDb.Models;
+﻿using TB.DanceDance.Data.PostgreSQL.Models;
 
 namespace TB.DanceDance.API.Models
 {
     public record EventsAndGroups
     {
-        public ICollection<EventSharingSharingScope> Events { get; set; } = new List<EventSharingSharingScope>();
+        public ICollection<Event> Events { get; set; } = new List<Event>();
         
-        public ICollection<SharingScopeModel> Groups { get; set; } = new List<SharingScopeModel>();
+        public ICollection<Group> Groups { get; set; } = new List<Group>();
     }
 }

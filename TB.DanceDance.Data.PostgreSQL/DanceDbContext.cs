@@ -16,7 +16,7 @@ namespace TB.DanceDance.Data.PostgreSQL
         }
 
         public DbSet<Video> Videos { get; set; }
-        public DbSet<VideosToTranform> VideosToTranform { get; set; }
+        public DbSet<VideoToTranform> VideosToTranform { get; set; }
         public DbSet<GroupAssigmentRequest> GroupAssigmentRequests { get; set; }
         public DbSet<EventAssigmentRequest> EventAssigmentRequests { get; set; }
         public DbSet<SharedWith> SharedWith { get; set; }

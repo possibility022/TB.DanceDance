@@ -35,8 +35,8 @@ namespace IdentityServerHost.Quickstart.UI
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
-        private readonly UserManager<UserModel> userManager;
-        private readonly SignInManager<UserModel> signInManager;
+        private readonly UserManager<User> userManager;
+        private readonly SignInManager<User> signInManager;
         private readonly ILogger<AccountController> logger;
 
         public AccountController(
@@ -44,8 +44,8 @@ namespace IdentityServerHost.Quickstart.UI
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
-            UserManager<UserModel> userManager,
-            SignInManager<UserModel> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             ILogger<AccountController> logger)
         {
             _interaction = interaction;
@@ -198,22 +198,11 @@ namespace IdentityServerHost.Quickstart.UI
             //                                      .ToList();
             if (ModelState.IsValid)
             {
-                var user = new UserModel
+                var user = new User
                 {
                     UserName = input.Email,
                     Email = input.Email,
-                    Claims = {
-                        new AspNetCore.Identity.MongoDbCore.Models.MongoClaim()
-                        {
-                            Type = JwtClaimTypes.GivenName ,
-                            Value = input.FirstName
-                        },
-                        new AspNetCore.Identity.MongoDbCore.Models.MongoClaim()
-                        {
-                            Type = JwtClaimTypes.FamilyName ,
-                            Value = input.LastName
-                        }
-                    }
+                    
                 };
 
                 var result = await userManager.CreateAsync(user, input.Password);

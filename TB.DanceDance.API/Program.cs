@@ -1,11 +1,11 @@
-using AspNetCore.Identity.MongoDbCore.Extensions;
-using AspNetCore.Identity.MongoDbCore.Infrastructure;
 using IdentityServer4;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
 using TB.DanceDance.Core.IdentityServerStore;
+using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Identity;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
@@ -21,6 +21,16 @@ if (builder.Environment.IsDevelopment())
 }
 
 // Add services to the container.
+
+builder.Services.AddDbContext<DanceDbContext>(options =>
+{
+    options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(builder.Configuration));
+});
+
+builder.Services.AddDbContext<IdentityStoreContext>(options =>
+{
+    options.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddCors(setup =>
@@ -70,45 +80,32 @@ builder.Services
     o.ExpectedScope = DanceDanceResources.WestCoastSwing.Scopes.ReadScope;
 });
 
-// Configuring dotnetIdentity and mongodb as storage
-IdentityBuilder dotnetIdentityBuilder = builder.Services.AddIdentity<UserModel, RoleModel>();
 
-string dotnetIdentityMongoConnectionString = ConnectionStringProvider.GetMongoDbConnectionStringForIdentityStore(builder.Configuration);
-string dotnetIdentityMongoDatabase = "IdentityStore";
+builder.Services
+    .AddIdentity<User, Role>()
+    .AddEntityFrameworkStores<IdentityStoreContext>();
 
 if (builder.Environment.IsProduction())
 {
-    dotnetIdentityBuilder.AddMongoDbStores<UserModel, RoleModel, Guid>(
-        dotnetIdentityMongoConnectionString,
-        dotnetIdentityMongoDatabase
-    );
+    // Default configuration for IdentityOptions is fine.
 }
 else
 {
-    var mongoDbIdentityConfiguration = new MongoDbIdentityConfiguration
+    builder.Services.Configure<IdentityOptions>(options =>
     {
-        MongoDbSettings = new MongoDbSettings
-        {
-            ConnectionString = dotnetIdentityMongoConnectionString,
-            DatabaseName = dotnetIdentityMongoDatabase
-        },
-        IdentityOptionsAction = options =>
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 4;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireLowercase = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 4;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
 
-            // Lockout settings
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-            options.Lockout.MaxFailedAccessAttempts = 10;
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+        options.Lockout.MaxFailedAccessAttempts = 10;
 
-            // ApplicationUser settings
-            options.User.RequireUniqueEmail = true;
-        }
-    };
-    builder.Services.ConfigureMongoDbIdentity<UserModel, RoleModel, Guid>(mongoDbIdentityConfiguration);
+        // ApplicationUser settings
+        options.User.RequireUniqueEmail = true;
+    });
 }
 
 
@@ -131,7 +128,7 @@ if (setIdentityServerAsProduction)
     var certBytes = Convert.FromBase64String(cert);
 
     identityBuilder
-        .AddAspNetIdentity<UserModel>()
+        .AddAspNetIdentity<User>()
         .AddClientStore<IdentityClientMongoStore>()
         .AddResourceStore<IdentityResourceMongoStore>()
         .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
@@ -139,7 +136,7 @@ if (setIdentityServerAsProduction)
 else
 {
     identityBuilder
-        .AddAspNetIdentity<UserModel>()
+        .AddAspNetIdentity<User>()
         .AddDeveloperSigningCredential()
         .AddInMemoryApiScopes(Config.ApiScopes)
         .AddInMemoryClients(Config.Clients)
