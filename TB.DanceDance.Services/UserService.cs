@@ -1,124 +1,100 @@
-﻿using AspNetCore.Identity.MongoDbCore.Models;
-using IdentityModel;
-using MongoDB.Driver;
-using TB.DanceDance.Data.MongoDb.Models;
-using TB.DanceDance.Identity;
+﻿using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Data.PostgreSQL;
+using TB.DanceDance.Data.PostgreSQL.Models;
 
 namespace TB.DanceDance.Services
 {
     public class UserService : IUserService
     {
-        private readonly IMongoCollection<UserModel> usersCollection;
-        private readonly IMongoCollection<Event> events;
-        private readonly IMongoCollection<Group> groups;
-        private readonly IMongoCollection<RequestedAssigment> requestedAssignment;
+        private readonly DanceDbContext dbContext;
 
-        public UserService(IMongoCollection<UserModel> usersCollection
-        , IMongoCollection<Event> events
-        , IMongoCollection<Group> groups
-        , IMongoCollection<RequestedAssigment> requestedAssignment
+        public UserService(DanceDbContext dbContext
             )
         {
-            this.usersCollection = usersCollection;
-            this.events = events;
-            this.groups = groups;
-            this.requestedAssignment = requestedAssignment;
+            this.dbContext = dbContext;
         }
 
-        public async Task<UserModel?> FindUserByNameAsync(string name)
+        public IQueryable<Group> GetUserGroups(string userId)
         {
-            var filter = new FilterDefinitionBuilder<UserModel>()
-                .Eq(r => r.UserName, name);
+            var query = from assigments in dbContext.AssingedToGroups
+                        join @group in dbContext.Groups on assigments.GroupId equals @group.Id
+                        where assigments.UserId == userId
+                        select @group;
 
-            var res = await usersCollection.FindAsync(filter);
-            return await res.FirstAsync();
+            return query;
         }
 
-        public bool ValidateCredentials(string username, string password)
+        public IQueryable<Event> GetUserEvents(string userId)
         {
-            // todo migrate to asp net identity
-            return usersCollection
-                .Find(f => f.UserName == username && f.PasswordHash == password)
-                .Any();
+            var query = from assigments in dbContext.AssingedToEvents
+                        join @event in dbContext.Events on assigments.EventId equals @event.Id
+                        where assigments.UserId == userId
+                        select @event;
+
+            return query;
         }
 
-        public Task AddUpsertUserAsync(UserModel model)
+        public (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userId)
         {
-            return usersCollection.ReplaceOneAsync(f => f.Id == model.Id, model, new ReplaceOptions()
+            if (userId is null)
+                throw new ArgumentNullException(nameof(userId));
+
+            var userGroups = new HashSet<Group>();
+            var userEvents = new HashSet<Event>();
+
+            var query =
+                from groupAssign in dbContext.AssingedToGroups
+                join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
+                where groupAssign.UserId == userId
+                from eventAssign in dbContext.AssingedToEvents
+                join @event in dbContext.Events on eventAssign.EventId equals @event.Id
+                where eventAssign.UserId == userId
+                select new { Group = @group, Event = @event };
+
+            foreach (var res in query)
             {
-                IsUpsert = true
-            });
-        }
+                if (res.Group != null)
+                    userGroups.Add(res.Group);
 
-        public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroups(string userName)
-        {
-            if (userName is null)
-                throw new ArgumentNullException(nameof(userName));
-
-            List<Group> userGroups = null!;
-            List<Event> userEvents = null!;
-
-            var getGroups = this.groups.FindAsync(r => r.People.Contains(userName))
-                    .ContinueWith(async r => userGroups = await r.Result.ToListAsync());
-
-            var getEvents = this.events.FindAsync(r => r.Attenders.Contains(userName))
-                .ContinueWith(async r => userEvents = await r.Result.ToListAsync());
-
-            await Task.WhenAll(getGroups, getEvents);
+                if (res.Event != null)
+                    userEvents.Add(res.Event);
+            }
 
             return (userGroups, userEvents);
         }
 
         public async Task<ICollection<Event>> GetAllEvents(string user)
         {
-            var cursor = await this.events.FindAsync(FilterDefinition<Event>.Empty);
-            var list = await cursor.ToListAsync();
-            return list;
+            return await dbContext.Events.ToListAsync();
         }
 
         public async Task<ICollection<Group>> GetAllGroups(string user)
         {
-            var cursor = await this.groups.FindAsync(FilterDefinition<Group>.Empty);
-            var list = await cursor.ToListAsync();
-            return list;
+            return await dbContext.Groups.ToListAsync();
         }
 
-        public async Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName)
+        public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
         {
-            (var userGroups, var userEvents) = await GetUserEventsAndGroups(userName);
-
-            return userGroups.Select(r => r.Id)
-                .Concat(userEvents.Select(e => e.Id));
-        }
-
-        public async Task<bool> UserIsAssociatedWith(string userName, string entityId)
-        {
-            var associatedTo = await GetUserVideosAssociationsIds(userName);
-            return associatedTo.Any(r => r == entityId);
-        }
-
-        public async Task SaveEventsAssigmentRequest(string user, ICollection<string> events)
-        {
-            var toSave = events.Select(r => new RequestedAssigment()
+            var toSave = events.Select(@event => new EventAssigmentRequest()
             {
-                AssignmentType = AssignmentType.Event,
-                EntityId = r,
+                EventId = @event,
                 UserId = user
             });
 
-            await requestedAssignment.InsertManyAsync(toSave);
+            dbContext.EventAssigmentRequests.AddRange(toSave);
+            await dbContext.SaveChangesAsync();
         }
 
-        public async Task SaveGroupsAssigmentRequests(string user, ICollection<string> groups)
+        public async Task SaveGroupsAssigmentRequests(string user, ICollection<Guid> groups)
         {
-            var toSave = groups.Select(r => new RequestedAssigment()
+            var toSave = groups.Select(group => new GroupAssigmentRequest()
             {
-                AssignmentType = AssignmentType.Group,
-                EntityId = r,
+                GroupId = group,
                 UserId = user
             });
 
-            await requestedAssignment.InsertManyAsync(toSave);
+            dbContext.GroupAssigmentRequests.AddRange(toSave);
+            await dbContext.SaveChangesAsync();
         }
     }
 }

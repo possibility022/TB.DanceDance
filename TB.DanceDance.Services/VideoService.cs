@@ -1,129 +1,111 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MongoDB.Driver;
+using System.Text;
 using TB.DanceDance.Data.Blobs;
-using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Data.PostgreSQL;
+using TB.DanceDance.Data.PostgreSQL.Models;
+using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services
 {
     public class VideoService : IVideoService
     {
         private readonly DanceDbContext dbContext;
-        readonly IMongoCollection<VideoInformation> videoCollection;
-        private readonly IMongoCollection<Event> events;
-        private readonly IMongoCollection<Group> groups;
-        private readonly IMongoCollection<SharedVideo> sharedVideos;
         private readonly IBlobDataService blobService;
         private readonly IVideoFileLoader videoFileLoader;
+        private readonly IVideoUploaderService videoUploaderService;
 
         public VideoService(
             DanceDbContext dbContext,
-            IMongoCollection<VideoInformation> videoCollection,
-            IMongoCollection<Event> events,
-            IMongoCollection<Group> groups,
-            IMongoCollection<SharedVideo> sharedVideos,
             IBlobDataServiceFactory blobServiceFactory,
-            IVideoFileLoader videoFileLoader)
+            IVideoFileLoader videoFileLoader,
+            IVideoUploaderService videoUploaderService)
         {
             this.dbContext = dbContext;
-            this.videoCollection = videoCollection ?? throw new ArgumentNullException(nameof(videoCollection));
-            this.events = events;
-            this.groups = groups;
-            this.sharedVideos = sharedVideos;
             this.blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
             this.videoFileLoader = videoFileLoader ?? throw new ArgumentNullException(nameof(videoFileLoader));
+            this.videoUploaderService = videoUploaderService;
         }
 
-        public async Task<SharingScope> GetSharedWith(string videoBlobId)
+        private IQueryable<VideoInfo> GetBaseVideosForUserQuery(string userId)
         {
-            var res = await videoCollection.Find(r => r.BlobId == videoBlobId)
-                .SingleAsync();
-
-            return res.SharedWith;
+            return from video in dbContext.Videos
+                   join sharedWith in dbContext.SharedWith on video.Id equals sharedWith.VideoId
+                   join events in dbContext.Events.DefaultIfEmpty() on sharedWith.EventId equals events.Id into eventsGroup
+                   from events in eventsGroup.DefaultIfEmpty()
+                   join groups in dbContext.Groups.DefaultIfEmpty() on sharedWith.GroupId equals groups.Id into groupsGroup
+                   from groups in groupsGroup.DefaultIfEmpty()
+                   join eventsAssignments in dbContext.AssingedToEvents.DefaultIfEmpty() on events.Id equals eventsAssignments.EventId into eventsAssignmentsGroup
+                   from eventsAssignments in eventsAssignmentsGroup.DefaultIfEmpty()
+                   join groupsAssignments in dbContext.AssingedToGroups.DefaultIfEmpty() on groups.Id equals groupsAssignments.GroupId into groupsAssignmentsGroup
+                   from groupsAssignments in groupsAssignmentsGroup.DefaultIfEmpty()
+                   where
+                   sharedWith.UserId == userId || eventsAssignments.UserId == userId || groupsAssignments.UserId == userId
+                   orderby video.RecordedDateTime descending
+                   select new VideoInfo
+                   {
+                       Video = video,
+                       SharedWithEvent = eventsAssignments != null,
+                       SharedWithGroup = groupsAssignments != null,
+                   };
         }
-
         public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
         {
-            var sharingScope = await GetSharedWith(videoBlobId);
-            var allowedUsers = await GetOwnerAssociatedUsers(sharingScope);
-            return allowedUsers.Contains(userId);
+            var query = GetBaseVideosForUserQuery(userId)
+                .Where(v => v.Video.BlobId == videoBlobId)
+                .AnyAsync();
+
+            var any = await query;
+
+            return any;
         }
 
-        private async Task<ICollection<string>> GetOwnerAssociatedUsers(SharingScope owner)
-        {
-            if (owner.Assignment == AssignmentType.Event)
-            {
-                var ownerEntity = await events.Find(r => r.Id == owner.EntityId)
-                    .SingleAsync();
-
-                return ownerEntity.Attenders
-                    .Select(r => r.ToString()) //todo use guids
-                    .ToList();
-            }
-            else if (owner.Assignment == AssignmentType.Group)
-            {
-                var ownerEntity = await groups.Find(r => r.Id == owner.EntityId)
-                    .SingleAsync();
-
-                return ownerEntity.People
-                    .Select(r => r.ToString()) //todo use guids
-                    .ToList();
-            }
-            else if (owner.Assignment == AssignmentType.Person)
-            {
-                return new[] { owner.EntityId };
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(owner.Assignment), "Could not resolve associations for owner type: " + owner.Assignment.ToString());
-        }
-
-
-        public async Task<VideoInformation> UploadVideoAsync(string filePath, CancellationToken cancellationToken)
+        public async Task<Video> UploadVideoAsync(string filePath, CancellationToken cancellationToken)
         {
             if (!File.Exists(filePath))
                 throw new IOException("File not found: " + filePath);
 
-            var info = await videoFileLoader.CreateRecord(filePath);
+            (var info, var metada) = await videoFileLoader.CreateRecord(filePath);
 
-            await videoCollection.InsertOneAsync(info, new InsertOneOptions()
+            dbContext.Videos.Add(info);
+            await dbContext.SaveChangesAsync();
+
+            var videoMetadata = new VideoMetadata()
             {
+                VideoId = info.Id,
+                Metadata = Encoding.UTF8.GetBytes(metada)
+            };
 
-            },
-            cancellationToken);
+            dbContext.VideoMetadata.Add(videoMetadata); 
+            await dbContext.SaveChangesAsync();
 
             await blobService.Upload(info.BlobId, File.OpenRead(filePath));
 
             return info;
         }
 
-        public async Task<IEnumerable<VideoInformation>> GetVideos(FilterDefinition<VideoInformation>? filter = null, int? limit = null, bool includeMetadataAsJson = false)
+        public Task<VideoInfo?> GetVideoByBlobAsync(string userId, string blobId)
+        {
+            return GetBaseVideosForUserQuery(userId)
+                .Where(r => r.Video.BlobId == blobId)
+                .FirstOrDefaultAsync();
+        }
+
+        public IQueryable<VideoInfo> GetVideos(string userId)
+        {
+            var query = GetBaseVideosForUserQuery(userId);
+            return query;
+        }
+
+        public async Task<IQueryable<Video>> GetVideos()
         {
             var query = dbContext
                 .Videos
                 .Include(r => r.SharedWith)
-                .OrderByDescending(r => r.RecordedDateTime)
-                .Select(r => new VideoInformation()
-                {
-                    BlobId = r.BlobId,
-                    Duration = r.Duration,
-                    Id = r.Id.ToString(),
-                    RecordedTimeUtc = r.RecordedDateTime,
-                    Name = r.Name,
-                    SharedDateTimeUtc = r.SharedDateTime,
-                    UploadedBy = new SharingScope
-                    {
-                        Assignment = AssignmentType.Person,
-                        EntityId = r.UploadedBy
-                    }
-                });
+                .OrderByDescending(r => r.RecordedDateTime);
 
-            // todo support MetadataAsJson = r.MetadataAsJson,
+            //todo add paging
 
-            if (limit.HasValue)
-                query = query.Take(limit.Value);
-
-            var results = await query.ToListAsync();
-            return results;
+            return query;
         }
 
         public Task<Stream> OpenStream(string blobName)
@@ -131,30 +113,44 @@ namespace TB.DanceDance.Services
             return blobService.OpenStream(blobName);
         }
 
-        public Task<Event> GetEvent(string id)
+        public Task<Event> GetEvent(Guid id)
         {
-            return events.Find(@event => @event.Id == id)
-                .SingleAsync();
+            return dbContext.Events.FirstAsync(r => r.Id == id);
         }
 
-        public Task<Group> GetGroup(string id)
+        public Task<Group> GetGroup(Guid id)
         {
-            return groups.Find(group => group.Id == id)
-                .SingleAsync();
+            return dbContext.Groups.FirstAsync(group => group.Id == id);
         }
 
-        public async Task SaveSharedVideoInformations(SharedVideo sharedVideo)
+        public async Task RenameVideoAsync(Guid guid, string newName)
         {
-            await sharedVideos.InsertOneAsync(sharedVideo);
+            var video = await dbContext.Videos.FirstAsync(r => r.Id == guid);
+
+            video.Name = newName;
+            dbContext.SaveChanges();
         }
 
-        public async Task RenameVideoAsync(string guid, string newName)
+        public async Task<SharedBlob> GetSharingLink(string userId, string name, bool assignedToEvent, Guid sharedWith)
         {
-            var updateBuilder = new UpdateDefinitionBuilder<VideoInformation>();
-            updateBuilder.Set(r => r.Name, newName);
-            var update = updateBuilder.Combine();
+            var sharedBlob = videoUploaderService.GetSasUri();
 
-            await videoCollection.UpdateOneAsync(f => f.Id == guid, update);
+            var video = new VideoToTranform()
+            {
+                AssignedToEvent = assignedToEvent,
+                BlobId = sharedBlob.BlobClient.Name,
+                Name = name,
+                UploadedBy = userId,
+                Duration = null,
+                RecordedDateTime = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc),
+                SharedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
+                SharedWithId = sharedWith
+            };
+
+            dbContext.VideosToTranform.Add(video);
+            await dbContext.SaveChangesAsync();
+
+            return sharedBlob;
         }
     }
 }

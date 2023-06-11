@@ -1,4 +1,4 @@
-﻿using TB.DanceDance.Data.MongoDb.Models;
+﻿using TB.DanceDance.Data.PostgreSQL.Models;
 
 namespace TB.DanceDance.Services
 {
@@ -6,11 +6,11 @@ namespace TB.DanceDance.Services
     {
         Task<ICollection<Event>> GetAllEvents(string user);
         Task<ICollection<Group>> GetAllGroups(string user);
-        Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroups(string userName);
+        IQueryable<Group> GetUserGroups(string userId);
+        IQueryable<Event> GetUserEvents(string userId);
+        (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userName);
 
-        Task<IEnumerable<string>> GetUserVideosAssociationsIds(string userName);
-        Task SaveEventsAssigmentRequest(string user, ICollection<string> events);
-        Task SaveGroupsAssigmentRequests(string user, ICollection<string> groups);
-        Task<bool> UserIsAssociatedWith(string userName, string entityId);
+        Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events);
+        Task SaveGroupsAssigmentRequests(string user, ICollection<Guid> groups);
     }
 }
