@@ -116,11 +116,9 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var group = await userService.GetUserGroups(user)
-                    .Where(r => r.Id == sharedWith.Value)
-                    .FirstOrDefaultAsync();
+                var canUploadToGroup = await userService.CanUserUploadToGroupAsync(user, sharedWith.Value);
 
-                if (group == null)
+                if (!canUploadToGroup)
                 {
                     logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user, sharedWith);
                     return new UnauthorizedResult();
@@ -130,11 +128,9 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var @event = await userService.GetUserEvents(user)
-                    .Where(r => r.Id == sharedWith.Value)
-                    .FirstOrDefaultAsync();
+                var canUploadToEvent = await userService.CanUserUploadToEventAsync(user, sharedWith.Value);
 
-                if (@event == null)
+                if (!canUploadToEvent)
                 {
                     logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user, sharedWith);
                     return new UnauthorizedResult();
