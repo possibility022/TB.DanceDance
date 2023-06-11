@@ -34,6 +34,20 @@ namespace TB.DanceDance.Services
             return query;
         }
 
+        public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId)
+        {
+            return dbContext.AssingedToEvents
+                .Where(r => r.UserId == userId && r.EventId == eventId)
+                .AnyAsync();
+        }
+
+        public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId)
+        {
+            return dbContext.AssingedToGroups
+                .Where(r => r.UserId == userId && r.GroupId == groupId)
+                .AnyAsync();
+        }
+
         public (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userId)
         {
             if (userId is null)
