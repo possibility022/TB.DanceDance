@@ -1,6 +1,8 @@
 using IdentityServer4;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
@@ -70,7 +72,6 @@ builder.Services.AddAuthorization(o =>
 });
 
 builder.Services
-    .ConfigureDb(builder.Configuration.GetMongoDbConfig())
     .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(builder.Configuration));
 
 builder.Services
@@ -113,25 +114,38 @@ else
 var identityBuilder = builder.Services
     .AddIdentityServer();
 
-var setIdentityServerAsProduction = builder.Environment.IsProduction();
+var setIdentityServerAsProduction = true;//builder.Environment.IsProduction();
 
 builder.Services.AddScoped<IUserService, UserService>();
+var migrationsAssembly = TB.DanceDance.Identity.DesignTimeContextFactory.GetMigrationAssembly();
 
 if (setIdentityServerAsProduction)
 {
-
-    var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
-    if (cert == null)
-        throw new Exception("Cert is not available in environment variables");
+    //var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
+    //if (cert == null)
+    //    throw new Exception("Cert is not available in environment variables");
 
     var password = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCertPassword");
-    var certBytes = Convert.FromBase64String(cert);
+    //var certBytes = Convert.FromBase64String(cert);
 
     identityBuilder
         .AddAspNetIdentity<User>()
-        .AddClientStore<IdentityClientMongoStore>()
-        .AddResourceStore<IdentityResourceMongoStore>()
-        .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
+        .AddDeveloperSigningCredential()
+        .AddConfigurationStore(options =>
+        {
+            options.ConfigureDbContext = b =>
+            {
+                b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
+            };
+        })
+        .AddOperationalStore(options =>
+        {
+            options.ConfigureDbContext = b =>
+            {
+                b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
+            };
+        });
+        //.AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else
 {

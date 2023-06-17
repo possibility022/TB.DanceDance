@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Tests", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Data.PostgreSQL", "TB.DanceDance.Data.PostgreSQL\TB.DanceDance.Data.PostgreSQL.csproj", "{39B053D2-4ABC-47A6-9E44-6AA7734227FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.API.Contracts", "TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj", "{B80736FA-6C67-4C42-B054-F260BA426044}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Contracts", "TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj", "{B80736FA-6C67-4C42-B054-F260BA426044}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
