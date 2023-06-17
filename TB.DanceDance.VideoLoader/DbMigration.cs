@@ -2,10 +2,10 @@
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TB.DanceDance.Configurations;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
@@ -15,21 +15,22 @@ namespace TB.DanceDance.VideoLoader
     class DbMigration
     {
         private readonly DanceDbContext context;
+        private readonly IMongoDatabase mongodb;
         private readonly IMongoCollection<VideoInformation> videosMongo;
         private readonly IMongoCollection<Data.MongoDb.Models.Group> groups;
         private readonly IMongoCollection<Data.MongoDb.Models.Event> events;
 
         public DbMigration(DanceDbContext context,
-            IMongoCollection<VideoInformation> videosMongo,
-            IMongoCollection<TB.DanceDance.Data.MongoDb.Models.Group> groups,
-            IMongoCollection<TB.DanceDance.Data.MongoDb.Models.Event> events
-
+            IMongoDatabase mongodb
             )
         {
+            var mongoConfig = new MongoDbConfiguration();
+
             this.context = context;
-            this.videosMongo = videosMongo;
-            this.groups = groups;
-            this.events = events;
+            this.mongodb = mongodb;
+            this.videosMongo = mongodb.GetCollection<VideoInformation>(mongoConfig.VideoCollection);
+            this.groups = mongodb.GetCollection<Data.MongoDb.Models.Group>(mongoConfig.Groups);
+            this.events = mongodb.GetCollection<Data.MongoDb.Models.Event>(mongoConfig.Events);
         }
 
         private async Task MigrateVideosAsync()
