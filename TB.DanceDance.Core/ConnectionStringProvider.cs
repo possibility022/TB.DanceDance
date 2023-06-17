@@ -4,6 +4,17 @@ namespace TB.DanceDance.Core
 {
     public static class ConnectionStringProvider
     {
+
+        /// <summary>
+        /// Trying to provide connection string. Priority has configuration.
+        /// Last on the list is ConnectionString from environments.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="connectionStringName"></param>
+        /// <param name="appSettingsKey"></param>
+        /// <param name="environmentSettingName"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         private static string GetConnectionString(IConfiguration configuration, string connectionStringName, string appSettingsKey, string environmentSettingName)
         {
             var cs = configuration.GetConnectionString(connectionStringName);
@@ -14,6 +25,10 @@ namespace TB.DanceDance.Core
             var section = configuration.GetSection(appSettingsKey);
             if (section?.Value != null)
                 return section.Value;
+
+            cs = Environment.GetEnvironmentVariable(connectionStringName);
+            if (cs != null)
+                return cs;
 
             cs = Environment.GetEnvironmentVariable(environmentSettingName);
 
@@ -26,7 +41,7 @@ namespace TB.DanceDance.Core
         public static string GetMongoDbConnectionString(IConfiguration configuration)
         {
             return GetConnectionString(configuration,
-                "MongoDB",
+                "CUSTOMCONNSTR_MongoDB",
                 "ConnectionStrings:MongoDB",
                 "TB.DanceDance.ConnectionString.Mongo");
         }
@@ -34,7 +49,7 @@ namespace TB.DanceDance.Core
         public static string GetBlobConnectionString(IConfiguration configuration)
         {
             return GetConnectionString(configuration,
-                "Blob",
+                "CUSTOMCONNSTR_Blob",
                 "ConnectionStrings:Blob",
                 "TB.DanceDance.ConnectionString.Blob");
         }
@@ -42,7 +57,7 @@ namespace TB.DanceDance.Core
         public static string GetMongoDbConnectionStringForIdentityStore(IConfiguration configuration)
         {
             return GetConnectionString(configuration,
-                "MongoDBIdentityStore",
+                "CUSTOMCONNSTR_MongoDBIdentityStore",
                 "ConnectionStrings:MongoDBIdentityStore",
                 "TB.DanceDance.ConnectionString.MongoDBIdentityStore");
         }
@@ -50,7 +65,7 @@ namespace TB.DanceDance.Core
         public static string GetPostgreSqlDbConnectionString(IConfiguration configuration)
         {
             return GetConnectionString(configuration,
-                "PostgreDb",
+                "POSTGRESQLCONNSTR_PostgreDb",
                 "ConnectionStrings:PostgreDb",
                 "TB.DanceDance.ConnectionString.PostgreDb");
         }
@@ -58,7 +73,7 @@ namespace TB.DanceDance.Core
         public static string GetPostgreIdentityStoreDbConnectionString(IConfiguration configuration)
         {
             return GetConnectionString(configuration,
-                "PostgreDbIdentityStore",
+                "POSTGRESQLCONNSTR_PostgreDbIdentityStore",
                 "ConnectionStrings:PostgreDbIdentityStore",
                 "TB.DanceDance.ConnectionString.PostgreDbIdentityStore");
         }
