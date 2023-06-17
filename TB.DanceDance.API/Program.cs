@@ -1,12 +1,9 @@
 using IdentityServer4;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
-using TB.DanceDance.Core.IdentityServerStore;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Identity;
 using TB.DanceDance.Identity.IdentityResources;
@@ -114,19 +111,19 @@ else
 var identityBuilder = builder.Services
     .AddIdentityServer();
 
-var setIdentityServerAsProduction = true;//builder.Environment.IsProduction();
+var setIdentityServerAsProduction = builder.Environment.IsProduction();
 
 builder.Services.AddScoped<IUserService, UserService>();
 var migrationsAssembly = TB.DanceDance.Identity.DesignTimeContextFactory.GetMigrationAssembly();
 
 if (setIdentityServerAsProduction)
 {
-    //var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
-    //if (cert == null)
-    //    throw new Exception("Cert is not available in environment variables");
+    var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
+    if (cert == null)
+        throw new Exception("Cert is not available in environment variables");
 
     var password = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCertPassword");
-    //var certBytes = Convert.FromBase64String(cert);
+    var certBytes = Convert.FromBase64String(cert);
 
     identityBuilder
         .AddAspNetIdentity<User>()
@@ -144,8 +141,8 @@ if (setIdentityServerAsProduction)
             {
                 b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
             };
-        });
-        //.AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
+        }) 
+        .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else
 {
