@@ -14,6 +14,16 @@ namespace TB.DanceDance.API.Models
         public DateTime RecordedTimeUtc { get; set; } = DateTime.MinValue;
 
         [Required]
-        public SharingScopeModel SharedWith { get; set; } = null!;
+        public Guid? SharedWith { get; set; }
+
+        [Required]
+        public SharingWithType SharingWithType { get; set; }
+    }
+
+    public enum SharingWithType
+    {
+        NotSpecified,
+        Group,
+        Event
     }
 }

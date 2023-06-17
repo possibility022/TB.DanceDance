@@ -6,16 +6,14 @@ using TB.DanceDance.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TB.DanceDance.Core;
-using TB.DanceDance.Core.IdentityServerStore;
-using IdentityModel;
-using IdentityServer4;
-using System.Security.Claims;
-using System.Text.Json;
 using MongoDB.Driver;
 using TB.DanceDance.Data.MongoDb.Models;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using System.Threading;
+using TB.DanceDance.Data.PostgreSQL;
+using Microsoft.EntityFrameworkCore;
+using IdentityServer4.EntityFramework.DbContexts;
+using System.Linq;
+using TB.DanceDance.Identity.Extensions;
 
 namespace TB.DanceDance.VideoLoader
 {
@@ -29,14 +27,15 @@ namespace TB.DanceDance.VideoLoader
 
         static async Task Main(string[] args)
         {
-             var builder = Host.CreateDefaultBuilder();
+            var builder = Host.CreateDefaultBuilder();
 
             var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
             var configurationBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .AddUserSecrets("76b0dd76-61c4-4a28-a39f-109d587bd5c0") // This is the same as in API Project
-                //.AddJsonFile($"appsettings.{environment}.json", optional: true)
+                                                                        //.AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .AddEnvironmentVariables();
 
             var config = configurationBuilder.Build();
@@ -44,15 +43,37 @@ namespace TB.DanceDance.VideoLoader
             builder.ConfigureServices((context, services) =>
             {
                 services.ConfigureDb(config.GetMongoDbConfig())
-                    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config) ,(s) => new VideoFileLoader(FFMPGPath))
-                    .ConfigureIdentityStorage();
+                    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config), (s) => new VideoFileLoader(FFMPGPath));
+
+                services.AddDbContext<DanceDbContext>(options =>
+                {
+                    options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(config));
+                });
+
+                var identityBuilder = services
+                    .AddIdentityServer();
+
+                identityBuilder
+                    .RegisterIdenityServerStorage(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
             });
 
+            ConfigureLogging();
             builder.UseSerilog();
-
 
             app = builder.Build();
             using var scope = app.Services.CreateScope();
+
+            var identityConfigDbScope = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+            var mongodb = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
+
+
+
+            var dbMig = new DbMigration(
+                scope.ServiceProvider.GetRequiredService<DanceDbContext>(),
+                scope.ServiceProvider.GetRequiredService<IMongoDatabase>());
+
+            await dbMig.SetBasicIdentityConfiguration(identityConfigDbScope, mongodb);
+            await dbMig.MigrateAsync();
 
             //await CreateOwnersAsync();
             //await SetVideoOwnerAsync();
@@ -60,26 +81,26 @@ namespace TB.DanceDance.VideoLoader
             // await SetUsersAccounts(app.Services.GetRequiredService<IUserService>());
             // return;
 
-            var service = scope.ServiceProvider.GetRequiredService<IVideoService>();
+            //var service = scope.ServiceProvider.GetRequiredService<IVideoService>();
 
-            var files = Directory.GetFiles("E:\\NONONOWestCoastSwing", "*.webm");
-            var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
+            //var files = Directory.GetFiles("E:\\NONONOWestCoastSwing", "*.webm");
+            //var videos = app.Services.GetRequiredService<IMongoCollection<VideoInformation>>();
 
-            foreach (var file in files)
-            {
-                Log.Information("Uploading {0}", file);
-                var uploaded = await service.UploadVideoAsync(file, CancellationToken.None);
-                uploaded.SharedWith = new SharingScope()
-                {
-                    EntityId = Constants.GroupSroda1730,
-                    Assignment = AssignmentType.Group
-                };
+            //foreach (var file in files)
+            //{
+            //    Log.Information("Uploading {0}", file);
+            //    var uploaded = await service.UploadVideoAsync(file, CancellationToken.None);
+            //    uploaded.SharedWith = new SharingScope()
+            //    {
+            //        EntityId = Constants.GroupSroda1730,
+            //        Assignment = AssignmentType.Group
+            //    };
 
-                await videos.ReplaceOneAsync(s => s.Id == uploaded.Id, uploaded);
+            //    await videos.ReplaceOneAsync(s => s.Id == uploaded.Id, uploaded);
 
-            }
+            //}
 
-            Log.Information("Done");
+            //Log.Information("Done");
         }
 
         private static async Task SetVideoOwnerAsync()
@@ -184,29 +205,9 @@ namespace TB.DanceDance.VideoLoader
         //    });
         //}
 
-        public static async Task SetBasicIdentityConfiguration(IdentityResourceMongoStore resources, IdentityClientMongoStore clientStore)
-        {
+        
 
-            Console.WriteLine("Are you sure to update configuration? This may override current settings and break application. y/N");
-
-            var input = Console.ReadLine();
-            if (input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) == true)
-            {
-                foreach (var ir in Config.GetIdentityResources())
-                    await resources.AddIdentityResource(ir);
-
-                foreach (var apiRes in Config.ApiResources)
-                    await resources.AddApiResource(apiRes);
-
-                foreach (var apiScope in Config.ApiScopes)
-                    await resources.AddApiScopeAsync(apiScope);
-
-                foreach (var client in Config.Clients)
-                    await clientStore.AddClientAsync(client);
-            }
-        }
-
-        private static void ConfigureLogging(IServiceCollection services)
+        private static void ConfigureLogging()
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()

@@ -7,12 +7,19 @@ import { Dropdown } from '../components/Dropdown';
 
 
 import videoInfoService from '../services/VideoInfoService'
-import { ISharingScopeModel } from '../types/SharingScopeModel';
+import ISharedVideoInformation from '../types/ApiModels/SharedVideoInformation';
+import SharingWithType from "../types/ApiModels/SharingWithType";
+
+interface IToAssign {
+  id: string
+  isEvent: boolean
+  name: string
+}
 
 export function UploadVideo() {
 
   const [file, setFile] = useState<File>()
-  const [availableGroups, setAvailableGroups] = useState<Array<ISharingScopeModel>>([]);
+  const [availableGroups, setAvailableGroups] = useState<Array<IToAssign>>([]);
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(-1);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -39,9 +46,26 @@ export function UploadVideo() {
 
   React.useEffect(() => {
     setIsLoading(true)
-    videoInfoService.GetAssignments()
+    videoInfoService.GetUserAccess()
       .then(v => {
-        setAvailableGroups(v)
+
+        const availableGroups = new Array<IToAssign>()
+
+        for(const el of v.events)
+          availableGroups.push({
+            id: el.id,
+            isEvent: true,
+            name: el.name
+          })
+
+        for(const el of v.groups)
+          availableGroups.push({
+            id: el.id,
+            isEvent: false,
+            name: el.name
+          })
+
+        setAvailableGroups(availableGroups)
         setIsLoading(false)
       })
       .catch(e => console.log(e))
@@ -99,12 +123,17 @@ export function UploadVideo() {
     if (file && inputIsValid) {
       setBytestToTransfer(file.size)
       setBytesTransfered(0)
-      videoInfoService.UploadVideo({
+
+      const selected = availableGroups[selectedGroupIndex]
+
+      const data: ISharedVideoInformation = { 
         nameOfVideo: videoName,
-        // todo, recorder property is not being deserialized on backend side - fix it
-        recorded: new Date(file.lastModified),
-        sharedWith: availableGroups[selectedGroupIndex]
-      }, file,
+        recordedTimeUtc: new Date(file.lastModified),
+        sharedWith: selected.id,
+        sharingWithType: selected.isEvent ? SharingWithType.Event : SharingWithType.Group
+      }
+
+      videoInfoService.UploadVideo(data, file,
         (e) => setBytesTransfered(e))
         .then(() => {
           setWasSentSuccessfully(true)

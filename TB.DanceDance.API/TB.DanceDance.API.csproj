@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>76b0dd76-61c4-4a28-a39f-109d587bd5c0</UserSecretsId>
@@ -12,14 +12,14 @@
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.23.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Core\TB.DanceDance.Core.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Data.MongoDb\TB.DanceDance.Data.MongoDb.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Identity\TB.DanceDance.Identity.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Services\TB.DanceDance.Services.csproj" />
   </ItemGroup>
 

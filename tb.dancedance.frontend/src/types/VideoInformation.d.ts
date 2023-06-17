@@ -1,10 +1,9 @@
-import { ISharingScopeModel } from './SharingScopeModel'
 export default interface VideoInformation {
     name: string
-    recordedTimeUtc: Date
+    recordedDateTime: Date
     id: number
     blobId: string
     duration: TimeRanges
-    metadataAsJson?: string
-    sharedWith: ISharingScopeModel
+    sharedWithGroup: boolean
+    sharedWithEvent: boolean
 }

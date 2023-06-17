@@ -1,7 +1,7 @@
 ﻿using FFmpeg.NET;
 using System.Globalization;
 using MetadataExtractor;
-using TB.DanceDance.Data.MongoDb.Models;
+using TB.DanceDance.Data.PostgreSQL.Models;
 
 namespace TB.DanceDance.Services
 {
@@ -14,7 +14,7 @@ namespace TB.DanceDance.Services
             this.ffmpgExecutionFile = ffmpgExecutionFile ?? throw new ArgumentNullException(nameof(ffmpgExecutionFile));
         }
 
-        public async Task<VideoInformation> CreateRecord(string filePath)
+        public async Task<(Video, string)> CreateRecord(string filePath)
         {
             string guid = Guid.NewGuid().ToString();
             var f = new FileInfo(filePath);
@@ -27,16 +27,17 @@ namespace TB.DanceDance.Services
                 MaxDepth = 15
             });
 
-            var videoInfo = new VideoInformation()
+            var videoInfo = new Video()
             {
                 BlobId = guid,
+                UploadedBy = "",
+                SharedDateTime = DateTime.Now,
                 Name = Path.GetFileName(filePath),
-                RecordedTimeUtc = recorded,
-                MetadataAsJson = System.Text.Json.JsonSerializer.Serialize(metadataAsJson),
+                RecordedDateTime = recorded,
                 Duration = duration
             };
 
-            return videoInfo;
+            return (videoInfo, metadataAsJson);
         }
 
         private async Task<(DateTime, TimeSpan?, object?)> GetMetadataAsync(FileInfo file, CancellationToken cancellationToken)

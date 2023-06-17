@@ -1,13 +1,11 @@
-﻿using IdentityServer4;
-using IdentityServer4.Extensions;
-using IdentityServer4.Validation;
+﻿using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.API.Contracts;
 using TB.DanceDance.API.Extensions;
+using TB.DanceDance.API.Mappers;
 using TB.DanceDance.API.Models;
-using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 using TB.DanceDance.Services.Models;
@@ -20,20 +18,17 @@ public class VideoController : Controller
     public VideoController(IVideoService videoService,
                            ITokenValidator tokenValidator,
                            IUserService userService,
-                           IVideoUploaderService videoUploaderService,
                            ILogger<VideoController> logger)
     {
         this.videoService = videoService;
         this.tokenValidator = tokenValidator;
         this.userService = userService;
-        this.videoUploaderService = videoUploaderService;
         this.logger = logger;
     }
 
     private readonly IVideoService videoService;
     private readonly ITokenValidator tokenValidator;
     private readonly IUserService userService;
-    private readonly IVideoUploaderService videoUploaderService;
     private readonly ILogger<VideoController> logger;
 
     [Route("api/video/getinformation")]
@@ -42,28 +37,27 @@ public class VideoController : Controller
     {
         string user = User.GetSubject();
 
-        var userAssociations = await userService.GetUserVideosAssociationsIds(user);
+        var v = videoService.GetVideos(user).ToList();
 
-        var filterBuilder = new FilterDefinitionBuilder<VideoInformation>();
-        var f = filterBuilder
-            .In(information => information.SharedWith.EntityId, userAssociations);
-
-        return await videoService.GetVideos(f);
+        return videoService
+            .GetVideos(user)
+            .Select(r => ContractMappers.MapToVideoInformation(r));
     }
 
     [Route("api/video/{guid}/getinformation")]
     [HttpGet]
-    public async Task<VideoInformation> GetInformationAsync(string guid)
+    public async Task<IActionResult> GetInformationAsync(string guid)
     {
         string user = User.GetSubject();
 
-        var userAssociations = await userService.GetUserVideosAssociationsIds(user);
+        var info = await videoService.GetVideoByBlobAsync(user, guid);
 
-        var filterBuilder = new FilterDefinitionBuilder<VideoInformation>();
-        var f = filterBuilder.Eq(info => info.BlobId, guid);
+        if (info == null)
+            return NotFound();
 
-        var info = await videoService.GetVideos(f, 1);
-        return info.First();
+        var results = ContractMappers.MapToVideoInformation(info);
+
+        return new OkObjectResult(results);
     }
 
     [Route("api/video/stream/{guid}")]
@@ -93,37 +87,15 @@ public class VideoController : Controller
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 
-    [Route("/api/video/getassignments")]
-    public async Task<ICollection<SharingScopeModel>> GetAvailabeGroups()
-    {
-        var user = User.GetSubject();
-        (var groups, var evenets) = await userService.GetUserEventsAndGroups(user);
-
-        var list = new List<SharingScopeModel>(groups.Count + evenets.Count);
-
-        // todo automapper?
-        list.AddRange(groups.Select(r => new SharingScopeModel()
-        {
-            Assignment = AssignmentType.Group,
-            Id = r.Id,
-            Name = r.GroupName,
-        }));
-
-        list.AddRange(evenets.Select(e => new SharingScopeModel()
-        {
-            Assignment = AssignmentType.Event,
-            Id = e.Id,
-            Name = e.Name,
-        }));
-
-        return list;
-    }
-
     [Route("api/video/{guid}/rename")]
     [HttpPost]
-    public async Task<OkResult> RenameVideo(string guid, [FromBody]VideoRenameModel input)
+    public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameModel input)
     {
-        await videoService.RenameVideoAsync(guid, input.NewName);
+        var res = Guid.TryParse(guid, out var parsedGuid);
+        if (!res)
+            return BadRequest();
+
+        await videoService.RenameVideoAsync(parsedGuid, input.NewName);
 
         return Ok();
     }
@@ -134,19 +106,33 @@ public class VideoController : Controller
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;
 
-        if (string.IsNullOrEmpty(sharedWith?.Id))
+        if (sharedWith == null)
         {
             ModelState.AddModelError(nameof(sharedVideoInformations.SharedWith), "EntityId within SharedWith is empty.");
         }
         else
         {
-            if (sharedWith.Assignment == AssignmentType.Event || sharedWith.Assignment == AssignmentType.Group)
+            if (sharedVideoInformations.SharingWithType == SharingWithType.Group)
             {
                 user = User.GetSubject();
-                var isAssigned = await userService.UserIsAssociatedWith(user, sharedWith.Id);
-                if (!isAssigned)
+
+                var canUploadToGroup = await userService.CanUserUploadToGroupAsync(user, sharedWith.Value);
+
+                if (!canUploadToGroup)
                 {
-                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}. Assigment type: {2}", user, sharedWith.Id, sharedWith.Assignment);
+                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user, sharedWith);
+                    return new UnauthorizedResult();
+                }
+            }
+            else if (sharedVideoInformations.SharingWithType == SharingWithType.Event)
+            {
+                user = User.GetSubject();
+
+                var canUploadToEvent = await userService.CanUserUploadToEventAsync(user, sharedWith.Value);
+
+                if (!canUploadToEvent)
+                {
+                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user, sharedWith);
                     return new UnauthorizedResult();
                 }
             }
@@ -161,24 +147,11 @@ public class VideoController : Controller
             return BadRequest(ModelState);
         }
 
-        var sharedBlob = videoUploaderService.GetSasUri();
-
-        await videoService.SaveSharedVideoInformations(new SharedVideo()
-        {
-            Shared = DateTime.UtcNow,
-            VideoInformation = new VideoInformation()
-            {
-                SharedWith = new SharingScope() { Assignment = sharedVideoInformations.SharedWith.Assignment, EntityId = sharedVideoInformations.SharedWith.Id },
-                BlobId = sharedBlob.BlobClient.Name,
-                Name = sharedVideoInformations.NameOfVideo,
-                SharedDateTimeUtc = DateTime.UtcNow,
-                UploadedBy = new SharingScope() //todo, use factory to create those objects
-                {
-                    Assignment = AssignmentType.Person,
-                    EntityId = user ?? throw new ArgumentNullException("User id not specified.") //todo throw specific exception
-                },
-            }
-        });
+        var sharedBlob = await videoService.GetSharingLink(
+            user,
+            sharedVideoInformations.NameOfVideo,
+            sharedVideoInformations.SharingWithType == SharingWithType.Event,
+            sharedVideoInformations.SharedWith.Value);
 
         return new UploadVideoInformation()
         {
