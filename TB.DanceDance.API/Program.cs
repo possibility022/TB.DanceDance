@@ -6,6 +6,7 @@ using TB.DanceDance.Configurations;
 using TB.DanceDance.Core;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Identity;
+using TB.DanceDance.Identity.Extensions;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 
@@ -124,24 +125,9 @@ if (setIdentityServerAsProduction)
 
     var password = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCertPassword");
     var certBytes = Convert.FromBase64String(cert);
-
     identityBuilder
         .AddAspNetIdentity<User>()
-        .AddDeveloperSigningCredential()
-        .AddConfigurationStore(options =>
-        {
-            options.ConfigureDbContext = b =>
-            {
-                b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
-            };
-        })
-        .AddOperationalStore(options =>
-        {
-            options.ConfigureDbContext = b =>
-            {
-                b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
-            };
-        }) 
+        .RegisterIdenityServerStorage(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration))
         .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else

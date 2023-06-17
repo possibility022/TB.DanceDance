@@ -12,8 +12,8 @@ using TB.DanceDance.Data.PostgreSQL;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    [Migration("20230528221004_AddingAssigments")]
-    partial class AddingAssigments
+    [Migration("20230617222723_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,7 +42,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("AssingedToEvents");
+                    b.ToTable("AssingedToEvents", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToGroup", b =>
@@ -62,7 +62,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("AssingedToGroups");
+                    b.ToTable("AssingedToGroups", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Event", b =>
@@ -83,7 +83,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.EventAssigmentRequest", b =>
@@ -103,7 +103,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventAssigmentRequests");
+                    b.ToTable("EventAssigmentRequests", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Group", b =>
@@ -118,7 +118,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Groups");
+                    b.ToTable("Groups", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.GroupAssigmentRequest", b =>
@@ -138,7 +138,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("GroupAssigmentRequests");
+                    b.ToTable("GroupAssigmentRequests", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.SharedWith", b =>
@@ -168,7 +168,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("SharedWith");
+                    b.ToTable("SharedWith", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Video", b =>
@@ -183,9 +183,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("interval");
-
-                    b.Property<string>("MetadataAsJson")
-                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -203,7 +200,65 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Videos");
+                    b.ToTable("Videos", "video");
+                });
+
+            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoMetadata", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Metadata")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<Guid>("VideoId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VideoId");
+
+                    b.ToTable("VideoMetadata", "video");
+                });
+
+            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoToTranform", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AssignedToEvent")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("BlobId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("RecordedDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("SharedDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SharedWithId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UploadedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ToTransform", "video");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToEvent", b =>
@@ -267,6 +322,15 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("Video");
+                });
+
+            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoMetadata", b =>
+                {
+                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Video", null)
+                        .WithMany()
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Event", b =>

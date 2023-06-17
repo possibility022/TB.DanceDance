@@ -39,7 +39,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("AssingedToEvents");
+                    b.ToTable("AssingedToEvents", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToGroup", b =>
@@ -59,7 +59,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("AssingedToGroups");
+                    b.ToTable("AssingedToGroups", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Event", b =>
@@ -80,7 +80,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.EventAssigmentRequest", b =>
@@ -100,7 +100,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventAssigmentRequests");
+                    b.ToTable("EventAssigmentRequests", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Group", b =>
@@ -115,7 +115,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Groups");
+                    b.ToTable("Groups", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.GroupAssigmentRequest", b =>
@@ -135,7 +135,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("GroupAssigmentRequests");
+                    b.ToTable("GroupAssigmentRequests", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.SharedWith", b =>
@@ -165,7 +165,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("SharedWith");
+                    b.ToTable("SharedWith", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Video", b =>
@@ -197,7 +197,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Videos");
+                    b.ToTable("Videos", "video");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoMetadata", b =>
@@ -217,10 +217,10 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("VideoMetadata");
+                    b.ToTable("VideoMetadata", "video");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideosToTranform", b =>
+            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoToTranform", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -255,7 +255,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("VideosToTranform");
+                    b.ToTable("ToTransform", "video");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToEvent", b =>

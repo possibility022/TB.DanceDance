@@ -12,12 +12,8 @@ using Microsoft.Extensions.Configuration;
 using TB.DanceDance.Data.PostgreSQL;
 using Microsoft.EntityFrameworkCore;
 using IdentityServer4.EntityFramework.DbContexts;
-using IdentityServer4.EntityFramework.Mappers;
 using System.Linq;
-using TB.DanceDance.Identity;
-using TB.DanceDance.Core.IdentityServerStore;
-using TB.DanceDance.Configurations;
-using System.Threading;
+using TB.DanceDance.Identity.Extensions;
 
 namespace TB.DanceDance.VideoLoader
 {
@@ -58,20 +54,7 @@ namespace TB.DanceDance.VideoLoader
                     .AddIdentityServer();
 
                 identityBuilder
-                    .AddConfigurationStore(options =>
-                    {
-                        options.ConfigureDbContext = b =>
-                        {
-                            b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
-                        };
-                    })
-                    .AddOperationalStore(options =>
-                    {
-                        options.ConfigureDbContext = b =>
-                        {
-                            b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
-                        };
-                    });
+                    .RegisterIdenityServerStorage(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
             });
 
             ConfigureLogging();
@@ -83,15 +66,14 @@ namespace TB.DanceDance.VideoLoader
             var identityConfigDbScope = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
             var mongodb = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
 
-            await SetBasicIdentityConfiguration(identityConfigDbScope, mongodb);
 
 
             var dbMig = new DbMigration(
                 scope.ServiceProvider.GetRequiredService<DanceDbContext>(),
                 scope.ServiceProvider.GetRequiredService<IMongoDatabase>());
 
+            await dbMig.SetBasicIdentityConfiguration(identityConfigDbScope, mongodb);
             await dbMig.MigrateAsync();
-
 
             //await CreateOwnersAsync();
             //await SetVideoOwnerAsync();
@@ -223,102 +205,7 @@ namespace TB.DanceDance.VideoLoader
         //    });
         //}
 
-        public static async Task SetBasicIdentityConfiguration(ConfigurationDbContext context,
-            IMongoDatabase database)
-        {
-            var config = new MongoDbConfiguration();
-
-            IMongoCollection<ClientRecord> clientRecords = database.GetCollection<ClientRecord>(config.ApiClientCollection);
-            IMongoCollection<ApiResourceRecord> apiResourceCollection = database.GetCollection<ApiResourceRecord>(config.ApiResourceCollection);
-            IMongoCollection<ApiScopeRecord> apiScopeCollection = database.GetCollection<ApiScopeRecord>(config.ApiScopeCollection);
-            IMongoCollection<IdentityResourceRecord> identityResourceCollection = database.GetCollection<IdentityResourceRecord>(config.IdentityResourceCollection);
-
-            Console.WriteLine("Are you sure to update configuration? This may override current settings and break application. y/N");
-
-            var input = Console.ReadLine();
-            if (input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) != true)
-                return;
-
-            Console.WriteLine("Migrate Production? y/N");
-            input = Console.ReadLine();
-            bool migrateProduction = input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) == true;
-
-            if (migrateProduction)
-            {
-                if (!context.Clients.Any())
-                {
-                    var clients = await clientRecords
-                        .Find((r) => true)
-                        .ToListAsync();
-                    foreach (var client in clients)
-                    {
-                        var cast = (IdentityServer4.Models.Client)client;
-                        context.Clients.Add(cast.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-
-                if (!context.IdentityResources.Any())
-                {
-                    var identityResources = await identityResourceCollection
-                        .Find((c) => true)
-                        .ToListAsync();
-                    foreach (var resource in identityResources)
-                    {
-                        var cast = (IdentityServer4.Models.IdentityResource)resource;
-                        context.IdentityResources.Add(cast.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-
-                if (!context.ApiScopes.Any())
-                {
-                    var apiScopes = await apiScopeCollection
-                        .Find((r) => true)
-                        .ToListAsync();
-
-                    foreach (var resource in apiScopes)
-                    {
-                        var cast = (IdentityServer4.Models.ApiScope)resource;
-                        context.ApiScopes.Add(cast.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-            }
-            else
-            {
-
-                if (!context.Clients.Any())
-                {
-                    foreach (var client in Config.Clients)
-                    {
-                        var cast = (IdentityServer4.Models.Client)client;
-                        context.Clients.Add(cast.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-
-                if (!context.IdentityResources.Any())
-                {
-                    foreach (var resource in Config.GetIdentityResources())
-                    {
-                        var cast = (IdentityServer4.Models.IdentityResource)resource;
-                        context.IdentityResources.Add(cast.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-
-                if (!context.ApiScopes.Any())
-                {
-                    foreach (var resource in Config.ApiScopes)
-                    {
-                        var cast = (IdentityServer4.Models.ApiScope)resource;
-                        context.ApiScopes.Add(cast.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-            }
-        }
+        
 
         private static void ConfigureLogging()
         {

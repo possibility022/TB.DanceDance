@@ -11,5 +11,11 @@ namespace TB.DanceDance.Identity
             
         }
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.HasDefaultSchema("Idp.Ident");
+            base.OnModelCreating(builder);
+        }
+
     }
 }
