@@ -8,7 +8,7 @@ using TB.DanceDance.Identity;
 
 #nullable disable
 
-namespace TB.DanceDance.Identity.Migrations
+namespace TB.DanceDance.Identity.Data.Migrations.Identity.IdentityStore
 {
     [DbContext(typeof(IdentityStoreContext))]
     partial class IdentityStoreContextModelSnapshot : ModelSnapshot
@@ -17,6 +17,7 @@ namespace TB.DanceDance.Identity.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("Idp.Ident")
                 .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -44,7 +45,7 @@ namespace TB.DanceDance.Identity.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", "Idp.Ident");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -69,7 +70,7 @@ namespace TB.DanceDance.Identity.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", "Idp.Ident");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -91,7 +92,7 @@ namespace TB.DanceDance.Identity.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", "Idp.Ident");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -106,7 +107,7 @@ namespace TB.DanceDance.Identity.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("AspNetUserRoles", "Idp.Ident");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -125,7 +126,7 @@ namespace TB.DanceDance.Identity.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", "Idp.Ident");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Identity.Role", b =>
@@ -151,7 +152,7 @@ namespace TB.DanceDance.Identity.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("AspNetRoles", "Idp.Ident");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Identity.User", b =>
@@ -215,7 +216,7 @@ namespace TB.DanceDance.Identity.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", "Idp.Ident");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

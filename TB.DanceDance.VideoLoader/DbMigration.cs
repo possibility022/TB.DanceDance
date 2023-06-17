@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TB.DanceDance.Configurations;
+using TB.DanceDance.Core.IdentityServerStore;
+using TB.DanceDance.Core;
 using TB.DanceDance.Data.MongoDb.Models;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
@@ -117,6 +121,106 @@ namespace TB.DanceDance.VideoLoader
             }
 
             context.SaveChanges();
+        }
+
+        public async Task SetBasicIdentityConfiguration(ConfigurationDbContext context,
+            IMongoDatabase database)
+        {
+            // this does not work :(
+            // await context.Database.MigrateAsync();
+
+            var config = new MongoDbConfiguration();
+
+            IMongoCollection<ClientRecord> clientRecords = database.GetCollection<ClientRecord>(config.ApiClientCollection);
+            IMongoCollection<ApiResourceRecord> apiResourceCollection = database.GetCollection<ApiResourceRecord>(config.ApiResourceCollection);
+            IMongoCollection<ApiScopeRecord> apiScopeCollection = database.GetCollection<ApiScopeRecord>(config.ApiScopeCollection);
+            IMongoCollection<IdentityResourceRecord> identityResourceCollection = database.GetCollection<IdentityResourceRecord>(config.IdentityResourceCollection);
+
+            Console.WriteLine("Are you sure to update configuration? This may override current settings and break application. y/N");
+
+            var input = Console.ReadLine();
+            if (input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) != true)
+                return;
+
+            Console.WriteLine("Migrate Production? y/N");
+            input = Console.ReadLine();
+            bool migrateProduction = input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) == true;
+
+            if (migrateProduction)
+            {
+                if (!context.Clients.Any())
+                {
+                    var clients = await clientRecords
+                        .Find((r) => true)
+                        .ToListAsync();
+                    foreach (var client in clients)
+                    {
+                        var cast = (IdentityServer4.Models.Client)client;
+                        context.Clients.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.IdentityResources.Any())
+                {
+                    var identityResources = await identityResourceCollection
+                        .Find((c) => true)
+                        .ToListAsync();
+                    foreach (var resource in identityResources)
+                    {
+                        var cast = (IdentityServer4.Models.IdentityResource)resource;
+                        context.IdentityResources.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.ApiScopes.Any())
+                {
+                    var apiScopes = await apiScopeCollection
+                        .Find((r) => true)
+                        .ToListAsync();
+
+                    foreach (var resource in apiScopes)
+                    {
+                        var cast = (IdentityServer4.Models.ApiScope)resource;
+                        context.ApiScopes.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+            }
+            else
+            {
+
+                if (!context.Clients.Any())
+                {
+                    foreach (var client in Config.Clients)
+                    {
+                        var cast = (IdentityServer4.Models.Client)client;
+                        context.Clients.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.IdentityResources.Any())
+                {
+                    foreach (var resource in Config.GetIdentityResources())
+                    {
+                        var cast = (IdentityServer4.Models.IdentityResource)resource;
+                        context.IdentityResources.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.ApiScopes.Any())
+                {
+                    foreach (var resource in Config.ApiScopes)
+                    {
+                        var cast = (IdentityServer4.Models.ApiScope)resource;
+                        context.ApiScopes.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+            }
         }
 
         private async Task MigrateAssigments()
@@ -232,6 +336,8 @@ namespace TB.DanceDance.VideoLoader
 
         public async Task MigrateAsync()
         {
+            await context.Database.MigrateAsync();
+
             await MigrateVideosAsync();
             await MigrateEventsAndGroups();
             await MigrateAssigments();

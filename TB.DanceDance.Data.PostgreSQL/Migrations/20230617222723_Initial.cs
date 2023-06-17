@@ -6,13 +6,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialV2 : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "access");
+
+            migrationBuilder.EnsureSchema(
+                name: "video");
+
             migrationBuilder.CreateTable(
                 name: "Events",
+                schema: "access",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -27,6 +34,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Groups",
+                schema: "access",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -38,7 +46,8 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Videos",
+                name: "ToTransform",
+                schema: "video",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -48,7 +57,26 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     RecordedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     SharedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Duration = table.Column<TimeSpan>(type: "interval", nullable: true),
-                    MetadataAsJson = table.Column<string>(type: "text", nullable: true)
+                    SharedWithId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AssignedToEvent = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ToTransform", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Videos",
+                schema: "video",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    BlobId = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    UploadedBy = table.Column<string>(type: "text", nullable: false),
+                    RecordedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    SharedDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Duration = table.Column<TimeSpan>(type: "interval", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -56,7 +84,29 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AssingedToEvents",
+                schema: "access",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EventId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssingedToEvents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AssingedToEvents_Events_EventId",
+                        column: x => x.EventId,
+                        principalSchema: "access",
+                        principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EventAssigmentRequests",
+                schema: "access",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -69,13 +119,36 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     table.ForeignKey(
                         name: "FK_EventAssigmentRequests_Events_EventId",
                         column: x => x.EventId,
+                        principalSchema: "access",
                         principalTable: "Events",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
+                name: "AssingedToGroups",
+                schema: "access",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssingedToGroups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AssingedToGroups_Groups_GroupId",
+                        column: x => x.GroupId,
+                        principalSchema: "access",
+                        principalTable: "Groups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "GroupAssigmentRequests",
+                schema: "access",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -88,6 +161,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     table.ForeignKey(
                         name: "FK_GroupAssigmentRequests_Groups_GroupId",
                         column: x => x.GroupId,
+                        principalSchema: "access",
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -95,6 +169,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
             migrationBuilder.CreateTable(
                 name: "SharedWith",
+                schema: "access",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -109,44 +184,91 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     table.ForeignKey(
                         name: "FK_SharedWith_Events_EventId",
                         column: x => x.EventId,
+                        principalSchema: "access",
                         principalTable: "Events",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_SharedWith_Groups_GroupId",
                         column: x => x.GroupId,
+                        principalSchema: "access",
                         principalTable: "Groups",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_SharedWith_Videos_VideoId",
                         column: x => x.VideoId,
+                        principalSchema: "video",
+                        principalTable: "Videos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VideoMetadata",
+                schema: "video",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Metadata = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VideoMetadata", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VideoMetadata_Videos_VideoId",
+                        column: x => x.VideoId,
+                        principalSchema: "video",
                         principalTable: "Videos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AssingedToEvents_EventId",
+                schema: "access",
+                table: "AssingedToEvents",
+                column: "EventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AssingedToGroups_GroupId",
+                schema: "access",
+                table: "AssingedToGroups",
+                column: "GroupId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EventAssigmentRequests_EventId",
+                schema: "access",
                 table: "EventAssigmentRequests",
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GroupAssigmentRequests_GroupId",
+                schema: "access",
                 table: "GroupAssigmentRequests",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_EventId",
+                schema: "access",
                 table: "SharedWith",
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_GroupId",
+                schema: "access",
                 table: "SharedWith",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_VideoId",
+                schema: "access",
                 table: "SharedWith",
+                column: "VideoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VideoMetadata_VideoId",
+                schema: "video",
+                table: "VideoMetadata",
                 column: "VideoId");
         }
 
@@ -154,22 +276,44 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "EventAssigmentRequests");
+                name: "AssingedToEvents",
+                schema: "access");
 
             migrationBuilder.DropTable(
-                name: "GroupAssigmentRequests");
+                name: "AssingedToGroups",
+                schema: "access");
 
             migrationBuilder.DropTable(
-                name: "SharedWith");
+                name: "EventAssigmentRequests",
+                schema: "access");
 
             migrationBuilder.DropTable(
-                name: "Events");
+                name: "GroupAssigmentRequests",
+                schema: "access");
 
             migrationBuilder.DropTable(
-                name: "Groups");
+                name: "SharedWith",
+                schema: "access");
 
             migrationBuilder.DropTable(
-                name: "Videos");
+                name: "ToTransform",
+                schema: "video");
+
+            migrationBuilder.DropTable(
+                name: "VideoMetadata",
+                schema: "video");
+
+            migrationBuilder.DropTable(
+                name: "Events",
+                schema: "access");
+
+            migrationBuilder.DropTable(
+                name: "Groups",
+                schema: "access");
+
+            migrationBuilder.DropTable(
+                name: "Videos",
+                schema: "video");
         }
     }
 }

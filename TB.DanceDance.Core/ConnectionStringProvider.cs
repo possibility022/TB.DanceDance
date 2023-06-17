@@ -11,7 +11,7 @@ namespace TB.DanceDance.Core
             if (cs != null)
                 return cs;
 
-            var section = configuration.GetRequiredSection(appSettingsKey);
+            var section = configuration.GetSection(appSettingsKey);
             if (section?.Value != null)
                 return section.Value;
 

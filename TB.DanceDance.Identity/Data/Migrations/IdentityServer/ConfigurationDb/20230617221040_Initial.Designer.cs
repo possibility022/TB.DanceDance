@@ -12,14 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 {
     [DbContext(typeof(ConfigurationDbContext))]
-    [Migration("20230617153157_InitialIdentityServerConfigurationDbMigration")]
-    partial class InitialIdentityServerConfigurationDbMigration
+    [Migration("20230617221040_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("IdpServer.Config")
                 .HasAnnotation("ProductVersion", "7.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -73,7 +74,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ApiResources", (string)null);
+                    b.ToTable("ApiResources", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>
@@ -96,7 +97,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceClaims", (string)null);
+                    b.ToTable("ApiResourceClaims", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceProperty", b =>
@@ -124,7 +125,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceProperties", (string)null);
+                    b.ToTable("ApiResourceProperties", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceScope", b =>
@@ -147,7 +148,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceScopes", (string)null);
+                    b.ToTable("ApiResourceScopes", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceSecret", b =>
@@ -185,7 +186,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ApiResourceId");
 
-                    b.ToTable("ApiResourceSecrets", (string)null);
+                    b.ToTable("ApiResourceSecrets", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScope", b =>
@@ -226,7 +227,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ApiScopes", (string)null);
+                    b.ToTable("ApiScopes", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeClaim", b =>
@@ -249,7 +250,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ScopeId");
 
-                    b.ToTable("ApiScopeClaims", (string)null);
+                    b.ToTable("ApiScopeClaims", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiScopeProperty", b =>
@@ -277,7 +278,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ScopeId");
 
-                    b.ToTable("ApiScopeProperties", (string)null);
+                    b.ToTable("ApiScopeProperties", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.Client", b =>
@@ -436,7 +437,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
                     b.HasIndex("ClientId")
                         .IsUnique();
 
-                    b.ToTable("Clients", (string)null);
+                    b.ToTable("Clients", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientClaim", b =>
@@ -464,7 +465,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientClaims", (string)null);
+                    b.ToTable("ClientClaims", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientCorsOrigin", b =>
@@ -487,7 +488,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientCorsOrigins", (string)null);
+                    b.ToTable("ClientCorsOrigins", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientGrantType", b =>
@@ -510,7 +511,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientGrantTypes", (string)null);
+                    b.ToTable("ClientGrantTypes", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientIdPRestriction", b =>
@@ -533,7 +534,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientIdPRestrictions", (string)null);
+                    b.ToTable("ClientIdPRestrictions", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientPostLogoutRedirectUri", b =>
@@ -556,7 +557,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientPostLogoutRedirectUris", (string)null);
+                    b.ToTable("ClientPostLogoutRedirectUris", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientProperty", b =>
@@ -584,7 +585,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientProperties", (string)null);
+                    b.ToTable("ClientProperties", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientRedirectUri", b =>
@@ -607,7 +608,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientRedirectUris", (string)null);
+                    b.ToTable("ClientRedirectUris", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientScope", b =>
@@ -630,7 +631,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientScopes", (string)null);
+                    b.ToTable("ClientScopes", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ClientSecret", b =>
@@ -668,7 +669,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("ClientSecrets", (string)null);
+                    b.ToTable("ClientSecrets", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResource", b =>
@@ -718,7 +719,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("IdentityResources", (string)null);
+                    b.ToTable("IdentityResources", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceClaim", b =>
@@ -741,7 +742,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("IdentityResourceId");
 
-                    b.ToTable("IdentityResourceClaims", (string)null);
+                    b.ToTable("IdentityResourceClaims", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.IdentityResourceProperty", b =>
@@ -769,7 +770,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.ConfigurationDb
 
                     b.HasIndex("IdentityResourceId");
 
-                    b.ToTable("IdentityResourceProperties", (string)null);
+                    b.ToTable("IdentityResourceProperties", "IdpServer.Config");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.ApiResourceClaim", b =>

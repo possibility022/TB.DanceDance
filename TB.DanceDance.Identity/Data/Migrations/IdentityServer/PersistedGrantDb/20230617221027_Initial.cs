@@ -6,13 +6,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.PersistedGrantDb
 {
     /// <inheritdoc />
-    public partial class InitialIdentityServerPersistedGrantDbMigration : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "IdpServer.Oper");
+
             migrationBuilder.CreateTable(
                 name: "DeviceCodes",
+                schema: "IdpServer.Oper",
                 columns: table => new
                 {
                     UserCode = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
@@ -32,6 +36,7 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.PersistedGrantDb
 
             migrationBuilder.CreateTable(
                 name: "PersistedGrants",
+                schema: "IdpServer.Oper",
                 columns: table => new
                 {
                     Key = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
@@ -52,27 +57,32 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.PersistedGrantDb
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceCodes_DeviceCode",
+                schema: "IdpServer.Oper",
                 table: "DeviceCodes",
                 column: "DeviceCode",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceCodes_Expiration",
+                schema: "IdpServer.Oper",
                 table: "DeviceCodes",
                 column: "Expiration");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_Expiration",
+                schema: "IdpServer.Oper",
                 table: "PersistedGrants",
                 column: "Expiration");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_SubjectId_ClientId_Type",
+                schema: "IdpServer.Oper",
                 table: "PersistedGrants",
                 columns: new[] { "SubjectId", "ClientId", "Type" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_SubjectId_SessionId_Type",
+                schema: "IdpServer.Oper",
                 table: "PersistedGrants",
                 columns: new[] { "SubjectId", "SessionId", "Type" });
         }
@@ -81,10 +91,12 @@ namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.PersistedGrantDb
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DeviceCodes");
+                name: "DeviceCodes",
+                schema: "IdpServer.Oper");
 
             migrationBuilder.DropTable(
-                name: "PersistedGrants");
+                name: "PersistedGrants",
+                schema: "IdpServer.Oper");
         }
     }
 }
