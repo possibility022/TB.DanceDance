@@ -85,13 +85,10 @@ namespace TB.DanceDance.VideoLoader
 
             await SetBasicIdentityConfiguration(identityConfigDbScope, mongodb);
 
-            return;
 
             var dbMig = new DbMigration(
                 scope.ServiceProvider.GetRequiredService<DanceDbContext>(),
-                scope.ServiceProvider.GetRequiredService<IMongoCollection<VideoInformation>>(),
-                scope.ServiceProvider.GetRequiredService<IMongoCollection<Group>>(),
-                scope.ServiceProvider.GetRequiredService<IMongoCollection<Event>>());
+                scope.ServiceProvider.GetRequiredService<IMongoDatabase>());
 
             await dbMig.MigrateAsync();
 
