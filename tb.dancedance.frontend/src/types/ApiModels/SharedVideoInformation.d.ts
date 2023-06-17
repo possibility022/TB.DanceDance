@@ -1,7 +1,8 @@
-import ISharingScopeModel from "../SharingScopeModel"
+import SharingWithType from "./SharingWithType"
 
 export default interface ISharedVideoInformation{
     nameOfVideo: string
-    recorded: Date
-    sharedWith: ISharingScopeModel
+    recordedTimeUtc: Date
+    sharedWith: string
+    sharingWithType: SharingWithType
 }

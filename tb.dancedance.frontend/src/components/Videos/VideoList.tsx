@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 import { faCalendar, faCalendarAlt, faCalendarCheck, faCalendarTimes, faCalendarXmark } from '@fortawesome/free-solid-svg-icons';
-import { AssigmentType } from '../../types/AssigmentType';
 
 export interface ListOfVideos {
     videos: VideoInformation[]
@@ -29,12 +28,12 @@ export function VideoList(props: ListOfVideos) {
 
     const list = props.videos.map(r => {
 
-        const icon = r.sharedWith.assignment == AssigmentType.Event ? "💃🕺" : "📅"
+        const icon = r.sharedWithEvent ? "💃🕺" : "📅"
 
         return (
             <tr key={r.id}>
                 <td>{icon} {r.name}</td>
-                <td>{formatDate(r.recordedTimeUtc)}</td>
+                <td>{formatDate(r.recordedDateTime)}</td>
                 <td>
                     <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(r)} />
                 </td>

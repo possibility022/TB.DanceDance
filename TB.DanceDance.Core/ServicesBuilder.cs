@@ -27,19 +27,19 @@ namespace TB.DanceDance.Core
                         var mongoClient = services.GetRequiredService<IMongoClient>();
                         var db = mongoClient.GetDatabase(mongoDbConfig.Database);
                         return db;
-                    })
-                    .AddMongoCollection<ApiResourceRecord>(mongoDbConfig.ApiResourceCollection,
-                        makeSureCollectionCreated)
-                    .AddMongoCollection<IdentityResourceRecord>(mongoDbConfig.IdentityResourceCollection,
-                        makeSureCollectionCreated)
-                    .AddMongoCollection<ApiScopeRecord>(mongoDbConfig.ApiScopeCollection, makeSureCollectionCreated)
-                    .AddMongoCollection<UserModel>(mongoDbConfig.UserCollection, makeSureCollectionCreated)
-                    .AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, makeSureCollectionCreated)
-                    .AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated)
-                    .AddMongoCollection<Event>(mongoDbConfig.Events)
-                    .AddMongoCollection<Group>(mongoDbConfig.Groups)
-                    .AddMongoCollection<RequestedAssigment>(mongoDbConfig.RequestedAssignmentCollection)
-                    .AddMongoCollection<SharedVideo>(mongoDbConfig.SharedVideos)
+                    });
+                    //.AddMongoCollection<ApiResourceRecord>(mongoDbConfig.ApiResourceCollection,
+                    //    makeSureCollectionCreated)
+                    //.AddMongoCollection<IdentityResourceRecord>(mongoDbConfig.IdentityResourceCollection,
+                    //    makeSureCollectionCreated)
+                    //.AddMongoCollection<ApiScopeRecord>(mongoDbConfig.ApiScopeCollection, makeSureCollectionCreated)
+                    //.AddMongoCollection<User>(mongoDbConfig.UserCollection, makeSureCollectionCreated)
+                    //.AddMongoCollection<ClientRecord>(mongoDbConfig.ApiClientCollection, makeSureCollectionCreated)
+                    //.AddMongoCollection<VideoInformation>(mongoDbConfig.VideoCollection, makeSureCollectionCreated)
+                    //.AddMongoCollection<Event>(mongoDbConfig.Events)
+                    //.AddMongoCollection<Group>(mongoDbConfig.Groups)
+                    //.AddMongoCollection<RequestedAssigment>(mongoDbConfig.RequestedAssignmentCollection)
+                    //.AddMongoCollection<SharedVideo>(mongoDbConfig.SharedVideos)
                 ;
         }
 

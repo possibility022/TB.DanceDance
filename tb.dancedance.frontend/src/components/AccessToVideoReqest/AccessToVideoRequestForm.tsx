@@ -4,10 +4,10 @@ import * as React from 'react';
 import { useState } from 'react';
 import videoInfoService from '../../services/VideoInfoService';
 import { EventType } from '../../types/EventType';
-import { IAssignedEventSharingScopeModel, ISharingScopeModel } from '../../types/SharingScopeModel';
 import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
+import { IAssignedEvent, IAssignedGroup } from '../../types/AssignedEventAndGroup';
 interface IRequestState {
     wasSend: boolean
     areWeWaiting: boolean
@@ -39,16 +39,16 @@ export function AccessToVideoRequestForm() {
     const [availableGroupNames, setAvailableGroupNames] = useState<Array<string>>([])
 
     const [isSendButtonEnabled, setIsSendButtonEnabled] = useState(false)
-    const [selectedGroup, setSelectedGroup] = useState<ISharingScopeModel>()
+    const [selectedGroup, setSelectedGroup] = useState<IAssignedGroup>()
 
-    const [allSharingScopes, setAllSharingScopes] = useState<{ events: Array<IAssignedEventSharingScopeModel>, groups: Array<ISharingScopeModel> }>({
+    const [allSharingScopes, setAllSharingScopes] = useState<{ events: Array<IAssignedEvent>, groups: Array<IAssignedGroup> }>({
         events: [],
         groups: []
     })
 
     const [selectedScopes] = useState<Map<string, boolean>>(new Map<string, boolean>())
 
-    const mapToItemToSelect = (item: IAssignedEventSharingScopeModel) => {
+    const mapToItemToSelect = (item: IAssignedEvent) => {
         const itemToSelect: IItemToSelect<string> = {
             key: item.id,
             text: item.name,
@@ -69,7 +69,7 @@ export function AccessToVideoRequestForm() {
 
                 for (const el of sharringScopes.events) {
                     const mapped = mapToItemToSelect(el)
-                    if (el.type == EventType.SmallWorkshop)
+                    if (el.eventType == EventType.SmallWorkshop)
                         workshopsToSet.push(mapped)
                     else {
                         eventsToSet.push(mapped)

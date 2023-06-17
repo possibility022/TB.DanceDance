@@ -2,7 +2,7 @@
 {
     public record RequestEventAssigmentModel
     {
-        public ICollection<string>? Events{ get; set; }
-        public ICollection<string>? Groups { get; set; }
+        public ICollection<Guid>? Events{ get; set; }
+        public ICollection<Guid>? Groups { get; set; }
     }
 }
