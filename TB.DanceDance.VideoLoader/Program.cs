@@ -6,18 +6,18 @@ using TB.DanceDance.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TB.DanceDance.Core;
-using TB.DanceDance.Core.IdentityServerStore;
-using IdentityModel;
-using IdentityServer4;
-using System.Security.Claims;
-using System.Text.Json;
 using MongoDB.Driver;
 using TB.DanceDance.Data.MongoDb.Models;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using System.Threading;
 using TB.DanceDance.Data.PostgreSQL;
 using Microsoft.EntityFrameworkCore;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
+using System.Linq;
+using TB.DanceDance.Identity;
+using TB.DanceDance.Core.IdentityServerStore;
+using TB.DanceDance.Configurations;
+using System.Threading;
 
 namespace TB.DanceDance.VideoLoader
 {
@@ -31,14 +31,15 @@ namespace TB.DanceDance.VideoLoader
 
         static async Task Main(string[] args)
         {
-             var builder = Host.CreateDefaultBuilder();
+            var builder = Host.CreateDefaultBuilder();
 
             var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
             var configurationBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
                 .AddUserSecrets("76b0dd76-61c4-4a28-a39f-109d587bd5c0") // This is the same as in API Project
-                //.AddJsonFile($"appsettings.{environment}.json", optional: true)
+                                                                        //.AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .AddEnvironmentVariables();
 
             var config = configurationBuilder.Build();
@@ -46,20 +47,45 @@ namespace TB.DanceDance.VideoLoader
             builder.ConfigureServices((context, services) =>
             {
                 services.ConfigureDb(config.GetMongoDbConfig())
-                    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config) ,(s) => new VideoFileLoader(FFMPGPath))
-                    .ConfigureIdentityStorage();
+                    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config), (s) => new VideoFileLoader(FFMPGPath));
 
                 services.AddDbContext<DanceDbContext>(options =>
                 {
                     options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(config));
                 });
+
+                var identityBuilder = services
+                    .AddIdentityServer();
+
+                identityBuilder
+                    .AddConfigurationStore(options =>
+                    {
+                        options.ConfigureDbContext = b =>
+                        {
+                            b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
+                        };
+                    })
+                    .AddOperationalStore(options =>
+                    {
+                        options.ConfigureDbContext = b =>
+                        {
+                            b.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
+                        };
+                    });
             });
 
+            ConfigureLogging();
             builder.UseSerilog();
-
 
             app = builder.Build();
             using var scope = app.Services.CreateScope();
+
+            var identityConfigDbScope = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+            var mongodb = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
+
+            await SetBasicIdentityConfiguration(identityConfigDbScope, mongodb);
+
+            return;
 
             var dbMig = new DbMigration(
                 scope.ServiceProvider.GetRequiredService<DanceDbContext>(),
@@ -200,29 +226,104 @@ namespace TB.DanceDance.VideoLoader
         //    });
         //}
 
-        public static async Task SetBasicIdentityConfiguration(IdentityResourceMongoStore resources, IdentityClientMongoStore clientStore)
+        public static async Task SetBasicIdentityConfiguration(ConfigurationDbContext context,
+            IMongoDatabase database)
         {
+            var config = new MongoDbConfiguration();
+
+            IMongoCollection<ClientRecord> clientRecords = database.GetCollection<ClientRecord>(config.ApiClientCollection);
+            IMongoCollection<ApiResourceRecord> apiResourceCollection = database.GetCollection<ApiResourceRecord>(config.ApiResourceCollection);
+            IMongoCollection<ApiScopeRecord> apiScopeCollection = database.GetCollection<ApiScopeRecord>(config.ApiScopeCollection);
+            IMongoCollection<IdentityResourceRecord> identityResourceCollection = database.GetCollection<IdentityResourceRecord>(config.IdentityResourceCollection);
 
             Console.WriteLine("Are you sure to update configuration? This may override current settings and break application. y/N");
 
             var input = Console.ReadLine();
-            if (input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) == true)
+            if (input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) != true)
+                return;
+
+            Console.WriteLine("Migrate Production? y/N");
+            input = Console.ReadLine();
+            bool migrateProduction = input?.Equals("y", StringComparison.InvariantCultureIgnoreCase) == true;
+
+            if (migrateProduction)
             {
-                foreach (var ir in Config.GetIdentityResources())
-                    await resources.AddIdentityResource(ir);
+                if (!context.Clients.Any())
+                {
+                    var clients = await clientRecords
+                        .Find((r) => true)
+                        .ToListAsync();
+                    foreach (var client in clients)
+                    {
+                        var cast = (IdentityServer4.Models.Client)client;
+                        context.Clients.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
 
-                foreach (var apiRes in Config.ApiResources)
-                    await resources.AddApiResource(apiRes);
+                if (!context.IdentityResources.Any())
+                {
+                    var identityResources = await identityResourceCollection
+                        .Find((c) => true)
+                        .ToListAsync();
+                    foreach (var resource in identityResources)
+                    {
+                        var cast = (IdentityServer4.Models.IdentityResource)resource;
+                        context.IdentityResources.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
 
-                foreach (var apiScope in Config.ApiScopes)
-                    await resources.AddApiScopeAsync(apiScope);
+                if (!context.ApiScopes.Any())
+                {
+                    var apiScopes = await apiScopeCollection
+                        .Find((r) => true)
+                        .ToListAsync();
 
-                foreach (var client in Config.Clients)
-                    await clientStore.AddClientAsync(client);
+                    foreach (var resource in apiScopes)
+                    {
+                        var cast = (IdentityServer4.Models.ApiScope)resource;
+                        context.ApiScopes.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+            }
+            else
+            {
+
+                if (!context.Clients.Any())
+                {
+                    foreach (var client in Config.Clients)
+                    {
+                        var cast = (IdentityServer4.Models.Client)client;
+                        context.Clients.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.IdentityResources.Any())
+                {
+                    foreach (var resource in Config.GetIdentityResources())
+                    {
+                        var cast = (IdentityServer4.Models.IdentityResource)resource;
+                        context.IdentityResources.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.ApiScopes.Any())
+                {
+                    foreach (var resource in Config.ApiScopes)
+                    {
+                        var cast = (IdentityServer4.Models.ApiScope)resource;
+                        context.ApiScopes.Add(cast.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
             }
         }
 
-        private static void ConfigureLogging(IServiceCollection services)
+        private static void ConfigureLogging()
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
