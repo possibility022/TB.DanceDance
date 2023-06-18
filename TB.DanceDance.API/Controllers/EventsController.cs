@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.API.Contracts;
 using TB.DanceDance.API.Extensions;
-using TB.DanceDance.API.Models;
+using TB.DanceDance.API.Mappers;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 
@@ -26,8 +27,12 @@ public class EventsController : Controller
 
         return new EventsAndGroups()
         {
-            Events = listOfEvents,
+            Events = listOfEvents
+                .Select(@event => ContractMappers.MapToEventContract(@event))
+                .ToList(),
             Groups = listOfGroups
+                .Select(group => ContractMappers.MapToGroupContract(group))
+                .ToList()
         };
     }
 
@@ -39,8 +44,12 @@ public class EventsController : Controller
 
         return new EventsAndGroups()
         {
-            Groups = groups,
+            Groups = groups
+            .Select(group => ContractMappers.MapToGroupContract(group))
+                .ToList(),
             Events = evenets
+                .Select(@event => ContractMappers.MapToEventContract(@event))
+                .ToList()
         };
     }
 

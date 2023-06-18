@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.API.Models;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 using TB.DanceDance.Services.Models;
