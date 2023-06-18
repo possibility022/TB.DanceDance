@@ -28,9 +28,9 @@ function App() {
 						<Route path="videos/" element={<PrivateRoute element={<VideoScreen></VideoScreen>} />}>
 						</Route>
 						<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
-						<Route path="video/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
+						<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
 						<Route path="callback" element={<Callback />} />
-						<Route path="/video/requestassignment" element={<RequestAssignmentScreen />} />
+						<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
 						<Route path="logout" element={<Logout></Logout>} />
 						<Route path="logout/callback" element={<LogoutCallback />} />
 						{/* <Route path="/register" element={Register} /> */}
