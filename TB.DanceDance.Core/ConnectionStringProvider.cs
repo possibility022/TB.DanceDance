@@ -38,28 +38,12 @@ public static class ConnectionStringProvider
         return cs;
     }
 
-    public static string GetMongoDbConnectionString(IConfiguration configuration)
-    {
-        return GetConnectionString(configuration,
-            "CUSTOMCONNSTR_MongoDB",
-            "ConnectionStrings:MongoDB",
-            "TB.DanceDance.ConnectionString.Mongo");
-    }
-
     public static string GetBlobConnectionString(IConfiguration configuration)
     {
         return GetConnectionString(configuration,
             "CUSTOMCONNSTR_Blob",
             "ConnectionStrings:Blob",
             "TB.DanceDance.ConnectionString.Blob");
-    }
-
-    public static string GetMongoDbConnectionStringForIdentityStore(IConfiguration configuration)
-    {
-        return GetConnectionString(configuration,
-            "CUSTOMCONNSTR_MongoDBIdentityStore",
-            "ConnectionStrings:MongoDBIdentityStore",
-            "TB.DanceDance.ConnectionString.MongoDBIdentityStore");
     }
 
     public static string GetPostgreSqlDbConnectionString(IConfiguration configuration)
