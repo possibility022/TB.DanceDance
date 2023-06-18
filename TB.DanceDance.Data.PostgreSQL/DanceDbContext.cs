@@ -7,7 +7,7 @@ public class DanceDbContext : DbContext
 {
     public DanceDbContext(DbContextOptions<DanceDbContext> dbContextOptions) : base(dbContextOptions)
     {
-        
+
     }
 
     public static class Schemas

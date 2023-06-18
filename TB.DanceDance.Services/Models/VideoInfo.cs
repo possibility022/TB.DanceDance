@@ -6,5 +6,5 @@ public class VideoInfo
 {
     public Video Video { get; set; }
     public bool SharedWithEvent { get; set; }
-    public bool SharedWithGroup { get; set;}
+    public bool SharedWithGroup { get; set; }
 }

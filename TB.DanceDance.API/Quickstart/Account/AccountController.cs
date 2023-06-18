@@ -13,11 +13,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using System.Text.Encodings.Web;
-using System.Text;
-using TB.DanceDance.Identity;
 using TB.DanceDance.API.Quickstart.Account;
+using TB.DanceDance.Identity;
 
 namespace IdentityServerHost.Quickstart.UI;
 
@@ -202,7 +199,7 @@ public class AccountController : Controller
             {
                 UserName = input.Email,
                 Email = input.Email,
-                
+
             };
 
             var result = await userManager.CreateAsync(user, input.Password);
