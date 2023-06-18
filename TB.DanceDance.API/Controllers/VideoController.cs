@@ -1,11 +1,9 @@
 ﻿using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.API.Models;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 using TB.DanceDance.Services.Models;
@@ -31,7 +29,7 @@ public class VideoController : Controller
     private readonly IUserService userService;
     private readonly ILogger<VideoController> logger;
 
-    [Route("api/video/getinformation")]
+    [Route(ApiEndpoints.Video.GetAll)]
     [HttpGet]
     public async Task<IEnumerable<VideoInformation>> GetInformationAsync()
     {
@@ -44,7 +42,7 @@ public class VideoController : Controller
             .Select(r => ContractMappers.MapToVideoInformation(r));
     }
 
-    [Route("api/video/{guid}/getinformation")]
+    [Route(ApiEndpoints.Video.GetSingle)]
     [HttpGet]
     public async Task<IActionResult> GetInformationAsync(string guid)
     {
@@ -60,7 +58,7 @@ public class VideoController : Controller
         return new OkObjectResult(results);
     }
 
-    [Route("api/video/stream/{guid}")]
+    [Route(ApiEndpoints.Video.GetStream)]
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string token)
@@ -87,7 +85,7 @@ public class VideoController : Controller
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 
-    [Route("api/video/{guid}/rename")]
+    [Route(ApiEndpoints.Video.Rename)]
     [HttpPost]
     public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameModel input)
     {
@@ -100,7 +98,7 @@ public class VideoController : Controller
         return Ok();
     }
 
-    [Route("/api/video/getUploadUrl")]
+    [Route(ApiEndpoints.Video.GetUploadUrl)]
     public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformation sharedVideoInformations)
     {
         string? user = null;

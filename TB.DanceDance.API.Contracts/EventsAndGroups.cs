@@ -1,11 +1,12 @@
-﻿using TB.DanceDance.Data.PostgreSQL.Models;
+﻿using System.Collections.Generic;
 
-namespace TB.DanceDance.API.Models
+namespace TB.DanceDance.API.Contracts
 {
-    public record EventsAndGroups
+
+    public class EventsAndGroups
     {
         public ICollection<Event> Events { get; set; } = new List<Event>();
-        
+
         public ICollection<Group> Groups { get; set; } = new List<Group>();
     }
 }

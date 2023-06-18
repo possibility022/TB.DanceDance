@@ -14,10 +14,10 @@
                 <div >
                     <dl>
                         @foreach (var claim in Model.AuthenticateResult.Principal.Claims)
-                        {
-                            <dt>@claim.Type</dt>
-                            <dd>@claim.Value</dd>
-                        }
+                    {
+                        <dt>@claim.Type</dt>
+                        <dd>@claim.Value</dd>
+                    }
                     </dl>
                 </div>
             </div>
@@ -31,27 +31,28 @@
                 <div >
                     <dl>
                         @foreach (var prop in Model.AuthenticateResult.Properties.Items)
-                        {
-                            <dt>@prop.Key</dt>
-                            <dd>@prop.Value</dd>
-                        }
+                    {
+                        <dt>@prop.Key</dt>
+                        <dd>@prop.Value</dd>
+                    }
                         @if (Model.Clients.Any())
-                        {
-                            <dt>Clients</dt>
-                            <dd>
+                    {
+                        <dt>Clients</dt>
+                        <dd>
                             @{
-                                var clients = Model.Clients.ToArray();
-                                for(var i = 0; i < clients.Length; i++)
+                            var clients = Model.Clients.ToArray();
+                            for(var i = 0; i < clients.Length; i++)
+                            {
+                                <text>@clients[i]</text>
+                                if (i < clients.Length - 1)
                                 {
-                                    <text>@clients[i]</text>
-                                    if (i < clients.Length - 1)
-                                    {
-                                        <text>, </text>
+                                    <text>, </text>
                                     }
                                 }
                             }
-                            </dd>
                         }
+                            </dd>
+                    }
                     </dl>
                 </div>
             </div>

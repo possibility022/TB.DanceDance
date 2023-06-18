@@ -1,123 +1,122 @@
 ﻿using FFmpeg.NET;
-using System.Globalization;
 using MetadataExtractor;
+using System.Globalization;
 using TB.DanceDance.Data.PostgreSQL.Models;
 
-namespace TB.DanceDance.Services
+namespace TB.DanceDance.Services;
+
+public class VideoFileLoader : IVideoFileLoader
 {
-    public class VideoFileLoader : IVideoFileLoader
+    private readonly string ffmpgExecutionFile;
+
+    public VideoFileLoader(string ffmpgExecutionFile)
     {
-        private readonly string ffmpgExecutionFile;
+        this.ffmpgExecutionFile = ffmpgExecutionFile ?? throw new ArgumentNullException(nameof(ffmpgExecutionFile));
+    }
 
-        public VideoFileLoader(string ffmpgExecutionFile)
+    public async Task<(Video, string)> CreateRecord(string filePath)
+    {
+        string guid = Guid.NewGuid().ToString();
+        var f = new FileInfo(filePath);
+
+        (var recorded, var duration, var metadata) = await GetMetadataAsync(f, CancellationToken.None);
+
+        var metadataAsJson = System.Text.Json.JsonSerializer.Serialize(metadata, options: new System.Text.Json.JsonSerializerOptions()
         {
-            this.ffmpgExecutionFile = ffmpgExecutionFile ?? throw new ArgumentNullException(nameof(ffmpgExecutionFile));
-        }
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+            MaxDepth = 15
+        });
 
-        public async Task<(Video, string)> CreateRecord(string filePath)
+        var videoInfo = new Video()
         {
-            string guid = Guid.NewGuid().ToString();
-            var f = new FileInfo(filePath);
+            BlobId = guid,
+            UploadedBy = "",
+            SharedDateTime = DateTime.Now,
+            Name = Path.GetFileName(filePath),
+            RecordedDateTime = recorded,
+            Duration = duration
+        };
 
-            (var recorded, var duration, var metadata) = await GetMetadataAsync(f, CancellationToken.None);
+        return (videoInfo, metadataAsJson);
+    }
 
-            var metadataAsJson = System.Text.Json.JsonSerializer.Serialize(metadata, options: new System.Text.Json.JsonSerializerOptions()
+    private async Task<(DateTime, TimeSpan?, object?)> GetMetadataAsync(FileInfo file, CancellationToken cancellationToken)
+    {
+        if (file.Extension == ".webm")
+        {
+            var metadata = await GetMetadataAsync(file.FullName, cancellationToken);
+
+            dynamic customMetadata = new
             {
-                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
-                MaxDepth = 15
-            });
-
-            var videoInfo = new Video()
-            {
-                BlobId = guid,
-                UploadedBy = "",
-                SharedDateTime = DateTime.Now,
-                Name = Path.GetFileName(filePath),
-                RecordedDateTime = recorded,
-                Duration = duration
+                Video = metadata.VideoData,
+                Audio = metadata.AudioData,
             };
 
-            return (videoInfo, metadataAsJson);
+            var creationDate = GetDateTimeFromFileName(file.Name);
+
+            return (creationDate, metadata.Duration, customMetadata);
+        }
+        else
+        {
+            // This does not work with webm converted by ffmpg
+            using var stream = file.OpenRead();
+            var directories = ImageMetadataReader.ReadMetadata(stream);
+
+            var duration = GetDurationTime(directories);
+
+            return (file.LastWriteTime, duration, directories);
         }
 
-        private async Task<(DateTime, TimeSpan?, object?)> GetMetadataAsync(FileInfo file, CancellationToken cancellationToken)
+    }
+
+    private Task<MetaData> GetMetadataAsync(string file, CancellationToken cancellationToken)
+    {
+        var media = new FFmpeg.NET.InputFile(file);
+
+        var engine = new Engine(ffmpgExecutionFile);
+        return engine.GetMetaDataAsync(media, cancellationToken);
+    }
+
+    private DateTime GetDateTimeFromFileName(string fileName)
+    {
+        // example: 20220209
+        var span = fileName.AsSpan();
+
+        var year = span.Slice(0, 4);
+        var month = span.Slice(4, 2);
+        var day = span.Slice(6, 2);
+
+        return new DateTime(int.Parse(year), int.Parse(month), int.Parse(day));
+    }
+
+    private TimeSpan? GetDurationTime(IEnumerable<MetadataExtractor.Directory> directories)
+    {
+        var v = GetValue(directories, "QuickTime Movie Header", "Duration");
+        if (v != null)
         {
-            if (file.Extension == ".webm")
+            if (TimeSpan.TryParse(v, CultureInfo.CurrentCulture, out var res))
             {
-                var metadata = await GetMetadataAsync(file.FullName, cancellationToken);
-
-                dynamic customMetadata = new
-                {
-                    Video = metadata.VideoData,
-                    Audio = metadata.AudioData,
-                };
-
-                var creationDate = GetDateTimeFromFileName(file.Name);
-
-                return (creationDate, metadata.Duration, customMetadata);
+                return res;
             }
-            else
+        }
+
+        return null;
+    }
+
+    private string? GetValue(IEnumerable<MetadataExtractor.Directory> directories, string directoryName, string tagName)
+    {
+        foreach (var directory in directories)
+        {
+            if (directory.Name != directoryName)
+                continue;
+
+            foreach (var tag in directory.Tags)
             {
-                // This does not work with webm converted by ffmpg
-                using var stream = file.OpenRead();
-                var directories = ImageMetadataReader.ReadMetadata(stream);
-
-                var duration = GetDurationTime(directories);
-
-                return (file.LastWriteTime, duration, directories);
+                if (tag.Name == tagName)
+                    return tag.Description;
             }
-
         }
 
-        private Task<MetaData> GetMetadataAsync(string file, CancellationToken cancellationToken)
-        {
-            var media = new FFmpeg.NET.InputFile(file);
-
-            var engine = new Engine(ffmpgExecutionFile);
-            return engine.GetMetaDataAsync(media, cancellationToken);
-        }
-
-        private DateTime GetDateTimeFromFileName(string fileName)
-        {
-            // example: 20220209
-            var span = fileName.AsSpan();
-
-            var year = span.Slice(0, 4);
-            var month = span.Slice(4, 2);
-            var day = span.Slice(6, 2);
-
-            return new DateTime(int.Parse(year), int.Parse(month), int.Parse(day));
-        }
-
-        private TimeSpan? GetDurationTime(IEnumerable<MetadataExtractor.Directory> directories)
-        {
-            var v = GetValue(directories, "QuickTime Movie Header", "Duration");
-            if (v != null)
-            {
-                if (TimeSpan.TryParse(v, CultureInfo.CurrentCulture, out var res))
-                {
-                    return res;
-                }
-            }
-
-            return null;
-        }
-
-        private string? GetValue(IEnumerable<MetadataExtractor.Directory> directories, string directoryName, string tagName)
-        {
-            foreach (var directory in directories)
-            {
-                if (directory.Name != directoryName)
-                    continue;
-
-                foreach (var tag in directory.Tags)
-                {
-                    if (tag.Name == tagName)
-                        return tag.Description;
-                }
-            }
-
-            return null;
-        }
+        return null;
     }
 }

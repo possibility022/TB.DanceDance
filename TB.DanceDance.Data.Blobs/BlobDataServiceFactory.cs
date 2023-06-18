@@ -39,7 +39,7 @@ public class BlobDataServiceFactory : IBlobDataServiceFactory
                     weHaveIt = cache.TryGetValue(container, out service);
                     if (!weHaveIt)
                         throw new Exception("Could not get service from cache.");
-                        
+
                     return service;
                 }
             }

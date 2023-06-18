@@ -2,8 +2,8 @@
 
 @{
     var error = Model?.Error?.Error;
-    var errorDescription = Model?.Error?.ErrorDescription;
-    var request_id = Model?.Error?.RequestId;
+var errorDescription = Model?.Error?.ErrorDescription;
+var request_id = Model?.Error?.RequestId;
 }
 
 <div >
@@ -17,24 +17,24 @@
                 Sorry, there was an error
 
                 @if (error != null)
-                {
-                    <strong>
+            {
+                <strong>
                         <em>
                             : @error
                         </em>
                     </strong>
 
-                    if (errorDescription != null)
-                    {
-                        <div>@errorDescription</div>
-                    }
+                if (errorDescription != null)
+                {
+                    <div>@errorDescription</div>
                 }
+            }
             </div>
 
             @if (request_id != null)
-            {
-                <div >Request Id: @request_id</div>
-            }
+        {
+            <div >Request Id: @request_id</div>
+        }
         </div>
     </div>
 </div>

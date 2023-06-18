@@ -7,9 +7,9 @@ public static class DanceDanceResources
         public static class Scopes
         {
             public const string ReadScope = "tbdancedanceapi.read";
-            public const string WriteScope = "tbdancedanceapi.write";    
+            public const string WriteScope = "tbdancedanceapi.write";
         }
-        
+
         public static class Claims
         {
             public const string Groups = "wcsgroups";
@@ -18,7 +18,7 @@ public static class DanceDanceResources
         public const string IdentityResource = "westcoastswing";
 
     }
-    
+
     public class WcsDanceGroups : IdentityServer4.Models.IdentityResource
     {
         public WcsDanceGroups()
