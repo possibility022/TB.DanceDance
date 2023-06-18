@@ -5,12 +5,11 @@ import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
 import VideoInformation from "../types/VideoInformation";
 import { IEventsAndGroups } from "../types/ApiModels/EventsAndGroups";
 import { IAssignedEvent, IAssignedGroup } from "../types/AssignedEventAndGroup";
-import { group } from "console";
 
 
 export class VideoInfoService {
     public async LoadVideos(): Promise<Array<VideoInformation>> {
-        const response = await AppApiClient.get<Array<VideoInformation>>('/api/video/getinformation')
+        const response = await AppApiClient.get<Array<VideoInformation>>('/api/videos')
         return response.data
     }
 
@@ -19,17 +18,17 @@ export class VideoInfoService {
     }
 
     public GetVideUrlByBlobId(videoBlob: string) {
-        return AppApiClient.getUri() + '/api/video/stream/' + videoBlob
+        return AppApiClient.getUri() + '/api/videos/' + videoBlob + '/stream'
     }
 
     public async GetVideoInfo(videoId: string){
-        const url = '/api/video/' + videoId + '/getinformation'
+        const url = '/api/videos/' + videoId
         const response = await AppApiClient.get<VideoInformation>(url)
         return response.data
     }
 
     public async GetAvailableEventsAndGroups() {
-        const allGroupsAndEvents = await AppApiClient.get<IEventsAndGroups>('/api/video/access/getall')
+        const allGroupsAndEvents = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses')
         const userGroupAndEvents = await this.GetUserAccess()
         
         const availableEventsMap = new Map(userGroupAndEvents.events.map(v => [v.id, v]))
@@ -61,7 +60,7 @@ export class VideoInfoService {
         if (!events && !groups)
             throw new Error("Argument events or groups must me provided. Both are not provided.")
 
-        const response = await AppApiClient.post('/api/video/access/request', {
+        const response = await AppApiClient.post('/api/videos/accesses/request', {
             events: events,
             groups: groups
         })
@@ -73,13 +72,13 @@ export class VideoInfoService {
     }
 
     public async GetUserAccess() {
-        const response = await AppApiClient.get<IEventsAndGroups>('/api/video/access/user')
+        const response = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses/my')
         return response.data
     }
 
     public async UploadVideo(data: ISharedVideoInformation, file: File, onProgress: (loadedBytes: number) => void) {
 
-        const uploadUrl = await AppApiClient.post<UploadVideoInformation>('/api/video/getuploadurl',
+        const uploadUrl = await AppApiClient.post<UploadVideoInformation>('/api/videos/upload',
             data
         );
 
