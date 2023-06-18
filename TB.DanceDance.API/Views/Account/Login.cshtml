@@ -11,8 +11,8 @@
     <div>
 
         @if (Model.EnableLocalLogin)
-        {
-            <div>
+    {
+        <div>
                 <div>
                     <div>
                         <h2>Local Account</h2>
@@ -31,8 +31,8 @@
                                 <input type="password" placeholder="Password" asp-for="Password" autocomplete="off">
                             </div>
                             @if (Model.AllowRememberLogin)
-                            {
-                                <div >
+                        {
+                            <div >
                                     <div>
                                         <input asp-for="RememberLogin">
                                         <label asp-for="RememberLogin">
@@ -40,18 +40,18 @@
                                         </label>
                                     </div>
                                 </div>
-                            }
+                        }
                             <button name="button" value="login">Login</button>
                             <button name="button" value="cancel">Cancel</button>
                         </form>
                     </div>
                 </div>
             </div>
-        }
+    }
 
         @if (Model.VisibleExternalProviders.Any())
-        {
-            <div >
+    {
+        <div >
                 <div >
                     <div >
                         <h2>External Account</h2>
@@ -59,8 +59,8 @@
                     <div >
                         <ul >
                             @foreach (var provider in Model.VisibleExternalProviders)
-                            {
-                                <li >
+                        {
+                            <li >
                                     <a
                                        asp-controller="External"
                                        asp-action="Challenge"
@@ -69,19 +69,19 @@
                                         @provider.DisplayName
                                     </a>
                                 </li>
-                            }
+                        }
                         </ul>
                     </div>
                 </div>
             </div>
-        }
+    }
 
         @if (!Model.EnableLocalLogin && !Model.VisibleExternalProviders.Any())
-        {
-            <div >
+    {
+        <div >
                 <strong>Invalid login request</strong>
                 There are no login schemes configured for this request.
             </div>
-        }
+    }
     </div>
 </div>

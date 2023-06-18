@@ -1,29 +1,28 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.API.Models
+namespace TB.DanceDance.API.Models;
+
+public record SharedVideoInformation
 {
-    public record SharedVideoInformation
-    {
-        [Required]
-        [MaxLength(100)]
-        [MinLength(5)]
-        [RegularExpression("^[-^:) _a-zA-Z0-9]*$")]
-        public string NameOfVideo { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(100)]
+    [MinLength(5)]
+    [RegularExpression("^[-^:) _a-zA-Z0-9]*$")]
+    public string NameOfVideo { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime RecordedTimeUtc { get; set; } = DateTime.MinValue;
+    [Required]
+    public DateTime RecordedTimeUtc { get; set; } = DateTime.MinValue;
 
-        [Required]
-        public Guid? SharedWith { get; set; }
+    [Required]
+    public Guid? SharedWith { get; set; }
 
-        [Required]
-        public SharingWithType SharingWithType { get; set; }
-    }
+    [Required]
+    public SharingWithType SharingWithType { get; set; }
+}
 
-    public enum SharingWithType
-    {
-        NotSpecified,
-        Group,
-        Event
-    }
+public enum SharingWithType
+{
+    NotSpecified,
+    Group,
+    Event
 }
