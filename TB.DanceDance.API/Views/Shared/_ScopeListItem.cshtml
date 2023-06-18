@@ -10,25 +10,25 @@
                checked="@Model.Checked"
                disabled="@Model.Required" />
         @if (Model.Required)
-        {
-            <input type="hidden"
+    {
+        <input type="hidden"
                    name="ScopesConsented"
                    value="@Model.Value" />
-        }
+    }
         <strong>@Model.DisplayName</strong>
         @if (Model.Emphasize)
-        {
-            <span ></span>
-        }
+    {
+        <span ></span>
+    }
     </label>
     @if (Model.Required)
-    {
-        <span><em>(required)</em></span>
-    }
+{
+    <span><em>(required)</em></span>
+}
     @if (Model.Description != null)
-    {
-        <div >
+{
+    <div >
             <label for="scopes_@Model.Value">@Model.Description</label>
         </div>
-    }
+}
 </li>

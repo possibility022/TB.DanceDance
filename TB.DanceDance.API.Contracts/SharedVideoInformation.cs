@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.API.Models
+namespace TB.DanceDance.API.Contracts
 {
-    public record SharedVideoInformation
+
+    public class SharedVideoInformation
     {
         [Required]
         [MaxLength(100)]

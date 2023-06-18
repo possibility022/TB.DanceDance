@@ -15,7 +15,7 @@ public class VideoUploaderService : IVideoUploaderService
     {
         blobDataService = factory.GetBlobDataService(BlobContainer.VideosToConvert);
     }
-    
+
     public SharedBlob GetSasUri()
     {
         return blobDataService.CreateUploadSas();

@@ -14,7 +14,7 @@ public class InfoController : Controller
         _endpointSources = endpointSources;
     }
 
-    [HttpGet("/.endpoints")]
+    [HttpGet(ApiEndpoints.Info.AllEndpoints)]
     public async Task<ActionResult> ListAllEndpoints()
     {
         var endpoints = _endpointSources

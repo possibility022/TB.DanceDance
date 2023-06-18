@@ -1,81 +1,64 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace TB.DanceDance.Core
+namespace TB.DanceDance.Core;
+
+public static class ConnectionStringProvider
 {
-    public static class ConnectionStringProvider
+
+    /// <summary>
+    /// Trying to provide connection string. Priority has configuration.
+    /// Last on the list is ConnectionString from environments.
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="connectionStringName"></param>
+    /// <param name="appSettingsKey"></param>
+    /// <param name="environmentSettingName"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    private static string GetConnectionString(IConfiguration configuration, string connectionStringName, string appSettingsKey, string environmentSettingName)
     {
+        var cs = configuration.GetConnectionString(connectionStringName);
 
-        /// <summary>
-        /// Trying to provide connection string. Priority has configuration.
-        /// Last on the list is ConnectionString from environments.
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="connectionStringName"></param>
-        /// <param name="appSettingsKey"></param>
-        /// <param name="environmentSettingName"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        private static string GetConnectionString(IConfiguration configuration, string connectionStringName, string appSettingsKey, string environmentSettingName)
-        {
-            var cs = configuration.GetConnectionString(connectionStringName);
-
-            if (cs != null)
-                return cs;
-
-            var section = configuration.GetSection(appSettingsKey);
-            if (section?.Value != null)
-                return section.Value;
-
-            cs = Environment.GetEnvironmentVariable(connectionStringName);
-            if (cs != null)
-                return cs;
-
-            cs = Environment.GetEnvironmentVariable(environmentSettingName);
-
-            if (string.IsNullOrEmpty(cs))
-                throw new Exception("Could not resolve connection string.");
-
+        if (cs != null)
             return cs;
-        }
 
-        public static string GetMongoDbConnectionString(IConfiguration configuration)
-        {
-            return GetConnectionString(configuration,
-                "CUSTOMCONNSTR_MongoDB",
-                "ConnectionStrings:MongoDB",
-                "TB.DanceDance.ConnectionString.Mongo");
-        }
+        var section = configuration.GetSection(appSettingsKey);
+        if (section?.Value != null)
+            return section.Value;
 
-        public static string GetBlobConnectionString(IConfiguration configuration)
-        {
-            return GetConnectionString(configuration,
-                "CUSTOMCONNSTR_Blob",
-                "ConnectionStrings:Blob",
-                "TB.DanceDance.ConnectionString.Blob");
-        }
+        cs = Environment.GetEnvironmentVariable(connectionStringName);
+        if (cs != null)
+            return cs;
 
-        public static string GetMongoDbConnectionStringForIdentityStore(IConfiguration configuration)
-        {
-            return GetConnectionString(configuration,
-                "CUSTOMCONNSTR_MongoDBIdentityStore",
-                "ConnectionStrings:MongoDBIdentityStore",
-                "TB.DanceDance.ConnectionString.MongoDBIdentityStore");
-        }
+        cs = Environment.GetEnvironmentVariable(environmentSettingName);
 
-        public static string GetPostgreSqlDbConnectionString(IConfiguration configuration)
-        {
-            return GetConnectionString(configuration,
-                "POSTGRESQLCONNSTR_PostgreDb",
-                "ConnectionStrings:PostgreDb",
-                "TB.DanceDance.ConnectionString.PostgreDb");
-        }
+        if (string.IsNullOrEmpty(cs))
+            throw new Exception("Could not resolve connection string.");
 
-        public static string GetPostgreIdentityStoreDbConnectionString(IConfiguration configuration)
-        {
-            return GetConnectionString(configuration,
-                "POSTGRESQLCONNSTR_PostgreDbIdentityStore",
-                "ConnectionStrings:PostgreDbIdentityStore",
-                "TB.DanceDance.ConnectionString.PostgreDbIdentityStore");
-        }
+        return cs;
+    }
+
+    public static string GetBlobConnectionString(IConfiguration configuration)
+    {
+        return GetConnectionString(configuration,
+            "CUSTOMCONNSTR_Blob",
+            "ConnectionStrings:Blob",
+            "TB.DanceDance.ConnectionString.Blob");
+    }
+
+    public static string GetPostgreSqlDbConnectionString(IConfiguration configuration)
+    {
+        return GetConnectionString(configuration,
+            "POSTGRESQLCONNSTR_PostgreDb",
+            "ConnectionStrings:PostgreDb",
+            "TB.DanceDance.ConnectionString.PostgreDb");
+    }
+
+    public static string GetPostgreIdentityStoreDbConnectionString(IConfiguration configuration)
+    {
+        return GetConnectionString(configuration,
+            "POSTGRESQLCONNSTR_PostgreDbIdentityStore",
+            "ConnectionStrings:PostgreDbIdentityStore",
+            "TB.DanceDance.ConnectionString.PostgreDbIdentityStore");
     }
 }

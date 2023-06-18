@@ -1,46 +1,34 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TB.DanceDance.Configurations;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Services;
 
-namespace TB.DanceDance.Core
+namespace TB.DanceDance.Core;
+
+public static class ServicesBuilder
 {
-    public static class ServicesBuilder
+    public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
+        string connectionString,
+        Func<IServiceProvider, IVideoFileLoader>? videoFileLoader = null)
     {
-        public static MongoDbConfiguration GetMongoDbConfig(this IConfiguration configuration)
-        {
-            var cs = ConnectionStringProvider.GetMongoDbConnectionString(configuration);
 
-            return new MongoDbConfiguration()
-            {
-                ConnectionString = cs
-            };
+        if (string.IsNullOrEmpty(connectionString))
+            throw new ArgumentNullException(nameof(connectionString));
+
+        services
+            .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(connectionString))
+            .AddScoped<IVideoService, VideoService>()
+            .AddScoped<IVideoUploaderService, VideoUploaderService>();
+
+        if (videoFileLoader != null)
+        {
+            services.AddScoped<IVideoFileLoader>(videoFileLoader);
+        }
+        else
+        {
+            services.AddSingleton<IVideoFileLoader, FakeFileLoader>();
         }
 
-        public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
-            string connectionString,
-            Func<IServiceProvider, IVideoFileLoader>? videoFileLoader = null)
-        {
-
-            if (string.IsNullOrEmpty(connectionString))
-                throw new ArgumentNullException(nameof(connectionString));
-
-            services
-                .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(connectionString))
-                .AddScoped<IVideoService, VideoService>()
-                .AddScoped<IVideoUploaderService, VideoUploaderService>();
-
-            if (videoFileLoader != null)
-            {
-                services.AddScoped<IVideoFileLoader>(videoFileLoader);
-            }
-            else
-            {
-                services.AddSingleton<IVideoFileLoader, FakeFileLoader>();
-            }
-
-            return services;
-        }
+        return services;
     }
 }
