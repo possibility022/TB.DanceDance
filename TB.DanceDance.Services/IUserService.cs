@@ -9,8 +9,8 @@ public interface IUserService
 
     Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId);
 
-    Task<ICollection<Event>> GetAllEvents(string user);
-    Task<ICollection<Group>> GetAllGroups(string user);
+    Task<ICollection<Event>> GetAllEvents();
+    Task<ICollection<Group>> GetAllGroups();
     IQueryable<Group> GetUserGroups(string userId);
     IQueryable<Event> GetUserEvents(string userId);
     (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userName);
