@@ -9,126 +9,125 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.PersistedGrantDb
+namespace TB.DanceDance.Identity.Data.Migrations.IdentityServer.PersistedGrantDb;
+
+[DbContext(typeof(PersistedGrantDbContext))]
+[Migration("20230617221027_Initial")]
+partial class Initial
 {
-    [DbContext(typeof(PersistedGrantDbContext))]
-    [Migration("20230617221027_Initial")]
-    partial class Initial
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasDefaultSchema("IdpServer.Oper")
-                .HasAnnotation("ProductVersion", "7.0.5")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+        modelBuilder
+            .HasDefaultSchema("IdpServer.Oper")
+            .HasAnnotation("ProductVersion", "7.0.5")
+            .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+        NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.DeviceFlowCodes", b =>
-                {
-                    b.Property<string>("UserCode")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+        modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.DeviceFlowCodes", b =>
+            {
+                b.Property<string>("UserCode")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("ClientId")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreationTime")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(50000)
-                        .HasColumnType("character varying(50000)");
+                b.Property<string>("Data")
+                    .IsRequired()
+                    .HasMaxLength(50000)
+                    .HasColumnType("character varying(50000)");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Description")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<string>("DeviceCode")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("DeviceCode")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("Expiration")
-                        .IsRequired()
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("Expiration")
+                    .IsRequired()
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("SessionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                b.Property<string>("SessionId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                    b.Property<string>("SubjectId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("SubjectId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.HasKey("UserCode");
+                b.HasKey("UserCode");
 
-                    b.HasIndex("DeviceCode")
-                        .IsUnique();
+                b.HasIndex("DeviceCode")
+                    .IsUnique();
 
-                    b.HasIndex("Expiration");
+                b.HasIndex("Expiration");
 
-                    b.ToTable("DeviceCodes", "IdpServer.Oper");
-                });
+                b.ToTable("DeviceCodes", "IdpServer.Oper");
+            });
 
-            modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.PersistedGrant", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+        modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.PersistedGrant", b =>
+            {
+                b.Property<string>("Key")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("ClientId")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("ConsumedTime")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("ConsumedTime")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime>("CreationTime")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Data")
-                        .IsRequired()
-                        .HasMaxLength(50000)
-                        .HasColumnType("character varying(50000)");
+                b.Property<string>("Data")
+                    .IsRequired()
+                    .HasMaxLength(50000)
+                    .HasColumnType("character varying(50000)");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("Description")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("Expiration")
-                        .HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("Expiration")
+                    .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("SessionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                b.Property<string>("SessionId")
+                    .HasMaxLength(100)
+                    .HasColumnType("character varying(100)");
 
-                    b.Property<string>("SubjectId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                b.Property<string>("SubjectId")
+                    .HasMaxLength(200)
+                    .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                b.Property<string>("Type")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("character varying(50)");
 
-                    b.HasKey("Key");
+                b.HasKey("Key");
 
-                    b.HasIndex("Expiration");
+                b.HasIndex("Expiration");
 
-                    b.HasIndex("SubjectId", "ClientId", "Type");
+                b.HasIndex("SubjectId", "ClientId", "Type");
 
-                    b.HasIndex("SubjectId", "SessionId", "Type");
+                b.HasIndex("SubjectId", "SessionId", "Type");
 
-                    b.ToTable("PersistedGrants", "IdpServer.Oper");
-                });
+                b.ToTable("PersistedGrants", "IdpServer.Oper");
+            });
 #pragma warning restore 612, 618
-        }
     }
 }

@@ -1,16 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore;
 
-namespace TB.DanceDance.Data.PostgreSQL
-{
-    public class DesignTimeContextFactory : IDesignTimeDbContextFactory<DanceDbContext>
-    {
-        public DanceDbContext CreateDbContext(string[] args)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<DanceDbContext>();
-            optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=dancedance");
+namespace TB.DanceDance.Data.PostgreSQL;
 
-            return new DanceDbContext(optionsBuilder.Options);
-        }
+public class DesignTimeContextFactory : IDesignTimeDbContextFactory<DanceDbContext>
+{
+    public DanceDbContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<DanceDbContext>();
+        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=dancedance");
+
+        return new DanceDbContext(optionsBuilder.Options);
     }
 }

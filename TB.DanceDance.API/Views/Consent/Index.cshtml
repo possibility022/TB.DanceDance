@@ -3,9 +3,9 @@
 <div >
     <div >
         @if (Model.ClientLogoUrl != null)
-        {
-            <div ><img src="@Model.ClientLogoUrl"></div>
-        }
+    {
+        <div ><img src="@Model.ClientLogoUrl"></div>
+    }
         <h1>
             @Model.ClientName
             <small >is requesting your permission</small>
@@ -24,8 +24,8 @@
         <div >
             <div >
                 @if (Model.IdentityScopes.Any())
-                {
-                    <div >
+            {
+                <div >
                         <div >
                             <div >
                                 <span ></span>
@@ -33,17 +33,17 @@
                             </div>
                             <ul >
                                 @foreach (var scope in Model.IdentityScopes)
-                                {
-                                    <partial name="_ScopeListItem" model="@scope" />
-                                }
+                            {
+                                <partial name="_ScopeListItem" model="@scope" />
+                            }
                             </ul>
                         </div>
                     </div>
-                }
+            }
 
                 @if (Model.ApiScopes.Any())
-                {
-                    <div >
+            {
+                <div >
                         <div >
                             <div >
                                 <span ></span>
@@ -51,13 +51,13 @@
                             </div>
                             <ul >
                                 @foreach (var scope in Model.ApiScopes)
-                                {
-                                    <partial name="_ScopeListItem" model="scope" />
-                                }
+                            {
+                                <partial name="_ScopeListItem" model="scope" />
+                            }
                             </ul>
                         </div>
                     </div>
-                }
+            }
 
                 <div >
                     <div >
@@ -72,8 +72,8 @@
                 </div>
 
                 @if (Model.AllowRememberConsent)
-                {
-                    <div >
+            {
+                <div >
                         <div >
                             <input  asp-for="RememberConsent">
                             <label  asp-for="RememberConsent">
@@ -81,7 +81,7 @@
                             </label>
                         </div>
                     </div>
-                }
+            }
             </div>
         </div>
 
@@ -92,12 +92,12 @@
             </div>
             <div >
                 @if (Model.ClientUrl != null)
-                {
-                    <a  href="@Model.ClientUrl">
+            {
+                <a  href="@Model.ClientUrl">
                         <span ></span>
                         <strong>@Model.ClientName</strong>
                     </a>
-                }
+            }
             </div>
         </div>
     </form>

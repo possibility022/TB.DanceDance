@@ -1,7 +1,6 @@
-﻿namespace TB.DanceDance.API.Models
+﻿namespace TB.DanceDance.API.Models;
+
+public record VideoRenameModel
 {
-    public record VideoRenameModel
-    {
-        public string NewName { get; init; }
-    }
+    public string NewName { get; init; }
 }

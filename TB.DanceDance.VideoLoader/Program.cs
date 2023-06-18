@@ -11,70 +11,69 @@ using Microsoft.EntityFrameworkCore;
 using IdentityServer4.EntityFramework.DbContexts;
 using TB.DanceDance.Identity.Extensions;
 
-namespace TB.DanceDance.VideoLoader
+namespace TB.DanceDance.VideoLoader;
+
+class Program
 {
-    class Program
+    const string FFMPGPath = @"D:\Programy\ffmpeg-2022-12-04-git-6c814093d8-full_build\bin\ffmpeg.exe";
+
+    private const string TomekUserId = "1234567890123";
+
+    private static IHost app;
+
+    static async Task Main(string[] args)
     {
-        const string FFMPGPath = @"D:\Programy\ffmpeg-2022-12-04-git-6c814093d8-full_build\bin\ffmpeg.exe";
+        var builder = Host.CreateDefaultBuilder();
 
-        private const string TomekUserId = "1234567890123";
+        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
-        private static IHost app;
+        var configurationBuilder = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddUserSecrets("76b0dd76-61c4-4a28-a39f-109d587bd5c0") // This is the same as in API Project
+                                                                    //.AddJsonFile($"appsettings.{environment}.json", optional: true)
+            .AddEnvironmentVariables();
 
-        static async Task Main(string[] args)
+        var config = configurationBuilder.Build();
+
+        builder.ConfigureServices((context, services) =>
         {
-            var builder = Host.CreateDefaultBuilder();
+            services
+                .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config), (s) => new VideoFileLoader(FFMPGPath));
 
-            var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-
-            var configurationBuilder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile("appsettings.Development.json", optional: true)
-                .AddUserSecrets("76b0dd76-61c4-4a28-a39f-109d587bd5c0") // This is the same as in API Project
-                                                                        //.AddJsonFile($"appsettings.{environment}.json", optional: true)
-                .AddEnvironmentVariables();
-
-            var config = configurationBuilder.Build();
-
-            builder.ConfigureServices((context, services) =>
+            services.AddDbContext<DanceDbContext>(options =>
             {
-                services
-                    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(config), (s) => new VideoFileLoader(FFMPGPath));
-
-                services.AddDbContext<DanceDbContext>(options =>
-                {
-                    options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(config));
-                });
-
-                var identityBuilder = services
-                    .AddIdentityServer();
-
-                identityBuilder
-                    .RegisterIdenityServerStorage(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
+                options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(config));
             });
 
-            ConfigureLogging();
-            builder.UseSerilog();
+            var identityBuilder = services
+                .AddIdentityServer();
 
-            app = builder.Build();
-            using var scope = app.Services.CreateScope();
+            identityBuilder
+                .RegisterIdenityServerStorage(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(config));
+        });
 
-            var identityConfigDbScope = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+        ConfigureLogging();
+        builder.UseSerilog();
 
-            
-            //Log.Information("Done");
-        }
+        app = builder.Build();
+        using var scope = app.Services.CreateScope();
 
-
+        var identityConfigDbScope = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
 
         
+        //Log.Information("Done");
+    }
 
-        private static void ConfigureLogging()
-        {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .WriteTo.File($"log-{DateTime.UtcNow.ToString("s").Replace(":", "")}.txt", rollingInterval: RollingInterval.Infinite)
-                .CreateLogger();
-        }
+
+
+    
+
+    private static void ConfigureLogging()
+    {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .WriteTo.File($"log-{DateTime.UtcNow.ToString("s").Replace(":", "")}.txt", rollingInterval: RollingInterval.Infinite)
+            .CreateLogger();
     }
 }
