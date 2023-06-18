@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
+using TB.DanceDance.API.Contracts;
 using TB.DanceDance.API.Controllers;
-using TB.DanceDance.API.Models;
 using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Tests;
