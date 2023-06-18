@@ -77,12 +77,12 @@ public class UserService : IUserService
         return (userGroups, userEvents);
     }
 
-    public async Task<ICollection<Event>> GetAllEvents(string user)
+    public async Task<ICollection<Event>> GetAllEvents()
     {
         return await dbContext.Events.ToListAsync();
     }
 
-    public async Task<ICollection<Group>> GetAllGroups(string user)
+    public async Task<ICollection<Group>> GetAllGroups()
     {
         return await dbContext.Groups.ToListAsync();
     }

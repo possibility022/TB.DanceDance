@@ -17,13 +17,12 @@ public class EventsController : Controller
         this.userService = userService;
     }
 
-    [Route("api/video/access/getall")]
+    [Route(ApiEndpoints.Video.Access.GetAll)]
     [HttpGet]
-    public async Task<EventsAndGroups> GetInformationsAsync()
+    public async Task<EventsAndGroups> GetAllEventsAndGroups()
     {
-        var user = User.GetSubject();
-        var listOfEvents = await userService.GetAllEvents(user);
-        var listOfGroups = await userService.GetAllGroups(user);
+        var listOfEvents = await userService.GetAllEvents();
+        var listOfGroups = await userService.GetAllGroups();
 
         return new EventsAndGroups()
         {
@@ -32,8 +31,8 @@ public class EventsController : Controller
         };
     }
 
-    [Route("/api/video/access/user")]
-    public async Task<EventsAndGroups> GetAvailabeGroups()
+    [Route(ApiEndpoints.Video.Access.GetUserAccess)]
+    public EventsAndGroups GetAssignedGroups()
     {
         var user = User.GetSubject();
         (var groups, var evenets) = userService.GetUserEventsAndGroups(user);
@@ -45,7 +44,7 @@ public class EventsController : Controller
         };
     }
 
-    [Route("api/video/access/request")]
+    [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
     public async Task<IActionResult> RequestAssigment([FromBody] RequestEventAssigmentModel requests)
     {
