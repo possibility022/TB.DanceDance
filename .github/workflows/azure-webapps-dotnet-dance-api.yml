@@ -53,10 +53,10 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        run: dotnet build .\TB.DanceDance.API\TB.DanceDance.API.csproj --configuration Release
+        run: dotnet build ./TB.DanceDance.API/TB.DanceDance.API.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish .\TB.DanceDance.API\TB.DanceDance.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/API
+        run: dotnet publish ./TB.DanceDance.API/TB.DanceDance.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/API
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
