@@ -99,6 +99,7 @@ public class VideoController : Controller
     }
 
     [Route(ApiEndpoints.Video.GetUploadUrl)]
+    [HttpPost]
     public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformation sharedVideoInformations)
     {
         string? user = null;
