@@ -75,7 +75,7 @@ public class VideoService : IVideoService
             Metadata = Encoding.UTF8.GetBytes(metada)
         };
 
-        dbContext.VideoMetadata.Add(videoMetadata); 
+        dbContext.VideoMetadata.Add(videoMetadata);
         await dbContext.SaveChangesAsync();
 
         await blobService.Upload(info.BlobId, File.OpenRead(filePath));

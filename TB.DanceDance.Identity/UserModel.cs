@@ -8,7 +8,7 @@ public class User : Microsoft.AspNetCore.Identity.IdentityUser
 }
 
 public class UserClaim : IdentityUserClaim<string>
-{ 
+{
 }
 
 public class UserLogin : IdentityUserLogin<string>

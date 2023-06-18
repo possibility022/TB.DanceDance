@@ -1,15 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
-using Serilog;
-using TB.DanceDance.Services;
+﻿using IdentityServer4.EntityFramework.DbContexts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using System;
+using System.Threading.Tasks;
 using TB.DanceDance.Core;
-using Microsoft.Extensions.Configuration;
 using TB.DanceDance.Data.PostgreSQL;
-using Microsoft.EntityFrameworkCore;
-using IdentityServer4.EntityFramework.DbContexts;
 using TB.DanceDance.Identity.Extensions;
+using TB.DanceDance.Services;
 
 namespace TB.DanceDance.VideoLoader;
 
@@ -61,13 +61,13 @@ class Program
 
         var identityConfigDbScope = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
 
-        
+
         //Log.Information("Done");
     }
 
 
 
-    
+
 
     private static void ConfigureLogging()
     {

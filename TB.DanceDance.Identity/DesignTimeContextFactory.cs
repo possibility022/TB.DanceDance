@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Design;
+﻿using IdentityServer4.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
-using IdentityServer4.EntityFramework.DbContexts;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace TB.DanceDance.Identity;
 
-public class DesignTimeContextFactory : 
+public class DesignTimeContextFactory :
     IDesignTimeDbContextFactory<IdentityStoreContext>,
     IDesignTimeDbContextFactory<PersistedGrantDbContext>,
     IDesignTimeDbContextFactory<ConfigurationDbContext>
@@ -34,7 +34,7 @@ public class DesignTimeContextFactory :
         var assemblyName = GetMigrationAssembly();
 
         var optionsBuilder = new DbContextOptionsBuilder<ConfigurationDbContext>();
-        
+
         optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore",
             b => b.MigrationsAssembly(assemblyName)
             ); ;

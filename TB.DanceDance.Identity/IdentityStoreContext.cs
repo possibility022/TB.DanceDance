@@ -8,7 +8,7 @@ public class IdentityStoreContext : IdentityDbContext<User, Role, string>
 
     public IdentityStoreContext(DbContextOptions<IdentityStoreContext> options) : base(options)
     {
-        
+
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
