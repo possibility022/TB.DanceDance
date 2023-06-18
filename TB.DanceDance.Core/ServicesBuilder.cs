@@ -7,16 +7,6 @@ namespace TB.DanceDance.Core;
 
 public static class ServicesBuilder
 {
-    public static MongoDbConfiguration GetMongoDbConfig(this IConfiguration configuration)
-    {
-        var cs = ConnectionStringProvider.GetMongoDbConnectionString(configuration);
-
-        return new MongoDbConfiguration()
-        {
-            ConnectionString = cs
-        };
-    }
-
     public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
         string connectionString,
         Func<IServiceProvider, IVideoFileLoader>? videoFileLoader = null)
