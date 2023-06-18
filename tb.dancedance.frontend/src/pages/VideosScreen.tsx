@@ -42,7 +42,7 @@ export function VideoScreen() {
             return <div>
                 <h3>Wygląda na to, że nie masz dostępu do nagrań.</h3>
                 Możesz poprosić o dostęp klikając <Button onClick={() => {
-                    navigate('/video/requestassignment')
+                    navigate('/videos/requestassignment')
                 }}>tutaj</Button>
             </div>
     }
@@ -50,7 +50,7 @@ export function VideoScreen() {
     return (
         <Fragment>
             <Button
-                onClick={() => navigate('/video/upload')}>
+                onClick={() => navigate('/videos/upload')}>
                 Wyslij Nagranie
             </Button>
             <VideoList videos={videos}></VideoList>
