@@ -6,7 +6,7 @@ public static class ApiEndpoints
 
     public static class Video
     {
-        private const string Base = $"{ApiBase}/video"; //todo to plural
+        private const string Base = $"{ApiBase}/videos"; //todo to plural
 
         public const string GetAll = $"{Base}/getinformation";
         public const string GetSingle = $"{Base}/{{guid}}/getinformation";
