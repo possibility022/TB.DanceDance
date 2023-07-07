@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Data.PostgreS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Contracts", "TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj", "{B80736FA-6C67-4C42-B054-F260BA426044}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Services.Converter.Deamon", "TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj", "{0AC9442C-9382-4C29-A99A-9FA73C0438E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{B80736FA-6C67-4C42-B054-F260BA426044}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B80736FA-6C67-4C42-B054-F260BA426044}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B80736FA-6C67-4C42-B054-F260BA426044}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AC9442C-9382-4C29-A99A-9FA73C0438E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AC9442C-9382-4C29-A99A-9FA73C0438E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AC9442C-9382-4C29-A99A-9FA73C0438E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AC9442C-9382-4C29-A99A-9FA73C0438E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
