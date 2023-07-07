@@ -37,6 +37,17 @@ public class BlobDataService : IBlobDataService
         return client.UploadAsync(stream);
     }
 
+    public Uri GetSas(string blobId)
+    {
+        container.GetBlobClient(blobId);
+        var sasBuilder = new BlobSasBuilder();
+        sasBuilder.ExpiresOn.AddMinutes(60);
+        sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
+
+        var sas = container.GenerateSasUri(sasBuilder);
+        return sas;
+    }
+
     public SharedBlob CreateUploadSas()
     {
         var blobClient = container.GetBlobClient(Guid.NewGuid().ToString());
@@ -68,7 +79,8 @@ public class SharedBlob
 
 public interface IBlobDataService
 {
+    Uri GetSas(string blobId);
     Task<Stream> OpenStream(string blobName);
     Task Upload(string blobId, Stream stream);
-    public SharedBlob CreateUploadSas();
+    SharedBlob CreateUploadSas();
 }

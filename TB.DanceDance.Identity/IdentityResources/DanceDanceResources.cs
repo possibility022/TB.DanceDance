@@ -8,6 +8,7 @@ public static class DanceDanceResources
         {
             public const string ReadScope = "tbdancedanceapi.read";
             public const string WriteScope = "tbdancedanceapi.write";
+            public const string WriteConvert = "tbdancedanceapi.convert";
         }
 
         public static class Claims
