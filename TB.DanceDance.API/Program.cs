@@ -1,4 +1,5 @@
 using IdentityServer4;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
@@ -67,6 +68,13 @@ builder.Services.AddAuthorization(o =>
         c.AddAuthenticationSchemes(IdentityServerConstants.LocalApi.AuthenticationScheme);
         c.RequireAuthenticatedUser();
     });
+
+    o.AddPolicy(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert, c =>
+    {
+        c.RequireScope(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
+        c.RequireAuthenticatedUser();
+    });
+
 });
 
 builder.Services

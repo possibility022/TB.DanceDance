@@ -1,23 +1,127 @@
-﻿using TB.DanceDance.Data.Blobs;
+﻿using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Data.Blobs;
+using TB.DanceDance.Data.PostgreSQL;
+using TB.DanceDance.Data.PostgreSQL.Models;
 
 namespace TB.DanceDance.Services;
 
 public interface IVideoUploaderService
 {
     SharedBlob GetSasUri();
+
+    Task<VideoToTranform> GetNextVideoToTransformAsync();
+    Task<bool> UpdateVideoToTransformInformationAsync(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata);
+    Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, Stream data);
+    Uri GetVideoSas(string blobId);
 }
 
 public class VideoUploaderService : IVideoUploaderService
 {
-    private readonly IBlobDataService blobDataService;
+    private readonly IBlobDataService videosToConvertBlobs;
+    private readonly IBlobDataService publishedVideosBlobs;
+    private readonly DanceDbContext danceDbContext;
 
-    public VideoUploaderService(IBlobDataServiceFactory factory)
+    public VideoUploaderService(IBlobDataServiceFactory factory, DanceDbContext danceDbContext)
     {
-        blobDataService = factory.GetBlobDataService(BlobContainer.VideosToConvert);
+        videosToConvertBlobs = factory.GetBlobDataService(BlobContainer.VideosToConvert);
+        publishedVideosBlobs = factory.GetBlobDataService(BlobContainer.Videos);
+        this.danceDbContext = danceDbContext;
+    }
+
+    public async Task<VideoToTranform> GetNextVideoToTransformAsync()
+    {
+        var video = await danceDbContext.VideosToTranform
+            .Where(r => r.LockedTill < DateTime.UtcNow)
+            .OrderByDescending(r => r.SharedDateTime)
+            .FirstAsync();
+
+        video.LockedTill = DateTime.Now.AddDays(1);
+        await danceDbContext.SaveChangesAsync();
+
+        return video;
+    }
+
+    public async Task<bool> UpdateVideoToTransformInformationAsync(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata)
+    {
+        var video = await danceDbContext.VideosToTranform.FirstOrDefaultAsync(r => r.Id == videoId);
+
+        if (video == null)
+        {
+            return false;
+        }
+
+        video.Duration = duration;
+        video.RecordedDateTime = recorded;
+        video.Metadata = metadata;
+
+        await danceDbContext.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, Stream data)
+    {
+        var video = await danceDbContext.VideosToTranform.FirstOrDefaultAsync(r => r.Id == videoToConvertId);
+        if (video == null)
+        {
+            return null;
+        }
+
+        await publishedVideosBlobs.Upload(videoToConvertId.ToString(), data);
+
+        var newId = Guid.NewGuid();
+
+        var newVideo = new Video()
+        {
+            Id = newId,
+            BlobId = video.BlobId,
+            Duration = video.Duration,
+            RecordedDateTime = video.RecordedDateTime,
+            SharedDateTime = video.SharedDateTime,
+            UploadedBy = video.UploadedBy,
+            Name = video.Name,
+            SharedWith = new[]
+            {
+                ToSharedWith(video, newId)
+            }
+        };
+
+        danceDbContext.Videos.Add(newVideo);
+        
+        if (video.Metadata != null)
+        {
+            danceDbContext.VideoMetadata.Add(new VideoMetadata()
+            {
+                Metadata = video.Metadata,
+                VideoId = newId,
+            });
+        }
+
+        await danceDbContext.SaveChangesAsync();
+
+        return video.Id;
+    }
+
+    private SharedWith ToSharedWith(VideoToTranform videoToTranform, Guid newVideo)
+    {
+        var entity = new SharedWith() { UserId = videoToTranform.UploadedBy, VideoId = newVideo };
+
+        if (videoToTranform.AssignedToEvent)
+            entity.EventId = videoToTranform.SharedWithId;
+        else
+            entity.GroupId = videoToTranform.SharedWithId;
+
+        return entity;
+    }
+
+    public Uri GetVideoSas(string blobId)
+    {
+        var sas = videosToConvertBlobs.GetSas(blobId);
+        return sas;
     }
 
     public SharedBlob GetSasUri()
     {
-        return blobDataService.CreateUploadSas();
+        return videosToConvertBlobs.CreateUploadSas();
     }
 }

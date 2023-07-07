@@ -10,6 +10,7 @@ public class Config
        {
            new (DanceDanceResources.WestCoastSwing.Scopes.ReadScope, "TB DanceDance API - read"),
            new (DanceDanceResources.WestCoastSwing.Scopes.WriteScope, "TB DanceDance API - write"),
+           new (DanceDanceResources.WestCoastSwing.Scopes.WriteConvert, "TB DanceDance API - converter"),
        };
 
     public static IEnumerable<ApiResource> ApiResources =>
@@ -58,6 +59,22 @@ public class Config
 
                 // scopes that client has access to
                 AllowedScopes = { DanceDanceResources.WestCoastSwing.Scopes.ReadScope, "openid", "profile" }
+            },
+            new()
+            {
+                ClientId = "tbdancedanceconverter",
+                ClientName = "Converter Service",
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+                RequireClientSecret = true,
+
+                ClientSecrets =
+                {
+                    new Secret("other".Sha256())
+                },
+                AllowedScopes =
+                {
+                    DanceDanceResources.WestCoastSwing.Scopes.WriteConvert
+                }
             }
         };
 }
