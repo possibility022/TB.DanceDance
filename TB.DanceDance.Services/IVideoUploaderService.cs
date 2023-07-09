@@ -100,6 +100,8 @@ public class VideoUploaderService : IVideoUploaderService
             });
         }
 
+        video.LockedTill = DateTime.SpecifyKind(new DateTime(2090, 01, 01), DateTimeKind.Utc);
+
         await danceDbContext.SaveChangesAsync();
 
         return video.Id;
