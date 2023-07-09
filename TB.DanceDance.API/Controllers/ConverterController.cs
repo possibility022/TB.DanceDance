@@ -52,4 +52,15 @@ public class ConverterController : Controller
 
         return Ok();
     }
+
+    [HttpPost]
+    [Route(ApiEndpoints.Converter.Upload)]
+    public async Task<IActionResult> UploadConvertedVideo([FromQuery]Guid videoId)
+    {
+        var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId, Request.Body);
+        if (newId == null)
+            return BadRequest();
+
+        return Ok(new UploadConvertedVideoResponse() { VideoId = newId.Value});
+    }
 }

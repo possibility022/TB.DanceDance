@@ -60,7 +60,18 @@ var task = Task.Run(async () =>
             await client.GetVideoToConvertAsync(file, new Uri(nextVideoToConvert.Sas), token);
         }
 
+        var info = await converter.GetInfoAsync(filePath);
+        await client.UploadVideoToTransformInformations(new TB.DanceDance.API.Contracts.UpdateVideoInfoRequest()
+        {
+            Duration = info.Value.Item2,
+            RecordedDateTime = info.Value.Item1,
+            Metadata = new byte[0],
+            VideoId = nextVideoToConvert.Id
+        }, token);
+
         await converter.ConvertAsync(filePath, convertedFilePath);
+        using var convertedVideo = File.OpenRead(convertedFilePath);
+        await client.PublishTransformedVideo(nextVideoToConvert.Id, convertedVideo);
     }
 });
 

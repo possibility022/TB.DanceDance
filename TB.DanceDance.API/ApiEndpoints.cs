@@ -33,6 +33,7 @@ public static class ApiEndpoints
 
         public const string GetVideo = $"{Base}/video";
         public const string UpdateInfo = $"{Base}/video";
+        public const string Upload = $"{Base}/video/upload";
     }
 
     public static class Info

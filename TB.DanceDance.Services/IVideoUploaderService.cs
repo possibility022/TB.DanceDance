@@ -55,7 +55,7 @@ public class VideoUploaderService : IVideoUploaderService
         }
 
         video.Duration = duration;
-        video.RecordedDateTime = recorded;
+        video.RecordedDateTime = DateTime.SpecifyKind(recorded, DateTimeKind.Utc);
         video.Metadata = metadata;
 
         await danceDbContext.SaveChangesAsync();
@@ -71,14 +71,13 @@ public class VideoUploaderService : IVideoUploaderService
             return null;
         }
 
-        await publishedVideosBlobs.Upload(videoToConvertId.ToString(), data);
-
         var newId = Guid.NewGuid();
+        await publishedVideosBlobs.Upload(newId.ToString(), data);
 
         var newVideo = new Video()
         {
             Id = newId,
-            BlobId = videoToConvertId.ToString(),
+            BlobId = newId.ToString(),
             Duration = video.Duration,
             RecordedDateTime = video.RecordedDateTime,
             SharedDateTime = video.SharedDateTime,
