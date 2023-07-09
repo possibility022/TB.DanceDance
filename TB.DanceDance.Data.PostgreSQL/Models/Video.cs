@@ -8,9 +8,9 @@ public class Video
 
     // User Id
     public required string UploadedBy { get; init; }
-    public required DateTime RecordedDateTime { get; init; }
+    public required DateTime RecordedDateTime { get; set; }
     public required DateTime SharedDateTime { get; init; }
-    public required TimeSpan? Duration { get; init; }
+    public required TimeSpan? Duration { get; set; }
 
     // Navigation properties
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
@@ -20,13 +20,21 @@ public class VideoToTranform
 {
     public Guid Id { get; set; }
     public required string BlobId { get; init; }
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     // User Id
     public required string UploadedBy { get; init; }
-    public required DateTime RecordedDateTime { get; init; }
+    public required DateTime RecordedDateTime { get; set; }
     public required DateTime SharedDateTime { get; init; }
-    public required TimeSpan? Duration { get; init; }
+    public required TimeSpan? Duration { get; set; }
+    public byte[]? Metadata { get; set; }
+
+    public required string FileName { get; init; }
+
+    /// <summary>
+    /// When value is set, it means that it is being converted by some service and if we passed that date it means somethin went wrong and another service can try convert it again.
+    /// </summary>
+    public DateTime? LockedTill { get; set; } = null;
 
     /// <summary>
     /// Pointing to event or group. Based on AssignedToEvent flag

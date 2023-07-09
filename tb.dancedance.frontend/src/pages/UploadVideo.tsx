@@ -128,6 +128,7 @@ export function UploadVideo() {
 
       const data: ISharedVideoInformation = { 
         nameOfVideo: videoName,
+        fileName: file.name,
         recordedTimeUtc: new Date(file.lastModified),
         sharedWith: selected.id,
         sharingWithType: selected.isEvent ? SharingWithType.Event : SharingWithType.Group
