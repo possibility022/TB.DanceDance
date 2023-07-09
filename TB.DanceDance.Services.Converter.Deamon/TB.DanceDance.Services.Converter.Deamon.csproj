@@ -19,8 +19,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="auth.settings">
+    <Compile Update="api.settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>api.settings.txt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="api.settings.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>api.settings.Designer.cs</LastGenOutput>
+      <Generator>SettingsSingleFileGenerator</Generator>
+    </None>
+    <None Update="auth.settings.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>auth.settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
 

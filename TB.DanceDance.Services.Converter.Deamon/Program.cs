@@ -8,7 +8,7 @@ ProgramConfig.Configure();
 
 using var oauthClient = new HttpClient()
 {
-    BaseAddress = new Uri("https://localhost:7068/")
+    BaseAddress = new Uri(ProgramConfig.Settings.OAuthOrigin)
 };
 
 var tokenProvider = new TokenProvider(oauthClient, ProgramConfig.TokenProviderOptions);
@@ -17,7 +17,7 @@ var handler = new TokenHttpHandler(tokenProvider);
 
 using var apiHttpClient = new HttpClient(handler)
 {
-    BaseAddress = new Uri("https://localhost:7068")
+    BaseAddress = new Uri(ProgramConfig.Settings.ApiOrigin)
 };
 
 using var defaultHttpClient = new HttpClient();
