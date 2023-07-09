@@ -131,12 +131,13 @@ public class VideoService : IVideoService
         dbContext.SaveChanges();
     }
 
-    public async Task<SharedBlob> GetSharingLink(string userId, string name, bool assignedToEvent, Guid sharedWith)
+    public async Task<SharedBlob> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith)
     {
         var sharedBlob = videoUploaderService.GetSasUri();
 
         var video = new VideoToTranform()
         {
+            FileName = fileName,
             AssignedToEvent = assignedToEvent,
             BlobId = sharedBlob.BlobClient.Name,
             Name = name,

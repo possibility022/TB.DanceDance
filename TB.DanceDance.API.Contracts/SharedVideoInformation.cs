@@ -13,6 +13,9 @@ namespace TB.DanceDance.API.Contracts
         public string NameOfVideo { get; set; } = string.Empty;
 
         [Required]
+        public string FileName { get; set; } = string.Empty;
+
+        [Required]
         public DateTime RecordedTimeUtc { get; set; } = DateTime.MinValue;
 
         [Required]

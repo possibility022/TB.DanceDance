@@ -149,6 +149,7 @@ public class VideoController : Controller
         var sharedBlob = await videoService.GetSharingLink(
             user,
             sharedVideoInformations.NameOfVideo,
+            sharedVideoInformations.FileName,
             sharedVideoInformations.SharingWithType == SharingWithType.Event,
             sharedVideoInformations.SharedWith.Value);
 
