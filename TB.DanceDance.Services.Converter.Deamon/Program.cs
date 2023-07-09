@@ -11,12 +11,7 @@ using var oauthClient = new HttpClient()
     BaseAddress = new Uri("https://localhost:7068/")
 };
 
-var tokenProvider = new TokenProvider(oauthClient, new TokenProviderOptions()
-{
-    ClientSecret = "other",
-    Scope = "tbdancedanceapi.convert",
-    ClientId = "tbdancedanceconverter"
-});
+var tokenProvider = new TokenProvider(oauthClient, ProgramConfig.TokenProviderOptions);
 
 var handler = new TokenHttpHandler(tokenProvider);
 

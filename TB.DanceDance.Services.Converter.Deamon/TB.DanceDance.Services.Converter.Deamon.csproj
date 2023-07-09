@@ -18,4 +18,10 @@
     <ProjectReference Include="..\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="auth.settings">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
