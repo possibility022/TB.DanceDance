@@ -36,6 +36,7 @@ var task = Task.Run(async () =>
 {
     while (!token.IsCancellationRequested)
     {
+        Log.Information("Getting next video.");
         var nextVideoToConvert = await client.GetNextVideoToConvertAsync(token);
 
         if (nextVideoToConvert == null)
@@ -45,17 +46,21 @@ var task = Task.Run(async () =>
             continue;
         }
 
-        var guid = Guid.NewGuid();
-        var filePath = $"D:\\temp\\convertingDeamon\\{guid}.source.{nextVideoToConvert.FileName}";
+        Log.Information("Video to convert {0}", nextVideoToConvert.Id);
+
+        var guid = nextVideoToConvert.Id;
+        var inputVideo = $"D:\\temp\\convertingDeamon\\{guid}.source.{nextVideoToConvert.FileName}";
         var convertedFilePath = $"D:\\temp\\convertingDeamon\\{guid}.converted.webm";
 
-
-        using (var file = File.Open(filePath, FileMode.OpenOrCreate))
+        using (var file = File.Open(inputVideo, FileMode.Create))
         {
+            Log.Information("Getting video content into {0}.", inputVideo);
             await client.GetVideoToConvertAsync(file, new Uri(nextVideoToConvert.Sas), token);
         }
 
-        var info = await converter.GetInfoAsync(filePath);
+        Log.Information("Getting video information.");
+        var info = await converter.GetInfoAsync(inputVideo);
+        Log.Information("Updating video informations.");
         await client.UploadVideoToTransformInformations(new TB.DanceDance.API.Contracts.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
@@ -64,11 +69,21 @@ var task = Task.Run(async () =>
             VideoId = nextVideoToConvert.Id
         }, token);
 
-        await converter.ConvertAsync(filePath, convertedFilePath);
+        Log.Information("Converting video.");
+        await converter.ConvertAsync(inputVideo, convertedFilePath);
         using var convertedVideo = File.OpenRead(convertedFilePath);
+
+        Log.Information("Publishing video.");
         await client.PublishTransformedVideo(nextVideoToConvert.Id, convertedVideo);
     }
 });
 
-await task;
+try
+{
+    await task;
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Error in main execution path.");
+}
 

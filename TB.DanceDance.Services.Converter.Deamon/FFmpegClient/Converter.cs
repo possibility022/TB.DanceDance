@@ -18,7 +18,7 @@ internal class Converter
                 if (m != null && !m.StartsWith("frame="))
                     Log.Error(m);
             })
-            .NotifyOnProgress(d => Log.Information("Progress: {0}", d))
+            .NotifyOnProgress(d => Log.Verbose("Progress: {0}", d))
             .NotifyOnOutput(m => Log.Information(m));
 
         await args.ProcessAsynchronously();
