@@ -70,7 +70,7 @@ public class VideoControllerTests
     [TestMethod]
     public async Task GetUploadInformation_ReturnUnauthorized_WhenUserIsNotAssignedToEvent()
     {
-        var requestBody = new SharedVideoInformation()
+        var requestBody = new SharedVideoInformationRequest()
         {
             NameOfVideo = "name",
             RecordedTimeUtc = DateTime.Now,
@@ -90,7 +90,7 @@ public class VideoControllerTests
     [TestMethod]
     public async Task GetUploadInformation_ReturnUnauthorized_WhenUserIsNotAssignedToGroup()
     {
-        var requestBody = new SharedVideoInformation()
+        var requestBody = new SharedVideoInformationRequest()
         {
             NameOfVideo = "name",
             RecordedTimeUtc = DateTime.Now,

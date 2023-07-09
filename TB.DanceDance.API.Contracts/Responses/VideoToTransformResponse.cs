@@ -2,7 +2,7 @@
 
 namespace TB.DanceDance.API.Contracts.Responses
 {
-    public class VideoToTransform
+    public class VideoToTransformResponse
     {
         public Guid Id { get; set; }
         public string FileName { get; set; } = null!;

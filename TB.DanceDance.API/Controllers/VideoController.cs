@@ -32,7 +32,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetAll)]
     [HttpGet]
-    public async Task<IEnumerable<VideoInformation>> GetInformationAsync()
+    public async Task<IEnumerable<VideoInformationResponse>> GetInformationAsync()
     {
         string user = User.GetSubject();
 
@@ -88,7 +88,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.Rename)]
     [HttpPost]
-    public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameModel input)
+    public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameRequest input)
     {
         var res = Guid.TryParse(guid, out var parsedGuid);
         if (!res)
@@ -101,7 +101,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformation sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformations)
     {
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;
