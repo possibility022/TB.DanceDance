@@ -39,12 +39,12 @@ public class BlobDataService : IBlobDataService
 
     public Uri GetSas(string blobId)
     {
-        container.GetBlobClient(blobId);
+        var client = container.GetBlobClient(blobId);
         var sasBuilder = new BlobSasBuilder();
-        sasBuilder.ExpiresOn.AddMinutes(60);
+        sasBuilder.ExpiresOn = DateTimeOffset.Now.AddMinutes(60);
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 
-        var sas = container.GenerateSasUri(sasBuilder);
+        var sas = client.GenerateSasUri(sasBuilder);
         return sas;
     }
 
@@ -60,8 +60,8 @@ public class BlobDataService : IBlobDataService
         // The same generally applies to expiry time as well--remember that you may observe up to 15 minutes of clock skew in either direction on any request. For clients using a REST version prior to 2012-02-12,
         // the maximum duration for a SAS that does not reference a stored access policy is 1 hour. Any policies that specify a longer term than 1 hour will fail.
         //sasBuilder.StartsOn = DateTimeOffset.Now.AddMinutes(-25);
-        sasBuilder.ExpiresOn = DateTimeOffset.Now.AddMinutes(60);
-        sasBuilder.SetPermissions(BlobSasPermissions.Create);
+        sasBuilder.ExpiresOn = DateTimeOffset.Now.AddMinutes(59);
+        sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
         var sas = blobClient.GenerateSasUri(sasBuilder);
         return new SharedBlob()
         {
