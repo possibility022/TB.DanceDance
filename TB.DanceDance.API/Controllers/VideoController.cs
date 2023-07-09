@@ -1,7 +1,8 @@
 ﻿using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 using TB.DanceDance.Identity.IdentityResources;

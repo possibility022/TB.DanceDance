@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Controllers;
 using TB.DanceDance.Services;
 
