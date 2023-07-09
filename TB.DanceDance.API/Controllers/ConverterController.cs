@@ -27,6 +27,7 @@ public class ConverterController : Controller
         return Ok(new VideoToTransform()
         {
             Id = video.Id,
+            FileName = video.FileName,
             Sas = sas.ToString(),
         });
     }

@@ -18,5 +18,5 @@ public interface IVideoService
     Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId);
     Task RenameVideoAsync(Guid guid, string newName);
 
-    Task<SharedBlob> GetSharingLink(string userId, string name, bool assignedToEvent, Guid sharedWith);
+    Task<SharedBlob> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith);
 }
