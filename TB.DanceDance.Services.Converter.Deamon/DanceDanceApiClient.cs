@@ -15,7 +15,7 @@ internal class DanceDanceApiClient : IDisposable
         this.blobClient = blobClient;
     }
 
-    public async Task<VideoToTransform?> GetNextVideoToConvertAsync(CancellationToken token)
+    public async Task<VideoToTransformResponse?> GetNextVideoToConvertAsync(CancellationToken token)
     {
         var response = await apiClient.GetAsync("/api/converter/video");
 
@@ -26,7 +26,7 @@ internal class DanceDanceApiClient : IDisposable
 
         var contentStream = await response.Content.ReadAsStreamAsync();
 
-        var videoToTransform = await System.Text.Json.JsonSerializer.DeserializeAsync<VideoToTransform>(contentStream, new JsonSerializerOptions()
+        var videoToTransform = await System.Text.Json.JsonSerializer.DeserializeAsync<VideoToTransformResponse>(contentStream, new JsonSerializerOptions()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         }, cancellationToken: token);

@@ -6,9 +6,9 @@ namespace TB.DanceDance.API.Mappers;
 
 public class ContractMappers
 {
-    public static VideoInformation MapToVideoInformation(VideoInfo info)
+    public static VideoInformationResponse MapToVideoInformation(VideoInfo info)
     {
-        return new VideoInformation()
+        return new VideoInformationResponse()
         {
             BlobId = info.Video.BlobId,
             Duration = info.Video.Duration,
