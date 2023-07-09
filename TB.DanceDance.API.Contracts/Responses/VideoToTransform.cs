@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TB.DanceDance.API.Contracts
+namespace TB.DanceDance.API.Contracts.Responses
 {
     public class VideoToTransform
     {

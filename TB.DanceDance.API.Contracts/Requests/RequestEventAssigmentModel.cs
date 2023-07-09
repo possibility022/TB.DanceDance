@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TB.DanceDance.API.Contracts
+namespace TB.DanceDance.API.Contracts.Requests
 {
 
     public class RequestEventAssigmentModel

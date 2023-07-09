@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Controllers;

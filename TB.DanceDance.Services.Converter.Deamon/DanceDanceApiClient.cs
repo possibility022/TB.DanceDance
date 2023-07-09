@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
-using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Responses;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
 internal class DanceDanceApiClient : IDisposable
