@@ -105,7 +105,7 @@ public class VideoController : Controller
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;
 
-        if (sharedWith == null)
+        if (sharedVideoInformations == null || sharedWith == null)
         {
             ModelState.AddModelError(nameof(sharedVideoInformations.SharedWith), "EntityId within SharedWith is empty.");
         }
