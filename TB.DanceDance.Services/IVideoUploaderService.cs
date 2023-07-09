@@ -1,23 +1,14 @@
 ﻿using TB.DanceDance.Data.Blobs;
+using TB.DanceDance.Data.PostgreSQL.Models;
 
 namespace TB.DanceDance.Services;
 
 public interface IVideoUploaderService
 {
     SharedBlob GetSasUri();
-}
 
-public class VideoUploaderService : IVideoUploaderService
-{
-    private readonly IBlobDataService blobDataService;
-
-    public VideoUploaderService(IBlobDataServiceFactory factory)
-    {
-        blobDataService = factory.GetBlobDataService(BlobContainer.VideosToConvert);
-    }
-
-    public SharedBlob GetSasUri()
-    {
-        return blobDataService.CreateUploadSas();
-    }
+    Task<VideoToTranform?> GetNextVideoToTransformAsync();
+    Task<bool> UpdateVideoToTransformInformationAsync(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata);
+    Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, Stream data);
+    Uri GetVideoSas(string blobId);
 }

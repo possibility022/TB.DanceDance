@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TB.DanceDance.Data.PostgreSQL;
@@ -11,9 +12,11 @@ using TB.DanceDance.Data.PostgreSQL;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    partial class DanceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230707222445_NewFieldsForVideoUpload")]
+    partial class NewFieldsForVideoUpload
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,10 +238,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("interval");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<DateTime?>("LockedTill")
                         .HasColumnType("timestamp with time zone");

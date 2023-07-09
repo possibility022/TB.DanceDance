@@ -27,6 +27,15 @@ public static class ApiEndpoints
 
     }
 
+    public static class Converter
+    {
+        private const string Base = $"{ApiBase}/converter";
+
+        public const string GetVideo = $"{Base}/video";
+        public const string UpdateInfo = $"{Base}/video";
+        public const string Upload = $"{Base}/video/upload";
+    }
+
     public static class Info
     {
         public const string AllEndpoints = "/.endpoints";
