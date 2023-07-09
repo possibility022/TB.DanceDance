@@ -9,7 +9,7 @@ public interface IVideoUploaderService
 {
     SharedBlob GetSasUri();
 
-    Task<VideoToTranform> GetNextVideoToTransformAsync();
+    Task<VideoToTranform?> GetNextVideoToTransformAsync();
     Task<bool> UpdateVideoToTransformInformationAsync(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata);
     Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, Stream data);
     Uri GetVideoSas(string blobId);
@@ -28,14 +28,18 @@ public class VideoUploaderService : IVideoUploaderService
         this.danceDbContext = danceDbContext;
     }
 
-    public async Task<VideoToTranform> GetNextVideoToTransformAsync()
+    public async Task<VideoToTranform?> GetNextVideoToTransformAsync()
     {
         var video = await danceDbContext.VideosToTranform
-            .Where(r => r.LockedTill < DateTime.UtcNow)
+            .Where(r => r.LockedTill == null || r.LockedTill < DateTime.UtcNow)
             .OrderByDescending(r => r.SharedDateTime)
-            .FirstAsync();
+            .FirstOrDefaultAsync();
 
-        video.LockedTill = DateTime.Now.AddDays(1);
+        if (video == null)
+            return null;
+
+        video.LockedTill = DateTime.SpecifyKind(DateTime.Now.AddDays(1), DateTimeKind.Utc);
+        
         await danceDbContext.SaveChangesAsync();
 
         return video;
@@ -74,7 +78,7 @@ public class VideoUploaderService : IVideoUploaderService
         var newVideo = new Video()
         {
             Id = newId,
-            BlobId = video.BlobId,
+            BlobId = videoToConvertId.ToString(),
             Duration = video.Duration,
             RecordedDateTime = video.RecordedDateTime,
             SharedDateTime = video.SharedDateTime,
