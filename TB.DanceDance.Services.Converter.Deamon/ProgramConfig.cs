@@ -28,7 +28,7 @@ internal class ProgramConfig
 
     private static void ConfigureAuth()
     {
-        var lines = File.ReadAllLines("auth.settings.txt");
+        var lines = File.ReadAllLines("auth.set.txt");
         TokenProviderOptions = new TokenProviderOptions()
         {
             ClientId = lines[0].Trim(),
@@ -41,7 +41,7 @@ internal class ProgramConfig
 
     private static void ConfigureApi()
     {
-        var lines = File.ReadAllLines("api.settings.txt");
+        var lines = File.ReadAllLines("api.set.txt");
         Settings.ApiOrigin = lines[0].Trim();
     }
 
