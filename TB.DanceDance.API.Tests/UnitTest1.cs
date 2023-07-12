@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Controllers;
 using TB.DanceDance.Services;
 
@@ -70,7 +70,7 @@ public class VideoControllerTests
     [TestMethod]
     public async Task GetUploadInformation_ReturnUnauthorized_WhenUserIsNotAssignedToEvent()
     {
-        var requestBody = new SharedVideoInformation()
+        var requestBody = new SharedVideoInformationRequest()
         {
             NameOfVideo = "name",
             RecordedTimeUtc = DateTime.Now,
@@ -90,7 +90,7 @@ public class VideoControllerTests
     [TestMethod]
     public async Task GetUploadInformation_ReturnUnauthorized_WhenUserIsNotAssignedToGroup()
     {
-        var requestBody = new SharedVideoInformation()
+        var requestBody = new SharedVideoInformationRequest()
         {
             NameOfVideo = "name",
             RecordedTimeUtc = DateTime.Now,

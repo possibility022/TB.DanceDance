@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.API.Contracts
+namespace TB.DanceDance.API.Contracts.Requests
 {
     public class UpdateVideoInfoRequest
     {
@@ -10,10 +10,10 @@ namespace TB.DanceDance.API.Contracts
 
         [Required]
         public DateTime RecordedDateTime { get; set; }
-        
+
         [Required]
         public TimeSpan Duration { get; set; }
-        
+
         [Required]
         public byte[]? Metadata { get; set; }
     }

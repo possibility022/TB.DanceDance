@@ -1,13 +1,14 @@
-﻿using TB.DanceDance.API.Contracts;
+﻿using TB.DanceDance.API.Contracts.Models;
+using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.API.Mappers;
 
 public class ContractMappers
 {
-    public static VideoInformation MapToVideoInformation(VideoInfo info)
+    public static VideoInformationResponse MapToVideoInformation(VideoInfo info)
     {
-        return new VideoInformation()
+        return new VideoInformationResponse()
         {
             BlobId = info.Video.BlobId,
             Duration = info.Video.Duration,
@@ -28,7 +29,7 @@ public class ContractMappers
         };
     }
 
-    public static TB.DanceDance.API.Contracts.Event MapToEventContract(TB.DanceDance.Data.PostgreSQL.Models.Event @event)
+    public static Event MapToEventContract(TB.DanceDance.Data.PostgreSQL.Models.Event @event)
     {
         return new Event()
         {

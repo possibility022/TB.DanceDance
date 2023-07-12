@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace TB.DanceDance.API.Contracts
+namespace TB.DanceDance.API.Contracts.Responses
 {
-    public class VideoInformation
+    public class VideoInformationResponse
     {
         public Guid Id { get; set; }
         public string BlobId { get; set; } = null!;

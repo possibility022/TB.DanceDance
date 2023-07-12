@@ -45,7 +45,7 @@ internal class TokenProvider
 
     public async Task<Token> GetTokenAsync(CancellationToken token)
     {
-        if (currentToken != null && DateTime.Now > expiresAt)
+        if (currentToken != null && DateTime.Now < expiresAt)
             return currentToken;
 
         var request = GetTokenRequest();

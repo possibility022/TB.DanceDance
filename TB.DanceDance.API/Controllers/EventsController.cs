@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 using TB.DanceDance.Identity.IdentityResources;
@@ -20,12 +21,12 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.GetAll)]
     [HttpGet]
-    public async Task<EventsAndGroups> GetAllEventsAndGroups()
+    public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups()
     {
         var listOfEvents = await userService.GetAllEvents();
         var listOfGroups = await userService.GetAllGroups();
 
-        return new EventsAndGroups()
+        return new EventsAndGroupsResponse()
         {
             Events = listOfEvents
                 .Select(@event => ContractMappers.MapToEventContract(@event))
@@ -37,12 +38,12 @@ public class EventsController : Controller
     }
 
     [Route(ApiEndpoints.Video.Access.GetUserAccess)]
-    public EventsAndGroups GetAssignedGroups()
+    public EventsAndGroupsResponse GetAssignedGroups()
     {
         var user = User.GetSubject();
         (var groups, var evenets) = userService.GetUserEventsAndGroups(user);
 
-        return new EventsAndGroups()
+        return new EventsAndGroupsResponse()
         {
             Groups = groups
             .Select(group => ContractMappers.MapToGroupContract(group))
@@ -55,7 +56,7 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
-    public async Task<IActionResult> RequestAssigment([FromBody] RequestEventAssigmentModel requests)
+    public async Task<IActionResult> RequestAssigment([FromBody] RequestEventAssigmentModelRequest requests)
     {
         if (requests == null)
             return BadRequest();
