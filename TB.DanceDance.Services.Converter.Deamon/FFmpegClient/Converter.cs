@@ -44,7 +44,8 @@ internal class Converter
                 return (creationTime.Value, res.Duration);
         }
 
-        throw new Exception("Could not get creation date time");
+        Log.Warning("Default creation date.");
+        return (DateTime.Now, res.Duration);
     }
 
     private DateTime? GetCreationTime(Dictionary<string, string>? tags)

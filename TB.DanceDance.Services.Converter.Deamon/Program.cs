@@ -61,7 +61,7 @@ var task = Task.Run(async () =>
         Log.Information("Getting video information.");
         var info = await converter.GetInfoAsync(inputVideo);
         Log.Information("Updating video informations.");
-        await client.UploadVideoToTransformInformations(new TB.DanceDance.API.Contracts.UpdateVideoInfoRequest()
+        await client.UploadVideoToTransformInformations(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
             RecordedDateTime = info.Value.Item1,

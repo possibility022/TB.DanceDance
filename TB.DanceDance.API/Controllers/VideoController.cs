@@ -1,7 +1,8 @@
 ﻿using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.API.Contracts;
+using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 using TB.DanceDance.Identity.IdentityResources;
@@ -31,7 +32,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetAll)]
     [HttpGet]
-    public async Task<IEnumerable<VideoInformation>> GetInformationAsync()
+    public async Task<IEnumerable<VideoInformationResponse>> GetInformationAsync()
     {
         string user = User.GetSubject();
 
@@ -87,7 +88,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.Rename)]
     [HttpPost]
-    public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameModel input)
+    public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameRequest input)
     {
         var res = Guid.TryParse(guid, out var parsedGuid);
         if (!res)
@@ -100,7 +101,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformation sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformations)
     {
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;
