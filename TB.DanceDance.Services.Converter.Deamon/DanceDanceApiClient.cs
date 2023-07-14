@@ -74,9 +74,6 @@ internal class DanceDanceApiClient : IDisposable
 
         var cloudBlockBlob = new CloudBlockBlob(new Uri(body.Sas));
         await cloudBlockBlob.UploadFromStreamAsync(content);
-
-        //var response = await blobClient.PostAsync(body.Sas, new StreamContent(content));
-        //response.EnsureSuccessStatusCode();
     }
 
     public async Task PublishTransformedVideo(Guid videoId)
