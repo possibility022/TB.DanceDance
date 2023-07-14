@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.WindowsAzure.Storage.Blob;
+using System.Net.Http.Json;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
@@ -8,6 +9,10 @@ internal class DanceDanceApiClient : IDisposable
 {
     private readonly HttpClient apiClient;
     private readonly HttpClient blobClient;
+    private readonly JsonSerializerOptions serializationOptions = new JsonSerializerOptions()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public DanceDanceApiClient(HttpClient apiClient, HttpClient blobClient)
     {
@@ -26,10 +31,7 @@ internal class DanceDanceApiClient : IDisposable
 
         var contentStream = await response.Content.ReadAsStreamAsync();
 
-        var videoToTransform = await System.Text.Json.JsonSerializer.DeserializeAsync<VideoToTransformResponse>(contentStream, new JsonSerializerOptions()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        }, cancellationToken: token);
+        var videoToTransform = await System.Text.Json.JsonSerializer.DeserializeAsync<VideoToTransformResponse>(contentStream, serializationOptions, cancellationToken: token);
 
         if (videoToTransform == null)
             throw new NullReferenceException("Expected not null.");
@@ -58,12 +60,28 @@ internal class DanceDanceApiClient : IDisposable
         res.EnsureSuccessStatusCode();
     }
 
-    public async Task PublishTransformedVideo(Guid videoId, Stream source)
+    public async Task UploadContent(Guid videoId, Stream content)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/converter/video/upload?videoId={videoId}")
-        {
-            Content = new StreamContent(source)
-        };
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/converter/video/{videoId}/sas");
+
+        var res = await apiClient.SendAsync(request);
+        res.EnsureSuccessStatusCode();
+
+        var body = await res.Content.ReadFromJsonAsync<GetPublishSasResponse>(serializationOptions);
+        
+        if (body == null)
+            throw new NullReferenceException("Deserialized body is null.");
+
+        var cloudBlockBlob = new CloudBlockBlob(new Uri(body.Sas));
+        await cloudBlockBlob.UploadFromStreamAsync(content);
+
+        //var response = await blobClient.PostAsync(body.Sas, new StreamContent(content));
+        //response.EnsureSuccessStatusCode();
+    }
+
+    public async Task PublishTransformedVideo(Guid videoId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/converter/video/{videoId}/publish");
 
         var res = await apiClient.SendAsync(request);
         res.EnsureSuccessStatusCode();

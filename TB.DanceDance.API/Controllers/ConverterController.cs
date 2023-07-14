@@ -56,11 +56,23 @@ public class ConverterController : Controller
         return Ok();
     }
 
+    [HttpGet]
+    [Route(ApiEndpoints.Converter.GetPublishSas)]
+    public async Task<IActionResult> GetPublishSas([FromRoute] Guid videoId)
+    {
+        var shared = await videoUploaderService.GetSasForConvertedVideoAsync(videoId);
+
+        return Ok(new GetPublishSasResponse()
+        {
+            Sas = shared.Sas.ToString()
+        });
+    }
+
     [HttpPost]
     [Route(ApiEndpoints.Converter.Upload)]
-    public async Task<IActionResult> UploadConvertedVideo([FromQuery]Guid videoId)
+    public async Task<IActionResult> PublishConvertedVideo([FromRoute]Guid videoId)
     {
-        var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId, Request.Body);
+        var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId);
         if (newId == null)
             return BadRequest();
 

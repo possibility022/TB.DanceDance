@@ -9,6 +9,7 @@ public interface IVideoUploaderService
 
     Task<VideoToTranform?> GetNextVideoToTransformAsync();
     Task<bool> UpdateVideoToTransformInformationAsync(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata);
-    Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, Stream data);
+    Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId);
     Uri GetVideoSas(string blobId);
+    Task<SharedBlob> GetSasForConvertedVideoAsync(Guid videoId);
 }
