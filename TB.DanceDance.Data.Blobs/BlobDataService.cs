@@ -48,9 +48,12 @@ public class BlobDataService : IBlobDataService
         return sas;
     }
 
-    public SharedBlob CreateUploadSas()
+    public SharedBlob CreateUploadSas(string blobId = null)
     {
-        var blobClient = container.GetBlobClient(Guid.NewGuid().ToString());
+        if (blobId == null)
+            blobId = Guid.NewGuid().ToString();
+
+        var blobClient = container.GetBlobClient(blobId);
         var sasBuilder = new BlobSasBuilder();
 
         // Be careful with SAS start time. If you set the start time for a SAS to the current time, failures might occur intermittently for the first few minutes.
@@ -69,6 +72,12 @@ public class BlobDataService : IBlobDataService
             Sas = sas,
         };
     }
+
+    public async Task<bool> BlobExistsAsync(string blobId)
+    {
+        var response = await container.GetBlobClient(blobId).ExistsAsync();
+        return response.Value;
+    }
 }
 
 public class SharedBlob
@@ -82,5 +91,6 @@ public interface IBlobDataService
     Uri GetSas(string blobId);
     Task<Stream> OpenStream(string blobName);
     Task Upload(string blobId, Stream stream);
-    SharedBlob CreateUploadSas();
+    SharedBlob CreateUploadSas(string blobId = null);
+    Task<bool> BlobExistsAsync(string blobId);
 }
