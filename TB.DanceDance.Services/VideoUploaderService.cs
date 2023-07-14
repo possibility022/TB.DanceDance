@@ -2,6 +2,7 @@
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TB.DanceDance.Services;
 
@@ -53,7 +54,7 @@ public class VideoUploaderService : IVideoUploaderService
         return true;
     }
 
-    public async Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, Stream data)
+    public async Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId)
     {
         var video = await danceDbContext.VideosToTranform.FirstOrDefaultAsync(r => r.Id == videoToConvertId);
         if (video == null)
@@ -61,13 +62,19 @@ public class VideoUploaderService : IVideoUploaderService
             return null;
         }
 
+        var videoAlreadyUploaded = await publishedVideosBlobs.BlobExistsAsync(video.BlobId);
+        
+        if (!videoAlreadyUploaded)
+        {
+            return null;
+        }
+
         var newId = Guid.NewGuid();
-        await publishedVideosBlobs.Upload(newId.ToString(), data);
 
         var newVideo = new Video()
         {
             Id = newId,
-            BlobId = newId.ToString(),
+            BlobId = video.BlobId,
             Duration = video.Duration,
             RecordedDateTime = video.RecordedDateTime,
             SharedDateTime = video.SharedDateTime,
@@ -118,5 +125,18 @@ public class VideoUploaderService : IVideoUploaderService
     public SharedBlob GetSasUri()
     {
         return videosToConvertBlobs.CreateUploadSas();
+    }
+
+    public async Task<SharedBlob> GetSasForConvertedVideoAsync(Guid videoId)
+    {
+        var video = await danceDbContext.VideosToTranform.FirstOrDefaultAsync(r => r.Id == videoId);
+        if (video == null)
+        {
+            return null;
+        }
+
+        var sas = publishedVideosBlobs.CreateUploadSas(video.BlobId);
+
+        return sas;
     }
 }
