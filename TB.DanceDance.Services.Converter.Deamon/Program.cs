@@ -70,8 +70,8 @@ var task = Task.Run(async () =>
         }, token);
 
         Log.Information("Converting video.");
-        //await converter.ConvertAsync(inputVideo, convertedFilePath);
-        using var convertedVideo = File.OpenRead("D:\\temp\\convertingDeamon\\0696124f-41a2-490a-bba4-e07caf5988ab.converted.webm");
+        await converter.ConvertAsync(inputVideo, convertedFilePath);
+        using var convertedVideo = File.OpenRead(convertedFilePath);
 
         Log.Information("Sending content");
         await client.UploadContent(nextVideoToConvert.Id, convertedVideo);
