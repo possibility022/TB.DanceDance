@@ -27,6 +27,13 @@ public static class ApiEndpoints
 
     }
 
+    public static class Event
+    {
+        private const string Base = $"{ApiBase}/event";
+
+        public const string AddEvent = $"{Base}";
+    }
+
     public static class Converter
     {
         private const string Base = $"{ApiBase}/converter";
