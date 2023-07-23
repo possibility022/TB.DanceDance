@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
+using TB.DanceDance.Data.PostgreSQL.Models;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
 
@@ -13,10 +15,12 @@ namespace TB.DanceDance.API.Controllers;
 public class EventsController : Controller
 {
     private readonly IUserService userService;
+    private readonly IEventService eventService;
 
-    public EventsController(IUserService userService)
+    public EventsController(IUserService userService, IEventService eventService)
     {
         this.userService = userService;
+        this.eventService = eventService;
     }
 
     [Route(ApiEndpoints.Video.Access.GetAll)]
@@ -52,6 +56,23 @@ public class EventsController : Controller
                 .Select(@event => ContractMappers.MapToEventContract(@event))
                 .ToList()
         };
+    }
+
+    [HttpPost]
+    [Route(ApiEndpoints.Event.AddEvent)]
+    public async Task<IActionResult> CreateEventAsync(CreateNewEventRequest request)
+    {
+        var @event = ContractMappers.MapFromNewEventRequestToEvent(request);
+        var user = User.GetSubject();
+
+
+        if (!ModelState.IsValid)
+            return BadRequest();
+
+        await eventService.CreateEventAsync(@event, user);
+
+
+        return Ok();
     }
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]

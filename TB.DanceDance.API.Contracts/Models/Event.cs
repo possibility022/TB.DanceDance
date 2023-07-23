@@ -1,12 +1,19 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace TB.DanceDance.API.Contracts.Models
 {
     public class Event
     {
         public Guid Id { get; set; }
+
+        [Required]
         public string Name { get; set; } = null!;
+
+        [Required]
         public DateTime Date { get; set; }
+
+        [Required]
         public EventType Type { get; set; }
     }
 
