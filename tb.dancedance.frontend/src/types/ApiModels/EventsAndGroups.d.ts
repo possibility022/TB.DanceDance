@@ -5,11 +5,18 @@ export interface IEventsAndGroups{
     groups: Array<Group>
 }
 
-export interface Event {
-    id: string
+export interface ICreateNewEventRequest {
+    event: IEventBase
+}
+
+export interface IEventBase {
     name: string
-    dateTime: Date
+    date: Date
     eventType: EventType
+}
+
+export interface Event extends IEventBase{
+    id: string
 }
 
 export interface Group {
