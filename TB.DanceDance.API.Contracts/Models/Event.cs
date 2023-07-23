@@ -8,6 +8,7 @@ namespace TB.DanceDance.API.Contracts.Models
         public Guid Id { get; set; }
 
         [Required]
+        [MinLength(5)]
         public string Name { get; set; } = null!;
 
         [Required]
