@@ -18,6 +18,7 @@ public static class ServicesBuilder
             .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(connectionString))
             .AddScoped<IVideoService, VideoService>()
             .AddScoped<IEventService, EventService>()
+            .AddScoped<IGroupService, GroupService>()
             .AddScoped<IVideoUploaderService, VideoUploaderService>();
 
         if (videoFileLoader != null)

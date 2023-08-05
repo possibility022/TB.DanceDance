@@ -17,6 +17,11 @@ export class VideoInfoService {
         return this.GetVideUrlByBlobId(videoInfo.blobId)
     }
 
+    public async GetVideosFromGroups() {
+        const response = await AppApiClient.get<Array<VideoInformation>>('/api/group/video')
+        return response.data
+    }
+
     public GetVideUrlByBlobId(videoBlob: string) {
         return AppApiClient.getUri() + '/api/videos/' + videoBlob + '/stream'
     }

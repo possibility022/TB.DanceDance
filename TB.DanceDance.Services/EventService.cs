@@ -28,6 +28,7 @@ public class EventService : IEventService
                 join sharedWith in dbContext.SharedWith on assignedTo.EventId equals sharedWith.EventId
                 join video in dbContext.Videos on sharedWith.VideoId equals video.Id
                 where assignedTo.EventId == eventId && assignedTo.UserId == userId
+                orderby video.RecordedDateTime descending
                 select new VideoInfo()
                 {
                     SharedWithEvent = true,

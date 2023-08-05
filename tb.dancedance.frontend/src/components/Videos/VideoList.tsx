@@ -28,11 +28,8 @@ export function VideoList(props: ListOfVideos) {
 
     const list = props.videos.map(r => {
 
-        const icon = r.sharedWithEvent ? "💃🕺" : "📅"
-
         return (
             <tr key={r.id}>
-                <td>{icon} {r.name}</td>
                 <td>{formatDate(r.recordedDateTime)}</td>
                 <td>
                     <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(r)} />
