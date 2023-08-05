@@ -84,6 +84,15 @@ export class VideoInfoService {
         }
     }
 
+    public async GetVideosPerEvent(eventId: string){
+        const response = await AppApiClient.get<Array<VideoInformation>>(`/api/event/${eventId}/video`)
+
+        if (response.status > 299)
+            console.error('Videos not received', response)
+
+        return response.data
+    }
+
     public async UploadVideo(data: ISharedVideoInformation, file: File, onProgress: (loadedBytes: number) => void) {
 
         const uploadUrl = await AppApiClient.post<UploadVideoInformation>('/api/videos/upload',
