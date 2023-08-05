@@ -106,9 +106,17 @@ public class EventsController : Controller
     [Route(ApiEndpoints.Event.Videos)]
     public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId)
     {
+        var userId = User.GetSubject();
         var videos = await eventService
-            .GetVideos(eventId, User.GetSubject())
+            .GetVideos(eventId, userId)
             .ToListAsync();
+
+        if (videos.Count == 0)
+        {
+            var isAssigned = eventService.IsUserAssignedToEvent(eventId, userId);
+            if (!isAssigned)
+                return Unauthorized();
+        }
 
         var results = videos
             .Select(r => ContractMappers.MapToVideoInformation(r))
