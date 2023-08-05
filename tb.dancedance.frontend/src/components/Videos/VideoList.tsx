@@ -30,6 +30,7 @@ export function VideoList(props: ListOfVideos) {
 
         return (
             <tr key={r.id}>
+                <td>{r.name}</td>
                 <td>{formatDate(r.recordedDateTime)}</td>
                 <td>
                     <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(r)} />
