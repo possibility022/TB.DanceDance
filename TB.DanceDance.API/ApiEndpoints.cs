@@ -32,6 +32,7 @@ public static class ApiEndpoints
         private const string Base = $"{ApiBase}/event";
 
         public const string AddEvent = $"{Base}";
+        public const string Videos = $"{Base}/{{eventId:guid}}/video";
     }
 
     public static class Converter

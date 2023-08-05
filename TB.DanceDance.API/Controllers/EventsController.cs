@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
@@ -100,4 +101,21 @@ public class EventsController : Controller
 
         return Ok();
     }
+
+    [HttpGet]
+    [Route(ApiEndpoints.Event.Videos)]
+    public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId)
+    {
+        var videos = await eventService
+            .GetVideos(eventId, User.GetSubject())
+            .ToListAsync();
+
+        var results = videos
+            .Select(r => ContractMappers.MapToVideoInformation(r))
+            .ToList();
+
+        return Ok(results);
+    }
+
+    
 }
