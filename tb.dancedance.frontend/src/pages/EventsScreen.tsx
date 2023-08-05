@@ -8,6 +8,7 @@ import videoInfoService from '../services/VideoInfoService';
 const EventsScreen = () => {
 
     const [events, setEvents] = useState<Array<Event>>([])
+    const [selectedEvent, setSelectedEvent] = useState<Event>()
 
     useEffect(() => {
         videoInfoService.GetUserEventsAndGroups()
@@ -25,6 +26,11 @@ const EventsScreen = () => {
 
     const closeModal = () => {
         modalRef.current?.classList.remove('is-active')
+    }
+
+    const onSelected = (id: string) => {
+        const event = events.find(r => r.id === id)
+        setSelectedEvent(event)
     }
 
     const submitNewEvent = (newEvent: IEventBase) => {
@@ -53,7 +59,14 @@ const EventsScreen = () => {
                     <div className="level-item">
                         <p className="subtitle is-5">
                             <Button onClick={openModal}>
-                                Utwórz nowy
+                                Utwórz nowe wydarzenie
+                            </Button>
+                        </p>
+                    </div>
+                    <div className="level-item">
+                        <p className="subtitle is-5">
+                            <Button onClick={openModal}>
+                                Dodaj nagranie
                             </Button>
                         </p>
                     </div>
@@ -71,7 +84,7 @@ const EventsScreen = () => {
                 <button className="modal-close is-large" aria-label="close" onClick={closeModal}></button>
             </div>
 
-            <EventsList events={events}></EventsList>
+            <EventsList events={events} onSelected={(id) => onSelected(id)}></EventsList>
         </div>
     );
 };
