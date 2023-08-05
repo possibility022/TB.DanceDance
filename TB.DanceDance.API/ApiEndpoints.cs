@@ -27,6 +27,13 @@ public static class ApiEndpoints
 
     }
 
+    public static class Group
+    {
+        private const string Base = $"{ApiBase}/group";
+
+        public const string Videos = $"{Base}/video";
+    }
+
     public static class Event
     {
         private const string Base = $"{ApiBase}/event";
