@@ -34,7 +34,6 @@ type Action =
 export function AccessToVideoRequestForm() {
 
     const [events, setEvents] = useState<Array<IItemToSelect<string>>>([])
-    const [workshops, setWorkshops] = useState<Array<IItemToSelect<string>>>([])
 
     const [availableGroupNames, setAvailableGroupNames] = useState<Array<string>>([])
 
@@ -65,19 +64,13 @@ export function AccessToVideoRequestForm() {
                 setAllSharingScopes(sharringScopes)
 
                 const eventsToSet = new Array<IItemToSelect<string>>()
-                const workshopsToSet = new Array<IItemToSelect<string>>()
 
                 for (const el of sharringScopes.events) {
                     const mapped = mapToItemToSelect(el)
-                    if (el.eventType == EventType.SmallWorkshop)
-                        workshopsToSet.push(mapped)
-                    else {
-                        eventsToSet.push(mapped)
-                    }
+                    eventsToSet.push(mapped)
                 }
 
                 setEvents(eventsToSet)
-                setWorkshops(workshopsToSet)
 
                 setAvailableGroupNames(sharringScopes.groups.map(r => r.name))
             })
@@ -176,20 +169,20 @@ export function AccessToVideoRequestForm() {
     return (
         <div>
             <div className="content">
-                <h2>Wybierz swoją podstawową grupę do której regularnie uczęszczasz na zajęcia.</h2>
-                <h3>Dodatkowo, możesz wybrać wydarzenia na jakich byłeś i gdzie brałeś udział. Wydarzenia np. takie jak Karnawał WestLove, Baltic Swing, Halloween.</h3>
-                <p>Wybierz również warsztaty w jakich brałeś udział. Są to mniejsze wydarzenia.</p>
-                <p>Pamietaj, że Twój wybór będzie weryfikowany!</p>
+                <h2>Wybierz wydarzenia w których brałeś/aś udział i chcesz uzyskać dostęp.</h2>
             </div>
             <div className='columns'>
                 <div className='column is-centered has-text-centered'>
-                    <Dropdown isLoading={false}
-                        items={availableGroupNames}
-                        unselectedText={"Wybierz grupę"}
-                        selectedItemIndex={0}
-                        onSelected={onGroupSelected}
-                        classNames={'is-large'}
-                        startWithUnselected={true} />
+                    <div className="box">
+                        <h3 className="title">Grupa</h3>
+                        <Dropdown isLoading={false}
+                            items={availableGroupNames}
+                            unselectedText={"Wybierz grupę"}
+                            selectedItemIndex={0}
+                            onSelected={onGroupSelected}
+                            classNames={'is-large'}
+                            startWithUnselected={true} />
+                    </div>
                 </div>
             </div>
             <div className="columns">
@@ -200,14 +193,6 @@ export function AccessToVideoRequestForm() {
                         onItemStatusChange={eventSelected}
                         text='Wybierz wydarzenia w których brałeś udział!'
                         options={events} />
-                </div>
-                <div className="column">
-                    <SelectableList<string>
-                        articleClassName='is-warning'
-                        header='Warsztaty'
-                        onItemStatusChange={eventSelected}
-                        text='Wybierz warsztaty gdzie próbowałaś swoich sił!'
-                        options={workshops} />
                 </div>
             </div>
 

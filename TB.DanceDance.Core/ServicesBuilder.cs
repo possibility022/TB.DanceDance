@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Services;
 
@@ -18,6 +17,8 @@ public static class ServicesBuilder
         services
             .AddSingleton<IBlobDataServiceFactory>(r => new BlobDataServiceFactory(connectionString))
             .AddScoped<IVideoService, VideoService>()
+            .AddScoped<IEventService, EventService>()
+            .AddScoped<IGroupService, GroupService>()
             .AddScoped<IVideoUploaderService, VideoUploaderService>();
 
         if (videoFileLoader != null)

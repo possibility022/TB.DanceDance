@@ -46,7 +46,7 @@ export function UploadVideo() {
 
   React.useEffect(() => {
     setIsLoading(true)
-    videoInfoService.GetUserAccess()
+    videoInfoService.GetUserEventsAndGroups()
       .then(v => {
 
         const availableGroups = new Array<IToAssign>()

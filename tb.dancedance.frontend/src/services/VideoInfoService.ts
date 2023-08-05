@@ -3,7 +3,7 @@ import UploadVideoInformation from "../types/ApiModels/UploadInformation";
 import AppApiClient from "./HttpApiClient";
 import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
 import VideoInformation from "../types/VideoInformation";
-import { IEventsAndGroups } from "../types/ApiModels/EventsAndGroups";
+import { IEventsAndGroups, ICreateNewEventRequest, Event } from "../types/ApiModels/EventsAndGroups";
 import { IAssignedEvent, IAssignedGroup } from "../types/AssignedEventAndGroup";
 
 
@@ -15,6 +15,11 @@ export class VideoInfoService {
 
     public GetVideoUrl(videoInfo: VideoInformation) {
         return this.GetVideUrlByBlobId(videoInfo.blobId)
+    }
+
+    public async GetVideosFromGroups() {
+        const response = await AppApiClient.get<Array<VideoInformation>>('/api/groups/videos')
+        return response.data
     }
 
     public GetVideUrlByBlobId(videoBlob: string) {
@@ -29,7 +34,7 @@ export class VideoInfoService {
 
     public async GetAvailableEventsAndGroups() {
         const allGroupsAndEvents = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses')
-        const userGroupAndEvents = await this.GetUserAccess()
+        const userGroupAndEvents = await this.GetUserEventsAndGroups()
         
         const availableEventsMap = new Map(userGroupAndEvents.events.map(v => [v.id, v]))
         const availableGroupsMap = new Map(userGroupAndEvents.groups.map(v => [v.id, v]))
@@ -71,8 +76,25 @@ export class VideoInfoService {
         return true;
     }
 
-    public async GetUserAccess() {
+    public async GetUserEventsAndGroups() {
         const response = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses/my')
+        return response.data
+    }
+
+    public async CreateEvent(newEvent: ICreateNewEventRequest) {
+        const response = await AppApiClient.post<Event>('/api/event', newEvent)
+        return {
+            statusCode: response.status,
+            eventObject: response.data
+        }
+    }
+
+    public async GetVideosPerEvent(eventId: string){
+        const response = await AppApiClient.get<Array<VideoInformation>>(`/api/events/${eventId}/videos`)
+
+        if (response.status > 299)
+            console.error('Videos not received', response)
+
         return response.data
     }
 
