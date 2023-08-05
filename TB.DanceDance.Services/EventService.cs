@@ -1,4 +1,5 @@
-﻿using TB.DanceDance.Data.PostgreSQL;
+﻿using Microsoft.Extensions.Logging;
+using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
 using TB.DanceDance.Services.Models;
 
@@ -35,5 +36,15 @@ public class EventService : IEventService
                 };
 
         return q;
+    }
+
+    public bool IsUserAssignedToEvent(Guid eventId, string userId)
+    {
+        return dbContext.AssingedToEvents.Any(r => r.EventId == eventId && r.UserId == userId);
+    }
+
+    public bool IsUserAssignedToGroup(Guid groupId, string userId)
+    {
+        return dbContext.AssingedToGroups.Any(r => r.GroupId == groupId && r.UserId == userId);
     }
 }
