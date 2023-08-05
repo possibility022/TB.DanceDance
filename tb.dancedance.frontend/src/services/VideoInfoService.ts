@@ -18,7 +18,7 @@ export class VideoInfoService {
     }
 
     public async GetVideosFromGroups() {
-        const response = await AppApiClient.get<Array<VideoInformation>>('/api/group/video')
+        const response = await AppApiClient.get<Array<VideoInformation>>('/api/groups/videos')
         return response.data
     }
 
@@ -90,7 +90,7 @@ export class VideoInfoService {
     }
 
     public async GetVideosPerEvent(eventId: string){
-        const response = await AppApiClient.get<Array<VideoInformation>>(`/api/event/${eventId}/video`)
+        const response = await AppApiClient.get<Array<VideoInformation>>(`/api/events/${eventId}/videos`)
 
         if (response.status > 299)
             console.error('Videos not received', response)

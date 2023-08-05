@@ -22,7 +22,7 @@ internal class DanceDanceApiClient : IDisposable
 
     public async Task<VideoToTransformResponse?> GetNextVideoToConvertAsync(CancellationToken token)
     {
-        var response = await apiClient.GetAsync("/api/converter/video");
+        var response = await apiClient.GetAsync("/api/converter/videos");
 
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             return null;
@@ -56,13 +56,13 @@ internal class DanceDanceApiClient : IDisposable
 
     public async Task UploadVideoToTransformInformations(UpdateVideoInfoRequest updateVideoInfoRequest, CancellationToken token)
     {
-        var res  = await apiClient.PostAsJsonAsync("/api/converter/video", updateVideoInfoRequest, token);
+        var res  = await apiClient.PostAsJsonAsync("/api/converter/videos", updateVideoInfoRequest, token);
         res.EnsureSuccessStatusCode();
     }
 
     public async Task UploadContent(Guid videoId, Stream content)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/converter/video/{videoId}/sas");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/converter/videos/{videoId}/sas");
 
         var res = await apiClient.SendAsync(request);
         res.EnsureSuccessStatusCode();
@@ -78,7 +78,7 @@ internal class DanceDanceApiClient : IDisposable
 
     public async Task PublishTransformedVideo(Guid videoId)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/converter/video/{videoId}/publish");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/converter/videos/{videoId}/publish");
 
         var res = await apiClient.SendAsync(request);
         res.EnsureSuccessStatusCode();
