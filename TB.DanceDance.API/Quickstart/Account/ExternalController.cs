@@ -19,13 +19,13 @@ public class ExternalController : Controller
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IClientStore _clientStore;
     private readonly ILogger<ExternalController> _logger;
-    private readonly IEventService _events;
+    private readonly IdentityServer4.Services.IEventService _events;
     private readonly IUserService users;
 
     public ExternalController(
         IIdentityServerInteractionService interaction,
         IClientStore clientStore,
-        IEventService events,
+        IdentityServer4.Services.IEventService events,
         IUserService users,
         ILogger<ExternalController> logger)
     {

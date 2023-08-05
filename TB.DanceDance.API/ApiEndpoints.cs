@@ -6,7 +6,7 @@ public static class ApiEndpoints
 
     public static class Video
     {
-        private const string Base = $"{ApiBase}/videos"; //todo to plural
+        private const string Base = $"{ApiBase}/videos";
 
         public const string GetAll = $"{Base}";
         public const string GetSingle = $"{Base}/{{guid}}";
@@ -27,14 +27,28 @@ public static class ApiEndpoints
 
     }
 
+    public static class Group
+    {
+        private const string Base = $"{ApiBase}/groups";
+
+        public const string Videos = $"{Base}/videos";
+    }
+
+    public static class Event
+    {
+        private const string Base = $"{ApiBase}/events";
+
+        public const string AddEvent = $"{Base}";
+        public const string Videos = $"{Base}/{{eventId:guid}}/videos";
+    }
+
     public static class Converter
     {
         private const string Base = $"{ApiBase}/converter";
 
-        public const string GetVideo = $"{Base}/video";
-        public const string UpdateInfo = $"{Base}/video";
-        public const string Upload = $"{Base}/video/{{videoId}}/publish";
-        public const string GetPublishSas = $"{Base}/video/{{videoId}}/sas";
+        public const string Videos = $"{Base}/videos";
+        public const string Upload = $"{Base}/videos/{{videoId}}/publish";
+        public const string GetPublishSas = $"{Base}/videos/{{videoId}}/sas";
     }
 
     public static class Info

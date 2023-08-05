@@ -18,7 +18,7 @@ export function VideoScreen() {
 
     useEffect(() => {
         setIsLoading(true)
-        videoService.LoadVideos()
+        videoService.GetVideosFromGroups()
             .then(v => {
                 setVideos(v)
                 setWeHaveAnyVideos(v.length > 0)

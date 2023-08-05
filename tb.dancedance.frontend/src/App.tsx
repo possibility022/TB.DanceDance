@@ -14,6 +14,7 @@ import { VideoPlayerScreen } from "./pages/VideoPlayerScreen"
 import { UploadVideo } from "./pages/UploadVideo"
 import { AuthContext, authService } from "./providers/AuthProvider"
 import { RequestAssignmentScreen } from "./pages/RequestAssignmentScreen"
+import EventsScreen from "./pages/EventsScreen"
 
 function App() {
 
@@ -21,7 +22,7 @@ function App() {
 		<div className="container">
 			<AuthContext.Provider value={authService}>
 				<BrowserRouter>
-				<NavigationBar></NavigationBar>
+					<NavigationBar></NavigationBar>
 					<Routes>
 						<Route path="/" element={<Home />}>
 						</Route>
@@ -31,6 +32,7 @@ function App() {
 						<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
 						<Route path="callback" element={<Callback />} />
 						<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
+						<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />
 						<Route path="logout" element={<Logout></Logout>} />
 						<Route path="logout/callback" element={<LogoutCallback />} />
 						{/* <Route path="/register" element={Register} /> */}

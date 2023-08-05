@@ -1,4 +1,5 @@
 ﻿using TB.DanceDance.API.Contracts.Models;
+using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.Services.Models;
 
@@ -29,6 +30,16 @@ public class ContractMappers
         };
     }
 
+    public static Data.PostgreSQL.Models.Event MapFromNewEventRequestToEvent(CreateNewEventRequest request)
+    {
+        return new Data.PostgreSQL.Models.Event()
+        {
+            Date = request.Event.Date,
+            Name = request.Event.Name,
+            Type = MapFromEventType(request.Event.Type)
+        };
+    }
+
     public static Event MapToEventContract(TB.DanceDance.Data.PostgreSQL.Models.Event @event)
     {
         return new Event()
@@ -38,6 +49,30 @@ public class ContractMappers
             Name = @event.Name,
             Type = MapEventType(@event.Type),
         };
+    }
+
+    public static Data.PostgreSQL.Models.EventType MapFromEventType(EventType eventType)
+    {
+        if (eventType == EventType.SmallWorkshop)
+        {
+            return Data.PostgreSQL.Models.EventType.SmallWorkshop;
+        }
+        else if (eventType == EventType.MediumNotPointed)
+        {
+            return Data.PostgreSQL.Models.EventType.MediumNotPointed;
+        }
+        else if (eventType == EventType.PointedEvent)
+        {
+            return Data.PostgreSQL.Models.EventType.PointedEvent;
+        }
+        else if (eventType == EventType.Unknown)
+        {
+            return Data.PostgreSQL.Models.EventType.Unknown;
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException(nameof(eventType), "Cannot map eventType value: " + eventType.ToString());
+        }
     }
 
     public static EventType MapEventType(Data.PostgreSQL.Models.EventType eventType)

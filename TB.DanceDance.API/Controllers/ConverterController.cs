@@ -17,7 +17,7 @@ public class ConverterController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Converter.GetVideo)]
+    [Route(ApiEndpoints.Converter.Videos)]
     public async Task<IActionResult> GetVideosToConvert()
     {
         var video = await videoUploaderService.GetNextVideoToTransformAsync();
@@ -36,7 +36,7 @@ public class ConverterController : Controller
     }
 
     [HttpPost]
-    [Route(ApiEndpoints.Converter.UpdateInfo)]
+    [Route(ApiEndpoints.Converter.Videos)]
     public async Task<IActionResult> UpdateVideoInfo([FromBody] UpdateVideoInfoRequest publishVideo)
     {
         if (!ModelState.IsValid)
