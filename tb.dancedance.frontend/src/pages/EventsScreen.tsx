@@ -4,6 +4,7 @@ import { CreateNewEvent } from '../components/Events/CreateNewEvent';
 import { EventsList } from '../components/Events/EventsList';
 import { Event, IEventBase } from '../types/ApiModels/EventsAndGroups';
 import videoInfoService from '../services/VideoInfoService';
+import { UploadVideoModal } from '../components/Videos/UploadVideoModal';
 
 const EventsScreen = () => {
 
@@ -19,6 +20,7 @@ const EventsScreen = () => {
     }, [])
 
     const modalRef = useRef<HTMLDivElement>(null)
+    const uploadModalRef = useRef<HTMLDivElement>(null)
 
     const openModal = () => {
         modalRef.current?.classList.add('is-active')
@@ -26,6 +28,15 @@ const EventsScreen = () => {
 
     const closeModal = () => {
         modalRef.current?.classList.remove('is-active')
+    }
+
+    const openUploadModal = (id: string) => {
+        setSelectedEvent(events.find((e) => e.id === id))
+        uploadModalRef.current?.classList.add('is-active')
+    }
+
+    const closeUploadModal = () => {
+        uploadModalRef.current?.classList.remove('is-active')
     }
 
     const onSelected = (id: string) => {
@@ -40,9 +51,9 @@ const EventsScreen = () => {
             .then(added => {
                 const newArray = new Array<Event>(...events)
                 newArray.push(added.eventObject)
-                const sorted = newArray.sort((a,b) => {
+                const sorted = newArray.sort((a, b) => {
                     if (a.date > b.date)
-                    return -1
+                        return -1
                     else return 1
                 })
 
@@ -77,7 +88,19 @@ const EventsScreen = () => {
                 <button className="modal-close is-large" aria-label="close" onClick={closeModal}></button>
             </div>
 
-            <EventsList events={events} onSelected={(id) => onSelected(id)}></EventsList>
+            <div className="modal" ref={uploadModalRef}>
+                <div className="modal-background" onClick={closeUploadModal}></div>
+                <div className="modal-content">
+                    <UploadVideoModal
+                        event={selectedEvent}
+                    ></UploadVideoModal>
+                </div>
+                <button className="modal-close is-large" aria-label="close" onClick={closeUploadModal}></button>
+            </div>
+
+
+
+            <EventsList events={events} onSelected={(id) => onSelected(id)} onUploadClick={openUploadModal}></EventsList>
         </div>
     );
 };

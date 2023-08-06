@@ -9,7 +9,7 @@ import { Button } from '../Button';
 
 export interface IUploadVideoComponentProps {
     file: File | undefined
-    fileSelected: (file: File) => void
+    onFileSelected?: (file: File) => void
     validateOnSending: () => boolean
     getSendingDetails: () => {
         videoName: string
@@ -38,7 +38,8 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length == 1) {
             const selectedFile = event.target.files[0]
-            props.fileSelected(selectedFile)
+            if (props.onFileSelected)
+                props.onFileSelected(selectedFile)
         }
     }
 

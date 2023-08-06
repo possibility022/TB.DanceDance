@@ -12,6 +12,7 @@ import { Button } from '../Button';
 export interface IEventCardProps {
     event: Event
     onSelected(id: string): void
+    onUploadClick(id: string): void
 }
 
 const formatDate = (date: Date) => {
@@ -59,7 +60,7 @@ export function EventCard(props: IEventCardProps) {
             <div hidden={contentIsHidden}>
                 <footer className="card-footer">
                     <p className="card-footer-item">
-                        <Button>Wyślij nagranie</Button>
+                        <Button onClick={() => props.onUploadClick(props.event.id)}>Wyślij nagranie</Button>
                     </p>
                 </footer>
             </div>
