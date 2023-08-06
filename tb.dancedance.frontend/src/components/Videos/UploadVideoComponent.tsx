@@ -8,11 +8,11 @@ import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 
 export interface IUploadVideoComponentProps {
-    file: File | undefined
-    onFileSelected?: (file: File) => void
+    files: FileList | undefined
+    onFilesSelected?: (files: FileList) => void
     validateOnSending: () => boolean
     getSendingDetails: () => {
-        videoName: string
+        videoName?: string
         assignedTo: string
         sharingWithType: SharingWithType
         onComplete: (success: boolean) => void
@@ -36,16 +36,16 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     }
 
     const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length == 1) {
-            const selectedFile = event.target.files[0]
-            if (props.onFileSelected)
-                props.onFileSelected(selectedFile)
+        if (event.target.files && event.target.files.length > 0) {
+            const selectedFile = event.target.files
+            if (props.onFilesSelected)
+                props.onFilesSelected(selectedFile)
         }
     }
 
     const validateFile = () => {
         let res: boolean
-        if (props.file != undefined)
+        if (props.files != undefined)
             res = true
         else
             res = false
@@ -66,38 +66,71 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
         props.validateOnSending()
         validateFile()
 
-        if (props.file) {
-            setBytestToTransfer(props.file.size)
-            setBytesTransfered(0)
+        const sendingDetails = props.getSendingDetails()
+        uploadMany()
+            .then(() => {
+                setWasSentSuccessfully(true)
+                sendingDetails.onComplete(true)
+            })
+            .catch(e => {
+                console.error(e)
+                sendingDetails.onComplete(false)
+            })
+    }
 
-            const sendingDetails = props.getSendingDetails()
+    const uploadMany = async () => {
+        if (props.files) {
 
-            const data: ISharedVideoInformation = {
-                nameOfVideo: sendingDetails.videoName,
-                fileName: props.file.name,
-                recordedTimeUtc: new Date(props.file.lastModified),
-                sharedWith: sendingDetails.assignedTo,
-                sharingWithType: sendingDetails.sharingWithType
+            for (let i = 0; i < props.files.length; i++) {
+                const file = props.files[i]
+
+                setBytestToTransfer(file.size)
+                setBytesTransfered(0)
+
+                const sendingDetails = props.getSendingDetails()
+
+                let nameOfVideo = ''
+                if (sendingDetails.videoName)
+                    nameOfVideo = sendingDetails.videoName
+                else
+                    nameOfVideo = file.name
+
+                const data: ISharedVideoInformation = {
+                    nameOfVideo: nameOfVideo,
+                    fileName: file.name,
+                    recordedTimeUtc: new Date(file.lastModified),
+                    sharedWith: sendingDetails.assignedTo,
+                    sharingWithType: sendingDetails.sharingWithType
+                }
+
+                await videoInfoService.UploadVideo(data, file,
+                    (e) => setBytesTransfered(e))
             }
-
-            videoInfoService.UploadVideo(data, props.file,
-                (e) => setBytesTransfered(e))
-                .then(() => {
-                    setWasSentSuccessfully(true)
-                    sendingDetails.onComplete(true)
-                })
-                .catch(e => {
-                    console.error(e)
-                    sendingDetails.onComplete(false)
-                })
         }
+    }
+
+    const renderFilesList = () => {
+
+        const toReturn = new Array<JSX.Element>()
+
+        if (!props.files)
+            return null
+
+        for (let i = 0; i < props.files.length; i++) {
+            const file = props.files[i]
+            toReturn.push(<span className="file-name">
+                {file.name}
+            </span>)
+        }
+
+        return toReturn
     }
 
     return (
         <div>
             <div className="file has-name is-fullwidth">
                 <label className="file-label">
-                    <input className="file-input" type="file" name="resume" onChange={(e) => onFileChange(e)} />
+                    <input className="file-input" type="file" name="resume" multiple={true} onChange={(e) => onFileChange(e)} />
                     <span className="file-cta">
                         <span className="file-icon">
                             <FontAwesomeIcon icon={faUpload} />
@@ -107,9 +140,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
                             Wybierz Plik
                         </span>
                     </span>
-                    <span className="file-name">
-                        {props.file?.name}
-                    </span>
+                    {renderFilesList()}
                 </label>
                 {getFileVerificationMessage()}
             </div>

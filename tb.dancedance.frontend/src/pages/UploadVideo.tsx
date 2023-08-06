@@ -15,7 +15,7 @@ interface IToAssign {
 
 export function UploadVideo() {
 
-  const [file, setFile] = useState<File>()
+  const [file, setFile] = useState<FileList>()
   const [availableGroups, setAvailableGroups] = useState<Array<IToAssign>>([])
   const [selectedGroupIndex, setSelectedGroupIndex] = useState(-1)
 
@@ -140,8 +140,8 @@ export function UploadVideo() {
       <br></br>
 
       <UploadVideoComponent
-        file={file}
-        onFileSelected={setFile}
+        files={file}
+        onFilesSelected={setFile}
         validateOnSending={() => validateInput()}
         getSendingDetails={() => {
           return {
