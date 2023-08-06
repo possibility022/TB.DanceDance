@@ -63,13 +63,6 @@ const EventsScreen = () => {
                             </Button>
                         </p>
                     </div>
-                    <div className="level-item">
-                        <p className="subtitle is-5">
-                            <Button onClick={openModal}>
-                                Dodaj nagranie
-                            </Button>
-                        </p>
-                    </div>
                 </div>
             </nav>
 
