@@ -1,13 +1,9 @@
-import { faUpload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as React from 'react';
 import { useState } from 'react';
-import { Button } from '../components/Button';
 import { Dropdown } from '../components/Dropdown';
 
 
 import videoInfoService from '../services/VideoInfoService'
-import ISharedVideoInformation from '../types/ApiModels/SharedVideoInformation';
 import SharingWithType from "../types/ApiModels/SharingWithType";
 import { UploadVideoComponent } from '../components/Videos/UploadVideoComponent';
 
@@ -145,7 +141,7 @@ export function UploadVideo() {
 
       <UploadVideoComponent
         file={file}
-        fileSelected={setFile}
+        onFileSelected={setFile}
         validateOnSending={() => validateInput()}
         getSendingDetails={() => {
           return {

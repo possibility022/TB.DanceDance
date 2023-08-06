@@ -1,44 +1,44 @@
 import * as React from 'react';
-import { Button } from '../Button';
-import { IEventBase } from '../../types/ApiModels/EventsAndGroups';
-import { EventType } from '../../types/EventType';
+import { Event } from '../../types/ApiModels/EventsAndGroups';
+import { UploadVideoComponent } from './UploadVideoComponent';
+import SharingWithType from '../../types/ApiModels/SharingWithType';
 
 export interface IUploadVideoModalProps {
-    onCancel(): void
-    onSubmit(): void
+    event: Event | undefined
 }
 
 export function UploadVideoModal(props: IUploadVideoModalProps) {
 
     const [name, setName] = React.useState("")
-    const [date, setDate] = React.useState("")
+
+    const [file, setFile] = React.useState<File>()
 
     return (
         <div className='container has-background-white p-6'>
-            <h1 className="title">Nowe wydarzenie</h1>
+            <h1 className="title">Wyślij nagranie do: {props.event?.name}</h1>
             <div className="field">
                 <label className="label">Nazwa</label>
                 <div className="control">
-                    <input className="input" type="text" value={name} onChange={(v) => setName(v.target.value)} placeholder="Swing Fiction 2023" />
+                    <input className="input" type="text" value={name} onChange={(v) => setName(v.target.value)} placeholder="Rama i Salta z Jordanem" />
                 </div>
             </div>
+            <UploadVideoComponent
+                file={file}
+                onFileSelected={setFile}
+                validateOnSending={() => props.event != undefined}
+                getSendingDetails={() => {
 
-            <div className="field">
-                <label className="label">Data</label>
-                <div className="control">
-                    <input className="input" type="date" value={date} onChange={(v) => setDate(v.target.value)} placeholder='20.1.2023' />
-                </div>
-            </div>
+                    if (!props.event)
+                        throw new Error("event not selected")
 
-            <div className="field is-grouped">
-                <div className="control">
-                    <Button classNames='is-primary' onClick={() => props.onSubmit()}>Dodaj</Button>
-                </div>
-
-                <div className='control'>
-                    <Button onClick={() => props.onCancel()}>Anuluj</Button>
-                </div>
-            </div>
+                    return {
+                        assignedTo: props.event.id,
+                        onComplete: () => console.log("completed"),
+                        sharingWithType: SharingWithType.Event,
+                        videoName: name
+                    }
+                }}
+            ></UploadVideoComponent>
         </div>
     );
 }
