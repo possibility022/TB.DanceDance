@@ -11,7 +11,7 @@ export function UploadVideoModal(props: IUploadVideoModalProps) {
 
     const [name, setName] = React.useState("")
 
-    const [file, setFile] = React.useState<File>()
+    const [file, setFile] = React.useState<FileList>()
 
     return (
         <div className='container has-background-white p-6'>
@@ -23,8 +23,8 @@ export function UploadVideoModal(props: IUploadVideoModalProps) {
                 </div>
             </div>
             <UploadVideoComponent
-                file={file}
-                onFileSelected={setFile}
+                files={file}
+                onFilesSelected={setFile}
                 validateOnSending={() => props.event != undefined}
                 getSendingDetails={() => {
 
