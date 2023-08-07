@@ -40,13 +40,13 @@ export function NavigationBar() {
 
                 <div id="navbarBasicExample" className="navbar-menu">
                     <div className="navbar-start">
-                        <Link className='navbar-item' to="">Home</Link>
+                        <Link className='navbar-item' to="events">Wydarzenia</Link>
                         <div className="navbar-item has-dropdown is-hoverable">
-                            <Link className='navbar-item' to="videos">Videos</Link>
+                            <Link className='navbar-item' to="videos">Nagrania</Link>
                             <div className="navbar-dropdown">
-                                <Link className='navbar-item' to="videos">Videos</Link>
-                                <Link className='navbar-item' to="videos/requestassignment">Request Access</Link>
-                                <Link className='navbar-item' to="videos/upload">Send Video</Link>
+                                <Link className='navbar-item' to="videos">Nagrania</Link>
+                                <Link className='navbar-item' to="videos/requestassignment">Uzyskaj Dostęp</Link>
+                                <Link className='navbar-item' to="videos/upload">Wyślij Nagranie</Link>
                             </div>
                         </div>
                     </div>

@@ -5,6 +5,7 @@ import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
 import VideoInformation from "../types/VideoInformation";
 import { IEventsAndGroups, ICreateNewEventRequest, Event } from "../types/ApiModels/EventsAndGroups";
 import { IAssignedEvent, IAssignedGroup } from "../types/AssignedEventAndGroup";
+import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
 
 
 export class VideoInfoService {
@@ -26,7 +27,7 @@ export class VideoInfoService {
         return AppApiClient.getUri() + '/api/videos/' + videoBlob + '/stream'
     }
 
-    public async GetVideoInfo(videoId: string){
+    public async GetVideoInfo(videoId: string) {
         const url = '/api/videos/' + videoId
         const response = await AppApiClient.get<VideoInformation>(url)
         return response.data
@@ -35,7 +36,7 @@ export class VideoInfoService {
     public async GetAvailableEventsAndGroups() {
         const allGroupsAndEvents = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses')
         const userGroupAndEvents = await this.GetUserEventsAndGroups()
-        
+
         const availableEventsMap = new Map(userGroupAndEvents.events.map(v => [v.id, v]))
         const availableGroupsMap = new Map(userGroupAndEvents.groups.map(v => [v.id, v]))
 
@@ -89,7 +90,7 @@ export class VideoInfoService {
         }
     }
 
-    public async GetVideosPerEvent(eventId: string){
+    public async GetVideosPerEvent(eventId: string) {
         const response = await AppApiClient.get<Array<VideoInformation>>(`/api/events/${eventId}/videos`)
 
         if (response.status > 299)
@@ -112,6 +113,19 @@ export class VideoInfoService {
         await blobBlock.uploadData(file, {
             onProgress: (e) => onProgress(e.loadedBytes)
         });
+    }
+
+    public async RenameVideo(videoId: string, newName: string) {
+        const requestBody: IRenameRequest = {
+            newName: newName
+        }
+
+        const response = await AppApiClient.post(`/api/videos/${videoId}/rename`, requestBody)
+
+        if (response.status > 299 || response.status < 200)
+            throw new Error('Request not accepted.')
+
+        return true
     }
 }
 

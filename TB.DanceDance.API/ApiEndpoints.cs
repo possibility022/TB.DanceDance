@@ -12,7 +12,7 @@ public static class ApiEndpoints
         public const string GetSingle = $"{Base}/{{guid}}";
         public const string GetStream = $"{Base}/{{guid}}/stream";
 
-        public const string Rename = $"{Base}/{{guid}}/rename";
+        public const string Rename = $"{Base}/{{videoId:guid}}/rename";
         public const string GetUploadUrl = $"{Base}/upload";
 
 
