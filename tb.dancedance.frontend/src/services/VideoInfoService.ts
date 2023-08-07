@@ -83,7 +83,7 @@ export class VideoInfoService {
     }
 
     public async CreateEvent(newEvent: ICreateNewEventRequest) {
-        const response = await AppApiClient.post<Event>('/api/event', newEvent)
+        const response = await AppApiClient.post<Event>('/api/events', newEvent)
         return {
             statusCode: response.status,
             eventObject: response.data
