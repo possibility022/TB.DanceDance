@@ -9,7 +9,6 @@ namespace TB.DanceDance.API.Contracts.Requests
         [Required]
         [MaxLength(100)]
         [MinLength(5)]
-        [RegularExpression("^[-^:) _a-zA-Z0-9]*$")]
         public string NameOfVideo { get; set; } = string.Empty;
 
         [Required]

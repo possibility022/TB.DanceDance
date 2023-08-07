@@ -6,11 +6,13 @@ import './EventCard.css'
 import { VideoList } from '../Videos/VideoList';
 import VideoInformation from '../../types/VideoInformation';
 import videoInfoService from '../../services/VideoInfoService';
+import { Button } from '../Button';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IEventCardProps {
     event: Event
     onSelected(id: string): void
+    onUploadClick(id: string): void
 }
 
 const formatDate = (date: Date) => {
@@ -41,8 +43,8 @@ export function EventCard(props: IEventCardProps) {
     }
 
     return (
-        <div key={props.event.id} className="card m-2 eventCard" onClick={() => props.onSelected(props.event.id)}>
-            <header className="card-header" onClick={loadContent}>
+        <div key={props.event.id} className="card m-2" onClick={() => props.onSelected(props.event.id)}>
+            <header className="card-header eventCard" onClick={loadContent}>
                 <p className="card-header-title">
                     {props.event.name}
                 </p>
@@ -54,6 +56,13 @@ export function EventCard(props: IEventCardProps) {
             </header>
             <div className="card-content" hidden={contentIsHidden}>
                 <VideoList videos={videos}></VideoList>
+            </div>
+            <div hidden={contentIsHidden}>
+                <footer className="card-footer">
+                    <p className="card-footer-item">
+                        <Button onClick={() => props.onUploadClick(props.event.id)}>Wyślij nagranie</Button>
+                    </p>
+                </footer>
             </div>
         </div>
     );

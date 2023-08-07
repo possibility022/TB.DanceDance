@@ -2,11 +2,11 @@ import ReactPlayer from 'react-player';
 import { useState, useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
-import { VideoInfoService } from '../services/VideoInfoService';
+import videoInfoService from '../services/VideoInfoService';
 import VideoInformation from '../types/VideoInformation';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
 
-
-const videoService = new VideoInfoService()
 
 export function VideoPlayerScreen() {
 
@@ -16,6 +16,8 @@ export function VideoPlayerScreen() {
     const [videoInfo, setVideoInfo] = useState<VideoInformation>()
 
     const [url, setUrl] = useState<string | undefined>()
+    const [editIsHidden, setEditIsHidden] = useState(true)
+    const [videoNameToSet, setVideoNameToSet] = useState('')
 
 
     useEffect(() => {
@@ -26,13 +28,13 @@ export function VideoPlayerScreen() {
             .then((token) => {
                 if (token && videoId) {
                     // todo, improve authorization way
-                    const videoUrl = videoService.GetVideUrlByBlobId(videoId)
+                    const videoUrl = videoInfoService.GetVideUrlByBlobId(videoId)
                     setUrl(`${videoUrl}?token=${token}`)
                 }
             })
             .catch(e => console.error(e))
 
-        videoService.GetVideoInfo(videoId)
+        videoInfoService.GetVideoInfo(videoId)
             .then(videoInfo => {
                 setVideoInfo(videoInfo)
             })
@@ -44,11 +46,55 @@ export function VideoPlayerScreen() {
     }, [])
 
 
+    function onEditClick() {
+        setVideoNameToSet(videoInfo?.name ?? '')
+        setEditIsHidden(!editIsHidden)
+    }
+
+    function onRenameConfirm() {
+        if (videoInfo) {
+            videoInfoService.RenameVideo(videoInfo.id.toString(), videoNameToSet) //todo, unify what to use to represent guids.
+                .then(results => {
+                    if (results) {
+                        setVideoInfo({
+                            ...videoInfo,
+                            name: videoNameToSet
+                        })
+                    }
+                }).finally(() => {
+                    setEditIsHidden(true)
+                })
+        }
+    }
+
+    function onRenameCancel() {
+        setEditIsHidden(true)
+    }
+
 
     return (
         <div className='container'>
-            <h4 className="title is-5">{videoInfo?.name}</h4>
-            
+            <div hidden={editIsHidden}>
+                <input className="input" type="text" placeholder="Korki podstawowe"
+                    value={videoNameToSet}
+                    onChange={(e) => setVideoNameToSet(e.target.value)}
+                />
+                <span className="icon m-1" onClick={onRenameConfirm}>
+                    <FontAwesomeIcon icon={faCheck} />
+                </span>
+                <span className="icon m-1" onClick={onRenameCancel}>
+                    <FontAwesomeIcon icon={faCancel} />
+                </span>
+            </div>
+
+            <div hidden={!editIsHidden}>
+                <h4 className="title is-5">{videoInfo?.name}
+                    <span className="icon m-1" onClick={onEditClick}>
+                        <FontAwesomeIcon icon={faEdit} />
+                    </span>
+                </h4>
+            </div>
+
             <ReactPlayer
                 width='100%'
                 height='100%'
