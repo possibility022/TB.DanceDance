@@ -88,13 +88,12 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.Rename)]
     [HttpPost]
-    public async Task<IActionResult> RenameVideo(string guid, [FromBody] VideoRenameRequest input)
+    public async Task<IActionResult> RenameVideo([FromRoute] Guid videoId, [FromBody] VideoRenameRequest input)
     {
-        var res = Guid.TryParse(guid, out var parsedGuid);
-        if (!res)
-            return BadRequest();
+        var res = await videoService.RenameVideoAsync(videoId, input.NewName);
 
-        await videoService.RenameVideoAsync(parsedGuid, input.NewName);
+        if (res == false)
+            return BadRequest();
 
         return Ok();
     }
