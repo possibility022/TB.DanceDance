@@ -123,12 +123,16 @@ public class VideoService : IVideoService
         return dbContext.Groups.FirstAsync(group => group.Id == id);
     }
 
-    public async Task RenameVideoAsync(Guid guid, string newName)
+    public async Task<bool> RenameVideoAsync(Guid guid, string newName)
     {
         var video = await dbContext.Videos.FirstAsync(r => r.Id == guid);
 
+        if (video == null)
+            return false;
+
         video.Name = newName;
         dbContext.SaveChanges();
+        return true;
     }
 
     public async Task<SharedBlob> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith)
