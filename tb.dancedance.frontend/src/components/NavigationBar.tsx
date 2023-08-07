@@ -40,7 +40,7 @@ export function NavigationBar() {
 
                 <div id="navbarBasicExample" className="navbar-menu">
                     <div className="navbar-start">
-                        <Link className='navbar-item' to="">Home</Link>
+                        <Link className='navbar-item' to="events">Wydarzenia</Link>
                         <div className="navbar-item has-dropdown is-hoverable">
                             <Link className='navbar-item' to="videos">Videos</Link>
                             <div className="navbar-dropdown">
