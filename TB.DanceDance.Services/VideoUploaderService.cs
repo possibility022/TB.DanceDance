@@ -2,7 +2,6 @@
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TB.DanceDance.Services;
 
