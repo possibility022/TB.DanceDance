@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
-using TB.DanceDance.Configurations;
+using TB.DanceDance.API;
 using TB.DanceDance.Core;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Identity;

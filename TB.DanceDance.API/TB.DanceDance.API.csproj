@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Core\TB.DanceDance.Core.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Identity\TB.DanceDance.Identity.csproj" />
