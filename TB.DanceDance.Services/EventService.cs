@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using TB.DanceDance.Data.PostgreSQL;
+﻿using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
 using TB.DanceDance.Services.Models;
 
