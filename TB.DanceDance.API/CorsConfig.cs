@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TB.DanceDance.Configurations
+﻿namespace TB.DanceDance.API
 {
     public class CorsConfig
     {
@@ -16,9 +14,7 @@ namespace TB.DanceDance.Configurations
             var origins = Environment.GetEnvironmentVariable("TB.DanceDance.Cors.Origins");
             var config = new CorsConfig();
             if (!string.IsNullOrEmpty(origins))
-            {
                 config.AllowedOrigins = origins.Split(";");
-            }
 
             return config;
         }

@@ -3,15 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.VideoLoader", "TB.DanceDance.VideoLoader\TB.DanceDance.VideoLoader.csproj", "{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Data.Blobs", "TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj", "{D10A0BEA-142C-478F-9A2B-E51147939AA9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API", "TB.DanceDance.API\TB.DanceDance.API.csproj", "{00AB21FF-2965-488B-9EC4-143C420CBC43}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Services", "TB.DanceDance.Services\TB.DanceDance.Services.csproj", "{B9DAB6FD-FE68-496C-88E4-EA20AB19D5FB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Configurations", "TB.DanceDance.Configurations\TB.DanceDance.Configurations.csproj", "{70472B21-FFD3-4ED9-BBF8-4675B2CCEFD1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Core", "TB.DanceDance.Core\TB.DanceDance.Core.csproj", "{CCCDE9DE-D14E-4A91-B996-607876B22088}"
 EndProject
@@ -25,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Data.PostgreS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Contracts", "TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj", "{B80736FA-6C67-4C42-B054-F260BA426044}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Services.Converter.Deamon", "TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj", "{0AC9442C-9382-4C29-A99A-9FA73C0438E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Services.Converter.Deamon", "TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj", "{0AC9442C-9382-4C29-A99A-9FA73C0438E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2AA23A3B-57B8-45A0-9FC5-1AD87B4208E7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D10A0BEA-142C-478F-9A2B-E51147939AA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D10A0BEA-142C-478F-9A2B-E51147939AA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D10A0BEA-142C-478F-9A2B-E51147939AA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -49,10 +41,6 @@ Global
 		{B9DAB6FD-FE68-496C-88E4-EA20AB19D5FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9DAB6FD-FE68-496C-88E4-EA20AB19D5FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9DAB6FD-FE68-496C-88E4-EA20AB19D5FB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{70472B21-FFD3-4ED9-BBF8-4675B2CCEFD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70472B21-FFD3-4ED9-BBF8-4675B2CCEFD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{70472B21-FFD3-4ED9-BBF8-4675B2CCEFD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70472B21-FFD3-4ED9-BBF8-4675B2CCEFD1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CCCDE9DE-D14E-4A91-B996-607876B22088}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CCCDE9DE-D14E-4A91-B996-607876B22088}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCCDE9DE-D14E-4A91-B996-607876B22088}.Release|Any CPU.ActiveCfg = Release|Any CPU
