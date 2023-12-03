@@ -22,15 +22,10 @@ export function UploadVideo() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [videoName, setVideoName] = useState<string>('')
-  const [videoNameIsValid, setVideoNameIsValid] = useState(false)
   const [groupSelectionIsValid, setGroupSelectionIsValid] = useState(false)
   const [wasTryingToSend, setWasTryingToSend] = useState(false)
 
-
-
   const availableGroupNames = availableGroups.map(r => r.name)
-
-
 
   React.useEffect(() => {
     setIsLoading(true)
@@ -63,18 +58,6 @@ export function UploadVideo() {
     }
   }, []);
 
-  const validateVideoName = () => {
-    let isValid = false
-    if (videoName && videoName.length > 5 && videoName.length < 100) {
-      isValid = true
-    }
-    else {
-      isValid = false
-    }
-    setVideoNameIsValid(isValid)
-    return isValid
-  }
-
   const validateGroupSelection = () => {
     const isValid = availableGroups.length > 0 && selectedGroupIndex >= 0
     setGroupSelectionIsValid(isValid)
@@ -83,20 +66,9 @@ export function UploadVideo() {
 
   const validateInput = (): boolean => {
     const groupIsValid = validateGroupSelection()
-    const videoNameIsValid = validateVideoName()
 
     setWasTryingToSend(true)
-    return groupIsValid && videoNameIsValid
-  }
-
-  const getNameVeryficationMessage = () => {
-    if (!wasTryingToSend)
-      return null
-
-    if (videoNameIsValid)
-      return null
-    else
-      return <p className="help is-danger">Coś jest nie tak. Nie wszystkie znaki specjalne są dozwolone :(. Nazwa musi zawierać conajmniej 5 znaków i nie więcej niż 100. </p>
+    return groupIsValid
   }
 
   const getGroupVeryficationMessage = () => {
@@ -106,24 +78,8 @@ export function UploadVideo() {
       return <p className="help is-danger">Musisz wybrać grupę</p>
   }
 
-
-
-
   return (
     <div>
-
-      <div className="field">
-        <label className="label">Nazwa Nagrania</label>
-        <div className="control">
-          <input className="input" type="text" placeholder="Korki podstawowe"
-            value={videoName}
-            onChange={(e) => setVideoName(e.target.value)} />
-        </div>
-        {getNameVeryficationMessage()}
-      </div>
-
-      <br />
-
       <div className="field">
         <label className="label">Jakiej grupie udostępnić?</label>
 
