@@ -2,7 +2,7 @@
 using Serilog;
 
 namespace TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
-internal class Converter
+internal class FFmpegClientConverter
 {
     public async Task ConvertAsync(string input, string output)
     {
