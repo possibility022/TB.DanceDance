@@ -7,9 +7,7 @@ internal class ProgramConfig
 {
     public static class Settings
     {
-        public const string FFMPGPath = "D:\\Programy\\ffmpeg-2022-12-04-git-6c814093d8-full_build\\bin\\ffmpeg.exe";
-        public const string FFProbePath = "D:\\Programy\\ffmpeg-2022-12-04-git-6c814093d8-full_build\\bin\\ffprobe.exe";
-        public const string FFMPGFolder = "D:\\Programy\\ffmpeg-2022-12-04-git-6c814093d8-full_build\\bin";
+        public const string FFMPGDefaultFolder = "D:\\Programy\\ffmpeg-2022-12-04-git-6c814093d8-full_build\\bin";
 
         public static string ApiOrigin { get; internal set; } = string.Empty;
         public static string OAuthOrigin { get; internal set; } = string.Empty;
@@ -47,9 +45,20 @@ internal class ProgramConfig
 
     private static void ConfigureFfmpeg()
     {
+        string path = Settings.FFMPGDefaultFolder;
+
+        if (File.Exists("ffmpgpath.txt"))
+        {
+            var lines = File.ReadAllLines("ffmpgpath.txt");
+            if (!string.IsNullOrEmpty(lines[0]))
+            {
+                path = lines[0];
+            }
+        }
+
         GlobalFFOptions.Configure(new FFOptions()
         {
-            BinaryFolder = Settings.FFMPGFolder,
+            BinaryFolder = path,
         });
     }
 
