@@ -26,6 +26,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     const [fileSelectionIsValid, setFileSelectionIsValid] = useState(false)
     const [wasSentSuccessfully, setWasSentSuccessfully] = useState<boolean | null>(null)
     const [wasTryingToSend, setWasTryingToSend] = useState(false)
+    const [sendCounter, setSendCounter] = useState(0)
 
 
     const getSentSuccessfullyMessage = () => {
@@ -63,8 +64,13 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
     const upload = () => {
         setWasTryingToSend(true)
-        props.validateOnSending()
-        validateFile()
+        const isValid = props.validateOnSending()
+        const fileIsValid = validateFile()
+
+        if (!isValid || !fileIsValid)
+        {
+            return
+        }
 
         const sendingDetails = props.getSendingDetails()
         uploadMany()
@@ -79,6 +85,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     }
 
     const uploadMany = async () => {
+        setSendCounter(0)
         if (props.files) {
 
             for (let i = 0; i < props.files.length; i++) {
@@ -105,6 +112,8 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
                 await videoInfoService.UploadVideo(data, file,
                     (e) => setBytesTransfered(e))
+
+                setSendCounter(sendCounter + 1)
             }
         }
     }
@@ -118,7 +127,8 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
         for (let i = 0; i < props.files.length; i++) {
             const file = props.files[i]
-            toReturn.push(<li>
+            toReturn.push(
+            <li key={file.name}>
                 {file.name}
             </li>)
         }
@@ -150,23 +160,34 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
                 </label>
                 {getFileVerificationMessage()}
             </div>
-            <br/>
+            <br />
             {renderFileListHeader()}
             <ul>
                 {renderFilesList()}
             </ul>
+            <br />
 
-            <br/>
+            <div className='container'>
 
-            <div className="field">
-                <p className="control">
-                    <Button onClick={upload}>
-                        Wyślij nagranie
-                    </Button>
-                </p>
+                <div className="field">
+                    <p className="control">
+                        <Button onClick={upload}>
+                            Wyślij nagranie
+                        </Button>
+                    </p>
+                </div>
             </div>
+            <br />
 
-            <progress className="progress is-success" value={bytesTransfered} max={bytestToTransfer}></progress>
+            <nav className="level">
+                <div className="level-item has-text-centered">
+                    <span className="tag is-medium">
+                        {sendCounter}/{props.files?.length ?? 0}
+                    </span>
+                    <progress className="progress is-success" value={bytesTransfered} max={bytestToTransfer}></progress>
+
+                </div>
+            </nav>
             {getSentSuccessfullyMessage()}
         </div>
     );
