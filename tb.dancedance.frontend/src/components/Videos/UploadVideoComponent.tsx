@@ -118,12 +118,19 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
         for (let i = 0; i < props.files.length; i++) {
             const file = props.files[i]
-            toReturn.push(<span className="file-name">
+            toReturn.push(<li>
                 {file.name}
-            </span>)
+            </li>)
         }
 
         return toReturn
+    }
+
+    const renderFileListHeader = () => {
+        if (!props.files || props.files.length == 0)
+            return null
+
+        return <div>Wybrane pliki:</div>
     }
 
     return (
@@ -137,13 +144,19 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
                             <i className="fas fa-upload"></i>
                         </span>
                         <span className="file-label">
-                            Wybierz Plik
+                            Wybierz Pliki
                         </span>
                     </span>
-                    {renderFilesList()}
                 </label>
                 {getFileVerificationMessage()}
             </div>
+            <br/>
+            {renderFileListHeader()}
+            <ul>
+                {renderFilesList()}
+            </ul>
+
+            <br/>
 
             <div className="field">
                 <p className="control">
