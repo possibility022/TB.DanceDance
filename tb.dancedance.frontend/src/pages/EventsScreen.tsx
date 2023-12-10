@@ -14,7 +14,7 @@ const EventsScreen = () => {
     useEffect(() => {
         videoInfoService.GetUserEventsAndGroups()
             .then((resp) => {
-                setEvents(resp.events)
+                setEvents(resp.assigned.events)
             })
             .catch((e) => console.error(e))
     }, [])

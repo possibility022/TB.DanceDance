@@ -1,9 +1,8 @@
-import { faCheck, faCheckSquare, faHouseFloodWater, faSpinner, faUserCheck } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as React from 'react';
 import { useState } from 'react';
 import videoInfoService from '../../services/VideoInfoService';
-import { EventType } from '../../types/EventType';
 import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
@@ -59,20 +58,41 @@ export function AccessToVideoRequestForm() {
 
     React.useEffect(() => {
         videoInfoService.GetAvailableEventsAndGroups()
-            .then(sharringScopes => {
-
-                setAllSharingScopes(sharringScopes)
+            .then(userGroupAndEvents => {
+                const events = new Array<IAssignedEvent>()
+                const groups = new Array<IAssignedGroup>()
+        
+                for(const el of userGroupAndEvents.assigned.events){
+                    events.push({...el, isAssigned: true})
+                }
+        
+                for(const el of userGroupAndEvents.available.events){
+                    events.push({...el, isAssigned: false})
+                }
+        
+                for(const el of userGroupAndEvents.assigned.groups){
+                    groups.push({...el, isAssigned: true})
+                }
+        
+                for(const el of userGroupAndEvents.available.groups){
+                    groups.push({...el, isAssigned: false})
+                }
+                
+                setAllSharingScopes({
+                    events: events,
+                    groups: groups
+                })
 
                 const eventsToSet = new Array<IItemToSelect<string>>()
 
-                for (const el of sharringScopes.events) {
+                for (const el of events) {
                     const mapped = mapToItemToSelect(el)
                     eventsToSet.push(mapped)
                 }
 
                 setEvents(eventsToSet)
 
-                setAvailableGroupNames(sharringScopes.groups.map(r => r.name))
+                setAvailableGroupNames(groups.map(r => r.name))
             })
             .catch(e => console.error(e))
     }, [])

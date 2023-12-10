@@ -34,14 +34,14 @@ export function UploadVideo() {
 
         const availableGroups = new Array<IToAssign>()
 
-        for (const el of v.events)
+        for (const el of v.assigned.events)
           availableGroups.push({
             id: el.id,
             isEvent: true,
             name: el.name
           })
 
-        for (const el of v.groups)
+        for (const el of v.assigned.groups)
           availableGroups.push({
             id: el.id,
             isEvent: false,
