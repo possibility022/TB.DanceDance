@@ -3,8 +3,7 @@ import UploadVideoInformation from "../types/ApiModels/UploadInformation";
 import AppApiClient from "./HttpApiClient";
 import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
 import VideoInformation from "../types/VideoInformation";
-import { IEventsAndGroups, ICreateNewEventRequest, Event } from "../types/ApiModels/EventsAndGroups";
-import { IAssignedEvent, IAssignedGroup } from "../types/AssignedEventAndGroup";
+import { ICreateNewEventRequest, Event, IUserEventsAndGroupsResponse } from "../types/ApiModels/EventsAndGroups";
 import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
 
 
@@ -34,31 +33,8 @@ export class VideoInfoService {
     }
 
     public async GetAvailableEventsAndGroups() {
-        const allGroupsAndEvents = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses')
         const userGroupAndEvents = await this.GetUserEventsAndGroups()
-
-        const availableEventsMap = new Map(userGroupAndEvents.events.map(v => [v.id, v]))
-        const availableGroupsMap = new Map(userGroupAndEvents.groups.map(v => [v.id, v]))
-
-        const events = new Array<IAssignedEvent>()
-        const groups = new Array<IAssignedGroup>()
-
-        for (const el of allGroupsAndEvents.data.events) {
-
-            const isAlreadyAssigned = availableEventsMap.has(el.id)
-            events.push({ ...el, isAssigned: isAlreadyAssigned })
-        }
-
-        for (const el of allGroupsAndEvents.data.groups) {
-
-            const isAlreadyAssigned = availableGroupsMap.has(el.id)
-            groups.push({ ...el, isAssigned: isAlreadyAssigned })
-        }
-
-        return {
-            events: events,
-            groups: groups
-        }
+        return userGroupAndEvents
     }
 
     public async SendAssigmentRequest(events?: Array<string>, groups?: Array<string>) {
@@ -78,7 +54,7 @@ export class VideoInfoService {
     }
 
     public async GetUserEventsAndGroups() {
-        const response = await AppApiClient.get<IEventsAndGroups>('/api/videos/accesses/my')
+        const response = await AppApiClient.get<IUserEventsAndGroupsResponse>('/api/videos/accesses/my')
         return response.data
     }
 

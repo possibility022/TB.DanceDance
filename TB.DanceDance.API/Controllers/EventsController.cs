@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
+using static IdentityModel.OidcConstants;
 
 namespace TB.DanceDance.API.Controllers;
 
@@ -41,20 +43,34 @@ public class EventsController : Controller
     }
 
     [Route(ApiEndpoints.Video.Access.GetUserAccess)]
-    public EventsAndGroupsResponse GetAssignedGroups()
+    public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync()
     {
         var user = User.GetSubject();
-        (var groups, var evenets) = userService.GetUserEventsAndGroups(user);
+        (var userGroups, var userEvents) = userService.GetUserEventsAndGroups(user);
 
-        return new EventsAndGroupsResponse()
-        {
-            Groups = groups
+        var responseModel = new UserEventsAndGroupsResponse();
+
+        responseModel.Assigned.Groups = userGroups
             .Select(group => ContractMappers.MapToGroupContract(group))
-                .ToList(),
-            Events = evenets
+                .ToArray();
+
+        responseModel.Assigned.Events = userEvents
                 .Select(@event => ContractMappers.MapToEventContract(@event))
-                .ToList()
-        };
+                .ToArray();
+
+        var listOfEvents = await userService.GetAllEvents();
+
+        responseModel.Available.Events = listOfEvents.Except(userEvents)
+            .Select(@event => ContractMappers.MapToEventContract(@event))
+            .ToArray();
+
+        var listOfGroups = await userService.GetAllGroups();
+
+        responseModel.Available.Groups = listOfGroups.Except(userGroups)
+            .Select(group => ContractMappers.MapToGroupContract(group))
+            .ToArray();
+
+        return responseModel;
     }
 
     [HttpPost]
