@@ -19,7 +19,7 @@ import EventsScreen from "./pages/EventsScreen"
 function App() {
 
 	return (
-		<div className="container">
+		<div className="section">
 			<AuthContext.Provider value={authService}>
 				<BrowserRouter>
 					<NavigationBar></NavigationBar>
