@@ -6,7 +6,7 @@ import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
-import { IAssignedEvent, IAssignedGroup } from '../../types/AssignedEventAndGroup';
+import { Event, Group } from '../../types/ApiModels/EventsAndGroups';
 interface IRequestState {
     wasSend: boolean
     areWeWaiting: boolean
@@ -37,62 +37,56 @@ export function AccessToVideoRequestForm() {
     const [availableGroupNames, setAvailableGroupNames] = useState<Array<string>>([])
 
     const [isSendButtonEnabled, setIsSendButtonEnabled] = useState(false)
-    const [selectedGroup, setSelectedGroup] = useState<IAssignedGroup>()
+    const [selectedGroup, setSelectedGroup] = useState<Group>()
 
-    const [allSharingScopes, setAllSharingScopes] = useState<{ events: Array<IAssignedEvent>, groups: Array<IAssignedGroup> }>({
+    const [alreadyAssignedEvents, setAlreadyAssignedEvents] = useState<Array<Event>>([])
+    const [alreadyAssignedGroups, setAlreadyAssignedGroups] = useState<Array<Group>>([])
+
+    const [allSharingScopes, setAllSharingScopes] = useState<{ events: Array<Event>, groups: Array<Group> }>({
         events: [],
         groups: []
     })
 
     const [selectedScopes] = useState<Map<string, boolean>>(new Map<string, boolean>())
 
-    const mapToItemToSelect = (item: IAssignedEvent) => {
+    const mapToItemToSelect = (item: Event) => {
         const itemToSelect: IItemToSelect<string> = {
             key: item.id,
             text: item.name,
-            selectionDisabled: item.isAssigned
         }
 
         return itemToSelect
     }
 
+    const mapToList = (items: Array<{ name: string, id: any }>) => {
+        return items.map(ev => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            return <li key={ev.id}>{ev.name}</li>
+        })
+    }
+
     React.useEffect(() => {
         videoInfoService.GetAvailableEventsAndGroups()
             .then(userGroupAndEvents => {
-                const events = new Array<IAssignedEvent>()
-                const groups = new Array<IAssignedGroup>()
-        
-                for(const el of userGroupAndEvents.assigned.events){
-                    events.push({...el, isAssigned: true})
-                }
-        
-                for(const el of userGroupAndEvents.available.events){
-                    events.push({...el, isAssigned: false})
-                }
-        
-                for(const el of userGroupAndEvents.assigned.groups){
-                    groups.push({...el, isAssigned: true})
-                }
-        
-                for(const el of userGroupAndEvents.available.groups){
-                    groups.push({...el, isAssigned: false})
-                }
-                
+
                 setAllSharingScopes({
-                    events: events,
-                    groups: groups
+                    events: userGroupAndEvents.available.events,
+                    groups: userGroupAndEvents.available.groups
                 })
 
                 const eventsToSet = new Array<IItemToSelect<string>>()
 
-                for (const el of events) {
+                setAlreadyAssignedEvents(userGroupAndEvents.assigned.events)
+                setAlreadyAssignedGroups(userGroupAndEvents.assigned.groups)
+
+                for (const el of userGroupAndEvents.available.events) {
                     const mapped = mapToItemToSelect(el)
                     eventsToSet.push(mapped)
                 }
 
                 setEvents(eventsToSet)
 
-                setAvailableGroupNames(groups.map(r => r.name))
+                setAvailableGroupNames(userGroupAndEvents.available.groups.map(r => r.name))
             })
             .catch(e => console.error(e))
     }, [])
@@ -203,16 +197,31 @@ export function AccessToVideoRequestForm() {
                             classNames={'is-large'}
                             startWithUnselected={true} />
                     </div>
+                    <div hidden={alreadyAssignedGroups.length == 0}>
+                        Masz już dostęp do:
+                        <ul>
+                            {mapToList(alreadyAssignedGroups)}
+                        </ul>
+                    </div>
                 </div>
+
             </div>
             <div className="columns">
-                <div className="column">
+                <div className="column is-centered has-text-centered">
                     <SelectableList<string>
                         articleClassName='is-info'
                         header='Wydarzenia'
                         onItemStatusChange={eventSelected}
                         text='Wybierz wydarzenia w których brałeś udział!'
                         options={events} />
+
+                    <div hidden={alreadyAssignedEvents.length == 0}>
+                        Masz już dostęp do:
+                        <ul>
+                            {mapToList(alreadyAssignedEvents)}
+                        </ul>
+                    </div>
+
                 </div>
             </div>
 
