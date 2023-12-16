@@ -8,10 +8,6 @@ import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
 
 
 export class VideoInfoService {
-    public async LoadVideos(): Promise<Array<VideoInformation>> {
-        const response = await AppApiClient.get<Array<VideoInformation>>('/api/videos')
-        return response.data
-    }
 
     public GetVideoUrl(videoInfo: VideoInformation) {
         return this.GetVideUrlByBlobId(videoInfo.blobId)
