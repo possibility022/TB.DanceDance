@@ -35,7 +35,7 @@ public class VideoService : IVideoService
                join groupsAssignments in dbContext.AssingedToGroups.DefaultIfEmpty() on groups.Id equals groupsAssignments.GroupId into groupsAssignmentsGroup
                from groupsAssignments in groupsAssignmentsGroup.DefaultIfEmpty()
                where
-               sharedWith.UserId == userId || eventsAssignments.UserId == userId || groupsAssignments.UserId == userId
+               sharedWith.UserId == userId || eventsAssignments.UserId == userId || (groupsAssignments.UserId == userId && groupsAssignments.WhenJoined < video.RecordedDateTime)
                orderby video.RecordedDateTime descending
                select new VideoInfo
                {
@@ -63,16 +63,11 @@ public class VideoService : IVideoService
             .FirstOrDefaultAsync();
     }
 
-    public IQueryable<VideoInfo> GetVideos(string userId)
-    {
-        var query = GetBaseVideosForUserQuery(userId);
-        return query;
-    }
-
     public Task<Stream> OpenStream(string blobName)
     {
         return blobService.OpenStream(blobName);
     }
+
     public async Task<bool> RenameVideoAsync(Guid guid, string newName)
     {
         var video = await dbContext.Videos.FirstAsync(r => r.Id == guid);

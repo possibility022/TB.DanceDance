@@ -6,7 +6,6 @@ namespace TB.DanceDance.Services;
 public interface IVideoService
 {
     Task<Stream> OpenStream(string blobName);
-    IQueryable<VideoInfo> GetVideos(string userId);
     Task<VideoInfo?> GetVideoByBlobAsync(string userId, string blobId);
     Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId);
     Task<bool> RenameVideoAsync(Guid guid, string newName);
