@@ -12,7 +12,7 @@ using TB.DanceDance.Data.PostgreSQL;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    [Migration("20231216172502_MergeVideosToConvertIntoVideos")]
+    [Migration("20231216175833_MergeVideosToConvertIntoVideos")]
     partial class MergeVideosToConvertIntoVideos
     {
         /// <inheritdoc />
