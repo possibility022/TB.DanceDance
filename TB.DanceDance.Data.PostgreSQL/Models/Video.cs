@@ -3,7 +3,7 @@
 public class Video
 {
     public Guid Id { get; set; }
-    public required string BlobId { get; init; }
+    public string? BlobId { get; set; }
     public string Name { get; set; }
 
     // User Id
@@ -12,7 +12,6 @@ public class Video
     public required DateTime SharedDateTime { get; init; }
     public required TimeSpan? Duration { get; set; }
     public required string FileName { get; init; }
-    public byte[]? Metadata { get; set; }
 
     /// <summary>
     /// When value is set, it means that it is being converted by some service and if we passed that date it means somethin went wrong and another service can try convert it again.

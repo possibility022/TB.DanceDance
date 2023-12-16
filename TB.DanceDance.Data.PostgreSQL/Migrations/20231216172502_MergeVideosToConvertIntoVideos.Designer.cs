@@ -12,7 +12,7 @@ using TB.DanceDance.Data.PostgreSQL;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    [Migration("20231216165342_MergeVideosToConvertIntoVideos")]
+    [Migration("20231216172502_MergeVideosToConvertIntoVideos")]
     partial class MergeVideosToConvertIntoVideos
     {
         /// <inheritdoc />
@@ -178,7 +178,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("BlobId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("Converted")
@@ -193,9 +192,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.Property<DateTime?>("LockedTill")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<byte[]>("Metadata")
-                        .HasColumnType("bytea");
 
                     b.Property<string>("Name")
                         .IsRequired()
