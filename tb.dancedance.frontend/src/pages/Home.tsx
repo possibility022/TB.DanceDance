@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginButton from '../components/LoginLogoutComponents/LoginButton';
 import { AuthContext } from '../providers/AuthProvider';
@@ -13,7 +13,7 @@ const Home = () => {
 
     return (
 
-        <section className="section">
+        <React.Fragment>
             <div className="container">
                 {authContext.isAuthenticated() ?
                     <button className="button" onClick={() => { navigate('/videos') }}>Zatańczmy</button>
@@ -23,7 +23,7 @@ const Home = () => {
             <div hidden={true}>
                 <p>{envVariables}</p>
             </div>
-        </section>
+        </React.Fragment>
 
     );
 };

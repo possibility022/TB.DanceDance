@@ -19,7 +19,7 @@ import EventsScreen from "./pages/EventsScreen"
 function App() {
 
 	return (
-		<div className="section">
+		<section className="section">
 			<AuthContext.Provider value={authService}>
 				<BrowserRouter>
 					<NavigationBar></NavigationBar>
@@ -42,7 +42,7 @@ function App() {
 					</Routes>
 				</BrowserRouter>
 			</AuthContext.Provider>
-		</div>
+		</section>
 	)
 }
 
