@@ -18,6 +18,7 @@ public class ContractMappers
             RecordedDateTime = info.Video.RecordedDateTime,
             SharedWithEvent = info.SharedWithEvent,
             SharedWithGroup = info.SharedWithGroup,
+            Converted = info.Video.Converted,
         };
     }
 
