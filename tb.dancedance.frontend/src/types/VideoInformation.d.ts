@@ -6,4 +6,5 @@ export default interface VideoInformation {
     duration: TimeRanges
     sharedWithGroup: boolean
     sharedWithEvent: boolean
+    converted: boolean
 }
