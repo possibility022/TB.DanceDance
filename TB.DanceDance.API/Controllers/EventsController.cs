@@ -76,11 +76,11 @@ public class EventsController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Event.AddEvent)]
-    public async Task<IActionResult> CreateEventAsync([FromBody]CreateNewEventRequest request)
+    public async Task<IActionResult> CreateEventAsync([FromBody] CreateNewEventRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        
+
 
         var @event = ContractMappers.MapFromNewEventRequestToEvent(request);
         var user = User.GetSubject();
@@ -110,7 +110,10 @@ public class EventsController : Controller
             tasks[0] = userService.SaveEventsAssigmentRequest(user, requests.Events);
 
         if (requests.Groups?.Count > 0)
-            tasks[1] = userService.SaveGroupsAssigmentRequests(user, requests.Groups);
+        {
+            var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
+            tasks[1] = userService.SaveGroupsAssigmentRequests(user, model);
+        }
 
         await Task.WhenAll(tasks);
 
@@ -140,5 +143,5 @@ public class EventsController : Controller
         return Ok(results);
     }
 
-    
+
 }
