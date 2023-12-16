@@ -11,18 +11,15 @@ public class VideoService : IVideoService
 {
     private readonly DanceDbContext dbContext;
     private readonly IBlobDataService blobService;
-    private readonly IVideoFileLoader videoFileLoader;
     private readonly IVideoUploaderService videoUploaderService;
 
     public VideoService(
         DanceDbContext dbContext,
         IBlobDataServiceFactory blobServiceFactory,
-        IVideoFileLoader videoFileLoader,
         IVideoUploaderService videoUploaderService)
     {
         this.dbContext = dbContext;
         this.blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
-        this.videoFileLoader = videoFileLoader ?? throw new ArgumentNullException(nameof(videoFileLoader));
         this.videoUploaderService = videoUploaderService;
     }
 
@@ -57,30 +54,6 @@ public class VideoService : IVideoService
         var any = await query;
 
         return any;
-    }
-
-    public async Task<Video> UploadVideoAsync(string filePath, CancellationToken cancellationToken)
-    {
-        if (!File.Exists(filePath))
-            throw new IOException("File not found: " + filePath);
-
-        (var info, var metada) = await videoFileLoader.CreateRecord(filePath);
-
-        dbContext.Videos.Add(info);
-        await dbContext.SaveChangesAsync();
-
-        var videoMetadata = new VideoMetadata()
-        {
-            VideoId = info.Id,
-            Metadata = Encoding.UTF8.GetBytes(metada)
-        };
-
-        dbContext.VideoMetadata.Add(videoMetadata);
-        await dbContext.SaveChangesAsync();
-
-        await blobService.Upload(info.BlobId, File.OpenRead(filePath));
-
-        return info;
     }
 
     public Task<VideoInfo?> GetVideoByBlobAsync(string userId, string blobId)

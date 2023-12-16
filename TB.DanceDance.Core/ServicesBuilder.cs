@@ -7,8 +7,7 @@ namespace TB.DanceDance.Core;
 public static class ServicesBuilder
 {
     public static IServiceCollection ConfigureVideoServices(this IServiceCollection services,
-        string connectionString,
-        Func<IServiceProvider, IVideoFileLoader>? videoFileLoader = null)
+        string connectionString)
     {
 
         if (string.IsNullOrEmpty(connectionString))
@@ -20,15 +19,6 @@ public static class ServicesBuilder
             .AddScoped<IEventService, EventService>()
             .AddScoped<IGroupService, GroupService>()
             .AddScoped<IVideoUploaderService, VideoUploaderService>();
-
-        if (videoFileLoader != null)
-        {
-            services.AddScoped<IVideoFileLoader>(videoFileLoader);
-        }
-        else
-        {
-            services.AddSingleton<IVideoFileLoader, FakeFileLoader>();
-        }
 
         return services;
     }
