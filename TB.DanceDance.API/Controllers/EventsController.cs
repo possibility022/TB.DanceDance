@@ -55,6 +55,7 @@ public class EventsController : Controller
                 .ToArray();
 
         responseModel.Assigned.Events = userEvents
+                .OrderByDescending(r => r.Date)
                 .Select(@event => ContractMappers.MapToEventContract(@event))
                 .ToArray();
 
