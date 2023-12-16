@@ -89,11 +89,8 @@ public class VideoService : IVideoService
     {
         var sharedBlob = videoUploaderService.GetSasUri();
 
-        var videoId = Guid.NewGuid();
-
         var video = new Video()
         {
-            Id = videoId,
             FileName = fileName,
             SourceBlobId = sharedBlob.BlobClient.Name,
             Name = name,
@@ -104,8 +101,8 @@ public class VideoService : IVideoService
             SharedWith = new[] {
                 new SharedWith()
                 {
+                    VideoId = default(), // should be set by EF
                     UserId = userId,
-                    VideoId = videoId,
                     EventId = assignedToEvent ? sharedWith : null,
                     GroupId = assignedToEvent ? null : sharedWith
                 }

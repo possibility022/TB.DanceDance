@@ -40,7 +40,7 @@ public class ConverterController : Controller
         if (!ModelState.IsValid)
             return BadRequest();
 
-        var res = await videoUploaderService.UpdateVideoToTransformInformationAsync(
+        var res = await videoUploaderService.UpdateVideoInformations(
             publishVideo.VideoId,
             publishVideo.Duration,
             publishVideo.RecordedDateTime,
