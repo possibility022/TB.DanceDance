@@ -37,15 +37,12 @@ export class VideoInfoService {
         return userGroupAndEvents
     }
 
-    public async SendAssigmentRequest(events?: Array<string>, groups?: Array<string>) {
+    public async SendAssigmentRequest(requestModel: PostRequestAssigmentRequest) {
 
-        if (!events && !groups)
+        if (!requestModel.events && !requestModel.groups)
             throw new Error("Argument events or groups must me provided. Both are not provided.")
 
-        const response = await AppApiClient.post('/api/videos/accesses/request', {
-            events: events,
-            groups: groups
-        })
+        const response = await AppApiClient.post('/api/videos/accesses/request', requestModel)
 
         if (response.status !== 200)
             return false;

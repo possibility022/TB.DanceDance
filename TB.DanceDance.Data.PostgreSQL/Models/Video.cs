@@ -40,6 +40,7 @@ public class GroupAssigmentRequest
     public Guid Id { get; set; }
     public required string UserId { get; init; }
     public required Guid GroupId { get; init; }
+    public required DateTime WhenJoined { get; set; }
 }
 
 public class EventAssigmentRequest
@@ -69,6 +70,8 @@ public class AssignedToGroup
     public required Guid GroupId { get; init; }
 
     public required string UserId { get; init; }
+
+    public required DateTime WhenJoined { get; set; }
 
     public Group Group { get; set; } = null!;
 }

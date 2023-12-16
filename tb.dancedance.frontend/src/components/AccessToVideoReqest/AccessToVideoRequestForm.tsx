@@ -93,8 +93,11 @@ export function AccessToVideoRequestForm() {
 
     const onGroupSelected = (selectedItem: string, selectedIndex: number) => {
         if (selectedIndex >= 0) {
+            setDateSelectorVisible(true)
             setIsSendButtonEnabled(true)
             setSelectedGroup(allSharingScopes.groups[selectedIndex])
+        } else {
+            setDateSelectorVisible(false)
         }
     }
 
@@ -153,8 +156,6 @@ export function AccessToVideoRequestForm() {
         throw new Error("Out of range exception. " + JSON.stringify(requestStatus))
     }
 
-
-
     const sendRequest = () => {
 
         requestStatusDispatch('sending')
@@ -166,24 +167,43 @@ export function AccessToVideoRequestForm() {
                 events.push(eventId)
         })
 
-        let groups: Array<string> | undefined = undefined
+        let groups: Array<GroupAssigmentModel> | undefined = undefined
         if (selectedGroup)
-            groups = [selectedGroup?.id]
+            groups = [{
+                id: selectedGroup.id,
+                joinedDate: new Date(Date.parse(date))
+            }]
 
-        const promise = videoInfoService.SendAssigmentRequest(events, groups)
-            .then(e => {
-                requestStatusDispatch('receivedOk')
-            })
-            .catch((e) => {
-                requestStatusDispatch('receivedFailed')
-                console.log(e)
-            })
+        const promise = videoInfoService.SendAssigmentRequest({
+            events: events,
+            groups: groups
+        })
+        .then(e => {
+            requestStatusDispatch('receivedOk')
+        })
+        .catch((e) => {
+            requestStatusDispatch('receivedFailed')
+            console.log(e)
+        })
+    }
+
+    const [date, setDate] = React.useState("")
+    const [dateSelectorVisible, setDateSelectorVisible] = React.useState(false)
+
+    const getDateSelector = () => {
+        if (dateSelectorVisible)
+            return <div className="field">
+                <label className="label">Data dołączenia do grupy:</label>
+                <div className="control">
+                    <input className="input" type="date" value={date} onChange={(v) => setDate(v.target.value)} placeholder='20.1.2023' />
+                </div>
+            </div>
     }
 
     return (
         <div>
             <div className="content">
-                <h2>Wybierz wydarzenia w których brałeś/aś udział i chcesz uzyskać dostęp.</h2>
+                <h2>Wybierz wydarzenia w których brałeś/aś udział i chcesz uzyskać dostęp</h2>
             </div>
             <div className='columns'>
                 <div className='column is-centered has-text-centered'>
@@ -196,6 +216,7 @@ export function AccessToVideoRequestForm() {
                             onSelected={onGroupSelected}
                             classNames={'is-large'}
                             startWithUnselected={true} />
+                        {getDateSelector()}
                     </div>
                     <div hidden={alreadyAssignedGroups.length == 0}>
                         Masz już dostęp do:
