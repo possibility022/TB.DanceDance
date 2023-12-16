@@ -54,6 +54,8 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                 type: "text",
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.Sql("UPDATE video.\"Videos\" SET \"Converted\" = true");
         }
 
         /// <inheritdoc />
