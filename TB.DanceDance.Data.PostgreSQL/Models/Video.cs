@@ -11,25 +11,8 @@ public class Video
     public required DateTime RecordedDateTime { get; set; }
     public required DateTime SharedDateTime { get; init; }
     public required TimeSpan? Duration { get; set; }
-
-    // Navigation properties
-    public ICollection<SharedWith> SharedWith { get; set; } = null!;
-}
-
-public class VideoToTranform
-{
-    public Guid Id { get; set; }
-    public required string BlobId { get; init; }
-    public required string Name { get; init; }
-
-    // User Id
-    public required string UploadedBy { get; init; }
-    public required DateTime RecordedDateTime { get; set; }
-    public required DateTime SharedDateTime { get; init; }
-    public required TimeSpan? Duration { get; set; }
-    public byte[]? Metadata { get; set; }
-
     public required string FileName { get; init; }
+    public byte[]? Metadata { get; set; }
 
     /// <summary>
     /// When value is set, it means that it is being converted by some service and if we passed that date it means somethin went wrong and another service can try convert it again.
@@ -37,14 +20,13 @@ public class VideoToTranform
     public DateTime? LockedTill { get; set; } = null;
 
     /// <summary>
-    /// Pointing to event or group. Based on AssignedToEvent flag
+    /// Original video
     /// </summary>
-    public required Guid SharedWithId { get; set; }
+    public required string SourceBlobId { get; init; }
 
-    /// <summary>
-    /// If true, SharedWithId is pointing to event, if false, SharedWithId is pointing to group
-    /// </summary>
-    public required bool AssignedToEvent { get; set; }
+    public bool Converted { get; set; } = false;
+
+    public ICollection<SharedWith> SharedWith { get; set; } = null!;
 }
 
 public class VideoMetadata

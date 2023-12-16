@@ -17,7 +17,6 @@ public class DanceDbContext : DbContext
     }
 
     public DbSet<Video> Videos { get; set; }
-    public DbSet<VideoToTranform> VideosToTranform { get; set; }
     public DbSet<VideoMetadata> VideoMetadata { get; set; }
     public DbSet<GroupAssigmentRequest> GroupAssigmentRequests { get; set; }
     public DbSet<EventAssigmentRequest> EventAssigmentRequests { get; set; }
@@ -36,9 +35,6 @@ public class DanceDbContext : DbContext
     {
         modelBuilder.Entity<Video>()
             .ToTable("Videos", Schemas.Video);
-
-        modelBuilder.Entity<VideoToTranform>()
-            .ToTable("ToTransform", Schemas.Video);
 
         modelBuilder.Entity<VideoMetadata>()
             .ToTable(nameof(VideoMetadata), Schemas.Video);
