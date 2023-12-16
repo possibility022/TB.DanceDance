@@ -101,7 +101,7 @@ public class VideoService : IVideoService
             SharedWith = new[] {
                 new SharedWith()
                 {
-                    VideoId = default(), // should be set by EF
+                    VideoId = default, // should be set by EF
                     UserId = userId,
                     EventId = assignedToEvent ? sharedWith : null,
                     GroupId = assignedToEvent ? null : sharedWith
