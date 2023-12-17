@@ -102,6 +102,15 @@ public class EventsController : Controller
         if (requests == null)
             return BadRequest();
 
+        if (requests.Events?.Any() != true && requests.Groups?.Any() != true)
+            return BadRequest();
+
+        if (requests.Groups != null)
+        {
+            if (requests.Groups.Any(r => r.JoinedDate == default))
+                return BadRequest();
+        }
+
         var user = User.GetSubject();
 
         var tasks = new Task[] { Task.CompletedTask, Task.CompletedTask };
