@@ -42,6 +42,8 @@ export function AccessToVideoRequestForm() {
     const [alreadyAssignedEvents, setAlreadyAssignedEvents] = useState<Array<Event>>([])
     const [alreadyAssignedGroups, setAlreadyAssignedGroups] = useState<Array<Group>>([])
 
+    const [notificationMessage, setNotificationMessage] = useState<string>('')
+
     const [allSharingScopes, setAllSharingScopes] = useState<{ events: Array<Event>, groups: Array<Group> }>({
         events: [],
         groups: []
@@ -168,23 +170,34 @@ export function AccessToVideoRequestForm() {
         })
 
         let groups: Array<GroupAssigmentModel> | undefined = undefined
-        if (selectedGroup)
+        if (selectedGroup) {
+
+            const res = Date.parse(date)
+
+            if (isNaN(res))
+            {
+                setNotificationMessage('Wprowadzona data jest nieprawidłowa.')
+                requestStatusDispatch('receivedFailed')
+                return
+            }
+
             groups = [{
                 id: selectedGroup.id,
                 joinedDate: new Date(Date.parse(date))
             }]
+        }
 
         const promise = videoInfoService.SendAssigmentRequest({
             events: events,
             groups: groups
         })
-        .then(e => {
-            requestStatusDispatch('receivedOk')
-        })
-        .catch((e) => {
-            requestStatusDispatch('receivedFailed')
-            console.log(e)
-        })
+            .then(e => {
+                requestStatusDispatch('receivedOk')
+            })
+            .catch((e) => {
+                requestStatusDispatch('receivedFailed')
+                console.log(e)
+            })
     }
 
     const [date, setDate] = React.useState("")
@@ -193,11 +206,20 @@ export function AccessToVideoRequestForm() {
     const getDateSelector = () => {
         if (dateSelectorVisible)
             return <div className="field">
-                <label className="label">Data dołączenia do grupy:</label>
+                <label className="label">Od kiedy uczęszczasz na zajęcia tej grupy?</label>
                 <div className="control">
                     <input className="input" type="date" value={date} onChange={(v) => setDate(v.target.value)} placeholder='20.1.2023' />
                 </div>
+
             </div>
+    }
+
+    const getErrorNotification = () => {
+        if (requestStatus.wasSend && requestStatus.wasOk == false) {
+            return <div className="notification is-danger">
+                {notificationMessage}
+            </div>
+        }
     }
 
     return (
@@ -253,6 +275,9 @@ export function AccessToVideoRequestForm() {
                     </Button>
                 </div>
             </div>
+
+            {getErrorNotification()}
+
         </div>
     );
 }
