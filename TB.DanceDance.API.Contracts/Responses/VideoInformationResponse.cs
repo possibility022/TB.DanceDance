@@ -11,5 +11,6 @@ namespace TB.DanceDance.API.Contracts.Responses
         public TimeSpan? Duration { get; set; }
         public bool SharedWithEvent { get; set; }
         public bool SharedWithGroup { get; set; }
+        public bool Converted { get; set; }
     }
 }

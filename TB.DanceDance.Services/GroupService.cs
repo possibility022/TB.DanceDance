@@ -17,7 +17,7 @@ public class GroupService : IGroupService
         var q = from assignedTo in dbContext.AssingedToGroups
                 join sharedWith in dbContext.SharedWith on assignedTo.GroupId equals sharedWith.GroupId
                 join video in dbContext.Videos on sharedWith.VideoId equals video.Id
-                where assignedTo.UserId == userId
+                where assignedTo.UserId == userId && assignedTo.WhenJoined < video.RecordedDateTime
                 orderby video.RecordedDateTime descending
                 select new VideoInfo()
                 {

@@ -27,6 +27,7 @@ export function EventCard(props: IEventCardProps) {
 
     const [contentIsHidden, setContentIsHidden] = React.useState(true)
     const [videos, setVideos] = React.useState<Array<VideoInformation>>([])
+    const [isLoading, setIsLoading] = React.useState(true)
 
     const loadContent = () => {
         const isHidden = !contentIsHidden
@@ -35,11 +36,21 @@ export function EventCard(props: IEventCardProps) {
         if (isHidden == true)
             return
 
+        setIsLoading(true)
+
         videoInfoService.GetVideosPerEvent(props.event.id)
             .then((results) => {
                 setVideos(results)
             })
             .catch(e => console.error(e))
+            .finally(() => {
+                setIsLoading(false)
+            })
+    }
+
+    const progressBar = () => {
+        if (isLoading)
+            return <progress className="progress is-small is-primary" max="100"></progress>
     }
 
     return (
@@ -55,6 +66,7 @@ export function EventCard(props: IEventCardProps) {
                 </button>
             </header>
             <div className="card-content" hidden={contentIsHidden}>
+                {progressBar()}
                 <VideoList videos={videos}></VideoList>
             </div>
             <div hidden={contentIsHidden}>

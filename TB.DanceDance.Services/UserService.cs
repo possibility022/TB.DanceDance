@@ -99,11 +99,12 @@ public class UserService : IUserService
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveGroupsAssigmentRequests(string user, ICollection<Guid> groups)
+    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
     {
         var toSave = groups.Select(group => new GroupAssigmentRequest()
         {
-            GroupId = group,
+            GroupId = group.groupId,
+            WhenJoined = group.joinedDate,
             UserId = user
         });
 
