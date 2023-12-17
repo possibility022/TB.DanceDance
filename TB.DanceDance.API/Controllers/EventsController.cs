@@ -113,18 +113,14 @@ public class EventsController : Controller
 
         var user = User.GetSubject();
 
-        var tasks = new Task[] { Task.CompletedTask, Task.CompletedTask };
-
         if (requests.Events?.Count > 0)
-            tasks[0] = userService.SaveEventsAssigmentRequest(user, requests.Events);
+            await userService.SaveEventsAssigmentRequest(user, requests.Events);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            tasks[1] = userService.SaveGroupsAssigmentRequests(user, model);
+            await userService.SaveGroupsAssigmentRequests(user, model);
         }
-
-        await Task.WhenAll(tasks);
 
         return Ok();
     }
