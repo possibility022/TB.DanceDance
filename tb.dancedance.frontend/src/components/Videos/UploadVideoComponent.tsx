@@ -63,6 +63,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     }
 
     const upload = () => {
+        setSendCounter(0)
         setWasTryingToSend(true)
         const isValid = props.validateOnSending()
         const fileIsValid = validateFile()
@@ -85,7 +86,6 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     }
 
     const uploadMany = async () => {
-        setSendCounter(0)
         if (props.files) {
 
             for (let i = 0; i < props.files.length; i++) {

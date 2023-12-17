@@ -1,6 +1,11 @@
 import { EventType } from "../EventType"
 
-export interface IEventsAndGroups{
+export interface IUserEventsAndGroupsResponse {
+    assigned: IEventsAndGroupsResponse
+    available: IEventsAndGroupsResponse
+}
+
+export interface IEventsAndGroupsResponse {
     events: Array<Event>
     groups: Array<Group>
 }
@@ -15,7 +20,7 @@ export interface IEventBase {
     eventType: EventType
 }
 
-export interface Event extends IEventBase{
+export interface Event extends IEventBase {
     id: string
 }
 

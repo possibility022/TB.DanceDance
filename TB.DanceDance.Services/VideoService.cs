@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Text;
 using TB.DanceDance.Data.Blobs;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
@@ -11,18 +10,15 @@ public class VideoService : IVideoService
 {
     private readonly DanceDbContext dbContext;
     private readonly IBlobDataService blobService;
-    private readonly IVideoFileLoader videoFileLoader;
     private readonly IVideoUploaderService videoUploaderService;
 
     public VideoService(
         DanceDbContext dbContext,
         IBlobDataServiceFactory blobServiceFactory,
-        IVideoFileLoader videoFileLoader,
         IVideoUploaderService videoUploaderService)
     {
         this.dbContext = dbContext;
         this.blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
-        this.videoFileLoader = videoFileLoader ?? throw new ArgumentNullException(nameof(videoFileLoader));
         this.videoUploaderService = videoUploaderService;
     }
 
@@ -39,7 +35,7 @@ public class VideoService : IVideoService
                join groupsAssignments in dbContext.AssingedToGroups.DefaultIfEmpty() on groups.Id equals groupsAssignments.GroupId into groupsAssignmentsGroup
                from groupsAssignments in groupsAssignmentsGroup.DefaultIfEmpty()
                where
-               sharedWith.UserId == userId || eventsAssignments.UserId == userId || groupsAssignments.UserId == userId
+               sharedWith.UserId == userId || eventsAssignments.UserId == userId || (groupsAssignments.UserId == userId && groupsAssignments.WhenJoined < video.RecordedDateTime)
                orderby video.RecordedDateTime descending
                select new VideoInfo
                {
@@ -48,6 +44,7 @@ public class VideoService : IVideoService
                    SharedWithGroup = groupsAssignments != null,
                };
     }
+
     public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
     {
         var query = GetBaseVideosForUserQuery(userId)
@@ -59,30 +56,6 @@ public class VideoService : IVideoService
         return any;
     }
 
-    public async Task<Video> UploadVideoAsync(string filePath, CancellationToken cancellationToken)
-    {
-        if (!File.Exists(filePath))
-            throw new IOException("File not found: " + filePath);
-
-        (var info, var metada) = await videoFileLoader.CreateRecord(filePath);
-
-        dbContext.Videos.Add(info);
-        await dbContext.SaveChangesAsync();
-
-        var videoMetadata = new VideoMetadata()
-        {
-            VideoId = info.Id,
-            Metadata = Encoding.UTF8.GetBytes(metada)
-        };
-
-        dbContext.VideoMetadata.Add(videoMetadata);
-        await dbContext.SaveChangesAsync();
-
-        await blobService.Upload(info.BlobId, File.OpenRead(filePath));
-
-        return info;
-    }
-
     public Task<VideoInfo?> GetVideoByBlobAsync(string userId, string blobId)
     {
         return GetBaseVideosForUserQuery(userId)
@@ -90,37 +63,9 @@ public class VideoService : IVideoService
             .FirstOrDefaultAsync();
     }
 
-    public IQueryable<VideoInfo> GetVideos(string userId)
-    {
-        var query = GetBaseVideosForUserQuery(userId);
-        return query;
-    }
-
-    public async Task<IQueryable<Video>> GetVideos()
-    {
-        var query = dbContext
-            .Videos
-            .Include(r => r.SharedWith)
-            .OrderByDescending(r => r.RecordedDateTime);
-
-        //todo add paging
-
-        return query;
-    }
-
     public Task<Stream> OpenStream(string blobName)
     {
         return blobService.OpenStream(blobName);
-    }
-
-    public Task<Event> GetEvent(Guid id)
-    {
-        return dbContext.Events.FirstAsync(r => r.Id == id);
-    }
-
-    public Task<Group> GetGroup(Guid id)
-    {
-        return dbContext.Groups.FirstAsync(group => group.Id == id);
     }
 
     public async Task<bool> RenameVideoAsync(Guid guid, string newName)
@@ -139,20 +84,28 @@ public class VideoService : IVideoService
     {
         var sharedBlob = videoUploaderService.GetSasUri();
 
-        var video = new VideoToTranform()
+        var video = new Video()
         {
             FileName = fileName,
-            AssignedToEvent = assignedToEvent,
-            BlobId = sharedBlob.BlobClient.Name,
+            SourceBlobId = sharedBlob.BlobClient.Name,
             Name = name,
             UploadedBy = userId,
             Duration = null,
             RecordedDateTime = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc),
             SharedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
-            SharedWithId = sharedWith
+            SharedWith = new[] {
+                new SharedWith()
+                {
+                    VideoId = default, // should be set by EF
+                    UserId = userId,
+                    EventId = assignedToEvent ? sharedWith : null,
+                    GroupId = assignedToEvent ? null : sharedWith
+                }
+            },
+            Converted = false
         };
 
-        dbContext.VideosToTranform.Add(video);
+        dbContext.Videos.Add(video);
         await dbContext.SaveChangesAsync();
 
         return sharedBlob;

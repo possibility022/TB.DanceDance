@@ -30,18 +30,6 @@ public class VideoController : Controller
     private readonly IUserService userService;
     private readonly ILogger<VideoController> logger;
 
-    [Route(ApiEndpoints.Video.GetAll)]
-    [HttpGet]
-    public async Task<IEnumerable<VideoInformationResponse>> GetInformationAsync()
-    {
-        string user = User.GetSubject();
-
-        var v = videoService.GetVideos(user).ToList();
-
-        return videoService
-            .GetVideos(user)
-            .Select(r => ContractMappers.MapToVideoInformation(r));
-    }
 
     [Route(ApiEndpoints.Video.GetSingle)]
     [HttpGet]

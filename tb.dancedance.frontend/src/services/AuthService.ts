@@ -169,7 +169,8 @@ export class AuthService implements IAuthService, TokenProvider {
     };
 
     signinSilent = async () => {
-        const user = await this.userManager.signinSilent()
+        let user = await this.userManager.getUser();
+        user = await this.userManager.signinSilent(user ?? undefined)
         console.log("signed in", user);
     };
 

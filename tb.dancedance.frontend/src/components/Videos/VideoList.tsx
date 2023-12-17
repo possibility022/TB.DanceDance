@@ -26,16 +26,25 @@ export function VideoList(props: ListOfVideos) {
         navigate(url)
     }
 
+    const getButton = (vid: VideoInformation) => {
+        if (vid.converted){
+            return <td>
+                <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(vid)} />
+            </td>
+        } else {
+            return <td className='has-text-danger'>
+                Oczekuje na konwersje.
+            </td>
+        }
+    }
+
     const list = props.videos.map(r => {
 
         return (
             <tr key={r.id}>
                 <td>{r.name}</td>
                 <td>{formatDate(r.recordedDateTime)}</td>
-                <td>
-                    <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(r)} />
-                </td>
-
+                {getButton(r)}
             </tr>
         )
     })
