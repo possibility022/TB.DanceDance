@@ -50,7 +50,7 @@ public class Config
                 RequireClientSecret = false,
 
                 RedirectUris = { "http://localhost:3000/callback", "http://localhost:3000/" },
-
+                AllowOfflineAccess = true,
                 AllowedCorsOrigins =
                 {
                     "http://localhost:3000",
