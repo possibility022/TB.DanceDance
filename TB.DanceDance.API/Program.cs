@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.API;
 using TB.DanceDance.Core;
+using TB.DanceDance.Core.Exceptions;
 using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Identity;
 using TB.DanceDance.Identity.Extensions;
@@ -82,11 +83,17 @@ builder.Services
 
 builder.Services
     .AddAuthentication()
-    .AddLocalApi(o =>
-{
-    o.ExpectedScope = DanceDanceResources.WestCoastSwing.Scopes.ReadScope;
-});
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
 
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new AppException("Google Client Id is null.");
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new AppException("Google Client Secret is null.");
+    })
+    .AddLocalApi(o =>
+    {
+        o.ExpectedScope = DanceDanceResources.WestCoastSwing.Scopes.ReadScope;
+    });
 
 builder.Services
     .AddIdentity<User, Role>()

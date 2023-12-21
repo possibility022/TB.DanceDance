@@ -14,6 +14,7 @@ namespace IdentityServerHost.Quickstart.UI;
 
 [SecurityHeaders]
 [AllowAnonymous]
+[Route("[controller]/[action]")]
 public class ExternalController : Controller
 {
     private readonly IIdentityServerInteractionService _interaction;
