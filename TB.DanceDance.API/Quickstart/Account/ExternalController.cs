@@ -169,13 +169,12 @@ public class ExternalController : Controller
     {
         var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName);
         var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
-        var surname = claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname);
 
         var user = new TB.DanceDance.Identity.User()
         {
             Id = providerUserId,
             Email = email?.Value,
-            UserName = surname?.Value == null ? name?.Value : $"{name?.Value} {surname?.Value}".Trim()
+            UserName = name?.Value,
         };
 
         var res = await _userManager.CreateAsync(user);
