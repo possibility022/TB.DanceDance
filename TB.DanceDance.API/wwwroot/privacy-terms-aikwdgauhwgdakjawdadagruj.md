@@ -1,7 +1,7 @@
 
 **Polityka prywatnoœci dla aplikacji Dance Dance**
 
-**Ostatnia aktualizacja: [Data ostatniej aktualizacji]**
+**Ostatnia aktualizacja: Ostatnia aktualizacja: 01.01.2024**
 
 1.  **Wprowadzenie**
 
