@@ -4,6 +4,7 @@ import { authService } from "../providers/AuthProvider";
 import appClient from "../services/AppClient";
 import { Button } from "./Button";
 import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
+import ConfigProvider from "../services/ConfigProvider";
 
 export function NavigationBar() {
 
@@ -53,15 +54,16 @@ export function NavigationBar() {
 
                     <div className="navbar-end">
                         <div className="navbar-item">
+                            <a className='navbar-item is-size-7' href={ConfigProvider.getIdentityConfig().authority + '/policy/dancedanceapp'}>Polityka Prywatności</a>
                             <div className="buttons">
                                 <LoginLogout />
-                                <Button 
-                                isLoading={registrationIsWaiting}
-                                onClick={() => {
-                                    registerAction()
-                                    .catch(e => console.error(e))
-                                    .finally(() => setRegistrationIsWaiting(false))
-                                }}>
+                                <Button
+                                    isLoading={registrationIsWaiting}
+                                    onClick={() => {
+                                        registerAction()
+                                            .catch(e => console.error(e))
+                                            .finally(() => setRegistrationIsWaiting(false))
+                                    }}>
                                     Register
                                 </Button>
                             </div>
