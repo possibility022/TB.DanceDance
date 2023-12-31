@@ -28,7 +28,7 @@ export function CookieModal() {
     return (
         <div id='cookiesmodal' className="notification is-hidden">
             <p>Hej! Aplikacja uzyskuje dostęp i przechowujemy informacje na urządzeniu oraz przetwarza dane osobowe, takie jak unikalne identyfikatory i standardowe informacje wysyłane przez urządzenie czy dane przeglądania w celu świadczenia usług! Więcej informacji znajdziesz tutaj: <a href={privacyPolicy()}>Polityka Prywatności</a></p>
-            <button aria-label="close" className="button" onClick={onCookiesClose}>Ok, Rozumiem</button>
+            <button aria-label="close" className="button" onClick={onCookiesClose}>Ok! Przyjąłem/am dowiadomości :)</button>
         </div>
     );
 }
