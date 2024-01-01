@@ -30,7 +30,7 @@ export default class ConfigProvider {
 
         let redirectUri = process.env.REACT_APP_REDIRECT_URI
         if (!redirectUri) {
-            redirectUri = REACT_APP_REDIRECT_URI_TO_REPLACE
+            redirectUri = window.origin + "/callback"
         }
 
         for (const key in c) {

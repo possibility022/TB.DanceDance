@@ -191,8 +191,8 @@ public class AccountController : Controller
     public async Task<IActionResult> Register(RegisterViewModel input)
     {
         var returnUrl = input.ReturnUrl ?? Url.Content("~/");
-        //var ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync())
-        //                                      .ToList();
+        var ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync())
+                                              .ToList();
         if (ModelState.IsValid)
         {
             var user = new User

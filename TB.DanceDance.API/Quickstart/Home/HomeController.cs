@@ -35,6 +35,12 @@ public class HomeController : Controller
         return NotFound();
     }
 
+    [HttpGet("policy/dancedanceapp")]
+    public IActionResult DanceDanceAppPolicy()
+    {
+        return View();
+    }
+
     /// <summary>
     /// Shows the error page
     /// </summary>
