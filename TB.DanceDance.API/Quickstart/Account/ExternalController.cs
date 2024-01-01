@@ -6,35 +6,42 @@ using IdentityServer4.Stores;
 using IdentityServer4.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TB.DanceDance.Core.Exceptions;
+using TB.DanceDance.Identity;
 using TB.DanceDance.Services;
 
 namespace IdentityServerHost.Quickstart.UI;
 
 [SecurityHeaders]
 [AllowAnonymous]
+[Route("[controller]/[action]")]
 public class ExternalController : Controller
 {
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IClientStore _clientStore;
     private readonly ILogger<ExternalController> _logger;
     private readonly IdentityServer4.Services.IEventService _events;
-    private readonly IUserService users;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
     public ExternalController(
         IIdentityServerInteractionService interaction,
         IClientStore clientStore,
         IdentityServer4.Services.IEventService events,
-        IUserService users,
-        ILogger<ExternalController> logger)
+        ILogger<ExternalController> logger,
+        UserManager<User> userManager,
+        SignInManager<User> signInManager)
     {
 
         _interaction = interaction;
         _clientStore = clientStore;
         _logger = logger;
         _events = events;
-        this.users = users;
+        this._userManager = userManager;
+        this._signInManager = signInManager;
     }
 
     /// <summary>
@@ -87,13 +94,10 @@ public class ExternalController : Controller
         }
 
         // lookup our user and external provider info
-        var (user, provider, providerUserId, claims) = FindUserFromExternalProvider(result);
+        var (user, provider, providerUserId, claims) = await FindUserFromExternalProviderAsync(result);
         if (user == null)
         {
-            // this might be where you might initiate a custom workflow for user registration
-            // in this sample we don't show how that would be done, as our sample implementation
-            // simply auto-provisions new external user
-            user = AutoProvisionUser(provider, providerUserId, claims);
+            user = await AutoProvisionUserAsync(provider, providerUserId, claims);
         }
 
         // this allows us to collect any additional claims or properties
@@ -104,9 +108,9 @@ public class ExternalController : Controller
         ProcessLoginCallback(result, additionalLocalClaims, localSignInProps);
 
         // issue authentication cookie for user
-        var isuser = new IdentityServerUser(user.SubjectId)
+        var isuser = new IdentityServerUser(user.Id)
         {
-            DisplayName = user.Username,
+            DisplayName = user.UserName,
             IdentityProvider = provider,
             AdditionalClaims = additionalLocalClaims
         };
@@ -121,7 +125,7 @@ public class ExternalController : Controller
 
         // check if external login is in the context of an OIDC request
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
-        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.SubjectId, user.Username, true, context?.Client.ClientId));
+        await _events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.Id, user.UserName, true, context?.Client.ClientId));
 
         if (context != null)
         {
@@ -136,7 +140,7 @@ public class ExternalController : Controller
         return Redirect(returnUrl);
     }
 
-    private (TestUser user, string provider, string providerUserId, IEnumerable<Claim> claims) FindUserFromExternalProvider(AuthenticateResult result)
+    private async Task<(User? user, string provider, string providerUserId, IEnumerable<Claim> claims)> FindUserFromExternalProviderAsync(AuthenticateResult result)
     {
         var externalUser = result.Principal;
 
@@ -155,17 +159,32 @@ public class ExternalController : Controller
         var providerUserId = userIdClaim.Value;
 
         // find external user
-        throw new NotImplementedException();
-        // var user = users.FindByExternalProvider(provider, providerUserId);
+        var user = await _userManager.FindByIdAsync(providerUserId);
 
-        //return (user, provider, providerUserId, claims);
+        return (user, provider, providerUserId, claims);
+
     }
 
-    private TestUser AutoProvisionUser(string provider, string providerUserId, IEnumerable<Claim> claims)
+    private async Task<User> AutoProvisionUserAsync(string provider, string providerUserId, IEnumerable<Claim> claims)
     {
-        throw new NotImplementedException();
-        //var user = users.AutoProvisionUser(provider, providerUserId, claims.ToList());
-        //return user;
+        var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName);
+        var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+
+        var user = new TB.DanceDance.Identity.User()
+        {
+            Id = providerUserId,
+            Email = email?.Value,
+            UserName = name?.Value,
+        };
+
+        var res = await _userManager.CreateAsync(user);
+
+        if (!res.Succeeded)
+        {
+            throw new AppException("User could not be created."); // todo handle it
+        }
+
+        return user;
     }
 
     // if the external login is OIDC-based, there are certain things we need to preserve to make logout work

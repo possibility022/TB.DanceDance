@@ -15,11 +15,13 @@ import { UploadVideo } from "./pages/UploadVideo"
 import { AuthContext, authService } from "./providers/AuthProvider"
 import { RequestAssignmentScreen } from "./pages/RequestAssignmentScreen"
 import EventsScreen from "./pages/EventsScreen"
+import { CookieModal } from "./components/CookieModal"
 
 function App() {
 
 	return (
 		<section className="section">
+			<CookieModal></CookieModal>
 			<AuthContext.Provider value={authService}>
 				<BrowserRouter>
 					<NavigationBar></NavigationBar>
