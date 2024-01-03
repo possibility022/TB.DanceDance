@@ -23,7 +23,11 @@ internal class Deamon
         {
             try
             {
-                await ProcessNext(token);
+                var converted = await ProcessNext(token);
+                if (!converted)
+                {
+                    Log.Information("Leaving main loop.");
+                }
             }
             catch (Exception ex)
             {
@@ -32,16 +36,15 @@ internal class Deamon
         }
     }
 
-    private async Task ProcessNext(CancellationToken token)
+    private async Task<bool> ProcessNext(CancellationToken token)
     {
         Log.Information("Getting next video.");
         var nextVideoToConvert = await client.GetNextVideoToConvertAsync(token);
 
         if (nextVideoToConvert == null)
         {
-            Log.Information("Nothing to convert. Waiting 60 min.");
-            await Task.Delay(60 * 60 * 1000);
-            return;
+            Log.Information("Nothing to convert.");
+            return false;
         }
 
         Log.Information("Video to convert {0}", nextVideoToConvert.Id);
@@ -76,5 +79,7 @@ internal class Deamon
 
         Log.Information("Publishing video.");
         await client.PublishTransformedVideo(nextVideoToConvert.Id);
+
+        return true;
     }
 }

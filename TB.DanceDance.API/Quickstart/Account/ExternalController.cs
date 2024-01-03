@@ -167,21 +167,20 @@ public class ExternalController : Controller
 
     private async Task<User> AutoProvisionUserAsync(string provider, string providerUserId, IEnumerable<Claim> claims)
     {
-        var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName);
         var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
 
         var user = new TB.DanceDance.Identity.User()
         {
             Id = providerUserId,
             Email = email?.Value,
-            UserName = name?.Value,
+            UserName = email?.Value,
         };
 
         var res = await _userManager.CreateAsync(user);
 
         if (!res.Succeeded)
         {
-            throw new AppException("User could not be created."); // todo handle it
+            throw new AppException("User could not be created. " + string.Join('|', res.Errors.Select(r => r.Description)) + string.Join('|', res.Errors.Select(r => r.Code))); // todo handle it
         }
 
         return user;
