@@ -346,7 +346,7 @@ public class AccountController : Controller
                 AuthenticationScheme = x.Name
             }).ToList();
 
-        var allowLocal = true;
+        var allowLocal = false;
         if (context?.Client.ClientId != null)
         {
             var client = await _clientStore.FindEnabledClientByIdAsync(context.Client.ClientId);

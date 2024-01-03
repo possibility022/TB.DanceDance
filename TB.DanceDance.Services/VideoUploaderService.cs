@@ -106,6 +106,8 @@ public class VideoUploaderService : IVideoUploaderService
 
         var sas = publishedVideosBlobs.CreateUploadSas(video.BlobId);
 
+        await danceDbContext.SaveChangesAsync();
+
 
         return sas;
     }

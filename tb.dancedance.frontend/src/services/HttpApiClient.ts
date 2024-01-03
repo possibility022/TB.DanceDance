@@ -26,11 +26,6 @@ const apiClientFactory = () => {
 const applyInterceptor = (axiosInstance: AxiosInstance) => {
     axiosInstance.interceptors.request.use(async c => {
 
-        let config = c
-
-        if (config === undefined)
-            config = {}
-
         if (c.headers && c.headers['Authorization']) {
             // authorization header is already set, nothing to do
         } else {
@@ -39,10 +34,6 @@ const applyInterceptor = (axiosInstance: AxiosInstance) => {
                 const fullToken = `Bearer ${token}`
                 if (c.headers) {
                     c.headers['Authorization'] = fullToken
-                } else {
-                    c.headers = {
-                        'Authorization': fullToken
-                    }
                 }
             }
         }
