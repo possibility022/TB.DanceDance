@@ -23,7 +23,7 @@ public class ConverterController : Controller
         if (video == null)
             return NotFound();
 
-        var sas = videoUploaderService.GetVideoSas(video.BlobId);
+        var sas = videoUploaderService.GetVideoSas(video.SourceBlobId);
 
         return Ok(new VideoToTransformResponse()
         {
