@@ -26,12 +26,12 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddDbContext<DanceDbContext>(options =>
 {
-    options.UseNpgsql(ConnectionStringProvider.GetPostgreSqlDbConnectionString(builder.Configuration));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreDb") ?? throw new AppException("PostgreDb connection string is null."));
 });
 
 builder.Services.AddDbContext<IdentityStoreContext>(options =>
 {
-    options.UseNpgsql(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreDbIdentityStore") ?? throw new AppException("PostgreDbIdentityStore connection string is null."));
 });
 
 builder.Services.AddControllersWithViews();
@@ -79,7 +79,7 @@ builder.Services.AddAuthorization(o =>
 });
 
 builder.Services
-    .ConfigureVideoServices(ConnectionStringProvider.GetBlobConnectionString(builder.Configuration));
+    .ConfigureVideoServices(builder.Configuration.GetConnectionString("Blob") ?? throw new AppException("Blob connection string is null."));
 
 builder.Services
     .AddAuthentication()
@@ -142,7 +142,7 @@ if (setIdentityServerAsProduction)
     var certBytes = Convert.FromBase64String(cert);
     identityBuilder
         .AddAspNetIdentity<User>()
-        .RegisterIdenityServerStorage(ConnectionStringProvider.GetPostgreIdentityStoreDbConnectionString(builder.Configuration))
+        .RegisterIdenityServerStorage(builder.Configuration.GetConnectionString("PostgreDbIdentityStore") ?? throw new AppException("Identity connection string is null."))
         .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
 }
 else
@@ -167,7 +167,6 @@ app.UseCors();
 //}
 
 app.UseHttpsRedirection();
-
 
 app.UseStaticFiles();
 app.UseIdentityServer();
