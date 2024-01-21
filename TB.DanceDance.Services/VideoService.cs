@@ -91,7 +91,7 @@ public class VideoService : IVideoService
             Name = name,
             UploadedBy = userId,
             Duration = null,
-            RecordedDateTime = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc),
+            RecordedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
             SharedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
             SharedWith = new[] {
                 new SharedWith()
