@@ -27,6 +27,7 @@ internal class Deamon
                 if (!converted)
                 {
                     Log.Information("Leaving main loop.");
+                    return;
                 }
             }
             catch (Exception ex)
