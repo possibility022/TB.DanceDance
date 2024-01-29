@@ -89,6 +89,9 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
         if (props.files) {
 
             for (let i = 0; i < props.files.length; i++) {
+                
+                // it sets counter to current file that is being processed, not how many completed
+                setSendCounter(i + 1)
                 const file = props.files[i]
 
                 setBytestToTransfer(file.size)
@@ -112,8 +115,6 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
                 await videoInfoService.UploadVideo(data, file,
                     (e) => setBytesTransfered(e))
-
-                setSendCounter(sendCounter + 1)
             }
         }
     }
