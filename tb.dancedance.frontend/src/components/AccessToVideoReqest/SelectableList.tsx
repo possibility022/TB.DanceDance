@@ -22,7 +22,7 @@ export function SelectableList<T extends number | string>(props: ISelectableList
             <article className={"tile is-child notification  has-text-centered " + props.articleClassName}>
                 <p className="title">{props.header}</p>
                 <p>{props.text}</p>
-                {props.options.map((v, i) => {
+                {props.options.map((v) => {
                     return (
                         <div className='field is-medium is-centered' key={v.key}>
                             <SelectableButton isSelected={false} isDisabled={v.selectionDisabled} onClick={(e, isSelected) => props.onItemStatusChange(v, isSelected)}>

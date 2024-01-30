@@ -16,34 +16,37 @@ import { AuthContext, authService } from "./providers/AuthProvider"
 import { RequestAssignmentScreen } from "./pages/RequestAssignmentScreen"
 import EventsScreen from "./pages/EventsScreen"
 import { CookieModal } from "./components/CookieModal"
+import { CookiesProvider } from "react-cookie"
 
 function App() {
 
 	return (
 		<section className="section">
-			<CookieModal></CookieModal>
-			<AuthContext.Provider value={authService}>
-				<BrowserRouter>
-					<NavigationBar></NavigationBar>
-					<Routes>
-						<Route path="/" element={<Home />}>
-						</Route>
-						<Route path="videos/" element={<PrivateRoute element={<VideoScreen></VideoScreen>} />}>
-						</Route>
-						<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
-						<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
-						<Route path="callback" element={<Callback />} />
-						<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
-						<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />
-						<Route path="logout" element={<Logout></Logout>} />
-						<Route path="logout/callback" element={<LogoutCallback />} />
-						{/* <Route path="/register" element={Register} /> */}
-						<Route path="silentrenew" element={<SilentRenew />} />
-						{/* <Route path="/" element={PublicPage} /> */}
+			<CookiesProvider defaultSetOptions={{ path: '/' }}>
+				<CookieModal></CookieModal>
+				<AuthContext.Provider value={authService}>
+					<BrowserRouter>
+						<NavigationBar></NavigationBar>
+						<Routes>
+							<Route path="/" element={<Home />}>
+							</Route>
+							<Route path="videos/" element={<PrivateRoute element={<VideoScreen></VideoScreen>} />}>
+							</Route>
+							<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
+							<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
+							<Route path="callback" element={<Callback />} />
+							<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
+							<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />
+							<Route path="logout" element={<Logout></Logout>} />
+							<Route path="logout/callback" element={<LogoutCallback />} />
+							{/* <Route path="/register" element={Register} /> */}
+							<Route path="silentrenew" element={<SilentRenew />} />
+							{/* <Route path="/" element={PublicPage} /> */}
 
-					</Routes>
-				</BrowserRouter>
-			</AuthContext.Provider>
+						</Routes>
+					</BrowserRouter>
+				</AuthContext.Provider>
+			</CookiesProvider>
 		</section>
 	)
 }

@@ -3,7 +3,7 @@ import { useState, useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
 import videoInfoService from '../services/VideoInfoService';
-import VideoInformation from '../types/VideoInformation';
+import VideoInformation from '../types/ApiModels/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
 

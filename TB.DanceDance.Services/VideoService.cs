@@ -22,7 +22,7 @@ public class VideoService : IVideoService
         this.videoUploaderService = videoUploaderService;
     }
 
-    private IQueryable<VideoInfo> GetBaseVideosForUserQuery(string userId)
+    private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
     {
         return from video in dbContext.Videos
                join sharedWith in dbContext.SharedWith on video.Id equals sharedWith.VideoId
@@ -37,18 +37,13 @@ public class VideoService : IVideoService
                where
                sharedWith.UserId == userId || eventsAssignments.UserId == userId || (groupsAssignments.UserId == userId && groupsAssignments.WhenJoined < video.RecordedDateTime)
                orderby video.RecordedDateTime descending
-               select new VideoInfo
-               {
-                   Video = video,
-                   SharedWithEvent = eventsAssignments != null,
-                   SharedWithGroup = groupsAssignments != null,
-               };
+               select video;
     }
 
     public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
     {
         var query = GetBaseVideosForUserQuery(userId)
-            .Where(v => v.Video.BlobId == videoBlobId)
+            .Where(v => v.BlobId == videoBlobId)
             .AnyAsync();
 
         var any = await query;
@@ -56,10 +51,10 @@ public class VideoService : IVideoService
         return any;
     }
 
-    public Task<VideoInfo?> GetVideoByBlobAsync(string userId, string blobId)
+    public Task<Video?> GetVideoByBlobAsync(string userId, string blobId)
     {
         return GetBaseVideosForUserQuery(userId)
-            .Where(r => r.Video.BlobId == blobId)
+            .Where(r => r.BlobId == blobId)
             .FirstOrDefaultAsync();
     }
 

@@ -1,6 +1,5 @@
 ﻿using TB.DanceDance.Data.PostgreSQL;
 using TB.DanceDance.Data.PostgreSQL.Models;
-using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.Services;
 public class EventService : IEventService
@@ -21,19 +20,14 @@ public class EventService : IEventService
         return @event;
     }
 
-    public IQueryable<VideoInfo> GetVideos(Guid eventId, string userId)
+    public IQueryable<Video> GetVideos(Guid eventId, string userId)
     {
         var q = from assignedTo in dbContext.AssingedToEvents
                 join sharedWith in dbContext.SharedWith on assignedTo.EventId equals sharedWith.EventId
                 join video in dbContext.Videos on sharedWith.VideoId equals video.Id
                 where assignedTo.EventId == eventId && assignedTo.UserId == userId
                 orderby video.RecordedDateTime descending
-                select new VideoInfo()
-                {
-                    SharedWithEvent = true,
-                    SharedWithGroup = false,
-                    Video = video
-                };
+                select video;
 
         return q;
     }

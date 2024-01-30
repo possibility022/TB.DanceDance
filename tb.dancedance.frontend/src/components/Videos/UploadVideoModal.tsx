@@ -16,7 +16,7 @@ export function UploadVideoModal(props: IUploadVideoModalProps) {
     return (
         <div className='container has-background-white p-6'>
             <h1 className="title">Wyślij nagranie do: {props.event?.name}</h1>
-            <div className="field">
+            <div className="field" hidden={file && file?.length > 1}>
                 <label className="label">Nazwa</label>
                 <div className="control">
                     <input className="input" type="text" value={name} onChange={(v) => setName(v.target.value)} placeholder="Rama i Salta z Jordanem" />

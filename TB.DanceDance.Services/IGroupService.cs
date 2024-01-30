@@ -3,5 +3,5 @@
 namespace TB.DanceDance.Services;
 public interface IGroupService
 {
-    IQueryable<VideoInfo> GetUserVideosFromGroups(string userId);
+    IQueryable<VideoFromGroupInfo> GetUserVideosFromGroups(string userId);
 }

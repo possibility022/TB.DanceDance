@@ -1,10 +1,9 @@
-import VideoInformation from '../../types/VideoInformation';
+import VideoInformation from '../../types/ApiModels/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
-import { faCalendar, faCalendarAlt, faCalendarCheck, faCalendarTimes, faCalendarXmark } from '@fortawesome/free-solid-svg-icons';
 
 export interface ListOfVideos {
     videos: VideoInformation[]
