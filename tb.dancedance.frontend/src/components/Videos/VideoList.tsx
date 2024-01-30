@@ -1,4 +1,4 @@
-import VideoInformation from '../../types/VideoInformation';
+import VideoInformation from '../../types/ApiModels/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
 import { useNavigate } from 'react-router-dom';
