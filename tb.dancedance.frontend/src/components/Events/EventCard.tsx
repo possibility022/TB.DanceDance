@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 import './EventCard.css'
 import { VideoList } from '../Videos/VideoList';
-import VideoInformation from '../../types/VideoInformation';
+import VideoInformation from '../../types/ApiModels/VideoInformation';
 import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 

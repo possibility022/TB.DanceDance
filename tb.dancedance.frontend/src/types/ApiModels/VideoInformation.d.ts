@@ -4,7 +4,5 @@ export default interface VideoInformation {
     id: number
     blobId: string
     duration: TimeRanges
-    sharedWithGroup: boolean
-    sharedWithEvent: boolean
     converted: boolean
 }
