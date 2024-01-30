@@ -7,18 +7,21 @@ namespace TB.DanceDance.API.Mappers;
 
 public class ContractMappers
 {
-    public static VideoInformationResponse MapToVideoInformation(VideoInfo info)
+    public static VideoInformationModel MapToVideoInformation(VideoFromGroupInfo info)
+    {
+        return MapToVideoInformation(info.Video);
+    }
+
+    public static VideoInformationResponse MapToVideoInformation(TB.DanceDance.Data.PostgreSQL.Models.Video video)
     {
         return new VideoInformationResponse()
         {
-            BlobId = info.Video.BlobId,
-            Duration = info.Video.Duration,
-            Id = info.Video.Id,
-            Name = info.Video.Name,
-            RecordedDateTime = info.Video.RecordedDateTime,
-            SharedWithEvent = info.SharedWithEvent,
-            SharedWithGroup = info.SharedWithGroup,
-            Converted = info.Video.Converted,
+            BlobId = video.BlobId,
+            Duration = video.Duration,
+            Id = video.Id,
+            Name = video.Name,
+            RecordedDateTime = video.RecordedDateTime,
+            Converted = video.Converted,
         };
     }
 
