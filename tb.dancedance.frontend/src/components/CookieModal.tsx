@@ -1,8 +1,10 @@
 import * as React from 'react';
 import ConfigProvider from '../services/ConfigProvider';
-import Cookies from 'universal-cookie';
+import { useCookies } from 'react-cookie';
 
 export function CookieModal() {
+
+    const [cookies, setCookie] = useCookies(['tbdancedanceappcookiesaccepted']);
 
     const privacyPolicy = () => {
         const config = ConfigProvider.getIdentityConfig()
@@ -10,15 +12,13 @@ export function CookieModal() {
     }
 
     const onCookiesClose = () => {
-        const cookies = new Cookies();
-        cookies.set('tbdancedanceappcookiesaccepted', true)
+        setCookie('tbdancedanceappcookiesaccepted', true, { path: '/' })
         const element = document.getElementById('cookiesmodal')
         element?.classList.add('is-hidden')
     }
 
     React.useEffect(() => {
-        const cookies = new Cookies();
-        const val = cookies.get('tbdancedanceappcookiesaccepted') as boolean
+        const val = cookies.tbdancedanceappcookiesaccepted as boolean;
         if (val != true) {
             const element = document.getElementById('cookiesmodal')
             element?.classList.remove('is-hidden')

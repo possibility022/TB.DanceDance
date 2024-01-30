@@ -60,7 +60,7 @@ export function AccessToVideoRequestForm() {
         return itemToSelect
     }
 
-    const mapToList = (items: Array<{ name: string, id: any }>) => {
+    const mapToList = (items: Array<{ name: string, id: string | number }>) => {
         return items.map(ev => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             return <li key={ev.id}>{ev.name}</li>
@@ -115,7 +115,7 @@ export function AccessToVideoRequestForm() {
 
             let anySelected = false
 
-            selectedScopes.forEach((isSelected, eventKey) => {
+            selectedScopes.forEach((isSelected) => {
                 if (isSelected == true) { anySelected = true }
             })
 
@@ -187,11 +187,11 @@ export function AccessToVideoRequestForm() {
             }]
         }
 
-        const promise = videoInfoService.SendAssigmentRequest({
+        videoInfoService.SendAssigmentRequest({
             events: events,
             groups: groups
         })
-            .then(e => {
+            .then(() => {
                 requestStatusDispatch('receivedOk')
             })
             .catch((e) => {

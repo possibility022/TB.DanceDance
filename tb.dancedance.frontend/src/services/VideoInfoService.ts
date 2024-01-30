@@ -2,9 +2,10 @@ import { BlockBlobClient } from "@azure/storage-blob";
 import UploadVideoInformation from "../types/ApiModels/UploadInformation";
 import AppApiClient from "./HttpApiClient";
 import ISharedVideoInformation from "../types/ApiModels/SharedVideoInformation";
-import VideoInformation from "../types/VideoInformation";
+import VideoInformation from "../types/ApiModels/VideoInformation";
 import { ICreateNewEventRequest, Event, IUserEventsAndGroupsResponse } from "../types/ApiModels/EventsAndGroups";
 import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
+import { IGroupWithVideosResponse } from "../types/ApiModels/GroupsWithVideosResponse";
 
 
 export class VideoInfoService {
@@ -14,7 +15,7 @@ export class VideoInfoService {
     }
 
     public async GetVideosFromGroups() {
-        const response = await AppApiClient.get<Array<VideoInformation>>('/api/groups/videos')
+        const response = await AppApiClient.get<Array<IGroupWithVideosResponse>>('/api/groups/videos')
         return response.data
     }
 

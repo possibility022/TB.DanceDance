@@ -3,16 +3,20 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { VideoList } from '../components/Videos/VideoList';
 import { VideoInfoService } from '../services/VideoInfoService';
-import VideoInformation from '../types/VideoInformation';
+import { IGroupWithVideosResponse } from '../types/ApiModels/GroupsWithVideosResponse';
+import VideoInformation from '../types/ApiModels/VideoInformation';
 
 
 const videoService = new VideoInfoService()
 
 export function VideoScreen() {
 
-    const [videos, setVideos] = useState<Array<VideoInformation>>([]);
+    const [groups, setGroups] = useState<Array<IGroupWithVideosResponse>>([])
+    const [videos, setVideos] = useState<Array<VideoInformation>>([])
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [weHaveAnyVideos, setWeHaveAnyVideos] = useState<boolean>(true)
+    const [activeGroup, setActiveGroup] = useState<string | null>(null)
+    const [renderedList, setRenderedList] = useState<Array<JSX.Element>>([])
 
     const navigate = useNavigate()
 
@@ -20,9 +24,13 @@ export function VideoScreen() {
         setIsLoading(true)
         videoService.GetVideosFromGroups()
             .then(v => {
-                setVideos(v)
+                setGroups(v)
                 setWeHaveAnyVideos(v.length > 0)
+                if (v.length > 0) {
+                    setActiveGroup(v[0].groupId)
+                }
 
+                setRenderedList(renderListOfGroups(v, v[0].groupId))
             })
             .catch(e => console.log(e))
             .finally(() => setIsLoading(false))
@@ -47,8 +55,32 @@ export function VideoScreen() {
             </div>
     }
 
+    useEffect(() => {
+        if (activeGroup != null) {
+            const vid = groups.find(r => r.groupId == activeGroup)?.videos ?? []
+            setVideos(vid)
+            setRenderedList(renderListOfGroups(groups, activeGroup))
+        }
+    }, [activeGroup])
+
+    const renderListOfGroups = (groups: Array<IGroupWithVideosResponse>, activeGroup: string) => {
+        if (groups?.length > 0) {
+            return groups.map(r => {
+                return <li className={r.groupId == activeGroup ? 'is-active' : ''}><a onClick={() => {setActiveGroup(r.groupId)}}>{r.groupName}</a></li>
+            })
+        }
+        return []
+    }
+
+
+
     return (
         <Fragment>
+            <div className="tabs">
+                <ul>
+                    {renderedList}
+                </ul>
+            </div>
             <Button
                 onClick={() => navigate('/videos/upload')}>
                 Wyslij Nagranie
