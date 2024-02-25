@@ -1,4 +1,5 @@
 using IdentityServer4;
+using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -143,7 +144,9 @@ if (setIdentityServerAsProduction)
     identityBuilder
         .AddAspNetIdentity<User>()
         .RegisterIdenityServerStorage(builder.Configuration.GetConnectionString("PostgreDbIdentityStore") ?? throw new AppException("Identity connection string is null."))
-        .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet));
+        .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet))
+        .AddProfileService<TbProfileService>();
+
 }
 else
 {
@@ -153,7 +156,9 @@ else
         .AddInMemoryApiScopes(Config.ApiScopes)
         .AddInMemoryClients(Config.Clients)
         .AddInMemoryApiResources(Config.ApiResources)
-        .AddInMemoryIdentityResources(Config.GetIdentityResources());
+        .AddInMemoryIdentityResources(Config.GetIdentityResources())
+        .AddProfileService<TbProfileService>();
+
 }
 
 var app = builder.Build();
