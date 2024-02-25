@@ -199,8 +199,7 @@ public class AccountController : Controller
             {
                 UserName = input.Email,
                 Email = input.Email,
-                FirstName = input.FirstName,
-                LastName = input.LastName
+
             };
 
             var result = await userManager.CreateAsync(user, input.Password);
