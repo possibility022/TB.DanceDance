@@ -3,7 +3,6 @@ using IdentityServer4;
 using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
-using IdentityServer4.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TB.DanceDance.Core.Exceptions;
 using TB.DanceDance.Identity;
-using TB.DanceDance.Services;
 
 namespace IdentityServerHost.Quickstart.UI;
 
@@ -167,14 +165,19 @@ public class ExternalController : Controller
 
     private async Task<User> AutoProvisionUserAsync(string provider, string providerUserId, IEnumerable<Claim> claims)
     {
-        var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+        (string ? email, string ? givenName, string ? surname) = GetValuesFromClaims(claims);
 
+#pragma warning disable CS8601 // Possible null reference assignment.
         var user = new TB.DanceDance.Identity.User()
         {
             Id = providerUserId,
-            Email = email?.Value,
-            UserName = email?.Value,
+            Email = email,
+            UserName = email,
+            FirstName = givenName,
+            LastName = surname,
+            EmailConfirmed = true
         };
+#pragma warning restore CS8601 // Possible null reference assignment.
 
         var res = await _userManager.CreateAsync(user);
 
@@ -204,5 +207,33 @@ public class ExternalController : Controller
         {
             localSignInProps.StoreTokens(new[] { new AuthenticationToken { Name = "id_token", Value = idToken } });
         }
+    }
+
+    private (string? email, string? givenName, string? surname) GetValuesFromClaims(IEnumerable<Claim> claims)
+    {
+        string? givenName = null;
+        string? surname = null;
+        string? email = null;
+
+        foreach (var claim in claims)
+        {
+            if (claim.Type == ClaimTypes.GivenName)
+            {
+                givenName = claim.Value;
+            }
+            else if (claim.Type == ClaimTypes.Surname)
+            {
+                surname = claim.Value;
+            }
+            else if (claim.Type == ClaimTypes.Email)
+            {
+                email = claim.Value;
+            }
+
+            if (givenName != null && surname != null && email != null)
+                break;
+        }
+
+        return (email, givenName, surname);
     }
 }
