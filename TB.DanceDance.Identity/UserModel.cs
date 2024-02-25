@@ -4,11 +4,7 @@ namespace TB.DanceDance.Identity;
 
 public class User : Microsoft.AspNetCore.Identity.IdentityUser
 {
-    [ProtectedPersonalData]
-    required public string FirstName { get; set; } = null!;
 
-    [ProtectedPersonalData]
-    required public string LastName { get; set; } = null!;
 }
 
 public class UserClaim : IdentityUserClaim<string>
