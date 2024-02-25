@@ -21,4 +21,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.Core\TB.DanceDance.Core.csproj" />
+  </ItemGroup>
+
 </Project>

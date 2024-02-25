@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,13 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Data.PostgreSQL\TB.DanceDance.Data.PostgreSQL.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Identity\TB.DanceDance.Identity.csproj" />
   </ItemGroup>
 
 </Project>
