@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
+using TB.DanceDance.Core.Exceptions;
 using TB.DanceDance.Identity.IdentityResources;
 using TB.DanceDance.Services;
-using static IdentityModel.OidcConstants;
 
 namespace TB.DanceDance.API.Controllers;
 
@@ -17,11 +16,13 @@ public class EventsController : Controller
 {
     private readonly IUserService userService;
     private readonly IEventService eventService;
+    private readonly IIdentityClient identityClient;
 
-    public EventsController(IUserService userService, IEventService eventService)
+    public EventsController(IUserService userService, IEventService eventService, IIdentityClient identityClient)
     {
         this.userService = userService;
         this.eventService = eventService;
+        this.identityClient = identityClient;
     }
 
     [Route(ApiEndpoints.Video.Access.GetAll)]
@@ -97,7 +98,7 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
-    public async Task<IActionResult> RequestAccess([FromBody] RequestEventAssigmentModelRequest requests)
+    public async Task<IActionResult> RequestAccess([FromBody] RequestEventAssigmentModelRequest requests, CancellationToken cancellationToken)
     {
         if (requests == null)
             return BadRequest();
@@ -113,16 +114,33 @@ public class EventsController : Controller
 
         var user = User.GetSubject();
 
+        var token = GetAccessTokenFromHeader();
+        var givenName = await identityClient.GetGivenNameAsync(token, cancellationToken);
+
         if (requests.Events?.Count > 0)
-            await userService.SaveEventsAssigmentRequest(user, requests.Events);
+            await userService.SaveEventsAssigmentRequest(user, requests.Events, givenName);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await userService.SaveGroupsAssigmentRequests(user, model);
+            await userService.SaveGroupsAssigmentRequests(user, model, givenName);
         }
 
         return Ok();
+    }
+
+    private string GetAccessTokenFromHeader()
+    {
+        var authToken = Request.Headers.Authorization.First();
+        if (authToken == null)
+            throw new AppException("Uuth token not found in headers.");
+
+        if (authToken.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
+        {
+            authToken = authToken.Substring("Bearer ".Length);
+        }
+
+        return authToken;
     }
 
     [HttpGet]
