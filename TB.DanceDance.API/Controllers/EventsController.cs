@@ -166,5 +166,13 @@ public class EventsController : Controller
         return Ok(results);
     }
 
+    [HttpGet]
+    [Route(ApiEndpoints.Video.Access.ListRequests)]
+    public async Task<IActionResult> GetEvent()
+    {
+
+    }
+
+
 
 }
