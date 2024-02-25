@@ -15,6 +15,6 @@ public interface IUserService
     IQueryable<Event> GetUserEvents(string userId);
     (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userName);
 
-    Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events);
-    Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups);
+    Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, string userDisplayName);
+    Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, string userDisplayName);
 }
