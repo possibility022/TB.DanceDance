@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TB.DanceDance.Identity;
@@ -11,9 +12,11 @@ using TB.DanceDance.Identity;
 namespace TB.DanceDance.Identity.Data.Migrations.Identity.IdentityStore
 {
     [DbContext(typeof(IdentityStoreContext))]
-    partial class IdentityStoreContextModelSnapshot : ModelSnapshot
+    [Migration("20240225012625_AddUserFullName")]
+    partial class AddUserFullName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
