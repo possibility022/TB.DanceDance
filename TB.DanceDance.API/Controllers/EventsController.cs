@@ -115,7 +115,7 @@ public class EventsController : Controller
         var user = User.GetSubject();
 
         var token = GetAccessTokenFromHeader();
-        var givenName = await identityClient.GetGivenNameAsync(token, cancellationToken);
+        var givenName = await identityClient.GetNameAsync(token, cancellationToken);
 
         if (requests.Events?.Count > 0)
             await userService.SaveEventsAssigmentRequest(user, requests.Events, givenName);

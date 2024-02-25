@@ -6,7 +6,7 @@ using TB.DanceDance.Identity;
 
 namespace TB.DanceDance.API;
 
-public class IdentityClient
+public class IdentityClient : IIdentityClient
 {
     private readonly UserManager<User> userManager;
 
@@ -15,7 +15,7 @@ public class IdentityClient
         this.userManager = userManager;
     }
 
-    public async Task<string?> GetGivenNameAsync(string accessToken, CancellationToken token)
+    public async Task<string?> GetNameAsync(string accessToken, CancellationToken token)
     {
         var handler = new JwtSecurityTokenHandler();
         var jsonToken = handler.ReadToken(accessToken);
@@ -36,7 +36,7 @@ public class IdentityClient
 
         var claims = await userManager.GetClaimsAsync(user);
 
-        var givenNameClaim = claims.FirstOrDefault(r => r.Type == ClaimTypes.GivenName);
+        var givenNameClaim = claims.FirstOrDefault(r => r.Type == ClaimTypes.Name);
 
         return givenNameClaim?.Value;
     }
@@ -50,7 +50,7 @@ public interface IIdentityClient
     // In this application everything is tied together so we have access to UserManager class but interface is design to work without it.
 
 
-    Task<string> GetGivenNameAsync(string accessToken, CancellationToken token);
+    Task<string?> GetNameAsync(string accessToken, CancellationToken token);
 }
 
 

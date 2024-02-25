@@ -1,5 +1,4 @@
 using IdentityServer4;
-using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -131,7 +130,7 @@ var identityBuilder = builder.Services
 var setIdentityServerAsProduction = builder.Environment.IsProduction();
 
 builder.Services.AddScoped<IUserService, UserService>();
-var migrationsAssembly = TB.DanceDance.Identity.DesignTimeContextFactory.GetMigrationAssembly();
+builder.Services.AddScoped<IIdentityClient, IdentityClient>();
 
 if (setIdentityServerAsProduction)
 {
