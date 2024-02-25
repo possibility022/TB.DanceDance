@@ -7,9 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TB.DanceDance.Data.Blobs\TB.DanceDance.Data.Blobs.csproj" />
     <ProjectReference Include="..\TB.DanceDance.Identity\TB.DanceDance.Identity.csproj" />
-    <ProjectReference Include="..\TB.DanceDance.Services\TB.DanceDance.Services.csproj" />
   </ItemGroup>
 
 </Project>
