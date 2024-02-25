@@ -97,7 +97,7 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
-    public async Task<IActionResult> RequestAssigment([FromBody] RequestEventAssigmentModelRequest requests)
+    public async Task<IActionResult> RequestAccess([FromBody] RequestEventAssigmentModelRequest requests)
     {
         if (requests == null)
             return BadRequest();
