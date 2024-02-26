@@ -14,5 +14,5 @@ public interface IApplicationContext
     DbSet<AssignedToGroup> AssingedToGroups { get; }
     DbSet<AssignedToEvent> AssingedToEvents { get; }
 
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

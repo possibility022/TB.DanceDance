@@ -68,12 +68,12 @@ public class ConverterController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Converter.Upload)]
-    public async Task<IActionResult> PublishConvertedVideo([FromRoute]Guid videoId)
+    public async Task<IActionResult> PublishConvertedVideo([FromRoute] Guid videoId)
     {
         var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId);
         if (newId == null)
             return BadRequest();
 
-        return Ok(new UploadConvertedVideoResponse() { VideoId = newId.Value});
+        return Ok(new UploadConvertedVideoResponse() { VideoId = newId.Value });
     }
 }

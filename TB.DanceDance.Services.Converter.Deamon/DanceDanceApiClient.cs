@@ -9,7 +9,7 @@ internal class DanceDanceApiClient : IDisposable
 {
     private readonly HttpClient apiClient;
     private readonly HttpClient blobClient;
-    private readonly JsonSerializerOptions serializationOptions = new JsonSerializerOptions()
+    private readonly JsonSerializerOptions serializationOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
@@ -41,7 +41,7 @@ internal class DanceDanceApiClient : IDisposable
 
     public async Task GetVideoToConvertAsync(Stream target, Uri videoUrl, CancellationToken token)
     {
-        if (target is null) 
+        if (target is null)
             throw new ArgumentNullException(nameof(target));
 
         if (videoUrl is null)
@@ -56,7 +56,7 @@ internal class DanceDanceApiClient : IDisposable
 
     public async Task UploadVideoToTransformInformations(UpdateVideoInfoRequest updateVideoInfoRequest, CancellationToken token)
     {
-        var res  = await apiClient.PostAsJsonAsync("/api/converter/videos", updateVideoInfoRequest, token);
+        var res = await apiClient.PostAsJsonAsync("/api/converter/videos", updateVideoInfoRequest, token);
         res.EnsureSuccessStatusCode();
     }
 
@@ -68,7 +68,7 @@ internal class DanceDanceApiClient : IDisposable
         res.EnsureSuccessStatusCode();
 
         var body = await res.Content.ReadFromJsonAsync<GetPublishSasResponse>(serializationOptions);
-        
+
         if (body == null)
             throw new NullReferenceException("Deserialized body is null.");
 
