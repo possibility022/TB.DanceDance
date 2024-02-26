@@ -1,17 +1,15 @@
+using Domain.Exceptions;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Events;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
-using IdentityServer4.Test;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using TB.DanceDance.Core.Exceptions;
-using TB.DanceDance.Identity;
-using TB.DanceDance.Services;
 
 namespace IdentityServerHost.Quickstart.UI;
 
@@ -169,7 +167,7 @@ public class ExternalController : Controller
     {
         var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
 
-        var user = new TB.DanceDance.Identity.User()
+        var user = new User()
         {
             Id = providerUserId,
             Email = email?.Value,
@@ -184,7 +182,7 @@ public class ExternalController : Controller
         }
 
         res = await _userManager.AddClaimsAsync(user, claims);
-        
+
         if (!res.Succeeded)
         {
             throw new AppException("User could not be created. " + string.Join('|', res.Errors.Select(r => r.Description)) + string.Join('|', res.Errors.Select(r => r.Code))); // todo handle it

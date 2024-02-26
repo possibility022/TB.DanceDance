@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Domain.Exceptions;
+using Domain.Services;
+using Infrastructure.Identity.IdentityResources;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.Core.Exceptions;
-using TB.DanceDance.Identity.IdentityResources;
-using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Controllers;
 
@@ -166,12 +166,12 @@ public class EventsController : Controller
         return Ok(results);
     }
 
-    [HttpGet]
-    [Route(ApiEndpoints.Video.Access.ListRequests)]
-    public async Task<IActionResult> GetEvent()
-    {
+    //[HttpGet]
+    //[Route(ApiEndpoints.Video.Access.ListRequests)]
+    //public async Task<IActionResult> GetEvent()
+    //{
 
-    }
+    //}
 
 
 

@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Domain.Services;
+using Infrastructure.Identity.IdentityResources;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.Identity.IdentityResources;
-using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Controllers;
 
