@@ -6,7 +6,7 @@ namespace TB.DanceDance.API.Contracts.Responses
 
     public class EventsAndGroupsResponse : EventsAndGroups
     {
-        
+
     }
 
     public class UserEventsAndGroupsResponse
