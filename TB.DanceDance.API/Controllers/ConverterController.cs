@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Services;
+using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
-using TB.DanceDance.Services;
 
 namespace TB.DanceDance.API.Controllers;
 
