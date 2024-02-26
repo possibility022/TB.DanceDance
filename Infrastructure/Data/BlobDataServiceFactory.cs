@@ -1,5 +1,4 @@
 ﻿using Application.Services;
-using System;
 using System.Collections.Immutable;
 
 namespace Infrastructure.Data;
@@ -7,7 +6,7 @@ namespace Infrastructure.Data;
 public class BlobDataServiceFactory : IBlobDataServiceFactory
 {
     private readonly string blobStorageConnectionString;
-    private object @lock = new object();
+    private readonly object @lock = new();
 
     private ImmutableDictionary<BlobContainer, BlobDataService> cache =
         ImmutableDictionary.Create<BlobContainer, BlobDataService>();

@@ -5,7 +5,7 @@ namespace TB.DanceDance.API.Contracts.Responses
 {
     public class VideoInformationResponse : VideoInformationModel
     {
-        
+
     }
 
     public class GroupWithVideosResponse

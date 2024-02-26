@@ -1,7 +1,7 @@
 using Application;
-using Infrastructure;
 using Domain.Exceptions;
 using IdentityServer4;
+using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using TB.DanceDance.API;

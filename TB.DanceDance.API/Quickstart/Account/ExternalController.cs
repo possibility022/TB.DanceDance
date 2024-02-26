@@ -182,7 +182,7 @@ public class ExternalController : Controller
         }
 
         res = await _userManager.AddClaimsAsync(user, claims);
-        
+
         if (!res.Succeeded)
         {
             throw new AppException("User could not be created. " + string.Join('|', res.Errors.Select(r => r.Description)) + string.Join('|', res.Errors.Select(r => r.Code))); // todo handle it
