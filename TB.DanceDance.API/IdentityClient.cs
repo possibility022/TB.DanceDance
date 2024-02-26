@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Domain.Exceptions;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using TB.DanceDance.Core.Exceptions;
-using TB.DanceDance.Identity;
 
 namespace TB.DanceDance.API;
 
