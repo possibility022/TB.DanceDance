@@ -80,6 +80,12 @@ public class DanceDbContext : DbContext, IApplicationContext
             .HasForeignKey(e => e.VideoId)
             .IsRequired();
 
+        modelBuilder.Entity<User>()
+            .HasKey(r => r.Id);
+
+        modelBuilder.Entity<User>()
+            .ToTable("Users", Schemas.Access);
+
         base.OnModelCreating(modelBuilder);
     }
 
