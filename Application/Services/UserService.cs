@@ -67,27 +67,25 @@ public class UserService : IUserService
         return await dbContext.Groups.ToListAsync();
     }
 
-    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, string userDisplayName)
+    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
     {
         var toSave = events.Select(@event => new EventAssigmentRequest()
         {
             EventId = @event,
-            UserId = user,
-            UserDisplayName = userDisplayName
+            UserId = user
         });
 
         dbContext.EventAssigmentRequests.AddRange(toSave);
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, string userDisplayName)
+    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
     {
         var toSave = groups.Select(group => new GroupAssigmentRequest()
         {
             GroupId = group.groupId,
             WhenJoined = group.joinedDate,
-            UserId = user,
-            UserDisplayName = userDisplayName
+            UserId = user
         });
 
         dbContext.GroupAssigmentRequests.AddRange(toSave);
