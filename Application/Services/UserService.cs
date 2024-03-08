@@ -14,26 +14,6 @@ public class UserService : IUserService
         this.dbContext = dbContext;
     }
 
-    public IQueryable<Group> GetUserGroups(string userId)
-    {
-        var query = from assigments in dbContext.AssingedToGroups
-                    join @group in dbContext.Groups on assigments.GroupId equals @group.Id
-                    where assigments.UserId == userId
-                    select @group;
-
-        return query;
-    }
-
-    public IQueryable<Event> GetUserEvents(string userId)
-    {
-        var query = from assigments in dbContext.AssingedToEvents
-                    join @event in dbContext.Events on assigments.EventId equals @event.Id
-                    where assigments.UserId == userId
-                    select @event;
-
-        return query;
-    }
-
     public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId)
     {
         return dbContext.AssingedToEvents
