@@ -11,8 +11,6 @@ public interface IUserService
 
     Task<ICollection<Event>> GetAllEvents();
     Task<ICollection<Group>> GetAllGroups();
-    IQueryable<Group> GetUserGroups(string userId);
-    IQueryable<Event> GetUserEvents(string userId);
     (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userName);
 
     Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, string userDisplayName);
