@@ -11,4 +11,5 @@ public class AssignedToGroup
     public required DateTime WhenJoined { get; set; }
 
     public Group Group { get; set; } = null!;
+    public User User { get; set; } = null!;
 }

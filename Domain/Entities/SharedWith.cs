@@ -10,4 +10,6 @@ public class SharedWith
     public Video Video { get; set; } = null!;
     public Event? Event { get; set; }
     public Group? Group { get; set; }
+
+    public User User { get; set; } = null!;
 }

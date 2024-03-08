@@ -9,4 +9,6 @@ public class AssignedToEvent
     public required string UserId { get; init; }
 
     public Event Event { get; set; } = null!;
+    
+    public User User { get; set; } = null!;
 }
