@@ -2,6 +2,7 @@
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 
 namespace TB.DanceDance.API;
@@ -15,7 +16,7 @@ public class IdentityClient : IIdentityClient
         this.userManager = userManager;
     }
 
-    public async Task<string?> GetNameAsync(string accessToken, CancellationToken token)
+    public async Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token)
     {
         var handler = new JwtSecurityTokenHandler();
         var jsonToken = handler.ReadToken(accessToken);
@@ -36,9 +37,17 @@ public class IdentityClient : IIdentityClient
 
         var claims = await userManager.GetClaimsAsync(user);
 
-        var givenNameClaim = claims.FirstOrDefault(r => r.Type == ClaimTypes.Name);
+        var firstName = claims.First(r => r.Type == ClaimTypes.GivenName).Value;
+        var surname = claims.First(r => r.Type == ClaimTypes.Surname).Value;
+        var email = claims.First(r => r.Type == ClaimTypes.Email).Value;
 
-        return givenNameClaim?.Value;
+        return new Domain.Entities.User()
+        {
+            Id = sub,
+            FirstName = firstName,
+            Email = email,
+            LastName = surname
+        };
     }
 }
 
@@ -50,7 +59,7 @@ public interface IIdentityClient
     // In this application everything is tied together so we have access to UserManager class but interface is design to work without it.
 
 
-    Task<string?> GetNameAsync(string accessToken, CancellationToken token);
+    Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token);
 }
 
 
