@@ -115,15 +115,17 @@ public class EventsController : Controller
         var user = User.GetSubject();
 
         var token = GetAccessTokenFromHeader();
-        var givenName = await identityClient.GetNameAsync(token, cancellationToken);
+        var userData = await identityClient.GetNameAsync(token, cancellationToken);
+
+        await userService.AddOrUpdateUserAsync(userData);
 
         if (requests.Events?.Count > 0)
-            await userService.SaveEventsAssigmentRequest(user, requests.Events, givenName);
+            await userService.SaveEventsAssigmentRequest(user, requests.Events);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await userService.SaveGroupsAssigmentRequests(user, model, givenName);
+            await userService.SaveGroupsAssigmentRequests(user, model);
         }
 
         return Ok();

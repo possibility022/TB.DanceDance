@@ -4,7 +4,7 @@ namespace Domain.Services;
 
 public interface IUserService
 {
-
+    Task AddOrUpdateUserAsync(User user);
     Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId);
 
     Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId);
