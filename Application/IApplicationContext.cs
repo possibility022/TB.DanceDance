@@ -13,6 +13,7 @@ public interface IApplicationContext
     DbSet<Event> Events { get; }
     DbSet<AssignedToGroup> AssingedToGroups { get; }
     DbSet<AssignedToEvent> AssingedToEvents { get; }
+    DbSet<User> Users { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

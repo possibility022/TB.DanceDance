@@ -91,4 +91,21 @@ public class UserService : IUserService
         dbContext.GroupAssigmentRequests.AddRange(toSave);
         await dbContext.SaveChangesAsync();
     }
+
+    public Task AddOrUpdateUserAsync(Domain.Entities.User user)
+    {
+        var record = dbContext.Users.Find(user.Id);
+        if (record != null)
+        {
+            record.FirstName = user.FirstName;
+            record.LastName = user.LastName;
+            user.Email = user.Email;
+        }
+        else
+        {
+            dbContext.Users.Add(user);
+        }
+
+        return dbContext.SaveChangesAsync();
+    }
 }
