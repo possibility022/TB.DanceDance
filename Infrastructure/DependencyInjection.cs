@@ -87,12 +87,13 @@ public static class DependencyInjection
             identityBuilder
                 .AddAspNetIdentity<User>()
                 .AddDeveloperSigningCredential()
-                .AddInMemoryApiScopes(Config.ApiScopes)
-                .AddInMemoryClients(Config.Clients)
-                .AddInMemoryApiResources(Config.ApiResources)
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .RegisterIdenityServerStorage(configuration.GetConnectionString("PostgreDbIdentityStore") ?? throw new AppException("Identity connection string is null."))
+                // for debugging
+                //.AddInMemoryApiScopes(Config.ApiScopes)
+                //.AddInMemoryClients(Config.Clients)
+                //.AddInMemoryApiResources(Config.ApiResources)
+                //.AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddProfileService<TbProfileService>();
-
         }
 
         return services;
