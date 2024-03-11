@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -107,5 +108,38 @@ public class UserService : IUserService
         }
 
         return dbContext.SaveChangesAsync();
+    }
+
+    public async Task<ICollection<AccessRequests>> GetAccessRequestsAsync(string userId)
+    {
+        var query = (from eventRequests in dbContext.EventAssigmentRequests
+                     join events in dbContext.Events on eventRequests.EventId equals events.Id
+                     join eventRequestor in dbContext.Users on eventRequests.UserId equals eventRequestor.Id
+                     where events.Owner == userId
+                     select new AccessRequests
+                     {
+                         IsGroup = false,
+                         RequestId = eventRequests.Id,
+                         Name = events.Name,
+                         RequestorFirstName = eventRequestor.FirstName,
+                         RequestorLastName = eventRequestor.LastName,
+                     })
+                    .Union
+                    (from groupRequests in dbContext.GroupAssigmentRequests
+                     join groupAdmins in dbContext.GroupsAdmins on groupRequests.GroupId equals groupAdmins.GroupId
+                     join groups in dbContext.Groups on groupRequests.GroupId equals groups.Id
+                     join groupRequestor in dbContext.Users on groupRequests.UserId equals groupRequestor.Id
+                     where groupAdmins.UserId == userId
+                     select new AccessRequests
+                     {
+                         IsGroup = true,
+                         RequestId = groupRequests.Id,
+                         Name = groups.Name,
+                         RequestorFirstName = groupRequestor.FirstName,
+                         RequestorLastName = groupRequestor.LastName,
+                     });
+
+        var queryResults = await query.ToListAsync();
+        return queryResults;
     }
 }

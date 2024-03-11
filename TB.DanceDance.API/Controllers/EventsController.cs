@@ -83,14 +83,12 @@ public class EventsController : Controller
             return BadRequest(ModelState);
 
 
-        var @event = ContractMappers.MapFromNewEventRequestToEvent(request);
-        var user = User.GetSubject();
-
+        var @event = ContractMappers.MapFromNewEventRequestToEvent(request, User);
 
         if (!ModelState.IsValid)
             return BadRequest();
 
-        var createdEvent = await eventService.CreateEventAsync(@event, user);
+        var createdEvent = await eventService.CreateEventAsync(@event);
 
 
         return Created("", createdEvent); //todo
@@ -170,9 +168,12 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Video.Access.ListRequests)]
-    public async Task<IActionResult> GetEvent()
+    public async Task<IActionResult> GetRequestAccessList()
     {
+        var userId = User.GetSubject();
 
+        var results = await userService.GetAccessRequestsAsync(userId);
+        return Ok(results);
     }
 
 

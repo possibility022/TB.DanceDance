@@ -1,6 +1,7 @@
 ﻿using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Extensions;
 
 namespace TB.DanceDance.API.Mappers;
 
@@ -43,13 +44,14 @@ public class ContractMappers
             //Type = MapEventType(@event.Type),
         };
     }
-    public static Domain.Entities.Event MapFromNewEventRequestToEvent(CreateNewEventRequest request)
+    public static Domain.Entities.Event MapFromNewEventRequestToEvent(CreateNewEventRequest request, System.Security.Claims.ClaimsPrincipal user)
     {
         return new Domain.Entities.Event()
         {
             Date = request.Event.Date,
             Name = request.Event.Name,
             Type = Domain.Entities.EventType.Unknown,
+            Owner = user.GetSubject(),
             //Type = MapFromEventType(request.Event.Type)
         };
     }

@@ -12,20 +12,20 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace TB.DanceDance.Data.PostgreSQL.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    [Migration("20240225212715_UserDisplayNameForAssignRequest")]
-    partial class UserDisplayNameForAssignRequest
+    [Migration("20240311232226_StoringUserInformations")]
+    partial class StoringUserInformations
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToEvent", b =>
+            modelBuilder.Entity("Domain.Entities.AssignedToEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -42,10 +42,12 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("EventId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("AssingedToEvents", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToGroup", b =>
+            modelBuilder.Entity("Domain.Entities.AssignedToGroup", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -65,10 +67,12 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("GroupId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("AssingedToGroups", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Event", b =>
+            modelBuilder.Entity("Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -81,15 +85,21 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Owner");
+
                     b.ToTable("Events", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.EventAssigmentRequest", b =>
+            modelBuilder.Entity("Domain.Entities.EventAssigmentRequest", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,10 +107,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("UserDisplayName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -113,7 +119,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("EventAssigmentRequests", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Group", b =>
+            modelBuilder.Entity("Domain.Entities.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -128,7 +134,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("Groups", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.GroupAssigmentRequest", b =>
+            modelBuilder.Entity("Domain.Entities.GroupAdmin", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -137,9 +143,27 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("UserDisplayName")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GroupsAdmins", "access");
+                });
+
+            modelBuilder.Entity("Domain.Entities.GroupAssigmentRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -155,7 +179,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("GroupAssigmentRequests", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.SharedWith", b =>
+            modelBuilder.Entity("Domain.Entities.SharedWith", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -180,12 +204,36 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("GroupId");
 
+                    b.HasIndex("UserId");
+
                     b.HasIndex("VideoId");
 
                     b.ToTable("SharedWith", "access");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Video", b =>
+            modelBuilder.Entity("Domain.Entities.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users", "access");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Video", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -230,7 +278,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("Videos", "video");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoMetadata", b =>
+            modelBuilder.Entity("Domain.Entities.VideoMetadata", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -250,57 +298,107 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("VideoMetadata", "video");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToEvent", b =>
+            modelBuilder.Entity("Domain.Entities.AssignedToEvent", b =>
                 {
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Event", "Event")
+                    b.HasOne("Domain.Entities.Event", "Event")
                         .WithMany()
                         .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.AssignedToGroup", b =>
+            modelBuilder.Entity("Domain.Entities.AssignedToGroup", b =>
                 {
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Group", "Group")
+                    b.HasOne("Domain.Entities.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.EventAssigmentRequest", b =>
+            modelBuilder.Entity("Domain.Entities.Event", b =>
                 {
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Event", null)
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("Owner")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.EventAssigmentRequest", b =>
+                {
+                    b.HasOne("Domain.Entities.Event", null)
                         .WithMany()
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.GroupAssigmentRequest", b =>
+            modelBuilder.Entity("Domain.Entities.GroupAdmin", b =>
                 {
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Group", null)
+                    b.HasOne("Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.GroupAssigmentRequest", b =>
+                {
+                    b.HasOne("Domain.Entities.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.SharedWith", b =>
+            modelBuilder.Entity("Domain.Entities.SharedWith", b =>
                 {
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Event", "Event")
+                    b.HasOne("Domain.Entities.Event", "Event")
                         .WithMany("HasSharedVideos")
                         .HasForeignKey("EventId");
 
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Group", "Group")
+                    b.HasOne("Domain.Entities.Group", "Group")
                         .WithMany("HasSharedVideos")
                         .HasForeignKey("GroupId");
 
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Video", "Video")
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Video", "Video")
                         .WithMany("SharedWith")
                         .HasForeignKey("VideoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -310,29 +408,31 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.Navigation("Group");
 
+                    b.Navigation("User");
+
                     b.Navigation("Video");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.VideoMetadata", b =>
+            modelBuilder.Entity("Domain.Entities.VideoMetadata", b =>
                 {
-                    b.HasOne("TB.DanceDance.Data.PostgreSQL.Models.Video", null)
+                    b.HasOne("Domain.Entities.Video", null)
                         .WithMany()
                         .HasForeignKey("VideoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Event", b =>
+            modelBuilder.Entity("Domain.Entities.Event", b =>
                 {
                     b.Navigation("HasSharedVideos");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Group", b =>
+            modelBuilder.Entity("Domain.Entities.Group", b =>
                 {
                     b.Navigation("HasSharedVideos");
                 });
 
-            modelBuilder.Entity("TB.DanceDance.Data.PostgreSQL.Models.Video", b =>
+            modelBuilder.Entity("Domain.Entities.Video", b =>
                 {
                     b.Navigation("SharedWith");
                 });

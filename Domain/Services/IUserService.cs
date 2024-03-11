@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Models;
 
 namespace Domain.Services;
 
@@ -8,7 +9,7 @@ public interface IUserService
     Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId);
 
     Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId);
-
+    Task<ICollection<AccessRequests>> GetAccessRequestsAsync(string userId);
     Task<ICollection<Event>> GetAllEvents();
     Task<ICollection<Group>> GetAllGroups();
     (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userName);

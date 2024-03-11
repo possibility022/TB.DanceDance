@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Application;
 public interface IApplicationContext
 {
+    DbSet<GroupAdmin> GroupsAdmins { get; }
     DbSet<Video> Videos { get; }
     DbSet<VideoMetadata> VideoMetadata { get; }
     DbSet<GroupAssigmentRequest> GroupAssigmentRequests { get; }

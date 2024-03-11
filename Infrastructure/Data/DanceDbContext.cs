@@ -17,6 +17,8 @@ public class DanceDbContext : DbContext, IApplicationContext
         public const string Video = "video";
     }
 
+    public DbSet<GroupAdmin> GroupsAdmins { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<Video> Videos { get; set; }
     public DbSet<VideoMetadata> VideoMetadata { get; set; }
     public DbSet<GroupAssigmentRequest> GroupAssigmentRequests { get; set; }
@@ -54,6 +56,16 @@ public class DanceDbContext : DbContext, IApplicationContext
 
         modelBuilder.Entity<Event>()
             .ToTable("Events", Schemas.Access);
+
+        modelBuilder.Entity<GroupAdmin>()
+            .ToTable("GroupsAdmins", Schemas.Access);
+
+        modelBuilder.Entity<Event>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.Owner)
+            .IsRequired()
+            ;
 
         modelBuilder.Entity<AssignedToGroup>()
             .ToTable(nameof(AssingedToGroups), Schemas.Access);
