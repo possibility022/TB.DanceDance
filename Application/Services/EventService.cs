@@ -11,11 +11,11 @@ public class EventService : IEventService
         dbContext = danceDbContext;
     }
 
-    public async Task<Event> CreateEventAsync(Event @event, string userId)
+    public async Task<Event> CreateEventAsync(Event @event)
     {
         @event.Id = Guid.NewGuid();
         dbContext.Events.Add(@event);
-        dbContext.AssingedToEvents.Add(new AssignedToEvent() { EventId = @event.Id, UserId = userId });
+        dbContext.AssingedToEvents.Add(new AssignedToEvent() { EventId = @event.Id, UserId = @event.Owner });
         await dbContext.SaveChangesAsync();
         return @event;
     }

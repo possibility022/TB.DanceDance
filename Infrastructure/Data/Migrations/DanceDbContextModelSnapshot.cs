@@ -82,10 +82,16 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Owner");
 
                     b.ToTable("Events", "access");
                 });
@@ -98,10 +104,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("UserDisplayName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -129,7 +131,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("Groups", "access");
                 });
 
-            modelBuilder.Entity("Domain.Entities.GroupAssigmentRequest", b =>
+            modelBuilder.Entity("Domain.Entities.GroupAdmin", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -138,9 +140,27 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("UserDisplayName")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GroupsAdmins", "access");
+                });
+
+            modelBuilder.Entity("Domain.Entities.GroupAssigmentRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -313,6 +333,15 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Event", b =>
+                {
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("Owner")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Entities.EventAssigmentRequest", b =>
                 {
                     b.HasOne("Domain.Entities.Event", null)
@@ -320,6 +349,25 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.GroupAdmin", b =>
+                {
+                    b.HasOne("Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.GroupAssigmentRequest", b =>
