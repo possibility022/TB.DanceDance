@@ -1,5 +1,5 @@
 ﻿namespace Domain.Models;
-public class AccessRequests
+public class AccessRequest
 {
     public required string Name { get; set; }
     public required string RequestorFirstName { get; set; }
