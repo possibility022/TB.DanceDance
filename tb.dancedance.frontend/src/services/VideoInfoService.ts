@@ -6,6 +6,8 @@ import VideoInformation from "../types/ApiModels/VideoInformation";
 import { ICreateNewEventRequest, Event, IUserEventsAndGroupsResponse } from "../types/ApiModels/EventsAndGroups";
 import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
 import { IGroupWithVideosResponse } from "../types/ApiModels/GroupsWithVideosResponse";
+import { RequestedAccessesResponse } from "../types/ApiModels/RequestedAccessesResponse";
+import { AxiosResponse } from "axios";
 
 
 export class VideoInfoService {
@@ -91,11 +93,20 @@ export class VideoInfoService {
         }
 
         const response = await AppApiClient.post(`/api/videos/${videoId}/rename`, requestBody)
+        this.EnsureSuccessStatusCode(response)
+        return true
+    }
 
+    public async GetAccessRequests() {
+        const response = await AppApiClient.get<RequestedAccessesResponse>('/api/videos/accesses/requests')
+        this.EnsureSuccessStatusCode(response)
+
+        return response.data;
+    }
+
+    EnsureSuccessStatusCode(response: AxiosResponse) {
         if (response.status > 299 || response.status < 200)
             throw new Error('Request not accepted.')
-
-        return true
     }
 }
 
