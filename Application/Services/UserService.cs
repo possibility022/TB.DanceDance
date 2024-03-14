@@ -110,13 +110,13 @@ public class UserService : IUserService
         return dbContext.SaveChangesAsync();
     }
 
-    public async Task<ICollection<AccessRequest>> GetAccessRequestsAsync(string userId)
+    public async Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId)
     {
         var query = (from eventRequests in dbContext.EventAssigmentRequests
                      join events in dbContext.Events on eventRequests.EventId equals events.Id
                      join eventRequestor in dbContext.Users on eventRequests.UserId equals eventRequestor.Id
                      where events.Owner == userId
-                     select new AccessRequest
+                     select new RequestedAccess
                      {
                          IsGroup = false,
                          RequestId = eventRequests.Id,
@@ -130,13 +130,14 @@ public class UserService : IUserService
                      join groups in dbContext.Groups on groupRequests.GroupId equals groups.Id
                      join groupRequestor in dbContext.Users on groupRequests.UserId equals groupRequestor.Id
                      where groupAdmins.UserId == userId
-                     select new AccessRequest
+                     select new RequestedAccess
                      {
                          IsGroup = true,
                          RequestId = groupRequests.Id,
                          Name = groups.Name,
                          RequestorFirstName = groupRequestor.FirstName,
                          RequestorLastName = groupRequestor.LastName,
+                         WhenJoined = groupRequests.WhenJoined,
                      });
 
         var queryResults = await query.ToListAsync();
