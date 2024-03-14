@@ -168,7 +168,7 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Video.Access.ListRequests)]
-    public async Task<AccessRequestsResponse> GetRequestAccessList()
+    public async Task<RequestedAccessesResponse> GetRequestAccessList()
     {
         var userId = User.GetSubject();
 

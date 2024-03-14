@@ -4,8 +4,8 @@ using TB.DanceDance.API.Contracts.Models;
 
 namespace TB.DanceDance.API.Contracts.Responses
 {
-    public class AccessRequestsResponse
+    public class RequestedAccessesResponse
     {
-        public IReadOnlyCollection<AccessRequest> AccessRequests { get; set; } = Array.Empty<AccessRequest>();
+        public IReadOnlyCollection<RequestedAccess> AccessRequests { get; set; } = Array.Empty<RequestedAccess>();
     }
 }
