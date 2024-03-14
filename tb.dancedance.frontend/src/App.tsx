@@ -17,6 +17,7 @@ import { RequestAssignmentScreen } from "./pages/RequestAssignmentScreen"
 import EventsScreen from "./pages/EventsScreen"
 import { CookieModal } from "./components/CookieModal"
 import { CookiesProvider } from "react-cookie"
+import { AdministrateAccessRequestsScreen } from "./pages/AdministrateAccessRequestsScreen"
 
 function App() {
 
@@ -37,6 +38,7 @@ function App() {
 							<Route path="callback" element={<Callback />} />
 							<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
 							<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />
+							<Route path="/access/requestedaccesses" element={<PrivateRoute element={<AdministrateAccessRequestsScreen></AdministrateAccessRequestsScreen>} />} />
 							<Route path="logout" element={<Logout></Logout>} />
 							<Route path="logout/callback" element={<LogoutCallback />} />
 							{/* <Route path="/register" element={Register} /> */}
