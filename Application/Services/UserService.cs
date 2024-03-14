@@ -123,6 +123,7 @@ public class UserService : IUserService
                          Name = events.Name,
                          RequestorFirstName = eventRequestor.FirstName,
                          RequestorLastName = eventRequestor.LastName,
+                         WhenJoined = null,
                      })
                     .Union
                     (from groupRequests in dbContext.GroupAssigmentRequests
