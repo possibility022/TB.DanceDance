@@ -168,12 +168,14 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Video.Access.ListRequests)]
-    public async Task<IActionResult> GetRequestAccessList()
+    public async Task<AccessRequestsResponse> GetRequestAccessList()
     {
         var userId = User.GetSubject();
 
-        var results = await userService.GetAccessRequestsAsync(userId);
-        return Ok(results);
+        var accessRequests = await userService.GetAccessRequestsAsync(userId);
+        var response = ContractMappers.MapToAccessRequests(accessRequests);
+
+        return response;
     }
 
 

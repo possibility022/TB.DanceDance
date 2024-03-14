@@ -56,4 +56,22 @@ public class ContractMappers
         };
     }
 
+    public static Contracts.Responses.AccessRequestsResponse MapToAccessRequests(ICollection<Domain.Models.AccessRequest> accessRequests)
+    {
+        return new AccessRequestsResponse()
+        {
+            AccessRequests = accessRequests.Select(r =>
+            {
+                return new AccessRequest()
+                {
+                    Name = r.Name,
+                    IsGroup = r.IsGroup,
+                    RequestId = r.RequestId,
+                    RequestorFirstName = r.RequestorFirstName,
+                    RequestorLastName = r.RequestorLastName,
+                };
+            }).ToList(),
+        };
+    }
+
 }
