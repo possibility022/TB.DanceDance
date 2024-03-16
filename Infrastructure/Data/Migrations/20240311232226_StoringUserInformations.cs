@@ -11,25 +11,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Owner",
-                schema: "access",
-                table: "Events",
-                type: "text",
-                nullable: true);
-
-            migrationBuilder.Sql("""
-                update access."Events" set "Owner" = '104737052481294069059';
-                """);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Owner",
-                schema: "access",
-                table: "Events",
-                type: "text",
-                nullable: false
-                );
-
             migrationBuilder.CreateTable(
                 name: "Users",
                 schema: "access",
@@ -55,8 +36,29 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     SELECT "UserId" FROM access."EventAssigmentRequests"
                     UNION
                     SELECT "UserId" FROM access."GroupAssigmentRequests"
+                    UNION
+                    SELECT "UserId" from access."SharedWith"
                 ) AS CombinedUsers;
                 """);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Owner",
+                schema: "access",
+                table: "Events",
+                type: "text",
+                nullable: true);
+
+            migrationBuilder.Sql("""
+                update access."Events" set "Owner" = '104737052481294069059';
+                """);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Owner",
+                schema: "access",
+                table: "Events",
+                type: "text",
+                nullable: false
+                );
 
             migrationBuilder.CreateTable(
                 name: "GroupsAdmins",
