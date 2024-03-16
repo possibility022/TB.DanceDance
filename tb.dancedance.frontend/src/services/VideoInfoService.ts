@@ -6,7 +6,7 @@ import VideoInformation from "../types/ApiModels/VideoInformation";
 import { ICreateNewEventRequest, Event, IUserEventsAndGroupsResponse } from "../types/ApiModels/EventsAndGroups";
 import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
 import { IGroupWithVideosResponse } from "../types/ApiModels/GroupsWithVideosResponse";
-import { RequestedAccessesResponse } from "../types/ApiModels/RequestedAccessesResponse";
+import { ApproveAccessRequest, RequestedAccess, RequestedAccessesResponse } from "../types/ApiModels/RequestedAccessesResponse";
 import { AxiosResponse } from "axios";
 
 
@@ -102,6 +102,24 @@ export class VideoInfoService {
         this.EnsureSuccessStatusCode(response)
 
         return response.data;
+    }
+
+    public async RejectAccessRequest(request: RequestedAccess) {
+        await this.SendAccessRequestAction(request, false)
+    }
+
+    public async ApproveAccessRequest(request: RequestedAccess) {
+        await this.SendAccessRequestAction(request, true)
+    }
+
+    private async SendAccessRequestAction(request: RequestedAccess, approved: boolean) {
+        const requestBody: ApproveAccessRequest = {
+            requestId: request.requestId,
+            isGroup: request.isGroup,
+            isApproved: approved
+        }
+        const response = await AppApiClient.post('/api/videos/accesses/requests', requestBody)
+        return response.status > 200 && response.status < 299
     }
 
     EnsureSuccessStatusCode(response: AxiosResponse) {

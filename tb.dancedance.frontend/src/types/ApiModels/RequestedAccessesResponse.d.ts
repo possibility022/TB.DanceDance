@@ -7,6 +7,12 @@ export interface RequestedAccess {
     requestorFirstName: string
     requestorLastName: string
     requestId: string
-    isGroup: bool
+    isGroup: boolean
     whenJoined: Date?
+}
+
+export interface ApproveAccessRequest {
+    requestId: string
+    isGroup: boolean
+    isApproved: boolean
 }
