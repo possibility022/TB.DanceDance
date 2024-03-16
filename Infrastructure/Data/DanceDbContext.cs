@@ -80,11 +80,21 @@ public class DanceDbContext : DbContext, IApplicationContext
             .HasForeignKey(e => e.EventId)
             .IsRequired();
 
+        modelBuilder.Entity<EventAssigmentRequest>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.ManagedBy);
+
         modelBuilder.Entity<GroupAssigmentRequest>()
             .HasOne<Group>()
             .WithMany()
             .HasForeignKey(e => e.GroupId)
             .IsRequired();
+        
+        modelBuilder.Entity<GroupAssigmentRequest>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.ManagedBy);
 
         modelBuilder.Entity<VideoMetadata>()
             .HasOne<Video>()
