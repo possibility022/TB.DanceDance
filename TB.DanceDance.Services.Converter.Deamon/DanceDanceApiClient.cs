@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Azure.Storage.Blobs;
 using System.Net.Http.Json;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Requests;
@@ -72,8 +72,8 @@ internal class DanceDanceApiClient : IDisposable
         if (body == null)
             throw new NullReferenceException("Deserialized body is null.");
 
-        var cloudBlockBlob = new CloudBlockBlob(new Uri(body.Sas));
-        await cloudBlockBlob.UploadFromStreamAsync(content);
+        var cloudBlockBlob = new BlobClient(new Uri(body.Sas));
+        await cloudBlockBlob.UploadAsync(content);
     }
 
     public async Task PublishTransformedVideo(Guid videoId)
