@@ -20,7 +20,7 @@ public static class DanceDanceResources
 
     }
 
-    public class WcsDanceGroups : IdentityServer4.Models.IdentityResource
+    public class WcsDanceGroups : Duende.IdentityServer.Models.IdentityResource
     {
         public WcsDanceGroups()
         {

@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using Duende.IdentityServer;
+using Duende.IdentityServer.Events;
+using Duende.IdentityServer.Extensions;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Stores;
 using IdentityModel;
-using IdentityServer4;
-using IdentityServer4.Events;
-using IdentityServer4.Extensions;
-using IdentityServer4.Models;
-using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -318,7 +318,7 @@ public class AccountController : Controller
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
         if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
         {
-            var local = context.IdP == IdentityServer4.IdentityServerConstants.LocalIdentityProvider;
+            var local = context.IdP == IdentityServerConstants.LocalIdentityProvider;
 
             // this is meant to short circuit the UI and only trigger the one external IdP
             var vm = new LoginViewModel
@@ -403,6 +403,13 @@ public class AccountController : Controller
         return vm;
     }
 
+    internal static async Task<bool> GetSchemeSupportsSignOutAsync(HttpContext context, string scheme)
+    {
+        var provider = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
+        var handler = await provider.GetHandlerAsync(context, scheme);
+        return (handler is IAuthenticationSignOutHandler);
+    }
+
     private async Task<LoggedOutViewModel> BuildLoggedOutViewModelAsync(string logoutId)
     {
         // get context information (client name, post logout redirect URI and iframe for federated signout)
@@ -420,9 +427,9 @@ public class AccountController : Controller
         if (User?.Identity.IsAuthenticated == true)
         {
             var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
-            if (idp != null && idp != IdentityServer4.IdentityServerConstants.LocalIdentityProvider)
+            if (idp != null && idp != IdentityServerConstants.LocalIdentityProvider)
             {
-                var providerSupportsSignout = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
+                var providerSupportsSignout = await GetSchemeSupportsSignOutAsync(HttpContext, idp);
                 if (providerSupportsSignout)
                 {
                     if (vm.LogoutId == null)
