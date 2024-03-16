@@ -14,4 +14,16 @@ public abstract class AssigmentRequestBase
     /// A user who accepted or rejected request.
     /// </summary>
     public string? ManagedBy { get; set; } = null;
+
+    public void Approve(string userId)
+    {
+        Approved = true;
+        ManagedBy = userId;
+    }
+
+    public void Decline(string userId)
+    {
+        Approved = false;
+        ManagedBy = userId;
+    }
 }
