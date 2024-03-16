@@ -53,6 +53,12 @@ export function NavigationBar() {
                     </div>
 
                     <div className="navbar-end">
+                        <div className="navbar-item has-dropdown is-hoverable">
+                            <Link className='navbar-item is-size-7' to="videos">Administracja Dostępem</Link>
+                            <div className="navbar-dropdown">
+                                <Link className='navbar-item' to="access/requestedaccesses">Zarządzanie Przypisaniem Grup i Dostępem do Wydarzeń</Link>
+                            </div>
+                        </div>
                         <div className="navbar-item">
                             <a className='navbar-item is-size-7' href={ConfigProvider.getIdentityConfig().authority + '/policy/dancedanceapp'}>Polityka Prywatności</a>
                             <div className="buttons">
