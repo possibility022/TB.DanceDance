@@ -74,19 +74,19 @@ public class UserService : IUserService
         //}
 
         var groups = from groupAssign in dbContext.AssingedToGroups
-            join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
-            where groupAssign.UserId == userId
+                     join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
+                     where groupAssign.UserId == userId
                      select @group;
                      ;
 
         var events = from eventAssign in dbContext.AssingedToEvents
-            join @event in dbContext.Events on eventAssign.EventId equals @event.Id
-            where eventAssign.UserId == userId
+                     join @event in dbContext.Events on eventAssign.EventId equals @event.Id
+                     where eventAssign.UserId == userId
                      select @event
                      ;
 
         return (await groups.ToListAsync(), await events.ToListAsync());
-        }
+    }
 
     public async Task<ICollection<Event>> GetAllEvents()
     {
@@ -140,38 +140,144 @@ public class UserService : IUserService
         return dbContext.SaveChangesAsync();
     }
 
+    private IQueryable<RequestedAccess> GetEventRequestsThatCanBeApprovedByUser(string userId)
+    {
+        var query = from eventRequests in dbContext.EventAssigmentRequests
+                    join events in dbContext.Events on eventRequests.EventId equals events.Id
+                    join eventRequestor in dbContext.Users on eventRequests.UserId equals eventRequestor.Id
+                    where events.Owner == userId
+                    select new RequestedAccess
+                    {
+                        IsGroup = false,
+                        RequestId = eventRequests.Id,
+                        Name = events.Name,
+                        RequestorFirstName = eventRequestor.FirstName,
+                        RequestorLastName = eventRequestor.LastName,
+                        WhenJoined = null,
+                    };
+
+        return query;
+    }
+
+    private IQueryable<RequestedAccess> GetGroupRequestsThatCanBeApprovedByUser(string userId)
+    {
+        var query = from groupRequests in dbContext.GroupAssigmentRequests
+                    join groupAdmins in dbContext.GroupsAdmins on groupRequests.GroupId equals groupAdmins.GroupId
+                    join groups in dbContext.Groups on groupRequests.GroupId equals groups.Id
+                    join groupRequestor in dbContext.Users on groupRequests.UserId equals groupRequestor.Id
+                    where groupAdmins.UserId == userId
+                    select new RequestedAccess
+                    {
+                        IsGroup = true,
+                        RequestId = groupRequests.Id,
+                        Name = groups.Name,
+                        RequestorFirstName = groupRequestor.FirstName,
+                        RequestorLastName = groupRequestor.LastName,
+                        WhenJoined = groupRequests.WhenJoined,
+                    };
+
+        return query;
+    }
+
     public async Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId)
     {
-        var query = (from eventRequests in dbContext.EventAssigmentRequests
-                     join events in dbContext.Events on eventRequests.EventId equals events.Id
-                     join eventRequestor in dbContext.Users on eventRequests.UserId equals eventRequestor.Id
-                     where events.Owner == userId
-                     select new RequestedAccess
-                     {
-                         IsGroup = false,
-                         RequestId = eventRequests.Id,
-                         Name = events.Name,
-                         RequestorFirstName = eventRequestor.FirstName,
-                         RequestorLastName = eventRequestor.LastName,
-                         WhenJoined = null,
-                     })
+        var query = (GetEventRequestsThatCanBeApprovedByUser(userId))
                     .Union
-                    (from groupRequests in dbContext.GroupAssigmentRequests
-                     join groupAdmins in dbContext.GroupsAdmins on groupRequests.GroupId equals groupAdmins.GroupId
-                     join groups in dbContext.Groups on groupRequests.GroupId equals groups.Id
-                     join groupRequestor in dbContext.Users on groupRequests.UserId equals groupRequestor.Id
-                     where groupAdmins.UserId == userId
-                     select new RequestedAccess
-                     {
-                         IsGroup = true,
-                         RequestId = groupRequests.Id,
-                         Name = groups.Name,
-                         RequestorFirstName = groupRequestor.FirstName,
-                         RequestorLastName = groupRequestor.LastName,
-                         WhenJoined = groupRequests.WhenJoined,
-                     });
+                    (GetGroupRequestsThatCanBeApprovedByUser(userId));
 
         var queryResults = await query.ToListAsync();
         return queryResults;
+    }
+
+    public async Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId)
+    {
+        // todo, how can I make this code simpler? Logic is the same but works on different entities.
+        if (isGroup)
+        {
+            var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync();
+
+            if (request == null)
+                return false;
+
+            var requestRecord = await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId);
+
+            await dbContext.AssingedToGroups.AddAsync(new AssignedToGroup()
+            {
+                GroupId = requestRecord.GroupId,
+                UserId = requestRecord.UserId,
+                WhenJoined = requestRecord.WhenJoined,
+                Id = Guid.NewGuid(),
+            });
+
+            //todo mark request as accepted
+
+            await dbContext.SaveChangesAsync();
+        }
+        else
+        {
+            var query = GetEventRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync();
+
+            if (request == null)
+                return false;
+
+            var requestRecord = await dbContext.EventAssigmentRequests.FindAsync(request.RequestId);
+
+            await dbContext.AssingedToEvents.AddAsync(new AssignedToEvent()
+            {
+                EventId = requestRecord.EventId,
+                UserId = requestRecord.UserId,
+                Id = Guid.NewGuid(),
+            });
+
+            //todo mark request as accepted
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId)
+    {
+        if (isGroup)
+        {
+            var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync();
+
+            if (request == null)
+                return false;
+
+            var requestRecord = await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId);
+
+            //todo mark request as rejected
+
+            await dbContext.SaveChangesAsync();
+        }
+        else
+        {
+            var query = GetEventRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync();
+
+            if (request == null)
+                return false;
+
+            var requestRecord = await dbContext.EventAssigmentRequests.FindAsync(request.RequestId);
+
+            //todo mark request as rejected
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        return true;
     }
 }

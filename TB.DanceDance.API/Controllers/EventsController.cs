@@ -167,7 +167,7 @@ public class EventsController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Video.Access.ListRequests)]
+    [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
     public async Task<RequestedAccessesResponse> GetRequestAccessList()
     {
         var userId = User.GetSubject();
@@ -176,6 +176,25 @@ public class EventsController : Controller
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;
+    }
+
+    [HttpPost]
+    [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
+    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody)
+    {
+        var userId = User.GetSubject();
+
+        bool results;
+
+        if (requestBody.IsApproved)
+            results = await userService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+        else
+            results = await userService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+
+        if (results)
+            return Ok();
+        else
+            return BadRequest();
     }
 
 
