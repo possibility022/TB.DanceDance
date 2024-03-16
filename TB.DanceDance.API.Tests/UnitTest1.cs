@@ -1,4 +1,3 @@
-using Azure.Storage.Blobs;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +20,6 @@ public class VideoControllerTests
     Mock<IVideoService> videoService = null!;
     Mock<ITokenValidator> tokenValidator = null!;
     Mock<IUserService> userService = null!;
-    Mock<BlobClient> blobClient = null!;
 
     const string userId = "userId";
 
@@ -32,7 +30,6 @@ public class VideoControllerTests
         videoService = new();
         tokenValidator = new();
         userService = new();
-        blobClient = new();
 
         controller = new VideoController(
             videoService.Object,

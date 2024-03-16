@@ -37,7 +37,7 @@ internal class FFmpegClientConverter
                 return (creationTime.Value, res.Duration);
         }
 
-        foreach(var audio in res.AudioStreams)
+        foreach (var audio in res.AudioStreams)
         {
             creationTime = GetCreationTime(audio.Tags);
             if (creationTime != null)
@@ -50,7 +50,7 @@ internal class FFmpegClientConverter
 
     private DateTime? GetCreationTime(Dictionary<string, string>? tags)
     {
-        if (tags == null) 
+        if (tags == null)
             return null;
 
         if (tags.ContainsKey("creation_time"))

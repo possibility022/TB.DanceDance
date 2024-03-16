@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Domain.Exceptions;
+using Domain.Services;
+using Infrastructure.Identity.IdentityResources;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.Identity.IdentityResources;
-using TB.DanceDance.Services;
-using static IdentityModel.OidcConstants;
 
 namespace TB.DanceDance.API.Controllers;
 
@@ -17,11 +16,13 @@ public class EventsController : Controller
 {
     private readonly IUserService userService;
     private readonly IEventService eventService;
+    private readonly IIdentityClient identityClient;
 
-    public EventsController(IUserService userService, IEventService eventService)
+    public EventsController(IUserService userService, IEventService eventService, IIdentityClient identityClient)
     {
         this.userService = userService;
         this.eventService = eventService;
+        this.identityClient = identityClient;
     }
 
     [Route(ApiEndpoints.Video.Access.GetAll)]
@@ -46,7 +47,7 @@ public class EventsController : Controller
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync()
     {
         var user = User.GetSubject();
-        (var userGroups, var userEvents) = userService.GetUserEventsAndGroups(user);
+        (var userGroups, var userEvents) = await userService.GetUserEventsAndGroupsAsync(user);
 
         var responseModel = new UserEventsAndGroupsResponse();
 
@@ -82,14 +83,12 @@ public class EventsController : Controller
             return BadRequest(ModelState);
 
 
-        var @event = ContractMappers.MapFromNewEventRequestToEvent(request);
-        var user = User.GetSubject();
-
+        var @event = ContractMappers.MapFromNewEventRequestToEvent(request, User);
 
         if (!ModelState.IsValid)
             return BadRequest();
 
-        var createdEvent = await eventService.CreateEventAsync(@event, user);
+        var createdEvent = await eventService.CreateEventAsync(@event);
 
 
         return Created("", createdEvent); //todo
@@ -97,7 +96,7 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
-    public async Task<IActionResult> RequestAssigment([FromBody] RequestEventAssigmentModelRequest requests)
+    public async Task<IActionResult> RequestAccess([FromBody] RequestEventAssigmentModelRequest requests, CancellationToken cancellationToken)
     {
         if (requests == null)
             return BadRequest();
@@ -113,6 +112,11 @@ public class EventsController : Controller
 
         var user = User.GetSubject();
 
+        var token = GetAccessTokenFromHeader();
+        var userData = await identityClient.GetNameAsync(token, cancellationToken);
+
+        await userService.AddOrUpdateUserAsync(userData);
+
         if (requests.Events?.Count > 0)
             await userService.SaveEventsAssigmentRequest(user, requests.Events);
 
@@ -123,6 +127,20 @@ public class EventsController : Controller
         }
 
         return Ok();
+    }
+
+    private string GetAccessTokenFromHeader()
+    {
+        var authToken = Request.Headers.Authorization.First();
+        if (authToken == null)
+            throw new AppException("Uuth token not found in headers.");
+
+        if (authToken.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase))
+        {
+            authToken = authToken.Substring("Bearer ".Length);
+        }
+
+        return authToken;
     }
 
     [HttpGet]
@@ -147,6 +165,38 @@ public class EventsController : Controller
 
         return Ok(results);
     }
+
+    [HttpGet]
+    [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
+    public async Task<RequestedAccessesResponse> GetRequestAccessList()
+    {
+        var userId = User.GetSubject();
+
+        var accessRequests = await userService.GetAccessRequestsAsync(userId);
+        var response = ContractMappers.MapToAccessRequests(accessRequests);
+
+        return response;
+    }
+
+    [HttpPost]
+    [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
+    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody)
+    {
+        var userId = User.GetSubject();
+
+        bool results;
+
+        if (requestBody.IsApproved)
+            results = await userService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+        else
+            results = await userService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+
+        if (results)
+            return Ok();
+        else
+            return BadRequest();
+    }
+
 
 
 }
