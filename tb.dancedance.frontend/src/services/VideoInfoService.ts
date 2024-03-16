@@ -6,6 +6,8 @@ import VideoInformation from "../types/ApiModels/VideoInformation";
 import { ICreateNewEventRequest, Event, IUserEventsAndGroupsResponse } from "../types/ApiModels/EventsAndGroups";
 import IRenameRequest from "../types/ApiModels/VideoRenameRequest";
 import { IGroupWithVideosResponse } from "../types/ApiModels/GroupsWithVideosResponse";
+import { ApproveAccessRequest, RequestedAccess, RequestedAccessesResponse } from "../types/ApiModels/RequestedAccessesResponse";
+import { AxiosResponse } from "axios";
 
 
 export class VideoInfoService {
@@ -91,11 +93,38 @@ export class VideoInfoService {
         }
 
         const response = await AppApiClient.post(`/api/videos/${videoId}/rename`, requestBody)
+        this.EnsureSuccessStatusCode(response)
+        return true
+    }
 
+    public async GetAccessRequests() {
+        const response = await AppApiClient.get<RequestedAccessesResponse>('/api/videos/accesses/requests')
+        this.EnsureSuccessStatusCode(response)
+
+        return response.data;
+    }
+
+    public async RejectAccessRequest(request: RequestedAccess) {
+        await this.SendAccessRequestAction(request, false)
+    }
+
+    public async ApproveAccessRequest(request: RequestedAccess) {
+        await this.SendAccessRequestAction(request, true)
+    }
+
+    private async SendAccessRequestAction(request: RequestedAccess, approved: boolean) {
+        const requestBody: ApproveAccessRequest = {
+            requestId: request.requestId,
+            isGroup: request.isGroup,
+            isApproved: approved
+        }
+        const response = await AppApiClient.post('/api/videos/accesses/requests', requestBody)
+        return response.status > 200 && response.status < 299
+    }
+
+    EnsureSuccessStatusCode(response: AxiosResponse) {
         if (response.status > 299 || response.status < 200)
             throw new Error('Request not accepted.')
-
-        return true
     }
 }
 

@@ -1,13 +1,12 @@
-﻿using IdentityServer4.Validation;
+﻿using Domain.Services;
+using IdentityServer4.Validation;
+using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.Identity.IdentityResources;
-using TB.DanceDance.Services;
-using TB.DanceDance.Services.Models;
 
 namespace TB.DanceDance.API.Controllers;
 

@@ -9,12 +9,12 @@ using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
+using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Quickstart.Account;
-using TB.DanceDance.Identity;
 
 namespace IdentityServerHost.Quickstart.UI;
 
