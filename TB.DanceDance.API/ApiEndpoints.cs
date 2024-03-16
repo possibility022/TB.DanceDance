@@ -23,7 +23,7 @@ public static class ApiEndpoints
             public const string GetAll = $"{Base}";
             public const string GetUserAccess = $"{Base}/my";
             public const string RequestAccess = $"{Base}/request";
-            public const string ListRequests = $"{Base}/requests";
+            public const string ManageAccessRequests = $"{Base}/requests";
         }
 
     }

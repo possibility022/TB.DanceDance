@@ -6,9 +6,11 @@ namespace Domain.Services;
 public interface IUserService
 {
     Task AddOrUpdateUserAsync(User user);
+    Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId);
     Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId);
 
     Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId);
+    Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId);
     Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId);
     Task<ICollection<Event>> GetAllEvents();
     Task<ICollection<Group>> GetAllGroups();
