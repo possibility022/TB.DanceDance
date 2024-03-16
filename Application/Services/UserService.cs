@@ -31,8 +31,8 @@ public class UserService : IUserService
 
     class GroupAndEventQueryResults()
     {
-        public Group? Group{ get; set; }
-        public Event? Event{ get; set; }
+        public Group? Group { get; set; }
+        public Event? Event { get; set; }
     }
 
     public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId)
@@ -77,7 +77,7 @@ public class UserService : IUserService
                      join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
                      where groupAssign.UserId == userId
                      select @group;
-                     ;
+        ;
 
         var events = from eventAssign in dbContext.AssingedToEvents
                      join @event in dbContext.Events on eventAssign.EventId equals @event.Id
@@ -145,7 +145,7 @@ public class UserService : IUserService
         var query = from eventRequests in dbContext.EventAssigmentRequests
                     join events in dbContext.Events on eventRequests.EventId equals events.Id
                     join eventRequestor in dbContext.Users on eventRequests.UserId equals eventRequestor.Id
-                    where events.Owner == userId
+                    where events.Owner == userId && eventRequests.Approved == null
                     select new RequestedAccess
                     {
                         IsGroup = false,
@@ -165,7 +165,7 @@ public class UserService : IUserService
                     join groupAdmins in dbContext.GroupsAdmins on groupRequests.GroupId equals groupAdmins.GroupId
                     join groups in dbContext.Groups on groupRequests.GroupId equals groups.Id
                     join groupRequestor in dbContext.Users on groupRequests.UserId equals groupRequestor.Id
-                    where groupAdmins.UserId == userId
+                    where groupAdmins.UserId == userId && groupRequests.Approved == null
                     select new RequestedAccess
                     {
                         IsGroup = true,
@@ -202,7 +202,7 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            var requestRecord = await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId);
+            var requestRecord = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
 
             await dbContext.AssingedToGroups.AddAsync(new AssignedToGroup()
             {
@@ -212,7 +212,7 @@ public class UserService : IUserService
                 Id = Guid.NewGuid(),
             });
 
-            //todo mark request as accepted
+            requestRecord.Approve(userId);
 
             await dbContext.SaveChangesAsync();
         }
@@ -226,7 +226,7 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            var requestRecord = await dbContext.EventAssigmentRequests.FindAsync(request.RequestId);
+            var requestRecord = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
 
             await dbContext.AssingedToEvents.AddAsync(new AssignedToEvent()
             {
@@ -235,7 +235,7 @@ public class UserService : IUserService
                 Id = Guid.NewGuid(),
             });
 
-            //todo mark request as accepted
+            requestRecord.Approve(userId);
 
             await dbContext.SaveChangesAsync();
         }
@@ -245,6 +245,8 @@ public class UserService : IUserService
 
     public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId)
     {
+        AssigmentRequestBase requestBase;
+
         if (isGroup)
         {
             var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
@@ -255,11 +257,8 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            var requestRecord = await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId);
+            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
 
-            //todo mark request as rejected
-
-            await dbContext.SaveChangesAsync();
         }
         else
         {
@@ -271,12 +270,11 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            var requestRecord = await dbContext.EventAssigmentRequests.FindAsync(request.RequestId);
-
-            //todo mark request as rejected
-
-            await dbContext.SaveChangesAsync();
+            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
         }
+
+        requestBase.Decline(userId);
+        await dbContext.SaveChangesAsync();
 
         return true;
     }
