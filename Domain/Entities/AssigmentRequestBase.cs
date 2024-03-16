@@ -1,10 +1,7 @@
 ﻿namespace Domain.Entities;
-
-public class EventAssigmentRequest : AssigmentRequestBase
+public abstract class AssigmentRequestBase
 {
-    public Guid Id { get; set; }
-    
-    public required Guid EventId { get; init; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// When <code>true</code>, then approved.
@@ -17,5 +14,4 @@ public class EventAssigmentRequest : AssigmentRequestBase
     /// A user who accepted or rejected request.
     /// </summary>
     public string? ManagedBy { get; set; } = null;
-
 }
