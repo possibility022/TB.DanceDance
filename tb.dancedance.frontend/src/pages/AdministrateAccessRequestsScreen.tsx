@@ -40,6 +40,11 @@ export function AdministrateAccessRequestsScreen() {
         .catch(r => {
           console.error(r)
         })
+    } else {
+      videoInfoService.RejectAccessRequest(request)
+        .catch(r => {
+          console.error(r)
+        })
     }
   }
 
