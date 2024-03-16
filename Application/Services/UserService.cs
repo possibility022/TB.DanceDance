@@ -29,34 +29,64 @@ public class UserService : IUserService
             .AnyAsync();
     }
 
-    public (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userId)
+    class GroupAndEventQueryResults()
+    {
+        public Group? Group{ get; set; }
+        public Event? Event{ get; set; }
+    }
+
+    public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId)
     {
         if (userId is null)
             throw new ArgumentNullException(nameof(userId));
 
-        var userGroups = new HashSet<Group>();
-        var userEvents = new HashSet<Event>();
 
-        var query =
-            from groupAssign in dbContext.AssingedToGroups
+        // For query below I am getting: Unable to translate set operation after client projection has been applied. Consider moving the set operation before the last 'Select' call.
+        // I will use two queries for now.
+        //var query =
+        //    (from groupAssign in dbContext.AssingedToGroups
+        //     join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
+        //     where groupAssign.UserId == userId
+        //     select new GroupAndEventQueryResults()
+        //     {
+        //         Event = null,
+        //         Group = @group
+        //     })
+        //    .Union((
+        //    from eventAssign in dbContext.AssingedToEvents
+        //    join @event in dbContext.Events on eventAssign.EventId equals @event.Id
+        //    where eventAssign.UserId == userId
+        //    select new GroupAndEventQueryResults()
+        //    {
+        //        Event = @event,
+        //        Group = null
+        //    }
+        //     ))
+        //    .ToList();
+
+        //foreach (var res in query)
+        //{
+        //    if (res.Group != null)
+        //        userGroups.Add(res.Group);
+
+        //    if (res.Event != null)
+        //        userEvents.Add(res.Event);
+        //}
+
+        var groups = from groupAssign in dbContext.AssingedToGroups
             join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
             where groupAssign.UserId == userId
-            from eventAssign in dbContext.AssingedToEvents
+                     select @group;
+                     ;
+
+        var events = from eventAssign in dbContext.AssingedToEvents
             join @event in dbContext.Events on eventAssign.EventId equals @event.Id
             where eventAssign.UserId == userId
-            select new { Group = @group, Event = @event };
+                     select @event
+                     ;
 
-        foreach (var res in query)
-        {
-            if (res.Group != null)
-                userGroups.Add(res.Group);
-
-            if (res.Event != null)
-                userEvents.Add(res.Event);
+        return (await groups.ToListAsync(), await events.ToListAsync());
         }
-
-        return (userGroups, userEvents);
-    }
 
     public async Task<ICollection<Event>> GetAllEvents()
     {

@@ -12,7 +12,7 @@ public interface IUserService
     Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId);
     Task<ICollection<Event>> GetAllEvents();
     Task<ICollection<Group>> GetAllGroups();
-    (ICollection<Group>, ICollection<Event>) GetUserEventsAndGroups(string userName);
+    Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userName);
 
     Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events);
     Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups);

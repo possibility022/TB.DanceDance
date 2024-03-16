@@ -47,7 +47,7 @@ public class EventsController : Controller
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync()
     {
         var user = User.GetSubject();
-        (var userGroups, var userEvents) = userService.GetUserEventsAndGroups(user);
+        (var userGroups, var userEvents) = await userService.GetUserEventsAndGroupsAsync(user);
 
         var responseModel = new UserEventsAndGroupsResponse();
 
