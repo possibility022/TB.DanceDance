@@ -1,6 +1,7 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using System.Diagnostics;
 
 namespace Infrastructure.Identity;
 
@@ -41,7 +42,11 @@ public class DesignTimeContextFactory :
 
 
         var context = new ConfigurationDbContext(optionsBuilder.Options);
-        context.StoreOptions.DefaultSchema = ConfigurationDbContextDefaultSchema;
+        context.StoreOptions = new Duende.IdentityServer.EntityFramework.Options.ConfigurationStoreOptions()
+        {
+            DefaultSchema = ConfigurationDbContextDefaultSchema
+        };
+
         return context;
     }
 
@@ -54,7 +59,11 @@ public class DesignTimeContextFactory :
             b => b.MigrationsAssembly(assemblyName));
 
         var context = new PersistedGrantDbContext(optionsBuilder.Options);
-        context.StoreOptions.DefaultSchema = PersistedGrantDbContextDefaultSchema;
+        context.StoreOptions = new Duende.IdentityServer.EntityFramework.Options.OperationalStoreOptions()
+        {
+            DefaultSchema = PersistedGrantDbContextDefaultSchema
+        };
+
         return context;
     }
 }
