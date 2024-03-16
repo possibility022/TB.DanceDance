@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
-using IdentityServer4.Configuration;
-using IdentityServer4.Events;
-using IdentityServer4.Extensions;
-using IdentityServer4.Models;
-using IdentityServer4.Services;
-using IdentityServer4.Validation;
+using Duende.IdentityServer;
+using Duende.IdentityServer.Configuration;
+using Duende.IdentityServer.Events;
+using Duende.IdentityServer.Extensions;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -98,7 +99,7 @@ public class DeviceController : Controller
                 var scopes = model.ScopesConsented;
                 if (ConsentOptions.EnableOfflineAccess == false)
                 {
-                    scopes = scopes.Where(x => x != IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess);
+                    scopes = scopes.Where(x => x != IdentityServerConstants.StandardScopes.OfflineAccess);
                 }
 
                 grantedConsent = new ConsentResponse
@@ -180,7 +181,7 @@ public class DeviceController : Controller
         }
         if (ConsentOptions.EnableOfflineAccess && request.ValidatedResources.Resources.OfflineAccess)
         {
-            apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
+            apiScopes.Add(GetOfflineAccessScope(vm.ScopesConsented.Contains(IdentityServerConstants.StandardScopes.OfflineAccess) || model == null));
         }
         vm.ApiScopes = apiScopes;
 
@@ -217,7 +218,7 @@ public class DeviceController : Controller
     {
         return new ScopeViewModel
         {
-            Value = IdentityServer4.IdentityServerConstants.StandardScopes.OfflineAccess,
+            Value = IdentityServerConstants.StandardScopes.OfflineAccess,
             DisplayName = ConsentOptions.OfflineAccessDisplayName,
             Description = ConsentOptions.OfflineAccessDescription,
             Emphasize = true,

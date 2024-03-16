@@ -1,6 +1,6 @@
 using Application;
 using Domain.Exceptions;
-using IdentityServer4;
+using Duende.IdentityServer;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
@@ -53,7 +53,7 @@ builder.Services.AddAuthorization(o =>
 
     o.AddPolicy(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert, c =>
     {
-        c.RequireScope(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
+        c.RequireClaim(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
         c.RequireAuthenticatedUser();
     });
 

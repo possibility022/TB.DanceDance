@@ -1,5 +1,5 @@
 ﻿using Domain.Services;
-using IdentityServer4.Validation;
+using Duende.IdentityServer.Validation;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

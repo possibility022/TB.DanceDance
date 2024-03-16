@@ -1,4 +1,4 @@
-﻿using IdentityServer4.EntityFramework.DbContexts;
+﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
@@ -39,10 +39,10 @@ public class DesignTimeContextFactory :
             b => b.MigrationsAssembly(assemblyName)
             ); ;
 
-        return new ConfigurationDbContext(optionsBuilder.Options, new IdentityServer4.EntityFramework.Options.ConfigurationStoreOptions()
-        {
-            DefaultSchema = ConfigurationDbContextDefaultSchema
-        });
+
+        var context = new ConfigurationDbContext(optionsBuilder.Options);
+        context.StoreOptions.DefaultSchema = ConfigurationDbContextDefaultSchema;
+        return context;
     }
 
     PersistedGrantDbContext IDesignTimeDbContextFactory<PersistedGrantDbContext>.CreateDbContext(string[] args)
@@ -53,9 +53,8 @@ public class DesignTimeContextFactory :
         optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore",
             b => b.MigrationsAssembly(assemblyName));
 
-        return new PersistedGrantDbContext(optionsBuilder.Options, new IdentityServer4.EntityFramework.Options.OperationalStoreOptions
-        {
-            DefaultSchema = PersistedGrantDbContextDefaultSchema
-        });
+        var context = new PersistedGrantDbContext(optionsBuilder.Options);
+        context.StoreOptions.DefaultSchema = PersistedGrantDbContextDefaultSchema;
+        return context;
     }
 }

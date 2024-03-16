@@ -1,9 +1,9 @@
 using Domain.Exceptions;
+using Duende.IdentityServer;
+using Duende.IdentityServer.Events;
+using Duende.IdentityServer.Services;
+using Duende.IdentityServer.Stores;
 using IdentityModel;
-using IdentityServer4;
-using IdentityServer4.Events;
-using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -21,14 +21,14 @@ public class ExternalController : Controller
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IClientStore _clientStore;
     private readonly ILogger<ExternalController> _logger;
-    private readonly IdentityServer4.Services.IEventService _events;
+    private readonly IEventService _events;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
 
     public ExternalController(
         IIdentityServerInteractionService interaction,
         IClientStore clientStore,
-        IdentityServer4.Services.IEventService events,
+        IEventService events,
         ILogger<ExternalController> logger,
         UserManager<User> userManager,
         SignInManager<User> signInManager)
@@ -127,7 +127,9 @@ public class ExternalController : Controller
 
         if (context != null)
         {
-            if (context.IsNativeClient())
+            // native client, not supported for now
+            //if (context.IsNativeClient())
+            if (false)
             {
                 // The client is native, so this change in how to
                 // return the response is for better UX for the end user.

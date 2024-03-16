@@ -1,4 +1,4 @@
-﻿using IdentityServer4.Models;
+﻿using Duende.IdentityServer.Models;
 using Infrastructure.Identity.IdentityResources;
 
 namespace Infrastructure;
