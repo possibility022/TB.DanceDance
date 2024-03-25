@@ -8,7 +8,7 @@ public abstract class AssigmentRequestBase
     /// When <code>false</code> then rejected.
     /// When <code>null</code> then no action taken.
     /// </summary>
-    public bool? Approved { get; set; } = false;
+    public bool? Approved { get; set; } = null;
 
     /// <summary>
     /// A user who accepted or rejected request.
