@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using Domain.Exceptions;
+using Domain.Services;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Events;
@@ -31,24 +33,28 @@ public class AccountController : Controller
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IClientStore _clientStore;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
-    private readonly IEventService _events;
+    private readonly IdentityServer4.Services.IEventService _events;
     private readonly UserManager<User> userManager;
     private readonly SignInManager<User> signInManager;
     private readonly ILogger<AccountController> logger;
+    private readonly IUserService userService;
 
     public AccountController(
         IIdentityServerInteractionService interaction,
         IClientStore clientStore,
         IAuthenticationSchemeProvider schemeProvider,
-        IEventService events,
+        IdentityServer4.Services.IEventService events,
         UserManager<User> userManager,
         SignInManager<User> signInManager,
-        ILogger<AccountController> logger)
+        ILogger<AccountController> logger,
+        IUserService userService
+        )
     {
         _interaction = interaction;
         _clientStore = clientStore;
         _schemeProvider = schemeProvider;
         _events = events;
+        this.userService = userService;
         this.userManager = userManager;
         this.signInManager = signInManager;
         this.logger = logger;
@@ -206,6 +212,22 @@ public class AccountController : Controller
             if (result.Succeeded)
             {
                 logger.LogInformation("User created a new account with password.");
+
+                // Here, I am fetching a user again to add it to API DB - it is like different context
+                // In normal scope you would have to use access token to fetch these informations
+                // in this app everything is tied together so I am just fetching that data.
+                var userFromDb = await userManager.FindByEmailAsync(user.Email);
+
+                if (userFromDb == null)
+                    throw new AppException($"User with email {user.Email} could not be found after registration.");
+
+                await userService.AddOrUpdateUserAsync(new Domain.Entities.User()
+                {
+                    Email = userFromDb.Email,
+                    FirstName = input.FirstName,
+                    LastName = input.LastName,
+                    Id = userFromDb.Id
+                });
 
                 // TODO - Email Verification
                 //var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
