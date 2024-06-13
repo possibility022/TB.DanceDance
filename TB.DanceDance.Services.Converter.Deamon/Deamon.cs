@@ -28,10 +28,14 @@ internal sealed class Deamon : BackgroundService
                 if (!converted)
                 {
                     var delay = GetDelayTillnextExecution();
-                    Log.Information("Waiting till next run. Delay: {1}", delay);
+                    Log.Information("Waiting till next run. Delay: {0}", delay.ToString(@"hh\:mm"));
                     
                     await Task.Delay(delay, token);
                 }
+            }
+            catch(TaskCanceledException ex)
+            {
+                Log.Information(ex, "Task cancelled.");
             }
             catch (Exception ex)
             {
@@ -42,7 +46,7 @@ internal sealed class Deamon : BackgroundService
 
     private TimeSpan GetDelayTillnextExecution()
     {
-        var nextStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 0, 0);
+        var nextStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, ProgramConfig.Instance.HourOfExecution, 0, 0);
         if (DateTime.Now.AddMinutes(1) > nextStart)
             nextStart = nextStart.AddDays(1);
 
