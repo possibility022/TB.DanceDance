@@ -1,30 +1,41 @@
-﻿using TB.DanceDance.Services.Converter.Deamon;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 ProgramConfig.Configure();
 
-using var oauthClient = new HttpClient()
+HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+builder.Services.AddSingleton(ProgramConfig.Instance);
+builder.Services.AddSingleton<OAuthHttpClient>((s) =>
 {
-    BaseAddress = new Uri(ProgramConfig.Instance.OAuthOrigin)
-};
-
-var tokenProvider = new TokenProvider(oauthClient, ProgramConfig.Instance.TokenProviderOptions);
-
-var handler = new TokenHttpHandler(tokenProvider);
-
-using var apiHttpClient = new HttpClient(handler)
+    return new OAuthHttpClient()
+    {
+        BaseAddress = new Uri(ProgramConfig.Instance.OAuthOrigin)
+    };
+});
+builder.Services.AddSingleton<ApiHttpClient>((s) =>
 {
-    BaseAddress = new Uri(ProgramConfig.Instance.ApiOrigin)
-};
+    var tokenProvider = new TokenProvider(s.GetRequiredService<OAuthHttpClient>(), ProgramConfig.Instance.TokenProviderOptions);
+    var handler = new TokenHttpHandler(tokenProvider);
 
-using var defaultHttpClient = new HttpClient();
+    var apiHttpClient = new ApiHttpClient(handler)
+    {
+        BaseAddress = new Uri(ProgramConfig.Instance.ApiOrigin)
+    };
 
-var client = new DanceDanceApiClient(apiHttpClient, defaultHttpClient);
+    return apiHttpClient;
+});
 
+builder.Services.AddScoped<HttpClient>();
+builder.Services.AddScoped<DanceDanceApiClient>();
+builder.Services.AddScoped<Deamon>();
 
-CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-CancellationToken token = cancellationTokenSource.Token;
+builder.Services.AddHostedService<Deamon>();
 
-var deamon = new Deamon(client);
-await deamon.WorkAsync(token);
+IHost host = builder.Build();
+host.Run();
+
 

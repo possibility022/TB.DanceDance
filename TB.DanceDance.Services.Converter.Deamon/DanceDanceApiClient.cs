@@ -3,18 +3,19 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
 internal class DanceDanceApiClient : IDisposable
 {
-    private readonly HttpClient apiClient;
+    private readonly ApiHttpClient apiClient;
     private readonly HttpClient blobClient;
     private readonly JsonSerializerOptions serializationOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public DanceDanceApiClient(HttpClient apiClient, HttpClient blobClient)
+    public DanceDanceApiClient(ApiHttpClient apiClient, HttpClient blobClient)
     {
         this.apiClient = apiClient;
         this.blobClient = blobClient;
