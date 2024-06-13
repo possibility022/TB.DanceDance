@@ -1,8 +1,9 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.Hosting;
+using Serilog;
 using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
-internal class Deamon
+internal sealed class Deamon : BackgroundService
 {
     private readonly DanceDanceApiClient client;
     private readonly FFmpegClientConverter converter;
@@ -13,10 +14,10 @@ internal class Deamon
         converter = new FFmpegClientConverter();
     }
 
-    public async Task WorkAsync(CancellationToken token)
+    protected override async Task ExecuteAsync(CancellationToken token)
     {
-        if (!Directory.Exists("D:\\temp\\convertingDeamon"))
-            Directory.CreateDirectory("D:\\temp\\convertingDeamon");
+        if (!Directory.Exists(ProgramConfig.Instance.WorkDir))
+            Directory.CreateDirectory(ProgramConfig.Instance.WorkDir);
 
 
         while (!token.IsCancellationRequested)
@@ -26,8 +27,17 @@ internal class Deamon
                 var converted = await ProcessNext(token);
                 if (!converted)
                 {
-                    Log.Information("Leaving main loop.");
-                    return;
+                    var nextStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 0, 0);
+                    var delay = nextStart - DateTime.Now;
+
+                    if (delay <  TimeSpan.Zero)
+                    {
+                        delay = TimeSpan.Zero;
+                    }
+
+                    Log.Information("Waiting till next run. Start at: {0}, Delay: {1}", nextStart, delay);
+                    
+                    await Task.Delay(delay, token);
                 }
             }
             catch (Exception ex)
@@ -51,8 +61,8 @@ internal class Deamon
         Log.Information("Video to convert {0}", nextVideoToConvert.Id);
 
         var guid = nextVideoToConvert.Id;
-        var inputVideo = $"D:\\temp\\convertingDeamon\\{guid}.source.{nextVideoToConvert.FileName}";
-        var convertedFilePath = $"D:\\temp\\convertingDeamon\\{guid}.converted.webm";
+        var inputVideo = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.source.{nextVideoToConvert.FileName}");
+        var convertedFilePath = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.converted.webm");
 
         using (var file = File.Open(inputVideo, FileMode.Create))
         {
@@ -80,6 +90,12 @@ internal class Deamon
 
         Log.Information("Publishing video.");
         await client.PublishTransformedVideo(nextVideoToConvert.Id);
+
+        if (File.Exists(inputVideo))
+            File.Delete(inputVideo);
+
+        if (File.Exists(convertedFilePath))
+            File.Delete(convertedFilePath);
 
         return true;
     }

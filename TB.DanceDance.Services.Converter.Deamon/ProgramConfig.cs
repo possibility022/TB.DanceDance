@@ -7,17 +7,19 @@ internal class ProgramConfig
 {
     public static ProgramConfig Instance { get; private set; } = new ProgramConfig();
 
-    public string FFMPGDefaultFolder { get; internal set; } = "D:\\Programy\\ffmpeg-2022-12-04-git-6c814093d8-full_build\\bin";
+    public string FFMPGDefaultFolder { get; internal set; }
 
     public string ApiOrigin { get; internal set; } = string.Empty;
     public string OAuthOrigin { get; internal set; } = string.Empty;
 
-    public TokenProviderOptions TokenProviderOptions { get; private set; } = null!;
+    public string WorkDir { get; set; } = "mediafolder";
+
+    public TokenProviderOptions TokenProviderOptions { get; private set; } = new TokenProviderOptions { ClientId = "", ClientSecret = "", Scope = "" };
 
     private static bool TryGetEnvironmentVariable(string key, out string value)
     {
-        value = string.Empty;
         var v = Environment.GetEnvironmentVariable($"tb.dancedance.converter.{key}");
+        value = v ?? string.Empty;
         return !string.IsNullOrEmpty(v);
     }
 
@@ -29,8 +31,20 @@ internal class ProgramConfig
         ConfigureFfmpeg();
         ConfigureApi(config);
         ConfigureAuth(config);
+        ConfigureMediaFolder(config);
 
         ProgramConfig.Instance = config;
+    }
+
+    private static void ConfigureMediaFolder(ProgramConfig config)
+    {
+        var workdirSet = TryGetEnvironmentVariable("workdir", out var workdir);
+
+        if (workdirSet)
+        {
+            config.WorkDir = workdir;
+        }
+        Log.Information("Workdir set to: {0}", config.WorkDir);
     }
 
     private static void ConfigureAuth(ProgramConfig config)
@@ -65,16 +79,16 @@ internal class ProgramConfig
 
         }
         if (string.IsNullOrEmpty(config.TokenProviderOptions.Scope))
-            Log.Warning("Scope is not set");
+            Log.Error("Scope is not set");
 
         if (string.IsNullOrEmpty(config.TokenProviderOptions.ClientId))
-            Log.Warning("ClientId is not set");
+            Log.Error("ClientId is not set");
 
         if (string.IsNullOrEmpty(config.TokenProviderOptions.ClientSecret))
-            Log.Warning("ClientSecret is not set");
+            Log.Error("ClientSecret is not set");
 
         if (string.IsNullOrEmpty(config.OAuthOrigin))
-            Log.Warning("OAuthOrigin is not set");
+            Log.Error("OAuthOrigin is not set");
     }
 
     private static void ConfigureApi(ProgramConfig config)
@@ -83,12 +97,15 @@ internal class ProgramConfig
         if (apiSet)
             config.ApiOrigin = api;
 
-        var lines = File.ReadAllLines("api.set.txt");
-        if (!string.IsNullOrEmpty(lines[0]?.Trim()))
-            config.ApiOrigin = lines[0].Trim();
+        if (File.Exists("api.set.txt"))
+        {
+            var lines = File.ReadAllLines("api.set.txt");
+            if (!string.IsNullOrEmpty(lines[0]?.Trim()))
+                config.ApiOrigin = lines[0].Trim();
+        }
 
         if (string.IsNullOrEmpty(config.ApiOrigin))
-            Log.Warning("Api Origin is not set");
+            Log.Error("Api Origin is not set");
     }
 
     private static void ConfigureFfmpeg()
@@ -104,10 +121,13 @@ internal class ProgramConfig
             }
         }
 
-        GlobalFFOptions.Configure(new FFOptions()
+        if (!string.IsNullOrEmpty(path))
         {
-            BinaryFolder = path,
-        });
+            GlobalFFOptions.Configure(new FFOptions()
+            {
+                BinaryFolder = path,
+            });
+        }
     }
 
     private static void ConfigureLogging()

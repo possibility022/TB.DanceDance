@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TB.DanceDance.Services.Converter.Deamon": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
