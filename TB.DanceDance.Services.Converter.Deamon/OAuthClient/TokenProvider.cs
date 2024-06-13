@@ -10,7 +10,7 @@ internal class TokenProvider
     private Token? currentToken = null;
     private DateTime expiresAt = DateTime.MinValue;
 
-    public TokenProvider(HttpClient oauthHttpClient, TokenProviderOptions options)
+    public TokenProvider(OAuthHttpClient oauthHttpClient, TokenProviderOptions options)
     {
         this.oauthHttpClient = oauthHttpClient;
         this.options = options;

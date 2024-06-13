@@ -1,8 +1,9 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.Hosting;
+using Serilog;
 using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
-internal class Deamon
+internal sealed class Deamon : BackgroundService
 {
     private readonly DanceDanceApiClient client;
     private readonly FFmpegClientConverter converter;
@@ -13,10 +14,10 @@ internal class Deamon
         converter = new FFmpegClientConverter();
     }
 
-    public async Task WorkAsync(CancellationToken token)
+    protected override async Task ExecuteAsync(CancellationToken token)
     {
-        if (!Directory.Exists("D:\\temp\\convertingDeamon"))
-            Directory.CreateDirectory("D:\\temp\\convertingDeamon");
+        if (!Directory.Exists(ProgramConfig.Instance.WorkDir))
+            Directory.CreateDirectory(ProgramConfig.Instance.WorkDir);
 
 
         while (!token.IsCancellationRequested)
@@ -26,15 +27,32 @@ internal class Deamon
                 var converted = await ProcessNext(token);
                 if (!converted)
                 {
-                    Log.Information("Leaving main loop.");
-                    return;
+                    var delay = GetDelayTillnextExecution();
+                    Log.Information("Waiting till next run. Delay: {0}", delay.ToString(@"hh\:mm"));
+                    
+                    await Task.Delay(delay, token);
                 }
+            }
+            catch(TaskCanceledException ex)
+            {
+                Log.Information(ex, "Task cancelled.");
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error in main execution path.");
             }
         }
+    }
+
+    private TimeSpan GetDelayTillnextExecution()
+    {
+        var nextStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, ProgramConfig.Instance.HourOfExecution, 0, 0);
+        if (DateTime.Now.AddMinutes(1) > nextStart)
+            nextStart = nextStart.AddDays(1);
+
+        var delay = nextStart - DateTime.Now;
+
+        return delay;
     }
 
     private async Task<bool> ProcessNext(CancellationToken token)
@@ -51,8 +69,8 @@ internal class Deamon
         Log.Information("Video to convert {0}", nextVideoToConvert.Id);
 
         var guid = nextVideoToConvert.Id;
-        var inputVideo = $"D:\\temp\\convertingDeamon\\{guid}.source.{nextVideoToConvert.FileName}";
-        var convertedFilePath = $"D:\\temp\\convertingDeamon\\{guid}.converted.webm";
+        var inputVideo = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.source.{nextVideoToConvert.FileName}");
+        var convertedFilePath = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.converted.webm");
 
         using (var file = File.Open(inputVideo, FileMode.Create))
         {
@@ -80,6 +98,12 @@ internal class Deamon
 
         Log.Information("Publishing video.");
         await client.PublishTransformedVideo(nextVideoToConvert.Id);
+
+        if (File.Exists(inputVideo))
+            File.Delete(inputVideo);
+
+        if (File.Exists(convertedFilePath))
+            File.Delete(convertedFilePath);
 
         return true;
     }
