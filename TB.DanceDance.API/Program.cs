@@ -59,22 +59,25 @@ builder.Services.AddAuthorization(o =>
 
 });
 
-builder.Services
+var authBuilder = builder.Services
     .AddAuthentication()
-    .AddGoogle(googleOptions =>
-    {
-        googleOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-
-        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new AppException("Google Client Id is null.");
-        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new AppException("Google Client Secret is null.");
-    })
     .AddLocalApi(o =>
     {
         o.ExpectedScope = DanceDanceResources.WestCoastSwing.Scopes.ReadScope;
     });
 
+var configureGoogleAuth = builder.Configuration["Authentication:Google:ClientId"] != null;
 
-var setIdentityServerAsProduction = builder.Environment.IsProduction();
+if (configureGoogleAuth)
+{
+    authBuilder.AddGoogle(googleOptions =>
+     {
+         googleOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+
+         googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new AppException("Google Client Id is null.");
+         googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new AppException("Google Client Secret is null.");
+     });
+}
 
 builder.Services.AddScoped<IIdentityClient, IdentityClient>();
 
