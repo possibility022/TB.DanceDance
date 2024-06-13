@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
@@ -21,7 +20,7 @@ builder.Services.AddSingleton<ApiHttpClient>((s) =>
     var tokenProvider = new TokenProvider(s.GetRequiredService<OAuthHttpClient>(), ProgramConfig.Instance.TokenProviderOptions);
     var handler = new TokenHttpHandler(tokenProvider);
 
-    var apiHttpClient = new ApiHttpClient(handler)
+    var apiHttpClient = new ApiHttpClient(handler, true)
     {
         BaseAddress = new Uri(ProgramConfig.Instance.ApiOrigin)
     };
