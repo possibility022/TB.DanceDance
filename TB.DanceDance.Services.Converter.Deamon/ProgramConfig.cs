@@ -12,9 +12,11 @@ internal class ProgramConfig
     public string ApiOrigin { get; internal set; } = string.Empty;
     public string OAuthOrigin { get; internal set; } = string.Empty;
 
-    public string WorkDir { get; set; } = "mediafolder";
+    public string WorkDir { get; internal set; } = "mediafolder";
 
     public TokenProviderOptions TokenProviderOptions { get; private set; } = new TokenProviderOptions { ClientId = "", ClientSecret = "", Scope = "" };
+
+    public int HourOfExecution { get; internal set; } = 23;
 
     private static bool TryGetEnvironmentVariable(string key, out string value)
     {
@@ -32,8 +34,31 @@ internal class ProgramConfig
         ConfigureApi(config);
         ConfigureAuth(config);
         ConfigureMediaFolder(config);
+        ConfigureExecutionHour(config);
 
         ProgramConfig.Instance = config;
+    }
+
+    private static void ConfigureExecutionHour(ProgramConfig config)
+    {
+        var executionHourSet = TryGetEnvironmentVariable("executionHour", out var value);
+        if (executionHourSet)
+        {
+            var parsed = int.TryParse(value, out var hour);
+            if (parsed)
+            {
+                if (hour < 0 || hour > 24)
+                {
+                    Log.Warning("Invalid execution hour. Given value: {0}", value);
+                    return;
+                }
+                config.HourOfExecution = hour;
+            }
+            else
+            {
+                Log.Warning("Execution hour could not be parsed. Given value: {0}", value);
+            }
+        }
     }
 
     private static void ConfigureMediaFolder(ProgramConfig config)
