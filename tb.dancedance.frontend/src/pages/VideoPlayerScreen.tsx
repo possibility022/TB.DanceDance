@@ -1,16 +1,20 @@
 import ReactPlayer from 'react-player';
 import { useState, useContext, useEffect } from 'react'
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
 import videoInfoService from '../services/VideoInfoService';
 import VideoInformation from '../types/ApiModels/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { SharedScope } from '../types/appTypes';
+import { VideoList } from '../components/Videos/VideoList';
+
 
 
 export function VideoPlayerScreen() {
 
     const params = useParams();
+    const location = useLocation()
     const authContext = useContext(AuthContext)
 
     const [videoInfo, setVideoInfo] = useState<VideoInformation>()
@@ -18,11 +22,34 @@ export function VideoPlayerScreen() {
     const [url, setUrl] = useState<string | undefined>()
     const [editIsHidden, setEditIsHidden] = useState(true)
     const [videoNameToSet, setVideoNameToSet] = useState('')
-
+    const [videoList, setVideoList] = useState<VideoInformation[]>([])
+    const [sharedScope, setSharedScope] = useState<SharedScope>()
 
     useEffect(() => {
 
         const videoId = params.videoId as string
+
+        if (videoId == videoInfo?.id)
+            return
+
+        const passedSharedScope = location.state as SharedScope
+
+        if (passedSharedScope) {
+            setSharedScope(passedSharedScope)
+
+            if (passedSharedScope.groupId) {
+                videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
+                    .then(videos => {
+                        setVideoList(videos.videos)
+                    })
+                    .catch(e => console.log(e))
+            } else if (passedSharedScope.eventId) {
+                videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
+                    .then(videos => {
+                        setVideoList(videos)
+                    }).catch(e => console.log(e))
+            }
+        }
 
         authContext.getAccessToken()
             .then((token) => {
@@ -43,8 +70,7 @@ export function VideoPlayerScreen() {
         return () => {
             // todo, cleanup
         }
-    }, [])
-
+    }, [params])
 
     function onEditClick() {
         setVideoNameToSet(videoInfo?.name ?? '')
@@ -53,7 +79,7 @@ export function VideoPlayerScreen() {
 
     function onRenameConfirm() {
         if (videoInfo) {
-            videoInfoService.RenameVideo(videoInfo.id.toString(), videoNameToSet) //todo, unify what to use to represent guids.
+            videoInfoService.RenameVideo(videoInfo.id, videoNameToSet)
                 .then(results => {
                     if (results) {
                         setVideoInfo({
@@ -104,6 +130,8 @@ export function VideoPlayerScreen() {
                 onContextMenu={(e: Event) => e.preventDefault()}
 
                 url={url} />
+
+            <VideoList videos={videoList} sharedScope={sharedScope}></VideoList>
         </div>
     )
 

@@ -1,7 +1,8 @@
+import { GroupId } from "./TypeIds"
 import VideoInformation from "./VideoInformation"
 
 export interface IGroupWithVideosResponse {
-    groupId: string
+    groupId: GroupId
     groupName: string
     videos: Array<VideoInformation>
 }

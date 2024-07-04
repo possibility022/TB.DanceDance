@@ -5,6 +5,7 @@ import { VideoList } from '../components/Videos/VideoList';
 import { VideoInfoService } from '../services/VideoInfoService';
 import { IGroupWithVideosResponse } from '../types/ApiModels/GroupsWithVideosResponse';
 import VideoInformation from '../types/ApiModels/VideoInformation';
+import { GroupId } from "../types/ApiModels/TypeIds";
 
 
 const videoService = new VideoInfoService()
@@ -15,7 +16,7 @@ export function VideoScreen() {
     const [videos, setVideos] = useState<Array<VideoInformation>>([])
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [weHaveAnyVideos, setWeHaveAnyVideos] = useState<boolean>(true)
-    const [activeGroup, setActiveGroup] = useState<string | null>(null)
+    const [activeGroup, setActiveGroup] = useState<GroupId | null>(null)
     const [renderedList, setRenderedList] = useState<Array<JSX.Element>>([])
 
     const navigate = useNavigate()
@@ -85,7 +86,11 @@ export function VideoScreen() {
                 onClick={() => navigate('/videos/upload')}>
                 Wyslij Nagranie
             </Button>
-            <VideoList videos={videos}></VideoList>
+            <VideoList videos={videos} sharedScope={{
+                eventId: null,
+                groupId: activeGroup
+            }}/>
+
             {loadingBar()}
             {askForVideos()}
         </Fragment>)
