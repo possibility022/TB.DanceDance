@@ -1,4 +1,5 @@
 import { EventType } from "../EventType"
+import { EventId, GroupId } from "./TypeIds"
 
 export interface IUserEventsAndGroupsResponse {
     assigned: IEventsAndGroupsResponse
@@ -21,10 +22,10 @@ export interface IEventBase {
 }
 
 export interface Event extends IEventBase {
-    id: string
+    id: EventId
 }
 
 export interface Group {
-    id: string
+    id: GroupId
     name: string
 }

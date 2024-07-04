@@ -1,4 +1,5 @@
-﻿using Domain.Services;
+﻿using Domain.Entities;
+using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,32 @@ public class GroupController : Controller
             .GetUserVideosFromGroups(userId)
             .ToListAsync();
 
+        var response = MapToVideoForGroupInfoResponse(videos);
+
+        return Ok(response);
+    }
+
+    [HttpGet]
+    [Route(ApiEndpoints.Group.VideosForGroup)]
+    public async Task<IActionResult> GetVidesPerGroup(Guid groupId)
+    {
+        var userId = User.GetSubject();
+
+        var videos = await groupService
+            .GetUserVideosForGroupAsync(userId, groupId)
+            .ToListAsync();
+
+        var videosByGroups = MapToVideoForGroupInfoResponse(videos);
+        var group = videosByGroups.FirstOrDefault();
+
+        if (group == null)
+            return NotFound();
+
+        return Ok(group);
+    }
+
+    private static IEnumerable<GroupWithVideosResponse> MapToVideoForGroupInfoResponse(List<VideoFromGroupInfo> videos)
+    {
         var dict = new Dictionary<Guid, (string, List<VideoInformationModel>)>();
 
         foreach (var video in videos)
@@ -52,6 +79,6 @@ public class GroupController : Controller
             Videos = k.Value.Item2
         });
 
-        return Ok(map);
+        return map;
     }
 }

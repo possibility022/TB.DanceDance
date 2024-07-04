@@ -4,9 +4,11 @@ import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
+import { SharedScope } from '../../types/appTypes';
 
 export interface ListOfVideos {
     videos: VideoInformation[]
+    sharedScope?: SharedScope
 }
 
 const formatDate = (date: Date) => {
@@ -22,7 +24,7 @@ export function VideoList(props: ListOfVideos) {
 
     const goToVideo = (vid: VideoInformation) => {
         const url = '/videos/' + vid.blobId
-        navigate(url)
+        navigate(url, { state: props.sharedScope })
     }
 
     const getButton = (vid: VideoInformation) => {
