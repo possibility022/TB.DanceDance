@@ -38,7 +38,7 @@ export function EventCard(props: IEventCardProps) {
 
         setIsLoading(true)
 
-        videoInfoService.GetVideosPerEvent(props.event.id)
+        videoInfoService.GetVideosForEvent(props.event.id)
             .then((results) => {
                 setVideos(results)
             })
@@ -67,7 +67,10 @@ export function EventCard(props: IEventCardProps) {
             </header>
             <div className="card-content" hidden={contentIsHidden}>
                 {progressBar()}
-                <VideoList videos={videos}></VideoList>
+                <VideoList videos={videos} sharedScope={{
+                    groupId: null,
+                    eventId: props.event.id
+                }}/>
             </div>
             <div hidden={contentIsHidden}>
                 <footer className="card-footer">
