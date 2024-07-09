@@ -15,18 +15,18 @@ public class UserService : IUserService
         this.dbContext = dbContext;
     }
 
-    public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId)
+    public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId, CancellationToken token)
     {
         return dbContext.AssingedToEvents
             .Where(r => r.UserId == userId && r.EventId == eventId)
-            .AnyAsync();
+            .AnyAsync(token);
     }
 
-    public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId)
+    public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId, CancellationToken token)
     {
         return dbContext.AssingedToGroups
             .Where(r => r.UserId == userId && r.GroupId == groupId)
-            .AnyAsync();
+            .AnyAsync(token);
     }
 
     class GroupAndEventQueryResults()
@@ -35,7 +35,7 @@ public class UserService : IUserService
         public Event? Event { get; set; }
     }
 
-    public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId)
+    public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId, CancellationToken token)
     {
         if (userId is null)
             throw new ArgumentNullException(nameof(userId));
@@ -85,20 +85,20 @@ public class UserService : IUserService
                      select @event
                      ;
 
-        return (await groups.ToListAsync(), await events.ToListAsync());
+        return (await groups.ToListAsync(token), await events.ToListAsync(token));
     }
 
-    public async Task<ICollection<Event>> GetAllEvents()
+    public async Task<ICollection<Event>> GetAllEvents(CancellationToken token)
     {
-        return await dbContext.Events.ToListAsync();
+        return await dbContext.Events.ToListAsync(token);
     }
 
-    public async Task<ICollection<Group>> GetAllGroups()
+    public async Task<ICollection<Group>> GetAllGroups(CancellationToken token)
     {
-        return await dbContext.Groups.ToListAsync();
+        return await dbContext.Groups.ToListAsync(token);
     }
 
-    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
+    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, CancellationToken token)
     {
         var toSave = events.Select(@event => new EventAssigmentRequest()
         {
@@ -107,10 +107,10 @@ public class UserService : IUserService
         });
 
         dbContext.EventAssigmentRequests.AddRange(toSave);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(token);
     }
 
-    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
+    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, CancellationToken token)
     {
         var toSave = groups.Select(group => new GroupAssigmentRequest()
         {
@@ -120,10 +120,10 @@ public class UserService : IUserService
         });
 
         dbContext.GroupAssigmentRequests.AddRange(toSave);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(token);
     }
 
-    public Task AddOrUpdateUserAsync(Domain.Entities.User user)
+    public Task AddOrUpdateUserAsync(Domain.Entities.User user, CancellationToken token)
     {
         var record = dbContext.Users.Find(user.Id);
         if (record != null)
@@ -137,7 +137,7 @@ public class UserService : IUserService
             dbContext.Users.Add(user);
         }
 
-        return dbContext.SaveChangesAsync();
+        return dbContext.SaveChangesAsync(token);
     }
 
     private IQueryable<RequestedAccess> GetEventRequestsThatCanBeApprovedByUser(string userId)
@@ -179,17 +179,17 @@ public class UserService : IUserService
         return query;
     }
 
-    public async Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId)
+    public async Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId, CancellationToken token)
     {
         var query = (GetEventRequestsThatCanBeApprovedByUser(userId))
                     .Union
                     (GetGroupRequestsThatCanBeApprovedByUser(userId));
 
-        var queryResults = await query.ToListAsync();
+        var queryResults = await query.ToListAsync(token);
         return queryResults;
     }
 
-    public async Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId)
+    public async Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken token)
     {
         // todo, how can I make this code simpler? Logic is the same but works on different entities.
         if (isGroup)
@@ -197,12 +197,12 @@ public class UserService : IUserService
             var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
             var request = await query
                 .Where(r => r.RequestId == requestId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(token);
 
             if (request == null)
                 return false;
 
-            var requestRecord = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
+            var requestRecord = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId, token))!;
 
             await dbContext.AssingedToGroups.AddAsync(new AssignedToGroup()
             {
@@ -210,11 +210,11 @@ public class UserService : IUserService
                 UserId = requestRecord.UserId,
                 WhenJoined = requestRecord.WhenJoined,
                 Id = Guid.NewGuid(),
-            });
+            }, token);
 
             requestRecord.Approve(userId);
 
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(token);
         }
         else
         {
@@ -226,24 +226,24 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            var requestRecord = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
+            var requestRecord = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId, token))!;
 
             await dbContext.AssingedToEvents.AddAsync(new AssignedToEvent()
             {
                 EventId = requestRecord.EventId,
                 UserId = requestRecord.UserId,
                 Id = Guid.NewGuid(),
-            });
+            }, token);
 
             requestRecord.Approve(userId);
 
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(token);
         }
 
         return true;
     }
 
-    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId)
+    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken token)
     {
         AssigmentRequestBase requestBase;
 
@@ -257,7 +257,7 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
+            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId, token))!;
 
         }
         else
@@ -270,11 +270,11 @@ public class UserService : IUserService
             if (request == null)
                 return false;
 
-            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
+            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId, token))!;
         }
 
         requestBase.Decline(userId);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(token);
 
         return true;
     }

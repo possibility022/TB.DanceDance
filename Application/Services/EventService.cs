@@ -11,12 +11,12 @@ public class EventService : IEventService
         dbContext = danceDbContext;
     }
 
-    public async Task<Event> CreateEventAsync(Event @event)
+    public async Task<Event> CreateEventAsync(Event @event, CancellationToken token)
     {
         @event.Id = Guid.NewGuid();
         dbContext.Events.Add(@event);
         dbContext.AssingedToEvents.Add(new AssignedToEvent() { EventId = @event.Id, UserId = @event.Owner });
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(token);
         return @event;
     }
 

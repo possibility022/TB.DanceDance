@@ -38,30 +38,30 @@ public class VideoService : IVideoService
                select video;
     }
 
-    public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
+    public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId, CancellationToken token)
     {
         var query = GetBaseVideosForUserQuery(userId)
             .Where(v => v.BlobId == videoBlobId)
-            .AnyAsync();
+            .AnyAsync(token);
 
         var any = await query;
 
         return any;
     }
 
-    public Task<Video?> GetVideoByBlobAsync(string userId, string blobId)
+    public Task<Video?> GetVideoByBlobAsync(string userId, string blobId, CancellationToken token)
     {
         return GetBaseVideosForUserQuery(userId)
             .Where(r => r.BlobId == blobId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(token);
     }
 
-    public Task<Stream> OpenStream(string blobName)
+    public Task<Stream> OpenStream(string blobName, CancellationToken token)
     {
-        return blobService.OpenStream(blobName);
+        return blobService.OpenStream(blobName, token);
     }
 
-    public async Task<bool> RenameVideoAsync(Guid guid, string newName)
+    public async Task<bool> RenameVideoAsync(Guid guid, string newName, CancellationToken token)
     {
         var video = await dbContext.Videos.FirstAsync(r => r.Id == guid);
 
@@ -69,11 +69,11 @@ public class VideoService : IVideoService
             return false;
 
         video.Name = newName;
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(token);
         return true;
     }
 
-    public async Task<SharedBlob> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith)
+    public async Task<SharedBlob> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith, CancellationToken token)
     {
         var sharedBlob = videoUploaderService.GetSasUri();
 
@@ -99,7 +99,7 @@ public class VideoService : IVideoService
         };
 
         dbContext.Videos.Add(video);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(token);
 
         return sharedBlob;
     }

@@ -27,10 +27,10 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.GetAll)]
     [HttpGet]
-    public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups()
+    public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups(CancellationToken token)
     {
-        var listOfEvents = await userService.GetAllEvents();
-        var listOfGroups = await userService.GetAllGroups();
+        var listOfEvents = await userService.GetAllEvents(token);
+        var listOfGroups = await userService.GetAllGroups(token);
 
         return new EventsAndGroupsResponse()
         {
@@ -44,10 +44,10 @@ public class EventsController : Controller
     }
 
     [Route(ApiEndpoints.Video.Access.GetUserAccess)]
-    public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync()
+    public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken token)
     {
         var user = User.GetSubject();
-        (var userGroups, var userEvents) = await userService.GetUserEventsAndGroupsAsync(user);
+        (var userGroups, var userEvents) = await userService.GetUserEventsAndGroupsAsync(user, token);
 
         var responseModel = new UserEventsAndGroupsResponse();
 
@@ -60,13 +60,13 @@ public class EventsController : Controller
                 .Select(@event => ContractMappers.MapToEventContract(@event))
                 .ToArray();
 
-        var listOfEvents = await userService.GetAllEvents();
+        var listOfEvents = await userService.GetAllEvents(token);
 
         responseModel.Available.Events = listOfEvents.Except(userEvents)
             .Select(@event => ContractMappers.MapToEventContract(@event))
             .ToArray();
 
-        var listOfGroups = await userService.GetAllGroups();
+        var listOfGroups = await userService.GetAllGroups(token);
 
         responseModel.Available.Groups = listOfGroups.Except(userGroups)
             .Select(group => ContractMappers.MapToGroupContract(group))
@@ -77,7 +77,7 @@ public class EventsController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Event.AddEvent)]
-    public async Task<IActionResult> CreateEventAsync([FromBody] CreateNewEventRequest request)
+    public async Task<IActionResult> CreateEventAsync([FromBody] CreateNewEventRequest request, CancellationToken token)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -88,7 +88,7 @@ public class EventsController : Controller
         if (!ModelState.IsValid)
             return BadRequest();
 
-        var createdEvent = await eventService.CreateEventAsync(@event);
+        var createdEvent = await eventService.CreateEventAsync(@event, token);
 
 
         return Created("", createdEvent); //todo
@@ -115,15 +115,15 @@ public class EventsController : Controller
         var token = GetAccessTokenFromHeader();
         var userData = await identityClient.GetNameAsync(token, cancellationToken);
 
-        await userService.AddOrUpdateUserAsync(userData);
+        await userService.AddOrUpdateUserAsync(userData, cancellationToken);
 
         if (requests.Events?.Count > 0)
-            await userService.SaveEventsAssigmentRequest(user, requests.Events);
+            await userService.SaveEventsAssigmentRequest(user, requests.Events, cancellationToken);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await userService.SaveGroupsAssigmentRequests(user, model);
+            await userService.SaveGroupsAssigmentRequests(user, model, cancellationToken);
         }
 
         return Ok();
@@ -145,12 +145,12 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Event.Videos)]
-    public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId)
+    public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId, CancellationToken token)
     {
         var userId = User.GetSubject();
         var videos = await eventService
             .GetVideos(eventId, userId)
-            .ToListAsync();
+            .ToListAsync(token);
 
         if (videos.Count == 0)
         {
@@ -168,11 +168,11 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
-    public async Task<RequestedAccessesResponse> GetRequestAccessList()
+    public async Task<RequestedAccessesResponse> GetRequestAccessList(CancellationToken token)
     {
         var userId = User.GetSubject();
 
-        var accessRequests = await userService.GetAccessRequestsAsync(userId);
+        var accessRequests = await userService.GetAccessRequestsAsync(userId, token);
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;
@@ -180,16 +180,16 @@ public class EventsController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
-    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody)
+    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody, CancellationToken token)
     {
         var userId = User.GetSubject();
 
         bool results;
 
         if (requestBody.IsApproved)
-            results = await userService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+            results = await userService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId, token);
         else
-            results = await userService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+            results = await userService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId, token);
 
         if (results)
             return Ok();

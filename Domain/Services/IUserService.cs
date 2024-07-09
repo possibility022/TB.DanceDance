@@ -5,17 +5,17 @@ namespace Domain.Services;
 
 public interface IUserService
 {
-    Task AddOrUpdateUserAsync(User user);
-    Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId);
-    Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId);
+    Task AddOrUpdateUserAsync(User user, CancellationToken token);
+    Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken token);
+    Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId, CancellationToken token);
 
-    Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId);
-    Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId);
-    Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId);
-    Task<ICollection<Event>> GetAllEvents();
-    Task<ICollection<Group>> GetAllGroups();
-    Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userName);
+    Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId, CancellationToken token);
+    Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken token);
+    Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId, CancellationToken token);
+    Task<ICollection<Event>> GetAllEvents(CancellationToken token);
+    Task<ICollection<Group>> GetAllGroups(CancellationToken token);
+    Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userName, CancellationToken token);
 
-    Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events);
-    Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups);
+    Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, CancellationToken token);
+    Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, CancellationToken token);
 }

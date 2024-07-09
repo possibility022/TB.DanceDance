@@ -15,25 +15,26 @@ public class BlobDataService : IBlobDataService
     {
         this.blobConnectionString =
             blobConnectionString ?? throw new ArgumentNullException(nameof(blobConnectionString));
-        ConfigureBlob(containerName);
+        container = ConfigureBlob(containerName);
     }
 
-    private void ConfigureBlob(string containerName)
+    private BlobContainerClient ConfigureBlob(string containerName)
     {
-        container = new BlobContainerClient(blobConnectionString, containerName);
+        var container = new BlobContainerClient(blobConnectionString, containerName);
         container.CreateIfNotExists();
+        return container;
     }
 
-    public Task<Stream> OpenStream(string blobName)
+    public Task<Stream> OpenStream(string blobName, CancellationToken token)
     {
         var client = container.GetBlobClient(blobName);
-        return client.OpenReadAsync(new BlobOpenReadOptions(false));
+        return client.OpenReadAsync(new BlobOpenReadOptions(false), token);
     }
 
-    public Task Upload(string blobId, Stream stream)
+    public Task Upload(string blobId, Stream stream, CancellationToken token)
     {
         var client = container.GetBlobClient(blobId);
-        return client.UploadAsync(stream);
+        return client.UploadAsync(stream, token);
     }
 
     public Uri GetSas(string blobId)
@@ -72,9 +73,9 @@ public class BlobDataService : IBlobDataService
         };
     }
 
-    public async Task<bool> BlobExistsAsync(string blobId)
+    public async Task<bool> BlobExistsAsync(string blobId, CancellationToken token)
     {
-        var response = await container.GetBlobClient(blobId).ExistsAsync();
+        var response = await container.GetBlobClient(blobId).ExistsAsync(token);
         return response.Value;
     }
 }

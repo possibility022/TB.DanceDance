@@ -37,13 +37,13 @@ public class GroupController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Group.VideosForGroup)]
-    public async Task<IActionResult> GetVidesPerGroup(Guid groupId)
+    public async Task<IActionResult> GetVidesPerGroup(Guid groupId, CancellationToken token)
     {
         var userId = User.GetSubject();
 
         var videos = await groupService
-            .GetUserVideosForGroupAsync(userId, groupId)
-            .ToListAsync();
+            .GetUserVideosForGroup(userId, groupId)
+            .ToListAsync(token);
 
         var videosByGroups = MapToVideoForGroupInfoResponse(videos);
         var group = videosByGroups.FirstOrDefault();
