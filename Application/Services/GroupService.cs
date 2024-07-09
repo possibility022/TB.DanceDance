@@ -1,6 +1,5 @@
 ﻿using Domain.Entities;
 using Domain.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -13,7 +12,7 @@ public class GroupService : IGroupService
         this.dbContext = dbContext;
     }
 
-    public IQueryable<VideoFromGroupInfo> GetUserVideosForGroupAsync(string userId, Guid groupId)
+    public IQueryable<VideoFromGroupInfo> GetUserVideosForGroup(string userId, Guid groupId)
     {
         var q = from danceGroup in dbContext.Groups
                 join assignedTo in dbContext.AssingedToGroups on danceGroup.Id equals assignedTo.GroupId
