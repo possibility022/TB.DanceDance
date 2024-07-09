@@ -15,7 +15,7 @@ public class InfoController : Controller
     }
 
     [HttpGet(ApiEndpoints.Info.AllEndpoints)]
-    public async Task<ActionResult> ListAllEndpoints()
+    public ActionResult ListAllEndpoints()
     {
         var endpoints = _endpointSources
             .SelectMany(es => es.Endpoints)
