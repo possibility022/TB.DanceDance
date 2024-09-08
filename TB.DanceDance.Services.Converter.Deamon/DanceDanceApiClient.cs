@@ -49,7 +49,7 @@ internal class DanceDanceApiClient : IDisposable
             throw new ArgumentNullException(nameof(videoUrl));
 
 
-        var blobResponse = await blobClient.GetAsync(videoUrl);
+        var blobResponse = await blobClient.GetAsync(videoUrl, HttpCompletionOption.ResponseHeadersRead, token);
         blobResponse.EnsureSuccessStatusCode();
         var videoContent = blobResponse.Content.ReadAsStream();
         await videoContent.CopyToAsync(target);
