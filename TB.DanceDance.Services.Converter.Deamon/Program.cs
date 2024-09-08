@@ -22,6 +22,7 @@ builder.Services.AddSingleton<ApiHttpClient>((s) =>
 
     var apiHttpClient = new ApiHttpClient(handler, true)
     {
+        Timeout = TimeSpan.FromSeconds(60 * 5),
         BaseAddress = new Uri(ProgramConfig.Instance.ApiOrigin)
     };
 
