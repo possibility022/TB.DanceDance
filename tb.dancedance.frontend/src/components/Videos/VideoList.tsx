@@ -1,6 +1,4 @@
 import VideoInformation from '../../types/ApiModels/VideoInformation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlayCircle } from '@fortawesome/free-regular-svg-icons'
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
@@ -23,29 +21,19 @@ export function VideoList(props: ListOfVideos) {
     const navigate = useNavigate()
 
     const goToVideo = (vid: VideoInformation) => {
+        if (!vid.converted)
+            return
+        
         const url = '/videos/' + vid.blobId
         navigate(url, { state: props.sharedScope })
-    }
-
-    const getButton = (vid: VideoInformation) => {
-        if (vid.converted){
-            return <td>
-                <FontAwesomeIcon cursor={'pointer'} className='icon is-large' icon={faPlayCircle} onClick={() => goToVideo(vid)} />
-            </td>
-        } else {
-            return <td className='has-text-danger'>
-                Oczekuje na konwersje.
-            </td>
-        }
     }
 
     const list = props.videos.map(r => {
 
         return (
-            <tr key={r.id}>
+            <tr key={r.id} onClick={() => goToVideo(r)}>
                 <td>{r.name}</td>
                 <td>{formatDate(r.recordedDateTime)}</td>
-                {getButton(r)}
             </tr>
         )
     })
