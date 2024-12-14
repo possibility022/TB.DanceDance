@@ -18,8 +18,8 @@ export function SelectableList<T extends number | string>(props: ISelectableList
 
 
     return (
-        <div className="tile is-parent">
-            <article className={"tile is-child notification  has-text-centered " + props.articleClassName}>
+        <div className="grid">
+            <article className={"notification has-text-centered " + props.articleClassName}>
                 <p className="title">{props.header}</p>
                 <p>{props.text}</p>
                 {props.options.map((v) => {
