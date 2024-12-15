@@ -52,7 +52,7 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
-    "eslint": "^9.17.0",
+    "eslint": "9.14",
     "typescript": "^4.5.4"
   }
 }
