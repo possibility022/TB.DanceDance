@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import {Fragment, JSX, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { VideoList } from '../components/Videos/VideoList';
@@ -51,7 +51,7 @@ export function VideoScreen() {
             return <div>
                 <h3>Wygląda na to, że nie masz dostępu do nagrań.</h3>
                 Możesz poprosić o dostęp klikając <Button onClick={() => {
-                    navigate('/videos/requestassignment')
+                    void navigate('/videos/requestassignment')
                 }}>tutaj</Button>
             </div>
     }
@@ -83,7 +83,7 @@ export function VideoScreen() {
                 </ul>
             </div>
             <Button
-                onClick={() => navigate('/videos/upload')}>
+                onClick={() => void navigate('/videos/upload')}>
                 Wyslij Nagranie
             </Button>
             <VideoList videos={videos} sharedScope={{

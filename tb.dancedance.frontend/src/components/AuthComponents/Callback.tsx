@@ -17,7 +17,7 @@ export const Callback = () => {
                         .catch(console.error)
                 }
                 console.log(e)
-                navigate('/') // todo navigate to returned url
+                void navigate('/') // todo navigate to returned url
             },)
 
         return "Za moment zostaniesz przekierowany :)"
@@ -29,7 +29,7 @@ export const Callback = () => {
         setTimeout(() => {
             if (authContext.isAuthenticated())
             {
-                navigate('/')
+                void navigate('/')
             } else {
                 setErrorMessage('Smuteczek :(. Z jakiegoś powodu nie udało się zalogować. Spróbuj jeszcze raz.')
             }

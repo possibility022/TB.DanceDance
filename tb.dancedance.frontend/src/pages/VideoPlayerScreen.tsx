@@ -79,7 +79,7 @@ export function VideoPlayerScreen() {
 
     function onRenameConfirm() {
         if (videoInfo) {
-            videoInfoService.RenameVideo(videoInfo.id, videoNameToSet)
+            void videoInfoService.RenameVideo(videoInfo.id, videoNameToSet)
                 .then(results => {
                     if (results) {
                         setVideoInfo({

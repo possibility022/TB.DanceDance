@@ -1,7 +1,7 @@
 import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as React from 'react';
-import { useState } from 'react';
+import {JSX, useState} from 'react';
 import ISharedVideoInformation from '../../types/ApiModels/SharedVideoInformation';
 import SharingWithType from '../../types/ApiModels/SharingWithType';
 import videoInfoService from '../../services/VideoInfoService';
