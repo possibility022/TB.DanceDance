@@ -25,7 +25,7 @@ export function VideoList(props: ListOfVideos) {
             return
         
         const url = '/videos/' + vid.blobId
-        navigate(url, { state: props.sharedScope })
+        void navigate(url, { state: props.sharedScope })
     }
 
     const list = props.videos.map(r => {

@@ -1,5 +1,5 @@
 import { User } from "oidc-client-ts";
-import React, { Component } from "react";
+import React from "react";
 import { AuthService, IAuthService } from "../services/AuthService";
 
 
@@ -13,6 +13,7 @@ class DummyIAuthService implements IAuthService{
     getUser(): Promise<User> {
         throw new Error("Method not implemented.");
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     parseJwt(token: string): object {
         throw new Error("Method not implemented.");
     }
@@ -25,7 +26,7 @@ class DummyIAuthService implements IAuthService{
     isAuthenticated(): boolean {
         throw new Error("Method not implemented.");
     }
-    signinSilent(): void {
+    signinSilent(): Promise<void> {
         throw new Error("Method not implemented.");
     }
     signinSilentCallback(): Promise<void> {
