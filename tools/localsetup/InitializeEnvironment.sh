@@ -42,9 +42,11 @@ fi
 
 #echo "Executing SQL scripts against PostgreSQL database..."
 # Run each SQL script
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "PersistedGrantDbContext.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "ConfigurationDbContext.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "IdentityStoreContext.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "DanceDbContext.sql"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "persistedGrant.sql"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "configuration.sql"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identityStore.sql"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "dance.sql"
+
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "set-identity-data.sql"
 
 echo "✅ All SQL scripts executed successfully."
