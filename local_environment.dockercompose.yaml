@@ -1,0 +1,26 @@
+services:
+  postgresDb:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=rgFraWIuyxONqWCQ71wh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresDance:/var/lib/postgresql/data
+  azuriteStorage:
+    image: mcr.microsoft.com/azure-storage/azurite
+    volumes:
+      - azuriteStorageDance:/data
+  
+  initializator:
+    image: initializator:latest
+    build:
+      dockerfile: local_environment.initializator.dockerfile
+      context: .
+    depends_on:
+      - postgresDb
+      - azuriteStorage
+    
+volumes:
+  postgresDance:
+  azuriteStorageDance:
