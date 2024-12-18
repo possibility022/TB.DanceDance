@@ -1,5 +1,9 @@
 DO
 $$
+    DECLARE 
+        openIdResourceId INT;
+        profileResourceId INT;
+        emailResourceId INT;
     BEGIN
         IF NOT EXISTS (select 1 from "IdpServer.Config"."ApiScopes" where "Name" = 'tbdancedanceapi.read') THEN
             RAISE NOTICE 'Inserting initial data for oauth';
@@ -27,7 +31,9 @@ $$
                                                                 "NonEditable")
             VALUES (DEFAULT, true, 'openid', 'Your user identifier', null, true, false, true,
                     '2023-06-17 22:55:40.076041 +00:00', null,
-                    false);
+                    false) returning "Id" into openIdResourceId;
+            
+            
             INSERT INTO "IdpServer.Config"."IdentityResources" ("Id", "Enabled", "Name", "DisplayName", "Description",
                                                                 "Required",
                                                                 "Emphasize", "ShowInDiscoveryDocument", "Created",
@@ -35,7 +41,10 @@ $$
                                                                 "NonEditable")
             VALUES (DEFAULT, true, 'profile', 'User profile',
                     'Your user profile information (first name, last name, etc.)', false, true,
-                    true, '2023-06-17 22:55:40.128069 +00:00', null, false);
+                    true, '2023-06-17 22:55:40.128069 +00:00', null, false)
+            returning "Id" into profileResourceId
+            ;
+            
             INSERT INTO "IdpServer.Config"."IdentityResources" ("Id", "Enabled", "Name", "DisplayName", "Description",
                                                                 "Required",
                                                                 "Emphasize", "ShowInDiscoveryDocument", "Created",
@@ -43,43 +52,45 @@ $$
                                                                 "NonEditable")
             VALUES (DEFAULT, true, 'email', 'Your email address', null, false, true, true,
                     '2023-06-17 22:55:40.128621 +00:00', null,
-                    false);
+                    false)
+            returning "Id" into emailResourceId
+            ;
 
             -- Insert claims
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 1, 'sub');
+            VALUES (DEFAULT, openIdResourceId, 'sub');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'name');
+            VALUES (DEFAULT, profileResourceId, 'name');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'family_name');
+            VALUES (DEFAULT, profileResourceId, 'family_name');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'given_name');
+            VALUES (DEFAULT, profileResourceId, 'given_name');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'middle_name');
+            VALUES (DEFAULT, profileResourceId, 'middle_name');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'nickname');
+            VALUES (DEFAULT, profileResourceId, 'nickname');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'preferred_username');
+            VALUES (DEFAULT, profileResourceId, 'preferred_username');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'profile');
+            VALUES (DEFAULT, profileResourceId, 'profile');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'picture');
+            VALUES (DEFAULT, profileResourceId, 'picture');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'website');
+            VALUES (DEFAULT, profileResourceId, 'website');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'gender');
+            VALUES (DEFAULT, profileResourceId, 'gender');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'birthdate');
+            VALUES (DEFAULT, profileResourceId, 'birthdate');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'zoneinfo');
+            VALUES (DEFAULT, profileResourceId, 'zoneinfo');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'locale');
+            VALUES (DEFAULT, profileResourceId, 'locale');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 2, 'updated_at');
+            VALUES (DEFAULT, profileResourceId, 'updated_at');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 3, 'email');
+            VALUES (DEFAULT, emailResourceId, 'email');
             INSERT INTO "IdpServer.Config"."IdentityResourceClaims" ("Id", "IdentityResourceId", "Type")
-            VALUES (DEFAULT, 3, 'email_verified');
+            VALUES (DEFAULT, emailResourceId, 'email_verified');
 
         else
             RAISE NOTICE 'tbdancedance.read api scope found. Skipping oauth initialization.';

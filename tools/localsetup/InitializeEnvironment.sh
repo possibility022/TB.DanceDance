@@ -8,7 +8,7 @@ echo "🖥️ Hostname: $(hostname)"
 echo "================================="
 
 # Environment variables for PostgreSQL connection
-DB_HOST=${DB_HOST:-"host.containers.internal"}
+DB_HOST=${DB_HOST:-"host.docker.internal"}
 DB_PORT=${DB_PORT:-"5432"}
 DB_NAME=${DB_NAME:-"dancedance"}
 IDENT_DBNAME=${IDENT_DBNAME:-"identitystore"}
