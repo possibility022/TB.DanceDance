@@ -14,9 +14,34 @@ DB_NAME=${DB_NAME:-"dancedance"}
 IDENT_DBNAME=${IDENT_DBNAME:-"identitystore"}
 DB_USER=${DB_USER:-"postgres"}
 DB_PASSWORD=${DB_PASSWORD:-"rgFraWIuyxONqWCQ71wh"}
+RETRY_COUNT=15 
+RETRY_DELAY=5
 
 # Export password to PGPASSWORD for non-interactive login
 export PGPASSWORD=$DB_PASSWORD
+
+# Function to check database connection
+check_db() {
+    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -c "\q"
+}
+
+# Retry loop
+for i in $(seq 1 $RETRY_COUNT); do
+    if check_db; then
+        echo "Database is up and running."
+        break
+    else
+        echo "Attempt $i failed. Retrying in $RETRY_DELAY seconds..."
+        sleep $RETRY_DELAY
+    fi
+done
+
+if ! check_db; then
+    echo "Failed to connect to the database after $RETRY_COUNT attempts."
+    exit 1
+fi
+
+echo "Running further database operations..."
 
 # Check if the database exists
 DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $DB_NAME | wc -l)
