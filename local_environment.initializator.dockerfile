@@ -15,13 +15,13 @@ WORKDIR "/src/Infrastructure"
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Debug
-ENV PATH $PATH:/root/.dotnet/tools
+ENV PATH=$PATH:/root/.dotnet/tools
 RUN dotnet tool install --global dotnet-ef
 RUN dotnet build "./Infrastructure.csproj" -c $BUILD_CONFIGURATION
-RUN dotnet-ef migrations script -o persistedGrant.sql --no-build --context PersistedGrantDbContext --idempotent
-RUN dotnet-ef migrations script -o configuration.sql --no-build --context ConfigurationDbContext --idempotent
-RUN dotnet-ef migrations script -o identityStore.sql --no-build --context IdentityStoreContext --idempotent
-RUN dotnet-ef migrations script -o dance.sql --no-build --context DanceDbContext --idempotent
+RUN dotnet-ef migrations script -o persistedGrant-migrations.sql --no-build --context PersistedGrantDbContext --idempotent
+RUN dotnet-ef migrations script -o configuration-migrations.sql --no-build --context ConfigurationDbContext --idempotent
+RUN dotnet-ef migrations script -o identityStore-migrations.sql --no-build --context IdentityStoreContext --idempotent
+RUN dotnet-ef migrations script -o danceDb-migrations.sql --no-build --context DanceDbContext --idempotent
 
 FROM base AS final
 
@@ -33,6 +33,6 @@ WORKDIR /app
 
 COPY --from=publish /src/Infrastructure/*.sql .
 COPY --chmod=755 tools/localsetup/InitializeEnvironment.sh .
-COPY --chmod=755 tools/localsetup/set-identity-data.sql .
+COPY --chmod=744 'tools/localsetup/*-seed.sql' .
 
 ENTRYPOINT ["./InitializeEnvironment.sh"]
