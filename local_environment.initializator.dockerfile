@@ -25,14 +25,17 @@ RUN dotnet-ef migrations script -o danceDb-migrations.sql --no-build --context D
 
 FROM base AS final
 
-USER root
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
-USER app
+COPY --chmod=744 tools/localsetup/nodeinstall.sh .
 
+USER root
+RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/lib/apt/lists/*
+
+USER app
 WORKDIR /app
 
 COPY --from=publish /src/Infrastructure/*.sql .
 COPY --chmod=755 tools/localsetup/InitializeEnvironment.sh .
+COPY --chmod=755 tools/localsetup/videoblob-seed.sh .
 COPY --chmod=744 'tools/localsetup/*-seed.sql' .
 
 ENTRYPOINT ["./InitializeEnvironment.sh"]
