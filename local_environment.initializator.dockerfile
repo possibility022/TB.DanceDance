@@ -11,8 +11,9 @@ WORKDIR /src
 COPY ["Application", "Application/"]
 COPY ["Domain", "Domain/"]
 COPY ["Infrastructure", "Infrastructure/"]
-WORKDIR "/src/Infrastructure"
+COPY ["tools/localsetup/BlobLoader", "BlobLoader/"]
 
+WORKDIR "/src/Infrastructure"
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Debug
 ENV PATH=$PATH:/root/.dotnet/tools
@@ -23,19 +24,20 @@ RUN dotnet-ef migrations script -o configuration-migrations.sql --no-build --con
 RUN dotnet-ef migrations script -o identityStore-migrations.sql --no-build --context IdentityStoreContext --idempotent
 RUN dotnet-ef migrations script -o danceDb-migrations.sql --no-build --context DanceDbContext --idempotent
 
+WORKDIR "/src/BlobLoader"
+RUN dotnet build -c Release
+
 FROM base AS final
 
-COPY --chmod=744 tools/localsetup/nodeinstall.sh .
-
 USER root
-RUN apt-get update && apt-get install -y postgresql-client curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
 
 USER app
 WORKDIR /app
 
+COPY --from=publish "/src/BlobLoader/bin/Release/net9.0/*" .
 COPY --from=publish /src/Infrastructure/*.sql .
 COPY --chmod=755 tools/localsetup/InitializeEnvironment.sh .
-COPY --chmod=755 tools/localsetup/videoblob-seed.sh .
 COPY --chmod=744 'tools/localsetup/*-seed.sql' .
 
 ENTRYPOINT ["./InitializeEnvironment.sh"]

@@ -21,6 +21,9 @@ services:
     build:
       dockerfile: local_environment.initializator.dockerfile
       context: .
+    environment:
+      - BlobStorageHostName=azuriteStorage
+      - DB_HOST=postgresDb
     depends_on:
       - postgresDb
       - azuriteStorage

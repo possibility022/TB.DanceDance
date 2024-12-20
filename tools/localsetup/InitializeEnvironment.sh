@@ -17,6 +17,8 @@ DB_PASSWORD=${DB_PASSWORD:-"rgFraWIuyxONqWCQ71wh"}
 RETRY_COUNT=15 
 RETRY_DELAY=5
 
+echo "DB_HOST is: $DB_HOST"
+
 # Export password to PGPASSWORD for non-interactive login
 export PGPASSWORD=$DB_PASSWORD
 
@@ -75,5 +77,7 @@ echo "Executing seed scripts."
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identity-data-seed.sql"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "oauth-data-seed.sql"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "dance-data-seed.sql"
+
+dotnet BlobSeedProgram.dll
 
 echo "✅ All SQL scripts executed successfully."

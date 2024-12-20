@@ -2,6 +2,9 @@ DO $$
     DECLARE
         userId text;
     BEGIN
+        IF NOT EXISTS (SELECT 1 from access."Users" where "Id" = userId)
+        THEN
+        RAISE NOTICE 'Dance user NOT found. Inserting dance data.';
         userId = '31db6f5c-747d-4f75-9e5f-d953968c2fd2';
         INSERT INTO access."Users" ("Id", "FirstName", "LastName", "Email") VALUES (userId, 'Tom', 'B', 'testemail@email.com');
         INSERT INTO video."Videos" ("Id", "BlobId", "Name", "UploadedBy", "RecordedDateTime", "SharedDateTime", "Duration", "Converted", "FileName", "LockedTill", "SourceBlobId") VALUES ('a48b84e0-cc0e-4557-a9e8-25d96aed36e8', '82b39019-d983-44ce-924a-f3fa2f651261', '20240106_131537.mp4', userId, '2024-01-06 12:19:17.000000 +00:00', '2024-01-09 20:44:54.684892 +00:00', '0 years 0 mons 0 days 0 hours 3 mins 40.402 secs', true, '20240106_131537.mp4', '2024-01-10 20:45:49.289257 +00:00', '369b58c5-226d-4bb7-9052-389a9ce52001');
@@ -33,5 +36,8 @@ DO $$
 
         INSERT INTO access."AssingedToGroups" ("Id", "GroupId", "UserId", "WhenJoined") VALUES ('9e9d8576-8020-40fa-a8cd-e5538e8dd602', '2a7554e4-0dc3-4f92-be4c-e4463adf1cee', userId, '2022-02-01 19:28:47.258000 +00:00');
         INSERT INTO access."AssingedToGroups" ("Id", "GroupId", "UserId", "WhenJoined") VALUES ('909882e5-6de7-4fe5-b895-ffb599f95b9c', '7c30e3cc-e6d8-4cf7-8b64-eba68efa5366', userId, '2022-02-01 19:28:47.258000 +00:00');
+        ELSE
+            RAISE NOTICE 'Dance user found. Skipping insert.';
+        end if;        
 
     END $$;
