@@ -18,6 +18,7 @@ services:
   
   initializator:
     image: initializator:latest
+    container_name: tbdanceInitializer
     build:
       dockerfile: local_environment.initializator.dockerfile
       context: .

@@ -80,4 +80,4 @@ psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "dance-data-seed
 
 dotnet BlobSeedProgram.dll
 
-echo "✅ All SQL scripts executed successfully."
+echo "✅ TB Dance Initializer - Seed executed."
