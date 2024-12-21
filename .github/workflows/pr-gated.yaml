@@ -34,10 +34,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Install frontend dependencies
-        run: npm install --prefix tb.dancedance.frontend
+        working-directory: ./tb.dancedance.frontend
+        run: npm install
+        
       - name: Build frontend project
-        run: npm run build --prefix tb.dancedance.frontend
+        working-directory: ./tb.dancedance.frontend
+        run: npm run build
+        
       - name: Test frontend project
-        run: npm test --prefix tb.dancedance.frontend
+        working-directory: ./tb.dancedance.frontend
+        run: npm test
