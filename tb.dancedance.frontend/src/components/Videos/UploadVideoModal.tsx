@@ -14,7 +14,7 @@ export function UploadVideoModal(props: IUploadVideoModalProps) {
     const [file, setFile] = React.useState<FileList>()
 
     return (
-        <div className='container has-background-white p-6'>
+        <div className='box'>
             <h1 className="title">Wyślij nagranie do: {props.event?.name}</h1>
             <div className="field" hidden={file && file?.length > 1}>
                 <label className="label">Nazwa</label>

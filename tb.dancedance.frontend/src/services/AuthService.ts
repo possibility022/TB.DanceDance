@@ -8,7 +8,7 @@ export interface IAuthService extends TokenProvider {
     signinRedirect(): Promise<void>
     navigateToScreen(): void
     isAuthenticated(): boolean
-    signinSilent(): void
+    signinSilent(): Promise<void>
     signinSilentCallback(): Promise<void>
     logout(): Promise<void>
     signoutRedirectCallback(): Promise<void>

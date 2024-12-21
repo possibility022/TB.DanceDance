@@ -16,7 +16,7 @@ const Home = () => {
         <React.Fragment>
             <div className="container">
                 {authContext.isAuthenticated() ?
-                    <button className="button" onClick={() => { navigate('/videos') }}>Zatańczmy</button>
+                    <button className="button" onClick={() => { void navigate('/videos') }}>Zatańczmy</button>
                     : <LoginButton signinRedirect={() => authContext.signinRedirect()}></LoginButton>
                 }
             </div>

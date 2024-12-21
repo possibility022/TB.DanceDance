@@ -1,0 +1,34 @@
+services:
+  postgresDb:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=rgFraWIuyxONqWCQ71wh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresDance:/var/lib/postgresql/data
+  azuriteStorage:
+    image: mcr.microsoft.com/azure-storage/azurite
+    volumes:
+      - azuriteStorageDance:/data
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+  
+  initializator:
+    image: initializator:latest
+    container_name: tbdanceInitializer
+    build:
+      dockerfile: local_environment.initializator.dockerfile
+      context: .
+    environment:
+      - BlobStorageHostName=azuriteStorage
+      - DB_HOST=postgresDb
+    depends_on:
+      - postgresDb
+      - azuriteStorage
+    
+volumes:
+  postgresDance:
+  azuriteStorageDance:
