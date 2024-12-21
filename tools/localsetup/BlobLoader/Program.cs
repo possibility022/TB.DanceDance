@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 
 string host = Environment.GetEnvironmentVariable("BlobStorageHostName") ?? "host.docker.internal";
 
@@ -32,6 +33,12 @@ using var httpClient = new HttpClient();
 
 var upload = async ((string id, string uri) blobAndUri) =>
 {
+    var blob = container.GetBlobBaseClient(blobAndUri.id);
+    if (blob.Exists())
+    {
+        Console.WriteLine("{0} - Blob exists", blobAndUri.id);
+        return;
+    }
     var stream = await httpClient.GetStreamAsync(blobAndUri.uri);
     container.UploadBlob(blobAndUri.id, stream);
     Console.WriteLine("Uploaded: {0} - {1}", blobAndUri.uri, blobAndUri.id);
