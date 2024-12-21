@@ -21,7 +21,7 @@ export function UploadVideo() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [videoName, setVideoName] = useState<string>('')
+  const [videoName] = useState<string>('')
   const [groupSelectionIsValid, setGroupSelectionIsValid] = useState(false)
   const [wasTryingToSend, setWasTryingToSend] = useState(false)
 

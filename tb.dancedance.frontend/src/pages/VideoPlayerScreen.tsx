@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { SharedScope } from '../types/appTypes';
 import { VideoList } from '../components/Videos/VideoList';
+import {BlobId} from "../types/ApiModels/TypeIds";
 
 
 
@@ -24,10 +25,9 @@ export function VideoPlayerScreen() {
     const [videoNameToSet, setVideoNameToSet] = useState('')
     const [videoList, setVideoList] = useState<VideoInformation[]>([])
     const [sharedScope, setSharedScope] = useState<SharedScope>()
-
-    useEffect(() => {
-
-        const videoId = params.videoId as string
+    
+    const useEffectAsyncBody = async () => {
+        const videoId = params.videoId as BlobId
 
         if (videoId == videoInfo?.id)
             return
@@ -36,37 +36,37 @@ export function VideoPlayerScreen() {
 
         if (passedSharedScope) {
             setSharedScope(passedSharedScope)
+            let videos: VideoInformation[] = [];
 
             if (passedSharedScope.groupId) {
-                videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
-                    .then(videos => {
-                        setVideoList(videos.videos)
-                    })
-                    .catch(e => console.log(e))
+                const groupWithVideos = await videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
+                videos = groupWithVideos.videos
             } else if (passedSharedScope.eventId) {
-                videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
-                    .then(videos => {
-                        setVideoList(videos)
-                    }).catch(e => console.log(e))
+                videos = await videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
+            }
+            
+            setVideoList(videos)
+        }
+
+        const token = await authContext.getAccessToken();
+        if (token && videoId) {
+            // todo, improve authorization way
+            const videoUrl = videoInfoService.GetVideUrlByBlobId(videoId)
+            const newUrl = `${videoUrl}?token=${token}`;
+            if (newUrl !== url) {
+                setUrl(newUrl);
             }
         }
 
-        authContext.getAccessToken()
-            .then((token) => {
-                if (token && videoId) {
-                    // todo, improve authorization way
-                    const videoUrl = videoInfoService.GetVideUrlByBlobId(videoId)
-                    setUrl(`${videoUrl}?token=${token}`)
-                }
-            })
-            .catch(e => console.error(e))
+        const vidInfo = await videoInfoService.GetVideoInfo(videoId)
+        setVideoInfo(vidInfo)
+    }
 
-        videoInfoService.GetVideoInfo(videoId)
-            .then(videoInfo => {
-                setVideoInfo(videoInfo)
-            })
-            .catch(e => console.error(e))
-
+    useEffect(() => {
+        
+        useEffectAsyncBody()
+            .catch(e => console.log(e))
+        
         return () => {
             // todo, cleanup
         }
@@ -79,7 +79,7 @@ export function VideoPlayerScreen() {
 
     function onRenameConfirm() {
         if (videoInfo) {
-            videoInfoService.RenameVideo(videoInfo.id, videoNameToSet)
+            void videoInfoService.RenameVideo(videoInfo.id, videoNameToSet)
                 .then(results => {
                     if (results) {
                         setVideoInfo({
@@ -131,7 +131,7 @@ export function VideoPlayerScreen() {
 
                 url={url} />
 
-            <VideoList videos={videoList} sharedScope={sharedScope}></VideoList>
+            <VideoList videos={videoList} sharedScope={sharedScope} selectedVideo={params.videoId as BlobId}></VideoList>
         </div>
     )
 

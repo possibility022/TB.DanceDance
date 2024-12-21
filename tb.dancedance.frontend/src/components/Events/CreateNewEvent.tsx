@@ -22,7 +22,7 @@ export function CreateNewEvent(props: ICreateNewEventProps) {
     }
 
     return (
-        <div className='container has-background-white p-6'>
+        <div className='box'>
             <h1 className="title">Nowe wydarzenie</h1>
             <div className="field">
                 <label className="label">Nazwa</label>
