@@ -1,4 +1,4 @@
-import { BlobId } from "./TypeIds"
+import { BlobId, VideoId } from "./TypeIds"
 
 export default interface VideoInformation {
     name: string
