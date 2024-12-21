@@ -1,10 +1,10 @@
-import { VideoId } from "./TypeIds"
+import { BlobId } from "./TypeIds"
 
 export default interface VideoInformation {
     name: string
     recordedDateTime: Date
     id: VideoId
-    blobId: string
+    blobId: BlobId
     duration: TimeRanges
     converted: boolean
 }

@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 import { SharedScope } from '../../types/appTypes';
+import { BlobId } from "../../types/ApiModels/TypeIds";
 
 export interface ListOfVideos {
     videos: VideoInformation[]
     sharedScope?: SharedScope
+    selectedVideo?: BlobId
 }
 
 const formatDate = (date: Date) => {
@@ -14,6 +16,15 @@ const formatDate = (date: Date) => {
     // todo: find out why I need to cast it to string
     const d = Date.parse(date.toLocaleString())
     return format(d, 'dd MMMM yyyy', { locale: pl })
+}
+
+const getIsSelectedIndicator = (videoInfo: VideoInformation, selected?: BlobId)=>
+{
+    if (videoInfo == null || selected == null)
+        return ''
+    if (videoInfo.blobId == selected)
+        return 'is-selected'
+    return  ''
 }
 
 export function VideoList(props: ListOfVideos) {
@@ -31,7 +42,7 @@ export function VideoList(props: ListOfVideos) {
     const list = props.videos.map(r => {
 
         return (
-            <tr key={r.id} onClick={() => goToVideo(r)}>
+            <tr key={r.id} onClick={() => goToVideo(r)} className={getIsSelectedIndicator(r, props.selectedVideo)}>
                 <td>{r.name}</td>
                 <td>{formatDate(r.recordedDateTime)}</td>
             </tr>
