@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { SharedScope } from '../types/appTypes';
 import { VideoList } from '../components/Videos/VideoList';
+import {BlobId} from "../types/ApiModels/TypeIds";
 
 
 
@@ -26,7 +27,7 @@ export function VideoPlayerScreen() {
     const [sharedScope, setSharedScope] = useState<SharedScope>()
     
     const useEffectAsyncBody = async () => {
-        const videoId = params.videoId as string
+        const videoId = params.videoId as BlobId
 
         if (videoId == videoInfo?.id)
             return
@@ -130,7 +131,7 @@ export function VideoPlayerScreen() {
 
                 url={url} />
 
-            <VideoList videos={videoList} sharedScope={sharedScope}></VideoList>
+            <VideoList videos={videoList} sharedScope={sharedScope} selectedVideo={params.videoId as BlobId}></VideoList>
         </div>
     )
 
