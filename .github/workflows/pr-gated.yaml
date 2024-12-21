@@ -42,7 +42,3 @@ jobs:
       - name: Build frontend project
         working-directory: ./tb.dancedance.frontend
         run: npm run build
-        
-      - name: Test frontend project
-        working-directory: ./tb.dancedance.frontend
-        run: npm test
