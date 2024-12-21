@@ -24,9 +24,8 @@ export function VideoPlayerScreen() {
     const [videoNameToSet, setVideoNameToSet] = useState('')
     const [videoList, setVideoList] = useState<VideoInformation[]>([])
     const [sharedScope, setSharedScope] = useState<SharedScope>()
-
-    useEffect(() => {
-
+    
+    const useEffectAsyncBody = async () => {
         const videoId = params.videoId as string
 
         if (videoId == videoInfo?.id)
@@ -36,37 +35,37 @@ export function VideoPlayerScreen() {
 
         if (passedSharedScope) {
             setSharedScope(passedSharedScope)
+            let videos: VideoInformation[] = [];
 
             if (passedSharedScope.groupId) {
-                videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
-                    .then(videos => {
-                        setVideoList(videos.videos)
-                    })
-                    .catch(e => console.log(e))
+                const groupWithVideos = await videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
+                videos = groupWithVideos.videos
             } else if (passedSharedScope.eventId) {
-                videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
-                    .then(videos => {
-                        setVideoList(videos)
-                    }).catch(e => console.log(e))
+                videos = await videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
+            }
+            
+            setVideoList(videos)
+        }
+
+        const token = await authContext.getAccessToken();
+        if (token && videoId) {
+            // todo, improve authorization way
+            const videoUrl = videoInfoService.GetVideUrlByBlobId(videoId)
+            const newUrl = `${videoUrl}?token=${token}`;
+            if (newUrl !== url) {
+                setUrl(newUrl);
             }
         }
 
-        authContext.getAccessToken()
-            .then((token) => {
-                if (token && videoId) {
-                    // todo, improve authorization way
-                    const videoUrl = videoInfoService.GetVideUrlByBlobId(videoId)
-                    setUrl(`${videoUrl}?token=${token}`)
-                }
-            })
-            .catch(e => console.error(e))
+        const vidInfo = await videoInfoService.GetVideoInfo(videoId)
+        setVideoInfo(vidInfo)
+    }
 
-        videoInfoService.GetVideoInfo(videoId)
-            .then(videoInfo => {
-                setVideoInfo(videoInfo)
-            })
-            .catch(e => console.error(e))
-
+    useEffect(() => {
+        
+        useEffectAsyncBody()
+            .catch(e => console.log(e))
+        
         return () => {
             // todo, cleanup
         }
