@@ -8,9 +8,9 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Application", "Application/"]
-COPY ["Domain", "Domain/"]
-COPY ["Infrastructure", "Infrastructure/"]
+COPY ["src/backend/Application", "Application/"]
+COPY ["src/backend/Domain", "Domain/"]
+COPY ["src/backend/Infrastructure", "Infrastructure/"]
 COPY ["tools/localsetup/BlobLoader", "BlobLoader/"]
 
 WORKDIR "/src/Infrastructure"
