@@ -40,4 +40,7 @@ COPY --from=publish /src/Infrastructure/*.sql .
 COPY --chmod=755 tools/localsetup/InitializeEnvironment.sh .
 COPY --chmod=744 'tools/localsetup/*-seed.sql' .
 
+# Replace \r\n with \n in InitializeEnvironment.sh
+RUN sed -i 's/\r$//' InitializeEnvironment.sh
+
 ENTRYPOINT ["./InitializeEnvironment.sh"]
