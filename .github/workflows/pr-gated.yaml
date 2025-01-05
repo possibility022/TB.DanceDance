@@ -21,10 +21,13 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
       - name: Install dependencies
         run: dotnet restore
+        working-directory: ./src/backend
       - name: Build
         run: dotnet build --configuration Release --no-restore
+        working-directory: ./src/backend
       - name: Test
         run: dotnet test --no-restore --verbosity normal
+        working-directory: ./src/backend
         
   frontend:
     runs-on: ubuntu-latest
@@ -36,9 +39,9 @@ jobs:
         with:
           node-version: '20'
       - name: Install frontend dependencies
-        working-directory: ./tb.dancedance.frontend
+        working-directory: ./src/frontend
         run: npm install
         
       - name: Build frontend project
-        working-directory: ./tb.dancedance.frontend
+        working-directory: ./src/frontend
         run: npm run build
