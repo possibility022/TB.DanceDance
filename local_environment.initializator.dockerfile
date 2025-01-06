@@ -7,14 +7,13 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
+WORKDIR "/src"
 COPY ["src/backend/Application", "Application/"]
 COPY ["src/backend/Domain", "Domain/"]
 COPY ["src/backend/Infrastructure", "Infrastructure/"]
-COPY ["tools/localsetup/BlobLoader", "BlobLoader/"]
 
 WORKDIR "/src/Infrastructure"
-FROM build AS publish
+FROM build AS infrastructure
 ARG BUILD_CONFIGURATION=Debug
 ENV PATH=$PATH:/root/.dotnet/tools
 RUN dotnet tool install --global dotnet-ef
@@ -24,7 +23,9 @@ RUN dotnet-ef migrations script -o configuration-migrations.sql --no-build --con
 RUN dotnet-ef migrations script -o identityStore-migrations.sql --no-build --context IdentityStoreContext --idempotent
 RUN dotnet-ef migrations script -o danceDb-migrations.sql --no-build --context DanceDbContext --idempotent
 
+FROM build AS blobloader
 WORKDIR "/src/BlobLoader"
+COPY ["tools/localsetup/BlobLoader","."]
 RUN dotnet build -c Release
 
 FROM base AS final
@@ -35,8 +36,8 @@ RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/ap
 USER app
 WORKDIR /app
 
-COPY --from=publish "/src/BlobLoader/bin/Release/net9.0/*" .
-COPY --from=publish /src/Infrastructure/*.sql .
+COPY --from=blobloader "/src/BlobLoader/bin/Release/net9.0/*" .
+COPY --from=infrastructure /src/Infrastructure/*.sql .
 COPY --chmod=755 tools/localsetup/InitializeEnvironment.sh .
 COPY --chmod=744 'tools/localsetup/*-seed.sql' .
 
