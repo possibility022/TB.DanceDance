@@ -180,9 +180,9 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
             </div>
             <br />
 
-            <nav className="level">
+            <nav className="level is-mobile">
                 <div className="level-item has-text-centered">
-                    <span className="tag is-medium">
+                    <span className="tag is-medium mr-1">
                         {sendCounter}/{props.files?.length ?? 0}
                     </span>
                     <progress className="progress is-success" value={bytesTransfered} max={bytestToTransfer}></progress>
