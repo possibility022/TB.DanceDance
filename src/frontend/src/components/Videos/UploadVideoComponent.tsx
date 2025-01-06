@@ -27,6 +27,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     const [wasSentSuccessfully, setWasSentSuccessfully] = useState<boolean | null>(null)
     const [wasTryingToSend, setWasTryingToSend] = useState(false)
     const [sendCounter, setSendCounter] = useState(0)
+    const [sendButtonDisabled, setSendButtonDisabled] = useState(false)
 
 
     const getSentSuccessfullyMessage = () => {
@@ -73,6 +74,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
             return
         }
 
+        setSendButtonDisabled(true)
         const sendingDetails = props.getSendingDetails()
         uploadMany()
             .then(() => {
@@ -83,6 +85,9 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
                 console.error(e)
                 sendingDetails.onComplete(false)
             })
+            .finally(() => {
+                setSendButtonDisabled(false)
+            })
     }
 
     const uploadMany = async () => {
@@ -90,8 +95,6 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
             for (let i = 0; i < props.files.length; i++) {
                 
-                // it sets counter to current file that is being processed, not how many completed
-                setSendCounter(i + 1)
                 const file = props.files[i]
 
                 setBytestToTransfer(file.size)
@@ -115,6 +118,8 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
                 await videoInfoService.UploadVideo(data, file,
                     (e) => setBytesTransfered(e))
+
+                setSendCounter(currState => currState + 1)
             }
         }
     }
@@ -172,7 +177,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
                 <div className="field">
                     <p className="control">
-                        <Button onClick={upload}>
+                        <Button disabled={sendButtonDisabled} onClick={upload}>
                             Wyślij nagranie
                         </Button>
                     </p>
@@ -180,9 +185,9 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
             </div>
             <br />
 
-            <nav className="level">
+            <nav className="level is-mobile">
                 <div className="level-item has-text-centered">
-                    <span className="tag is-medium">
+                    <span className="tag is-medium mr-1">
                         {sendCounter}/{props.files?.length ?? 0}
                     </span>
                     <progress className="progress is-success" value={bytesTransfered} max={bytestToTransfer}></progress>

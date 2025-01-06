@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 
 string host = Environment.GetEnvironmentVariable("BlobStorageHostName") ?? "host.docker.internal";
@@ -26,21 +27,50 @@ var videos = new[]
 };
 
 BlobServiceClient blobClient = new(connectionString);
-var container = blobClient.GetBlobContainerClient(containerName);
-container.CreateIfNotExists();
+
+Console.WriteLine("Setting cors");
+var props = new BlobServiceProperties()
+{
+    Logging = new BlobAnalyticsLogging()
+    {
+        Version = "1.0" // has to be set. Otherwise, blob storage returns 400 (tested with azurite) 
+    },
+    Cors = (List<BlobCorsRule>)
+    [
+        new()
+        {
+            AllowedHeaders = "*",
+            AllowedMethods = "GET,DELETE,PUT,OPTIONS",
+            ExposedHeaders = "*",
+            AllowedOrigins = "*",
+            MaxAgeInSeconds = 200
+        }
+    ]
+};
+
+
+await blobClient.SetPropertiesAsync(props);
+
+Console.WriteLine("Setup 'videostoconvert' container");
+var videosToConvert = blobClient.GetBlobContainerClient("videostoconvert");
+videosToConvert.CreateIfNotExists();
+
+Console.WriteLine("Setup '{0}' container", containerName);
+var videosContainer = blobClient.GetBlobContainerClient(containerName);
+videosContainer.CreateIfNotExists();
 
 using var httpClient = new HttpClient();
 
 var upload = async ((string id, string uri) blobAndUri) =>
 {
-    var blob = container.GetBlobBaseClient(blobAndUri.id);
+    var blob = videosContainer.GetBlobBaseClient(blobAndUri.id);
     if (blob.Exists())
     {
         Console.WriteLine("{0} - Blob exists", blobAndUri.id);
         return;
     }
     var stream = await httpClient.GetStreamAsync(blobAndUri.uri);
-    container.UploadBlob(blobAndUri.id, stream);
+    videosContainer.UploadBlob(blobAndUri.id, stream);
     Console.WriteLine("Uploaded: {0} - {1}", blobAndUri.uri, blobAndUri.id);
 };
 
