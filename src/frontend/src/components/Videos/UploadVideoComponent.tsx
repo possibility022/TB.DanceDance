@@ -27,6 +27,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
     const [wasSentSuccessfully, setWasSentSuccessfully] = useState<boolean | null>(null)
     const [wasTryingToSend, setWasTryingToSend] = useState(false)
     const [sendCounter, setSendCounter] = useState(0)
+    const [sendButtonDisabled, setSendButtonDisabled] = useState(false)
 
 
     const getSentSuccessfullyMessage = () => {
@@ -73,6 +74,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
             return
         }
 
+        setSendButtonDisabled(true)
         const sendingDetails = props.getSendingDetails()
         uploadMany()
             .then(() => {
@@ -82,6 +84,9 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
             .catch(e => {
                 console.error(e)
                 sendingDetails.onComplete(false)
+            })
+            .finally(() => {
+                setSendButtonDisabled(false)
             })
     }
 
@@ -172,7 +177,7 @@ export function UploadVideoComponent(props: IUploadVideoComponentProps) {
 
                 <div className="field">
                     <p className="control">
-                        <Button onClick={upload}>
+                        <Button disabled={sendButtonDisabled} onClick={upload}>
                             Wyślij nagranie
                         </Button>
                     </p>
