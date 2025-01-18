@@ -2,7 +2,7 @@
 using IdentityModel.OidcClient;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
-using TB.DanceDance.Mobile.Services.Configuration;
+using TB.DanceDance.Mobile.Services.Auth;
 
 namespace TB.DanceDance.Mobile;
 

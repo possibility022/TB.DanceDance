@@ -1,4 +1,4 @@
-﻿namespace TB.DanceDance.Mobile.Services;
+﻿namespace TB.DanceDance.Mobile.Services.Auth;
 
 public class HttpClientHandlerFactory
 {

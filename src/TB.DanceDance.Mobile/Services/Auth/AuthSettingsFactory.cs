@@ -1,6 +1,6 @@
 ﻿using IdentityModel.OidcClient;
 
-namespace TB.DanceDance.Mobile.Services.Configuration;
+namespace TB.DanceDance.Mobile.Services.Auth;
 
 public static class AuthSettingsFactory
 {
