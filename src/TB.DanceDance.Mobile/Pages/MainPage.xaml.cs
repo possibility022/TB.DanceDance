@@ -36,8 +36,8 @@ public partial class MainPage : ContentPage
             {
                 //Authority = "https://localhost:7068",
                 Authority = "https://10.0.2.2:7068",
-                ClientId = "tbdancedancefront",
-                RedirectUri = "myapp://",
+                ClientId = "tbdancedanceandroidapp",
+                RedirectUri = "tbdancedanceandroidapp://",
                 Scope = "openid tbdancedanceapi.read offline_access profile",
                 Browser = new MauiAuthenticationBrowser(),
                 BackchannelHandler = GetInsecureHandler(),

@@ -225,3 +225,62 @@ $$
         END IF;
     END
 $$;
+
+-- Insert Client for mobile android
+DO
+$$
+    DECLARE
+        newRecordId INT;
+    BEGIN
+        IF
+            NOT EXISTS (SELECT 1 FROM "IdpServer.Config"."Clients" WHERE "ClientId" = 'tbdancedanceandroidapp') THEN
+            RAISE NOTICE 'Inserting data for tbdancedanceandroidapp client.';
+            INSERT INTO "IdpServer.Config"."Clients" ("Id", "Enabled", "ClientId", "ProtocolType",
+                                                      "RequireClientSecret",
+                                                      "ClientName", "Description", "ClientUri", "LogoUri",
+                                                      "RequireConsent",
+                                                      "AllowRememberConsent", "AlwaysIncludeUserClaimsInIdToken",
+                                                      "RequirePkce",
+                                                      "AllowPlainTextPkce", "RequireRequestObject",
+                                                      "AllowAccessTokensViaBrowser",
+                                                      "FrontChannelLogoutUri", "FrontChannelLogoutSessionRequired",
+                                                      "BackChannelLogoutUri", "BackChannelLogoutSessionRequired",
+                                                      "AllowOfflineAccess", "IdentityTokenLifetime",
+                                                      "AllowedIdentityTokenSigningAlgorithms", "AccessTokenLifetime",
+                                                      "AuthorizationCodeLifetime", "ConsentLifetime",
+                                                      "AbsoluteRefreshTokenLifetime", "SlidingRefreshTokenLifetime",
+                                                      "RefreshTokenUsage", "UpdateAccessTokenClaimsOnRefresh",
+                                                      "RefreshTokenExpiration", "AccessTokenType", "EnableLocalLogin",
+                                                      "IncludeJwtId", "AlwaysSendClientClaims", "ClientClaimsPrefix",
+                                                      "PairWiseSubjectSalt", "Created", "Updated", "LastAccessed",
+                                                      "UserSsoLifetime", "UserCodeType", "DeviceCodeLifetime",
+                                                      "NonEditable")
+            VALUES (DEFAULT, true, 'tbdancedanceandroidapp', 'oidc', false, null, null, null, null, false, true, false, true,
+                    false,
+                    false,
+                    false, null, true, null, true, true, 300, null, 3600, 300, null, 2592000, 1296000, 1, false, 1, 0,
+                    true, true,
+                    false, 'client_', null, '2023-06-17 22:55:39.390503 +00:00', null, null, null, null, 300, false)
+            returning "Id" into newRecordId;
+
+
+            -- Insert Client Redirects
+            INSERT INTO "IdpServer.Config"."ClientRedirectUris" ("Id", "RedirectUri", "ClientId")
+            VALUES (DEFAULT, 'tbdancedanceandroidapp://', newRecordId);
+
+            -- Insert Client Scopes
+            INSERT INTO "IdpServer.Config"."ClientGrantTypes" ("Id", "GrantType", "ClientId")
+            VALUES (DEFAULT, 'authorization_code', newRecordId);
+
+            -- Insert Scopes
+            INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
+            VALUES (DEFAULT, 'tbdancedanceapi.read', newRecordId);
+            INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
+            VALUES (DEFAULT, 'openid', newRecordId);
+            INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
+            VALUES (DEFAULT, 'profile', newRecordId);
+        ELSE
+            RAISE NOTICE 'Found client id tbdancedanceandroidapp. Skipping initialization.';
+        END IF;
+    END
+$$;

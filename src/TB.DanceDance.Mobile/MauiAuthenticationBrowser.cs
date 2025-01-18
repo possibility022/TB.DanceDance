@@ -16,7 +16,7 @@ public class MauiAuthenticationBrowser : IdentityModel.OidcClient.Browser.IBrows
                 new Uri(options.StartUrl),
                 new Uri(options.EndUrl));
 
-            var url = new RequestUrl("myapp://")
+            var url = new RequestUrl("tbdancedanceandroidapp://")
                 .Create(new Parameters(result.Properties));
 
             return new BrowserResult
