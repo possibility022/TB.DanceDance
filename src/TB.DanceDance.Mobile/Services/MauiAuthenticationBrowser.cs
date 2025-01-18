@@ -4,7 +4,7 @@
 using IdentityModel.Client;
 using IdentityModel.OidcClient.Browser;
 
-namespace TB.DanceDance.Mobile;
+namespace TB.DanceDance.Mobile.Services;
 
 public class MauiAuthenticationBrowser : IdentityModel.OidcClient.Browser.IBrowser
 {

@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui;
+using IdentityModel.OidcClient;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
+using TB.DanceDance.Mobile.Services.Configuration;
 
 namespace TB.DanceDance.Mobile;
 
@@ -41,7 +43,24 @@ public static class MauiProgram
 
         builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
         builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
+        builder.Services.AddTransient<HttpClientHandlerFactory>();
+        
+        ConfigureOauth(builder.Services);
 
         return builder.Build();
+    }
+
+    private static void ConfigureOauth(IServiceCollection builderServices)
+    {
+        builderServices.AddTransient<OidcClient>((services) =>
+        {
+            var handlerFactory = services.GetRequiredService<HttpClientHandlerFactory>();
+            var handler = handlerFactory.GetHttpClientHandler();
+            var options = AuthSettingsFactory.GetClientOptions(handler);
+
+            return new OidcClient(options);
+        });
+
+        builderServices.AddScoped<ITokenProviderService, TokenProviderService>();
     }
 }
