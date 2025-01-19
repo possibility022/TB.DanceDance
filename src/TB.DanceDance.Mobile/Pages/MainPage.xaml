@@ -52,7 +52,7 @@
                                 </BindableLayout.ItemTemplate>
                             </HorizontalStackLayout>
                         </ScrollView>
-                        <Button Clicked="Button_OnClicked"></Button>
+                        <Button></Button>
                         <Grid HeightRequest="44">
                             <Label Text="Tasks" Style="{StaticResource Title2}" VerticalOptions="Center"/>
                             <ImageButton 

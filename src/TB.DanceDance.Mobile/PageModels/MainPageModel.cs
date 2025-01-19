@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TB.DanceDance.Mobile.Models;
+using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
@@ -12,6 +13,7 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
     private readonly TaskRepository _taskRepository;
     private readonly CategoryRepository _categoryRepository;
     private readonly ModalErrorHandler _errorHandler;
+    private readonly DanceHttpApiClient apiClient;
     private readonly SeedDataService _seedDataService;
 
     [ObservableProperty] private List<CategoryChartData> _todoCategoryData = [];
@@ -32,12 +34,15 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
         => Tasks?.Any(t => t.IsCompleted) ?? false;
 
     public MainPageModel(SeedDataService seedDataService, ProjectRepository projectRepository,
-        TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler)
+        TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler
+        , DanceHttpApiClient apiClient
+        )
     {
         _projectRepository = projectRepository;
         _taskRepository = taskRepository;
         _categoryRepository = categoryRepository;
         _errorHandler = errorHandler;
+        this.apiClient = apiClient;
         _seedDataService = seedDataService;
     }
 
@@ -78,6 +83,8 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
     private async Task InitData(SeedDataService seedDataService)
     {
         bool isSeeded = Preferences.Default.ContainsKey("is_seeded");
+
+        var results = await apiClient.GetUserEvents();
 
         if (!isSeeded)
         {

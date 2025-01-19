@@ -6,13 +6,14 @@ public static class AuthSettingsFactory
 {
     #if DEBUG
     private const string AndroidAuthority = "https://10.0.2.2:7068";
-    private const string AndroidClientId = "tbdancedanceandroidapp";
     #else
     private const string AndroidAuthority = "https://";
-    private const string AndroidClientId = "tbdancedanceandroidapp";
     #endif
     
-    public static OidcClientOptions GetClientOptions(HttpClientHandler httpClientHandler)
+    private const string AndroidClientId = "tbdancedanceandroidapp";
+    private const string AndroidRedirectUri = "tbdancedanceandroidapp://";
+    
+    public static OidcClientOptions GetClientOptions(HttpMessageHandler httpClientHandler)
     {
         if (DeviceInfo.Platform == DevicePlatform.Android)
             return GetClientOptionsForAndroid(httpClientHandler);
@@ -20,7 +21,7 @@ public static class AuthSettingsFactory
         throw new PlatformNotSupportedException("This platform is not supported.");
     }
 
-    private static OidcClientOptions GetBasicOptions(HttpClientHandler handler)
+    private static OidcClientOptions GetBasicOptions(HttpMessageHandler handler)
     {
         var options = new OidcClientOptions()
         {
@@ -32,11 +33,12 @@ public static class AuthSettingsFactory
         return options;
     }
 
-    private static OidcClientOptions GetClientOptionsForAndroid(HttpClientHandler handler)
+    private static OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler)
     {
         var options = GetBasicOptions(handler);
         options.Authority = AndroidAuthority;
         options.ClientId = AndroidClientId;
+        options.RedirectUri = AndroidRedirectUri;
         return options;
     }
 }
