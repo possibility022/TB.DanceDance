@@ -25,6 +25,13 @@
         Icon="{StaticResource IconMeta}"
         ContentTemplate="{DataTemplate pages:ManageMetaPage}"
         Route="manage" />
+    
+    <ShellContent
+        Title="Upload Manager"
+        Icon="{StaticResource IconMeta}"
+        ContentTemplate="{DataTemplate pages:UploadManagerPage}"
+        Route="uploadManager"
+    ></ShellContent>
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">

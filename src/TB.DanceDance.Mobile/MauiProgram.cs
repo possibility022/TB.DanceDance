@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using IdentityModel.OidcClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Syncfusion.Maui.Toolkit.Hosting;
 using TB.DanceDance.Mobile.Services.Auth;
@@ -42,6 +43,12 @@ public static class MauiProgram
         builder.Services.AddSingleton<MainPageModel>();
         builder.Services.AddSingleton<ProjectListPageModel>();
         builder.Services.AddSingleton<ManageMetaPageModel>();
+        builder.Services.AddSingleton<UploadManagerPageModel>();
+
+        builder.Services.AddDbContext<VideosDbContext>(options =>
+        {
+            options.UseSqlite(Constants.VideosDatabasePath);
+        });
 
         builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
         builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");

@@ -84,8 +84,6 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
     {
         bool isSeeded = Preferences.Default.ContainsKey("is_seeded");
 
-        var results = await apiClient.GetUserEvents();
-
         if (!isSeeded)
         {
             await seedDataService.LoadSeedDataAsync();
@@ -135,6 +133,11 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
         {
             await Refresh();
         }
+    }
+
+    private async Task LoadLocalFile()
+    {
+        
     }
 
     [RelayCommand]
