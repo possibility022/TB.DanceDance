@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "backend\I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile", "TB.DanceDance.Mobile\TB.DanceDance.Mobile.csproj", "{D8C44A02-65B0-411D-93CC-D4F6981C4CC8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C43D84F2-81DC-4177-822B-818CFE5394F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile.Tests", "TB.DanceDance.Mobile.Tests\TB.DanceDance.Mobile.Tests.csproj", "{1A532B91-A3AC-44D7-912E-D57EEB38AC0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,11 +55,18 @@ Global
 		{D8C44A02-65B0-411D-93CC-D4F6981C4CC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8C44A02-65B0-411D-93CC-D4F6981C4CC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8C44A02-65B0-411D-93CC-D4F6981C4CC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A532B91-A3AC-44D7-912E-D57EEB38AC0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A532B91-A3AC-44D7-912E-D57EEB38AC0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A532B91-A3AC-44D7-912E-D57EEB38AC0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A532B91-A3AC-44D7-912E-D57EEB38AC0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7B62DD5-B1F0-42D1-B42B-CFDE4BEE15D9}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1A532B91-A3AC-44D7-912E-D57EEB38AC0C} = {C43D84F2-81DC-4177-822B-818CFE5394F9}
 	EndGlobalSection
 EndGlobal
