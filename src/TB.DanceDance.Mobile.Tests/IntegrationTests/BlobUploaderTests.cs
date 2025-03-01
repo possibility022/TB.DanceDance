@@ -21,12 +21,7 @@ public class BlobUploaderTests : IAsyncLifetime
         Uri uri = GenerateSas(blob);
 
         using MemoryStream ms = new();
-        for (int i = 0; i < 350; i++)
-        {
-            ms.WriteByte(1);
-        }
-
-        ms.Position = 0;
+        WriteDataBytes(ms);
 
         await blobUploader.UploadFileAsync(ms, uri, CancellationToken.None);
 
@@ -66,12 +61,8 @@ public class BlobUploaderTests : IAsyncLifetime
         
         using MemoryStream ms = new();
         using MemoryStreamWrapper msWrapper = new(ms, 125, cancellationTokenSource);
-        for (int i = 0; i < 350; i++)
-        {
-            ms.WriteByte(1);
-        }
-
-        ms.Position = 0;
+        
+        WriteDataBytes(ms);
 
         await Assert.ThrowsAsync<TaskCanceledException>(async () =>  await blobUploader.UploadFileAsync(msWrapper, uri, cancellationTokenSource.Token));
             
@@ -88,14 +79,25 @@ public class BlobUploaderTests : IAsyncLifetime
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
     }
 
+    private static void WriteDataBytes(MemoryStream ms)
+    {
+        for (int i = 0; i < 350; i++)
+        {
+            ms.WriteByte(1);
+            ms.WriteByte(5);
+            ms.WriteByte(255);
+            ms.WriteByte(251);
+        }
+        
+        ms.Position = 0;
+    }
+
     public async Task InitializeAsync()
     {
         var container = await DockerHelper.GetInitializedAzuriteContainer();
         var connectionString = container.GetConnectionString();
-
-        var serviceClient = new BlobServiceClient(connectionString);
-        await serviceClient.CreateBlobContainerAsync("videostoconvert");
         this.client = new BlobContainerClient(connectionString, "videostoconvert");
+        await this.client.CreateIfNotExistsAsync();
     }
 
     public Task DisposeAsync()
