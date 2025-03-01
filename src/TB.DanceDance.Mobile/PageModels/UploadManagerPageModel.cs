@@ -18,7 +18,6 @@ public partial class UploadManagerPageModel : ObservableObject
     [RelayCommand]
     private async Task Appearing()
     {
-        await _dbContext.Database.EnsureCreatedAsync();
         var selector = _dbContext.LocalVideoUploadProgresses.Select(r => new Video { Name = r.Filename });
         foreach (Video video in selector)
         {

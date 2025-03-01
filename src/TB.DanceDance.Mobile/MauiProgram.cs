@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Maui;
-using IdentityModel.OidcClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 using Syncfusion.Maui.Toolkit.Hosting;
-using TB.DanceDance.Mobile.Services.Auth;
 using TB.DanceDance.Mobile.Services.DanceApi;
 using TB.DanceDance.Mobile.Services.Network;
 
@@ -16,6 +15,18 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .ConfigureLifecycleEvents(events =>
+            {
+                events.AddEvent("DbInitializer", () =>
+                {
+                    var videosDbContext = new DbContextOptionsBuilder<VideosDbContext>()
+                        .UseSqlite(Constants.VideosDatabasePath);
+                    
+                    using var dbContext =  new VideosDbContext(videosDbContext.Options);
+                    dbContext.Database.EnsureCreated();
+                    dbContext.Database.Migrate();
+                });
+            })
             .UseMauiCommunityToolkit()
             .ConfigureSyncfusionToolkit()
             .ConfigureMauiHandlers(handlers =>
