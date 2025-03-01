@@ -2,27 +2,21 @@
 using Azure.Storage.Sas;
 using TB.DanceDance.Mobile.Services.DanceApi;
 
-namespace TB.DanceDance.Mobile.Tests;
+namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
-public class BlobUploaderTests
+public class BlobUploaderTests : IAsyncLifetime
 {
     private readonly BlobUploader blobUploader;
-
-    private const string DefaultAzureStorageConnectionString = "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;";
+    BlobContainerClient client;
 
     public BlobUploaderTests()
     {
-        blobUploader = new BlobUploader()
-        {
-            BufferSize = 100
-        };
+        blobUploader = new BlobUploader() { BufferSize = 100 };
     }
 
     [Fact]
     public async Task UploadWorks_ContentIsCorrect()
     {
-        BlobContainerClient client = new(DefaultAzureStorageConnectionString, "videostoconvert");
-
         var blob = client.GetBlobClient(Guid.NewGuid().ToString());
         var sasBuilder = new BlobSasBuilder
         {
@@ -55,5 +49,20 @@ public class BlobUploaderTests
 
         // Check if the content is correct
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
+    }
+
+    public async Task InitializeAsync()
+    {
+        var container = await DockerHelper.GetInitializedAzuriteContainer();
+        var connectionString = container.GetConnectionString();
+
+        var serviceClient = new BlobServiceClient(connectionString);
+        await serviceClient.CreateBlobContainerAsync("videostoconvert");
+        this.client = new BlobContainerClient(connectionString, "videostoconvert");
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 }
