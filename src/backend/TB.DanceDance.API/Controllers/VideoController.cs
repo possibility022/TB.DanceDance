@@ -87,18 +87,18 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformation)
     {
         string? user = null;
-        var sharedWith = sharedVideoInformations?.SharedWith;
+        var sharedWith = sharedVideoInformation?.SharedWith;
 
-        if (sharedVideoInformations == null || sharedWith == null)
+        if (sharedVideoInformation == null || sharedWith == null)
         {
-            ModelState.AddModelError(nameof(sharedVideoInformations.SharedWith), "EntityId within SharedWith is empty.");
+            ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "EntityId within SharedWith is empty.");
         }
         else
         {
-            if (sharedVideoInformations.SharingWithType == SharingWithType.Group)
+            if (sharedVideoInformation.SharingWithType == SharingWithType.Group)
             {
                 user = User.GetSubject();
 
@@ -110,7 +110,7 @@ public class VideoController : Controller
                     return new UnauthorizedResult();
                 }
             }
-            else if (sharedVideoInformations.SharingWithType == SharingWithType.Event)
+            else if (sharedVideoInformation.SharingWithType == SharingWithType.Event)
             {
                 user = User.GetSubject();
 
@@ -135,10 +135,10 @@ public class VideoController : Controller
 
         var sharedBlob = await videoService.GetSharingLink(
             user,
-            sharedVideoInformations.NameOfVideo,
-            sharedVideoInformations.FileName,
-            sharedVideoInformations.SharingWithType == SharingWithType.Event,
-            sharedVideoInformations.SharedWith.Value);
+            sharedVideoInformation.NameOfVideo,
+            sharedVideoInformation.FileName,
+            sharedVideoInformation.SharingWithType == SharingWithType.Event,
+            sharedVideoInformation.SharedWith.Value);
 
         return new UploadVideoInformation()
         {
