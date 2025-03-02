@@ -32,6 +32,13 @@
         ContentTemplate="{DataTemplate pages:UploadManagerPage}"
         Route="uploadManager"
     ></ShellContent>
+    
+    <ShellContent
+        Title="Events"
+        Icon="{StaticResource IconMeta}"
+        ContentTemplate="{DataTemplate pages:EventsPage}"
+        Route="userEventsPage"
+    ></ShellContent>
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">

@@ -6,19 +6,19 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class UploadManagerPageModel : ObservableObject
 {
-    private readonly VideosDbContext _dbContext;
+    private readonly VideosDbContext dbContext;
 
     public UploadManagerPageModel(VideosDbContext dbContext)
     {
-        _dbContext = dbContext;
+        this.dbContext = dbContext;
     }
 
-    [ObservableProperty] private ObservableCollection<Video> _uploadedVideos = new();
+    [ObservableProperty] private ObservableCollection<Video> uploadedVideos = new();
     
     [RelayCommand]
     private async Task Appearing()
     {
-        var selector = _dbContext.LocalVideoUploadProgresses.Select(r => new Video { Name = r.Filename });
+        var selector = dbContext.LocalVideoUploadProgresses.Select(r => new Video { Name = r.Filename });
         foreach (Video video in selector)
         {
             UploadedVideos.Add(video);

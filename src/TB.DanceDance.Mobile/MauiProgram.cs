@@ -55,6 +55,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ProjectListPageModel>();
         builder.Services.AddSingleton<ManageMetaPageModel>();
         builder.Services.AddSingleton<UploadManagerPageModel>();
+        builder.Services.AddSingleton<EventsPageModel>();
 
         builder.Services.AddDbContext<VideosDbContext>(options =>
         {
