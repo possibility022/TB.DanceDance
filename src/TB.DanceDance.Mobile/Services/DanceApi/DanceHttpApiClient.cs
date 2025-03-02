@@ -20,4 +20,14 @@ public class DanceHttpApiClient
         var content = await response.Content.ReadFromJsonAsync<UserEventsAndGroupsResponse>();
         return content;
     }
+
+    public async Task<ICollection<GroupWithVideosResponse>?> GetVideosFromGroups()
+    {
+        var response = await httpClient.GetAsync("/api/groups/videos");
+        response.EnsureSuccessStatusCode();
+        
+        var content = await response.Content.ReadFromJsonAsync<ICollection<GroupWithVideosResponse>>();
+
+        return content;
+    }
 }

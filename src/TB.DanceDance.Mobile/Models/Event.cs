@@ -2,7 +2,7 @@
 
 namespace TB.DanceDance.Mobile.Models;
 
-public class Event
+public record Event
 {
     public string Name { get; set; }
     public DateTime When { get; set; }

@@ -40,6 +40,13 @@
         Route="userEventsPage"
     ></ShellContent>
 
+    <ShellContent
+        Title="Classes Videos"
+        Icon="{StaticResource IconMeta}"
+        ContentTemplate="{DataTemplate pages:GroupVideosPage}"
+        Route="groupVideosPage"
+    ></ShellContent>
+    
     <Shell.FlyoutFooter>
         <Grid Padding="15">
             <sf:SfSegmentedControl x:Name="ThemeSegmentedControl" 

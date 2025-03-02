@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using TB.DanceDance.Mobile.Models;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
@@ -56,9 +57,4 @@ public partial class UploadManagerPageModel : ObservableObject
 
         return null;
     }
-}
-
-public class Video
-{
-    public string Name { get; set; }
 }

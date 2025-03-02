@@ -81,4 +81,17 @@
       <ProjectReference Include="..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <MauiXaml Update="Pages\GroupVideosPage.xaml">
+        <SubType>Designer</SubType>
+      </MauiXaml>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Pages\GroupVideosPage.xaml.cs">
+        <DependentUpon>GroupVideosPage.xaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
+
 </Project>
