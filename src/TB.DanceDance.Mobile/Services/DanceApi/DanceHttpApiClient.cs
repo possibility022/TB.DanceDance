@@ -1,4 +1,6 @@
 ﻿using System.Net.Http.Json;
+using TB.DanceDance.API.Contracts.Models;
+using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 
 namespace TB.DanceDance.Mobile.Services.DanceApi;
@@ -28,6 +30,30 @@ public class DanceHttpApiClient
         
         var content = await response.Content.ReadFromJsonAsync<ICollection<GroupWithVideosResponse>>();
 
+        return content;
+    }
+
+    public async Task<UploadVideoInformation?> GetUploadInformation(
+        string fileName,
+        string nameOfVideo,
+        SharingWithType sharingWith,
+        Guid sharedWithId,
+        DateTime recordedTimeUtc
+        )
+    {
+        SharedVideoInformationRequest request = new()
+        {
+            SharingWithType = sharingWith,
+            FileName = fileName,
+            SharedWith = sharedWithId,
+            NameOfVideo = nameOfVideo,
+            RecordedTimeUtc = recordedTimeUtc
+        };
+        
+        var response = await httpClient.PostAsJsonAsync("/api/videos/upload", request);
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadFromJsonAsync<UploadVideoInformation>();
         return content;
     }
 }

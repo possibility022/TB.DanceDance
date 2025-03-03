@@ -5,17 +5,26 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Models"
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             x:DataType="pageModels:UploadManagerPageModel"
              x:Class="TB.DanceDance.Mobile.Pages.UploadManagerPage">
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
-            EventName="Appearing"                
+            EventName="Appearing"
             Command="{Binding AppearingCommand}" />
     </ContentPage.Behaviors>
     <ContentPage.Content>
         <Grid>
-            <VerticalStackLayout 
-                BindableLayout.ItemsSource="{Binding UploadedVideos}" 
-                Margin="{StaticResource LayoutPadding}" 
+            <Picker
+                ItemsSource="{Binding Groups}"
+                ItemDisplayBinding="{Binding Name}"
+                SelectedIndex="{Binding SelectedGroupIndex}"
+                Title="Select a group">
+            </Picker>
+
+            <VerticalStackLayout
+                BindableLayout.ItemsSource="{Binding UploadedVideos}"
+                Margin="{StaticResource LayoutPadding}"
                 Spacing="{StaticResource LayoutSpacing}">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="models:Video">
@@ -27,8 +36,8 @@
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
-            
-            <controls:AddButton 
+
+            <controls:AddButton
                 Command="{Binding PickVideosCommand}" />
         </Grid>
     </ContentPage.Content>

@@ -15,18 +15,6 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .ConfigureLifecycleEvents(events =>
-            {
-                events.AddEvent("DbInitializer", () =>
-                {
-                    var videosDbContext = new DbContextOptionsBuilder<VideosDbContext>()
-                        .UseSqlite(Constants.VideosDatabasePath);
-                    
-                    using var dbContext =  new VideosDbContext(videosDbContext.Options);
-                    dbContext.Database.EnsureCreated();
-                    dbContext.Database.Migrate();
-                });
-            })
             .UseMauiCommunityToolkit()
             .ConfigureSyncfusionToolkit()
             .ConfigureMauiHandlers(handlers =>
@@ -57,7 +45,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<UploadManagerPageModel>();
         builder.Services.AddSingleton<EventsPageModel>();
         builder.Services.AddSingleton<GroupVideosPageModel>();
-
+        
         builder.Services.AddDbContext<VideosDbContext>(options =>
         {
             options.UseSqlite(Constants.VideosDatabasePath);
@@ -66,6 +54,9 @@ public static class MauiProgram
         builder.Services.AddTransientWithShellRoute<ProjectDetailPage, ProjectDetailPageModel>("project");
         builder.Services.AddTransientWithShellRoute<TaskDetailPage, TaskDetailPageModel>("task");
         builder.Services.AddTransient<IHttpClientFactory,HttpClientFactory>();
+        
+        builder.Services.AddTransient<VideoUploader>();
+        builder.Services.AddTransient<BlobUploader>();
         
         ConfigureDanceApiClient(builder.Services);
 

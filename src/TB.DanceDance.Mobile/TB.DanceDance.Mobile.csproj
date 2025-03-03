@@ -78,6 +78,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\backend\Domain\Domain.csproj" />
       <ProjectReference Include="..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
     </ItemGroup>
 

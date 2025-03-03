@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
+using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile.Services.DanceApi
 {
@@ -10,7 +11,8 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
 
         public async Task UploadFileAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
         {
-            var blobClient = new BlockBlobClient(blobUri);
+            var address = NetworkAddressResolver.Resolve(blobUri);
+            var blobClient = new BlockBlobClient(address);
             var blockList = new List<string>();
 
             byte[] buffer = new byte[BufferSize];
@@ -34,7 +36,8 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
 
         public async Task ResumeUploadAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
         {
-            var blobClient = new BlockBlobClient(blobUri);
+            var address = NetworkAddressResolver.Resolve(blobUri);
+            var blobClient = new BlockBlobClient(address);
 
             var existingBlocks =
                 await blobClient.GetBlockListAsync(BlockListTypes.All, cancellationToken: cancellationToken);
