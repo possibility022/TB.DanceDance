@@ -78,13 +78,21 @@ public class VideoUploaderService : IVideoUploaderService
 
     public Uri GetVideoSas(string blobId)
     {
-        var sas = videosToConvertBlobs.GetSas(blobId);
+        var sas = videosToConvertBlobs.GetReadSas(blobId);
         return sas;
     }
 
-    public SharedBlob GetSasUri()
+    public SharedBlob GetUploadSasUri()
     {
-        return videosToConvertBlobs.CreateUploadSas();
+        return videosToConvertBlobs.GetUploadSas();
+    }
+    
+    public SharedBlob GetUploadSasUri(string blobId)
+    {
+        if (string.IsNullOrWhiteSpace(blobId))
+            throw new ArgumentNullException(nameof(blobId));
+        
+        return videosToConvertBlobs.GetUploadSas(blobId);
     }
 
     public async Task<SharedBlob?> GetSasForConvertedVideoAsync(Guid videoId)
@@ -95,7 +103,7 @@ public class VideoUploaderService : IVideoUploaderService
 
         video.BlobId = Guid.NewGuid().ToString();
 
-        var sas = publishedVideosBlobs.CreateUploadSas(video.BlobId);
+        var sas = publishedVideosBlobs.GetUploadSas(video.BlobId);
 
         await danceDbContext.SaveChangesAsync();
 

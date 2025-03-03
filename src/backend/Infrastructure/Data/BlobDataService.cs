@@ -36,7 +36,7 @@ public class BlobDataService : IBlobDataService
         return client.UploadAsync(stream);
     }
 
-    public Uri GetSas(string blobId)
+    public Uri GetReadSas(string blobId)
     {
         var client = container.GetBlobClient(blobId);
         var sasBuilder = new BlobSasBuilder();
@@ -47,28 +47,30 @@ public class BlobDataService : IBlobDataService
         return sas;
     }
 
-    public SharedBlob CreateUploadSas(string blobId = null)
+    public SharedBlob GetUploadSas(string? blobId = null)
     {
-        if (blobId == null)
+        if (blobId is null)
             blobId = Guid.NewGuid().ToString();
 
         var blobClient = container.GetBlobClient(blobId);
-        var sasBuilder = new BlobSasBuilder();
+        var sasBuilder = new BlobSasBuilder {
+            // Be careful with SAS start time. If you set the start time for a SAS to the current time, failures might occur intermittently for the first few minutes.
+            // This is due to different machines having slightly different current times (known as clock skew).
+            // In general, set the start time to be at least 15 minutes in the past.
+            // Or, don't set it at all, which will make it valid immediately in all cases.
+            // The same generally applies to expiry time as well--remember that you may observe up to 15 minutes of clock skew in either direction on any request. For clients using a REST version prior to 2012-02-12,
+            // the maximum duration for a SAS that does not reference a stored access policy is 1 hour. Any policies that specify a longer term than 1 hour will fail.
+            //sasBuilder.StartsOn = DateTimeOffset.Now.AddMinutes(-25);
+            ExpiresOn = DateTimeOffset.Now.AddDays(7) 
+        };
 
-        // Be careful with SAS start time. If you set the start time for a SAS to the current time, failures might occur intermittently for the first few minutes.
-        // This is due to different machines having slightly different current times (known as clock skew).
-        // In general, set the start time to be at least 15 minutes in the past.
-        // Or, don't set it at all, which will make it valid immediately in all cases.
-        // The same generally applies to expiry time as well--remember that you may observe up to 15 minutes of clock skew in either direction on any request. For clients using a REST version prior to 2012-02-12,
-        // the maximum duration for a SAS that does not reference a stored access policy is 1 hour. Any policies that specify a longer term than 1 hour will fail.
-        //sasBuilder.StartsOn = DateTimeOffset.Now.AddMinutes(-25);
-        sasBuilder.ExpiresOn = DateTimeOffset.Now.AddMinutes(59);
         sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
         var sas = blobClient.GenerateSasUri(sasBuilder);
         return new SharedBlob()
         {
             Sas = sas,
-            Name = blobClient.Name
+            BlobId = blobClient.Name,
+            ExpiresAt = sasBuilder.ExpiresOn
         };
     }
 

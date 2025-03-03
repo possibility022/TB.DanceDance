@@ -2,6 +2,7 @@
 
 public class SharedBlob
 {
-    required public Uri Sas { get; init; }
-    required public string Name { get; init; }
+    public required Uri Sas { get; init; }
+    public required string BlobId { get; init; }
+    public required DateTimeOffset ExpiresAt { get; set; }
 }

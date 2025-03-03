@@ -1,8 +1,11 @@
-﻿namespace TB.DanceDance.API.Contracts.Models
+﻿using System;
+
+namespace TB.DanceDance.API.Contracts.Models
 {
     public class UploadVideoInformation
     {
         public string Sas { get; set; }
-        public string User { get; set; }
+        public Guid VideoId { get; set; }
+        public DateTime ExpireAt { get; set; }
     }
 }
