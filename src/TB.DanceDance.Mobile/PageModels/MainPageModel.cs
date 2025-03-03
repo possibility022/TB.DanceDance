@@ -14,6 +14,7 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
     private readonly CategoryRepository _categoryRepository;
     private readonly ModalErrorHandler _errorHandler;
     private readonly DanceHttpApiClient apiClient;
+    private readonly VideosDbContext _dbContext;
     private readonly SeedDataService _seedDataService;
 
     [ObservableProperty] private List<CategoryChartData> _todoCategoryData = [];
@@ -35,7 +36,7 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
 
     public MainPageModel(SeedDataService seedDataService, ProjectRepository projectRepository,
         TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler
-        , DanceHttpApiClient apiClient
+        , DanceHttpApiClient apiClient, VideosDbContext dbContext
         )
     {
         _projectRepository = projectRepository;
@@ -43,6 +44,7 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
         _categoryRepository = categoryRepository;
         _errorHandler = errorHandler;
         this.apiClient = apiClient;
+        _dbContext = dbContext;
         _seedDataService = seedDataService;
     }
 
@@ -122,6 +124,13 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
     [RelayCommand]
     private async Task Appearing()
     {
+        #if DEBUG
+
+        await _dbContext.Database.EnsureDeletedAsync();
+        await _dbContext.Database.EnsureCreatedAsync();
+        
+        #endif
+        
         if (!_dataLoaded)
         {
             await InitData(_seedDataService);
@@ -133,11 +142,6 @@ public partial class MainPageModel : ObservableObject, IProjectTaskPageModel
         {
             await Refresh();
         }
-    }
-
-    private async Task LoadLocalFile()
-    {
-        
     }
 
     [RelayCommand]
