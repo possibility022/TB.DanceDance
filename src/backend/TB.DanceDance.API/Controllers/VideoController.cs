@@ -133,16 +133,30 @@ public class VideoController : Controller
             return BadRequest(ModelState);
         }
 
+        // If this is a request where video id is provided, then api user want to continue upload
+        // so, sas to the existing blob should be returned
+        if (sharedVideoInformation!.VideoId is not null && sharedVideoInformation.VideoId != Guid.Empty)
+        {
+            var sharedLink = await videoService.GetSharingLink(sharedVideoInformation.VideoId.Value);
+
+            if (sharedLink == null)
+                return NotFound();
+
+            return new UploadVideoInformation() { Sas = sharedLink.Sas.ToString(), VideoId = sharedLink.VideoId, ExpireAt = sharedLink.ExpireAt.UtcDateTime};
+        }
+
         var sharedBlob = await videoService.GetSharingLink(
-            user,
-            sharedVideoInformation.NameOfVideo,
+            user!,
+            sharedVideoInformation!.NameOfVideo,
             sharedVideoInformation.FileName,
             sharedVideoInformation.SharingWithType == SharingWithType.Event,
-            sharedVideoInformation.SharedWith.Value);
+            sharedVideoInformation!.SharedWith!.Value);
 
         return new UploadVideoInformation()
         {
-            Sas = sharedBlob.Sas.ToString()
+            Sas = sharedBlob.Sas.ToString(),
+            VideoId = sharedBlob.VideoId,
+            ExpireAt = sharedBlob.ExpireAt.UtcDateTime
         };
     }
 

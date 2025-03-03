@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -73,34 +74,59 @@ public class VideoService : IVideoService
         return true;
     }
 
-    public async Task<SharedBlob> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith)
+    public async Task<UploadContext?> GetSharingLink(Guid videoId)
     {
-        var sharedBlob = videoUploaderService.GetSasUri();
+        var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId);
+        
+        if (video is null)
+            return null;
+
+        var sas = videoUploaderService.GetUploadSasUri(video.SourceBlobId);
+
+        return new UploadContext()
+        {
+            Sas = sas.Sas,
+            VideoId = video.Id,
+            SourceBlobId = video.SourceBlobId,
+            ExpireAt = sas.ExpiresAt
+        };
+    }
+
+    public async Task<UploadContext> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith)
+    {
+        var sas = videoUploaderService.GetUploadSasUri();
 
         var video = new Video()
         {
             FileName = fileName,
-            SourceBlobId = sharedBlob.Name,
+            SourceBlobId = sas.BlobId,
             Name = name,
             UploadedBy = userId,
             Duration = null,
             RecordedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
             SharedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
-            SharedWith = new[] {
+            SharedWith =
+            [
                 new SharedWith()
                 {
-                    VideoId = default, // should be set by EF
+                    VideoId = Guid.Empty, // should be set by EF
                     UserId = userId,
                     EventId = assignedToEvent ? sharedWith : null,
                     GroupId = assignedToEvent ? null : sharedWith
                 }
-            },
+            ],
             Converted = false
         };
 
         dbContext.Videos.Add(video);
         await dbContext.SaveChangesAsync();
 
-        return sharedBlob;
+        return new UploadContext()
+        {
+            Sas = sas.Sas,
+            SourceBlobId = video.SourceBlobId,
+            VideoId = video.Id,
+            ExpireAt = sas.ExpiresAt
+        };
     }
 }

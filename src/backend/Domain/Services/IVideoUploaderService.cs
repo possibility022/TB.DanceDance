@@ -4,7 +4,8 @@ namespace Domain.Services;
 
 public interface IVideoUploaderService
 {
-    SharedBlob GetSasUri();
+    SharedBlob GetUploadSasUri();
+    SharedBlob GetUploadSasUri(string blobId);
 
     Task<Video?> GetNextVideoToTransformAsync();
     Task<bool> UpdateVideoInformations(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata);
