@@ -27,15 +27,9 @@ public class HttpClientFactory : IHttpClientFactory
 
         return danceApiClient!;
     }
-
-#if DEBUG
-    private const string AndroidApiUrl = "https://10.0.2.2:7068";
+    
     private const string ApiUrl = "https://localhost:7068";
-#else
-    private const string AndroidApiUrl = "https://";
-    private const string ApiUrl = "https://localhost:7068";
-#endif
-
+    
     private static void InitializeDanceApiClient()
     {
         var retryPipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
@@ -62,8 +56,7 @@ public class HttpClientFactory : IHttpClientFactory
 
         AuthSettingsFactory.GetClientOptions(socketHandler);
 
-        string apiUrl =
-            DeviceInfo.Platform == DevicePlatform.Android ? AndroidApiUrl : ApiUrl;
+        string apiUrl = NetworkAddressResolver.Resolve(ApiUrl);
 
         var httpClient = new HttpClient(resilienceHandler);
         httpClient.BaseAddress = new Uri(apiUrl);
