@@ -1,9 +1,6 @@
 ﻿using IdentityModel.Client;
 using IdentityModel.OidcClient.Browser;
-using Microsoft.Maui.Authentication;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using IBrowser = IdentityModel.OidcClient.Browser.IBrowser;
 
 namespace TB.DanceDance.Mobile.Services.Auth;
 
