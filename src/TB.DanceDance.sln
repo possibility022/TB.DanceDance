@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "backend\Domain\Do
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "backend\Infrastructure\Infrastructure.csproj", "{CFADCAD4-D023-46DD-9D85-A70653BD4936}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile", "mobile\TB.DanceDance.Mobile\TB.DanceDance.Mobile.csproj", "{70B22AB9-21FC-43AD-9129-BBA0D109972F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile", "TB.DanceDance.Mobile\TB.DanceDance.Mobile.csproj", "{1631BE11-699C-4B12-AA64-D7DD0A946131}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +47,10 @@ Global
 		{CFADCAD4-D023-46DD-9D85-A70653BD4936}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFADCAD4-D023-46DD-9D85-A70653BD4936}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFADCAD4-D023-46DD-9D85-A70653BD4936}.Release|Any CPU.Build.0 = Release|Any CPU
-		{70B22AB9-21FC-43AD-9129-BBA0D109972F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{70B22AB9-21FC-43AD-9129-BBA0D109972F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{70B22AB9-21FC-43AD-9129-BBA0D109972F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{70B22AB9-21FC-43AD-9129-BBA0D109972F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
