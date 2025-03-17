@@ -18,22 +18,24 @@
         </toolkit:EventToCommandBehavior>
     </ContentPage.Behaviors>
     <Grid>
-        <VerticalStackLayout Padding="30, 0">
-        <Button Command="{Binding AddEventCommand}" Text="Add Event"></Button>
-            <ScrollView Margin="0,10,0,0">
-                <VerticalStackLayout
-                    BindableLayout.ItemsSource="{Binding UserEvents}">
-                    <BindableLayout.ItemTemplate>
-                        <DataTemplate x:DataType="models:Event">
-                            <Border>
-                                <VerticalStackLayout>
-                                    <Label Text="{Binding Name}" FontSize="24" />
-                                </VerticalStackLayout>
-                            </Border>
-                        </DataTemplate>
-                    </BindableLayout.ItemTemplate>
-                </VerticalStackLayout>
-            </ScrollView>
-        </VerticalStackLayout>
+        <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshCommand}">
+            <VerticalStackLayout Padding="30, 0">
+                <ScrollView Margin="0,10,0,0">
+                    <VerticalStackLayout
+                        BindableLayout.ItemsSource="{Binding UserEvents}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:Event">
+                                <Border>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Name}" FontSize="24" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
+        </RefreshView>
     </Grid>
 </ContentPage>

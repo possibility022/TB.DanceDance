@@ -17,24 +17,13 @@ public partial class EventsPageModel : ObservableObject
     
     [ObservableProperty] bool _isRefreshing;
     
-    [ObservableProperty] private List<Event> _userEvents = [new Event()
-    {
-        Id = Guid.Empty
-        ,Name = "test",
-        When = DateTime.Now
-    }];
+    [ObservableProperty] private List<Event> _userEvents = [];
     private bool _isInitialized;
 
     [RelayCommand]
     private async Task Appearing()
     {
-        Debug.WriteLine("Appearing Binded"); 
-    }
-
-    [RelayCommand]
-    private async Task AddEvent()
-    {
-        await LoadData();
+        await Refresh();
     }
     
     [RelayCommand]
@@ -47,7 +36,7 @@ public partial class EventsPageModel : ObservableObject
         }
         catch (Exception e)
         {
-            //_errorHandler.HandleError(e);
+            //todo _errorHandler.HandleError(e);
         }
         finally
         {
