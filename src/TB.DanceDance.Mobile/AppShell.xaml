@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TB.DanceDance.Mobile"
+    xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
     Shell.FlyoutBehavior="Flyout"
     Title="TB.DanceDance.Mobile">
 
@@ -11,5 +12,15 @@
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+    
+    <ShellContent
+        Title="Events"
+        ContentTemplate="{DataTemplate pages:EventsPage}"
+        Route="EventsPage" />
 
+    <ShellContent
+        Title="Group Videos"
+        ContentTemplate="{DataTemplate pages:GroupVideosPage}"
+        Route="GroupVideosPage" />
+    
 </Shell>
