@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Diagnostics;
 using TB.DanceDance.Mobile.Models;
 using TB.DanceDance.Mobile.Services.DanceApi;
 

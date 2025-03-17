@@ -26,7 +26,7 @@
                         BindableLayout.ItemsSource="{Binding UserEvents}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:Event">
-                                <Border>
+                                <Border Padding="10" Margin="0,10,0,0">
                                     <VerticalStackLayout>
                                         <Label Text="{Binding Name}" FontSize="24" />
                                     </VerticalStackLayout>
