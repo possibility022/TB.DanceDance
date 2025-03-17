@@ -23,4 +23,9 @@
         ContentTemplate="{DataTemplate pages:GroupVideosPage}"
         Route="GroupVideosPage" />
     
+    <ShellContent
+        Title="Video"
+        ContentTemplate="{DataTemplate pages:WatchVideo}"
+        Route="VideoPage" />
+    
 </Shell>
