@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TB.DanceDance.Mobile.Models"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             x:DataType="pageModels:EventsPageModel"
+             x:Name="EventsPageView"
+             x:Class="TB.DanceDance.Mobile.Pages.EventsPage">
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Appearing"
+            BindingContext="{Binding Path=BindingContext, 
+        Source={x:Reference EventsPageView}, 
+        x:DataType=pageModels:EventsPageModel}"
+            Command="{Binding AppearingCommand}">
+        </toolkit:EventToCommandBehavior>
+    </ContentPage.Behaviors>
+    <Grid>
+        <VerticalStackLayout Padding="30, 0">
+        <Button Command="{Binding AddEventCommand}" Text="Add Event"></Button>
+            <ScrollView Margin="0,10,0,0">
+                <VerticalStackLayout
+                    BindableLayout.ItemsSource="{Binding UserEvents}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="models:Event">
+                            <Border>
+                                <VerticalStackLayout>
+                                    <Label Text="{Binding Name}" FontSize="24" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </ScrollView>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
