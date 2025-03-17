@@ -1,6 +1,4 @@
-﻿using TB.DanceDance.API.Contracts.Responses;
-
-namespace TB.DanceDance.Mobile.Models;
+﻿namespace TB.DanceDance.Mobile.Models;
 
 public record Event
 {
@@ -8,10 +6,8 @@ public record Event
     public DateTime When { get; set; }
     public Guid Id { get; set; }
 
-    public static List<Event> MapFromApiEvent(UserEventsAndGroupsResponse response)
+    public static Event MapFromApiEvent(TB.DanceDance.API.Contracts.Models.Event r)
     {
-        return response.Assigned.Events
-            .Select(r => new Event() { Name = r.Name, When = r.Date, Id = r.Id })
-            .ToList();
+        return new Event() { Name = r.Name, When = r.Date, Id = r.Id };
     }
 }

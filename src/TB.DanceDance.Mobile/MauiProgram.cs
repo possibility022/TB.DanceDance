@@ -1,7 +1,12 @@
 ﻿using CommunityToolkit.Maui;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
+using TB.DanceDance.Mobile.Data;
+using TB.DanceDance.Mobile.PageModels;
+using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile;
 
@@ -22,6 +27,22 @@ public static class MauiProgram
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
+
+
+        builder.Services.AddSingleton<EventsPageModel>();
+        builder.Services.AddSingleton<GroupVideosPageModel>();
+        
+        builder.Services.AddDbContext<VideosDbContext>(options =>
+        {
+            options.UseSqlite(Constants.VideosDatabasePath);
+        });
+
+        builder.Services.AddTransient<IHttpClientFactory,HttpClientFactory>();
+        
+        builder.Services.AddTransient<VideoUploader>();
+        builder.Services.AddTransient<BlobUploader>();
+        builder.Services.AddScoped<DanceHttpApiClient>();
+
 
 		return builder.Build();
 	}

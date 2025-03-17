@@ -34,12 +34,7 @@ public partial class EventsPageModel : ObservableObject
     [RelayCommand]
     private async Task AddEvent()
     {
-        Debug.WriteLine("AddEvent");
-        UserEvents = new List<Event>()
-        {
-            new Event() { Id = Guid.Empty, Name = "test", When = DateTime.Now },
-            new Event() { Id = Guid.Empty, Name = "test2", When = DateTime.Now },
-        };
+        await LoadData();
     }
     
     [RelayCommand]
@@ -62,8 +57,8 @@ public partial class EventsPageModel : ObservableObject
 
     private async Task LoadData()
     {
-        var acesses = await _apiClient.GetUserAccesses();
-        if (acesses != null)
-            UserEvents = Event.MapFromApiEvent(acesses);
+        var accesses = await _apiClient.GetUserAccesses();
+        if (accesses != null)
+            UserEvents = accesses.Assigned.Events.Select(Event.MapFromApiEvent).ToList();;
     }
 }
