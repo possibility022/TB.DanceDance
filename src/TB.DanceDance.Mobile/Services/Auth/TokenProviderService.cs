@@ -30,7 +30,7 @@ public class TokenProviderService : ITokenProviderService
     public async Task<string?> GetAccessToken()
     {
         if (TokenStorage.LoginResult == null 
-            || TokenStorage.LoginResult.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
+            || TokenStorage.LoginResult.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(-5))
         {
             var token = await FetchAccessToken();
             return token?.AccessToken;
