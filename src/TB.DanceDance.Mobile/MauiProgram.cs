@@ -5,6 +5,7 @@ using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.PageModels;
+using TB.DanceDance.Mobile.Pages;
 using TB.DanceDance.Mobile.Services.DanceApi;
 using TB.DanceDance.Mobile.Services.Network;
 
@@ -32,6 +33,8 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<EventsPageModel>();
         builder.Services.AddSingleton<GroupVideosPageModel>();
+        
+        builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>("eventDetails");
         
         builder.Services.AddDbContext<VideosDbContext>(options =>
         {

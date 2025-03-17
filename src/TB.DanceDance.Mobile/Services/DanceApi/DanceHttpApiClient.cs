@@ -33,6 +33,18 @@ public class DanceHttpApiClient
         return content;
     }
 
+    public async Task<ICollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId)
+    {
+        var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
+        response.EnsureSuccessStatusCode();
+        
+        var content = await response.Content.ReadFromJsonAsync<ICollection<VideoInformationResponse>>();
+        if (content == null)
+            return Array.Empty<VideoInformationResponse>();
+        
+        return content;
+    }
+
     public async Task<UploadVideoInformation?> GetUploadInformation(
         string fileName,
         string nameOfVideo,

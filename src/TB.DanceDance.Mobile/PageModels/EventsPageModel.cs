@@ -24,6 +24,15 @@ public partial class EventsPageModel : ObservableObject
     {
         await Refresh();
     }
+
+    [RelayCommand]
+    private async Task NavigateToEventDetails(Event @event)
+    {
+        await Shell.Current.GoToAsync("eventDetails", new Dictionary<string, object>()
+        {
+            { "eventId", @event.Id }
+        });
+    }
     
     [RelayCommand]
     private async Task Refresh()
