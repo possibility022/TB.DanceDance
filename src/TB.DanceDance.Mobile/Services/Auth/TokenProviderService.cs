@@ -40,6 +40,14 @@ public class TokenProviderService : ITokenProviderService
     }
 }
 
+public class StorageTokenProviderService : ITokenProviderService
+{
+    public Task<string?> GetAccessToken()
+    {
+        return Task.FromResult(TokenStorage.LoginResult?.AccessToken);
+    }
+}
+
 public interface ITokenProviderService
 {
     public Task<string?> GetAccessToken();

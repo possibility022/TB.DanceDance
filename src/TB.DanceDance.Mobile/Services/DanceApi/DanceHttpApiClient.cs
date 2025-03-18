@@ -68,4 +68,12 @@ public class DanceHttpApiClient
         var content = await response.Content.ReadFromJsonAsync<UploadVideoInformation>();
         return content;
     }
+
+    public async Task<Stream> GetStream(string videoBlobId)
+    {
+        var responseMessage = await httpClient.GetAsync($"/api/videos/{videoBlobId}/stream", HttpCompletionOption.ResponseHeadersRead);
+        responseMessage.EnsureSuccessStatusCode();
+
+        return await responseMessage.Content.ReadAsStreamAsync();
+    }
 }

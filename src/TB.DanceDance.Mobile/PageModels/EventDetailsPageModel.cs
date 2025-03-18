@@ -13,6 +13,15 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
     {
         this._apiClient = apiClient;
     }
+    
+    [RelayCommand]
+    private async Task NavigateToWatchVideo(VideoInformationResponse video)
+    {
+        await Shell.Current.GoToAsync("watchVideo", new Dictionary<string, object>()
+        {
+            { "videoBlobId", video.BlobId }
+        });
+    }
 
     [ObservableProperty] public Guid eventId;
     

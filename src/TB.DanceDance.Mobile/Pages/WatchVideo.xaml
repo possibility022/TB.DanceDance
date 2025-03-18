@@ -3,9 +3,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             x:DataType="pageModels:WatchVideoPageModel"
              x:Class="TB.DanceDance.Mobile.Pages.WatchVideo">
     <ContentPage.Content>
-        <toolkit:MediaElement Source="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                              ShouldShowPlaybackControls="True" />
+        <toolkit:MediaElement Source="{Binding Media}"
+                              ShouldShowPlaybackControls="True"
+                              >
+            
+        </toolkit:MediaElement>
     </ContentPage.Content>
 </ContentPage>
