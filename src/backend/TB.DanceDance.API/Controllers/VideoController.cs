@@ -49,9 +49,15 @@ public class VideoController : Controller
     [Route(ApiEndpoints.Video.GetStream)]
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string token)
+    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token)
     {
         // todo create better authentication. Send send tokens in headers
+
+        if (string.IsNullOrEmpty(token) && Request.Headers.TryGetValue("Authorization", out var tokenFromHeader))
+        {
+            token = tokenFromHeader.FirstOrDefault()?.Substring("Bearer ".Length);
+        }
+        
         var validationRes = await tokenValidator.ValidateAccessTokenAsync(token);
         if (validationRes == null)
             // Idk when this can happen
