@@ -24,7 +24,7 @@ public class VideoUploader
             name = fileInfo.Name;
 
         var existingEntry = 
-            await _dbContext.LocalVideoUploadProgresses.FirstOrDefaultAsync(r => r.FullFileName == filePath, cancellationToken: token);
+            await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath, cancellationToken: token);
         
         if (existingEntry?.Uploaded == true)
             return;
@@ -43,7 +43,7 @@ public class VideoUploader
 
         if (existingEntry is null)
         {
-            _dbContext.LocalVideoUploadProgresses.Add(new VideosToUpload()
+            _dbContext.VideosToUpload.Add(new VideosToUpload()
             {
                 Id = Guid.NewGuid(),
                 FileName = fileInfo.Name,

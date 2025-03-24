@@ -2,6 +2,11 @@
 
 namespace TB.DanceDance.Mobile.Models;
 
+public record UploadState
+{
+    public bool Uploaded { get; set; }
+}
+
 public record Video
 {
     public Guid Id { get; set; }
@@ -10,6 +15,8 @@ public record Video
     public DateTime When { get; set; }
     public string GroupName { get; set; } = string.Empty;
     public Guid GroupId { get; set; }
+
+    public UploadState? UploadState { get; set; }
 
     public static List<Video> MapFromApiResponse(ICollection<GroupWithVideosResponse>? videosResponse)
     {

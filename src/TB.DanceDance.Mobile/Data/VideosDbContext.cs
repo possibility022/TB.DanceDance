@@ -9,5 +9,5 @@ public class VideosDbContext : DbContext
 
     }
 
-    public DbSet<VideosToUpload> LocalVideoUploadProgresses { get; set; }
+    public DbSet<VideosToUpload> VideosToUpload { get; set; }
 }
