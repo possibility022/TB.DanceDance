@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.Mobile.Data.VideoModels;
+namespace TB.DanceDance.Mobile.Data;
 
-public class LocalVideoUploadProgress
+public class VideosToUpload
 {
     [Key] public Guid Id { get; set; }
     public string FullFileName { get; set; } = string.Empty;

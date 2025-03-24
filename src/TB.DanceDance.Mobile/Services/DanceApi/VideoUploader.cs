@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Data.VideoModels;
 
 namespace TB.DanceDance.Mobile.Services.DanceApi;
 
@@ -44,7 +43,7 @@ public class VideoUploader
 
         if (existingEntry is null)
         {
-            _dbContext.LocalVideoUploadProgresses.Add(new LocalVideoUploadProgress()
+            _dbContext.LocalVideoUploadProgresses.Add(new VideosToUpload()
             {
                 Id = Guid.NewGuid(),
                 FileName = fileInfo.Name,
