@@ -39,4 +39,14 @@ public record Video
 
         return list;
     }
+
+    public static List<Video> MapFromApiResponse(ICollection<VideoInformationResponse> videosForEvent)
+    {
+        var list = videosForEvent.Select(r => new Video()
+        {
+            Id = r.Id, Name = r.Name, When = r.RecordedDateTime, BlobId = r.BlobId
+        }).ToList();
+
+        return list;
+    }
 }

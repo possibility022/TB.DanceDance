@@ -1,20 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Models;
-using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class GroupVideosPageModel : ObservableObject
 {
-    private readonly DanceHttpApiClient _apiClient;
+    private readonly VideoProvider videoProvider;
 
-    public GroupVideosPageModel(DanceHttpApiClient apiClient)
+    public GroupVideosPageModel(VideoProvider videoProvider)
     {
-        _apiClient = apiClient;
+        this.videoProvider = videoProvider;
     }
     
-    [ObservableProperty] bool _isRefreshing;
+    [ObservableProperty] private bool isRefreshing;
     
     [ObservableProperty] private List<Video> videos = [];
 
@@ -53,7 +53,7 @@ public partial class GroupVideosPageModel : ObservableObject
 
     private async Task LoadData()
     {
-        var response = await _apiClient.GetVideosFromGroups();
-        Videos = Video.MapFromApiResponse(response);
+        var loadedVideos = await videoProvider.GetGroupVideosAsync();
+        Videos = loadedVideos;
     }
 }

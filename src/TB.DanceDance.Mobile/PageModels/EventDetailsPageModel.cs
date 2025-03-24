@@ -1,21 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.API.Contracts.Responses;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Data;
+using TB.DanceDance.Mobile.Models;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class EventDetailsPageModel : ObservableObject, IQueryAttributable
 {
-    private readonly DanceHttpApiClient _apiClient;
+    private readonly VideoProvider videoProvider;
 
-    public EventDetailsPageModel(DanceHttpApiClient apiClient)
+    public EventDetailsPageModel(VideoProvider videoProvider)
     {
-        this._apiClient = apiClient;
+        this.videoProvider = videoProvider;
     }
     
     [RelayCommand]
-    private async Task NavigateToWatchVideo(VideoInformationResponse video)
+    private async Task NavigateToWatchVideo(Video video)
     {
         await Shell.Current.GoToAsync("watchVideo", new Dictionary<string, object>()
         {
@@ -23,9 +23,10 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
         });
     }
 
-    [ObservableProperty] public Guid eventId;
+    [ObservableProperty] Guid eventId;
     
-    [ObservableProperty] public List<VideoInformationResponse> videos = [];
+    [ObservableProperty] List<Video> videos = [];
+    [ObservableProperty] private bool isRefreshing;
     
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -59,11 +60,8 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
     {
         if (eventId != Guid.Empty)
         {
-            var videosForEvent = await _apiClient.GetVideosForEvent(eventId);
-            Videos = videosForEvent.ToList();
+            var providedVideos = await videoProvider.GetEventVideos(eventId);
+            Videos = providedVideos;
         }
     }
-    
-    [ObservableProperty] bool _isRefreshing;
-
 }
