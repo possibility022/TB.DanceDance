@@ -30,7 +30,9 @@
                                     <VerticalStackLayout>
                                         <Label Text="{Binding Name}" FontSize="24">
                                             <Label.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding NavigateToEventDetailsCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventsPageModel}}, x:DataType=pageModels:EventsPageModel}" CommandParameter="{Binding .}"/>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding NavigateToEventDetailsCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventsPageModel}}, x:DataType=pageModels:EventsPageModel}"
+                                                    CommandParameter="{Binding .}" />
                                             </Label.GestureRecognizers>
                                         </Label>
                                     </VerticalStackLayout>
