@@ -14,7 +14,7 @@ public class HttpClientFactory : IHttpClientFactory
     {
         if (name == nameof(DanceHttpApiClient))
             return ResolveClientForDanceApi();
-        
+
         throw new ArgumentOutOfRangeException($"Client for name '{name}' not found.");
     }
 
@@ -27,9 +27,13 @@ public class HttpClientFactory : IHttpClientFactory
 
         return danceApiClient!;
     }
-    
+
+#if DEBUG
     private const string ApiUrl = "https://localhost:7068";
-    
+#else
+    private const string ApiUrl = "https://localhost:7068";
+#endif
+
     private static void InitializeDanceApiClient()
     {
         var retryPipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
