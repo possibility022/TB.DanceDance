@@ -5,12 +5,13 @@ namespace TB.DanceDance.Mobile.Models;
 public record Video
 {
     public Guid Id { get; set; }
+    public string BlobId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public DateTime When { get; set; }
     public string GroupName { get; set; } = string.Empty;
     public Guid GroupId { get; set; }
 
-    public static List<Video> MapFromApiEvent(ICollection<GroupWithVideosResponse>? videosResponse)
+    public static List<Video> MapFromApiResponse(ICollection<GroupWithVideosResponse>? videosResponse)
     {
         if (videosResponse == null)
             return new List<Video>();
@@ -30,6 +31,7 @@ public record Video
                         GroupName = groupWithVideosResponse.GroupName,
                         When = videoInformationModel.RecordedDateTime,
                         GroupId = groupWithVideosResponse.GroupId,
+                        BlobId = videoInformationModel.BlobId
                     });
                 }
             }
