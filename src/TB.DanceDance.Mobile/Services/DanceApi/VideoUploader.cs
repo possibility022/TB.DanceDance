@@ -51,7 +51,7 @@ public class VideoUploader
                 FullFileName = fileInfo.FullName,
                 Sas = uploadInformation.Sas,
                 RemoteVideoId = uploadInformation.VideoId,
-                SasExpireAt = uploadInformation.ExpireAt,
+                SasExpireAt = uploadInformation.ExpireAt.UtcDateTime,
             });
             await _dbContext.SaveChangesAsync(token);
         }

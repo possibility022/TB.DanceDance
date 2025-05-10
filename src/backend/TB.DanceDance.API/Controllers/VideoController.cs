@@ -93,7 +93,7 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformations)
     {
         string? user = null;
         var sharedWith = sharedVideoInformations?.SharedWith;
@@ -146,9 +146,11 @@ public class VideoController : Controller
             sharedVideoInformations.SharingWithType == SharingWithType.Event,
             sharedVideoInformations.SharedWith.Value);
 
-        return new UploadVideoInformation()
+        return new UploadVideoInformationResponse()
         {
-            Sas = sharedBlob.Sas.ToString()
+            Sas = sharedBlob.Sas.ToString(),
+            VideoId = sharedBlob.VideoId,
+            ExpireAt = sharedBlob.ExpireAt
         };
     }
 

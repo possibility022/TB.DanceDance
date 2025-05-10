@@ -45,7 +45,7 @@ public class DanceHttpApiClient
         return content;
     }
 
-    public async Task<UploadVideoInformation?> GetUploadInformation(
+    public async Task<UploadVideoInformationResponse?> GetUploadInformation(
         string fileName,
         string nameOfVideo,
         SharingWithType sharingWith,
@@ -65,7 +65,7 @@ public class DanceHttpApiClient
         var response = await httpClient.PostAsJsonAsync("/api/videos/upload", request);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<UploadVideoInformation>();
+        var content = await response.Content.ReadFromJsonAsync<UploadVideoInformationResponse>();
         return content;
     }
 

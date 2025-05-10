@@ -22,6 +22,7 @@
             <RefreshView IsRefreshing="{Binding IsRefreshing}"
                          Command="{Binding RefreshCommand}">
                 <VerticalStackLayout Padding="30, 0">
+                    <Button Text="Upload Video" Command="{Binding NavigateToUploadGroupVideoCommand}"></Button>
                     <ScrollView Margin="0,10,0,0">
                         <VerticalStackLayout
                             BindableLayout.ItemsSource="{Binding Videos}">
@@ -42,7 +43,6 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </ScrollView>
-                    <Button Text="Upload Video" Command="{Binding NavigateToUploadGroupVideoCommand}"></Button>
                 </VerticalStackLayout>
             </RefreshView>
         </Grid>
