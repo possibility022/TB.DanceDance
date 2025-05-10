@@ -51,6 +51,12 @@ public partial class GroupVideosPageModel : ObservableObject
         });
     }
 
+    [RelayCommand]
+    private async Task NavigateToUploadGroupVideo()
+    {
+        await Shell.Current.GoToAsync("uploadVideoToGroup");
+    }
+
     private async Task LoadData()
     {
         var loadedVideos = await videoProvider.GetGroupVideosAsync();

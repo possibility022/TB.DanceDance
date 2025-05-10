@@ -32,11 +32,13 @@ public static class MauiProgram
 #endif
 
         builder.Services.AddTransient<VideoProvider>();
+        builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
 
         builder.Services.AddSingleton<EventsPageModel>();
         builder.Services.AddSingleton<GroupVideosPageModel>();
         builder.Services.AddSingleton<ITokenProviderService>(new StorageTokenProviderService());
         
+        builder.Services.AddTransientWithShellRoute<UploadGroupVideoPage, UploadGroupVideoPageModel>("uploadVideoToGroup");
         builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>("eventDetails");
         builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>("watchVideo");
         

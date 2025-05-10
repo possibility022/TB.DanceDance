@@ -42,6 +42,7 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </ScrollView>
+                    <Button Text="Upload Video" Command="{Binding NavigateToUploadGroupVideoCommand}"></Button>
                 </VerticalStackLayout>
             </RefreshView>
         </Grid>

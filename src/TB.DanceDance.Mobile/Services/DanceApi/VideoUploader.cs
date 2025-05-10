@@ -54,7 +54,6 @@ public class VideoUploader
                 SasExpireAt = uploadInformation.ExpireAt,
             });
             await _dbContext.SaveChangesAsync(token);
-            await _uploader.UploadFileAsync(fileStream, new Uri(uploadInformation.Sas), token);
         }
         else
         {
