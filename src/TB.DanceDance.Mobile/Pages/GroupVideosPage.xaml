@@ -19,12 +19,12 @@
     </ContentPage.Behaviors>
     <ContentPage.Content>
         <Grid>
-            <RefreshView IsRefreshing="{Binding IsRefreshing}"
-                         Command="{Binding RefreshCommand}">
-                <VerticalStackLayout Padding="30, 0">
-                    <Button Text="Upload Video" Command="{Binding NavigateToUploadGroupVideoCommand}"></Button>
-                    <ScrollView Margin="0,10,0,0">
-                        <VerticalStackLayout
+            <StackLayout Margin="10">
+                <Button Text="Upload Video" Command="{Binding NavigateToUploadGroupVideoCommand}"></Button>
+                <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                             Command="{Binding RefreshCommand}">
+                    <ScrollView Margin="0,10,0,0" Orientation="Vertical">
+                        <StackLayout
                             BindableLayout.ItemsSource="{Binding Videos}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:Video">
@@ -41,10 +41,10 @@
                                     </Border>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
+                        </StackLayout>
                     </ScrollView>
-                </VerticalStackLayout>
             </RefreshView>
+            </StackLayout>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

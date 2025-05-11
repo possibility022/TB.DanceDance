@@ -8,11 +8,11 @@
              x:DataType="pageModels:EventDetailsPageModel"
              x:Class="TB.DanceDance.Mobile.Pages.EventDetailsPage">
     <ContentPage.Content>
-        <RefreshView IsRefreshing="{Binding IsRefreshing}"
-                     Command="{Binding RefreshCommand}">
-            <VerticalStackLayout Padding="30, 0">
-                <ScrollView Margin="0,10,0,0">
-                    <VerticalStackLayout
+        <StackLayout Margin="10">
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefreshCommand}">
+                <ScrollView>
+                    <StackLayout
                         BindableLayout.ItemsSource="{Binding Videos}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:Video">
@@ -29,9 +29,9 @@
                                 </Border>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
+                    </StackLayout>
                 </ScrollView>
-            </VerticalStackLayout>
-        </RefreshView>
+            </RefreshView>
+        </StackLayout>
     </ContentPage.Content>
 </ContentPage>
