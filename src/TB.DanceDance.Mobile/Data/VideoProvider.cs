@@ -18,31 +18,14 @@ public class VideoProvider
     {
         var videosForEvent = await apiClient.GetVideosForEvent(eventId);
         var videos = Video.MapFromApiResponse(videosForEvent);
-        SetUploadState(videos);
 
         return videos;
-    }
-
-    private void SetUploadState(List<Video> videos)
-    {
-        var videosToUpload = videoDbContext.VideosToUpload
-            .Where(r => r.Uploaded == false)
-            .ToDictionary(r => r.RemoteVideoId);
-
-        foreach (var video in videos)
-        {
-            if (videosToUpload.TryGetValue(video.Id, out var videoToUpload))
-            {
-                video.UploadState = new UploadState() { Uploaded = videoToUpload.Uploaded, };
-            }
-        }
     }
 
     public async Task<List<Video>> GetGroupVideosAsync()
     {
         var response = await apiClient.GetVideosFromGroups();
         var videos = Video.MapFromApiResponse(response);
-        SetUploadState(videos);
         return videos;
     }
 }
