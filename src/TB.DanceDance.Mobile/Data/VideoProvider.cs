@@ -6,12 +6,10 @@ namespace TB.DanceDance.Mobile.Data;
 public class VideoProvider
 {
     private readonly DanceHttpApiClient apiClient;
-    private readonly VideosDbContext videoDbContext;
 
-    public VideoProvider(DanceHttpApiClient apiClient, VideosDbContext videoDbContext)
+    public VideoProvider(DanceHttpApiClient apiClient)
     {
         this.apiClient = apiClient;
-        this.videoDbContext = videoDbContext;
     }
 
     public async Task<List<Video>> GetEventVideos(Guid eventId)
