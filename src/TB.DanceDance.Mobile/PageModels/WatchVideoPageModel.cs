@@ -17,7 +17,9 @@ public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
     private async Task LoadData(string videoBlobId)
     {
         var path = Path.Combine(FileSystem.Current.CacheDirectory, videoBlobId + ".mp4");
-        using var stream = await apiClient.GetStream(videoBlobId);
+
+#if DEBUG
+        await using var stream = await apiClient.GetStream(videoBlobId);
         try
         {
             using var fileStream = File.OpenWrite(path);
@@ -33,6 +35,21 @@ public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
             if (File.Exists(path))
                 File.Delete(path);
         }
+        
+#else
+        try
+        {
+            var uri = apiClient.GetVideoUri(videoBlobId);
+            var mediaSource = MediaSource.FromUri(uri.ToString());
+            if (mediaSource != null)
+                Media = mediaSource;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+#endif
+
     }
 
     [ObservableProperty] private MediaSource media = null;
