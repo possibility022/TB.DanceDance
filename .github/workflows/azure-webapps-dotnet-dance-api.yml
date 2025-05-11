@@ -59,11 +59,11 @@ jobs:
       - name: dotnet publish
         run: dotnet publish ./src/backend/TB.DanceDance.API/TB.DanceDance.API.csproj -c Release -o ${{env.PACKAGE_PATH}}/API
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
-        with:
-          name: .net-dancedance-api
-          path: ${{env.PACKAGE_PATH}}/API
+#      - name: Upload artifact for deployment job
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: .net-dancedance-api
+#          path: ${{env.PACKAGE_PATH}}/API
 
   deploy:
     permissions:
