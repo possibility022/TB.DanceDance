@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Diagnostics;
+using System.Net.Http.Json;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
@@ -35,14 +36,22 @@ public class DanceHttpApiClient
 
     public async Task<ICollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId)
     {
-        var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
-        response.EnsureSuccessStatusCode();
-        
-        var content = await response.Content.ReadFromJsonAsync<ICollection<VideoInformationResponse>>();
-        if (content == null)
-            return Array.Empty<VideoInformationResponse>();
-        
-        return content;
+        try
+        {
+            var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadFromJsonAsync<ICollection<VideoInformationResponse>>();
+            if (content == null)
+                return Array.Empty<VideoInformationResponse>();
+
+            return content;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            throw;
+        }
     }
 
     public async Task<UploadVideoInformationResponse?> GetUploadInformation(

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Diagnostics;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Models;
 
@@ -48,6 +49,7 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
         }
         catch (Exception e)
         {
+            Debug.WriteLine(e);
             //todo _errorHandler.HandleError(e);
         }
         finally
