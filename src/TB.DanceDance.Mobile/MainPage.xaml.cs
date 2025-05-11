@@ -11,10 +11,6 @@ public partial class MainPage : ContentPage
 
     private void OnCounterClicked(object sender, EventArgs e)
     {
-#if ANDROID
-        Platform.CurrentActivity?.StartForegroundServiceCompat<UploadForegroundService>();
-#endif
-        
         count++;
 
         if (count == 1)
