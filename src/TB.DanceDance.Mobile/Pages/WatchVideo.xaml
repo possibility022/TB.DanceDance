@@ -9,6 +9,10 @@
     <ContentPage.Content>
         <toolkit:MediaElement Source="{Binding Media}"
                               ShouldShowPlaybackControls="True"
+                              ShouldAutoPlay="True"
+                              ShouldLoopPlayback="True"
+                              ShouldKeepScreenOn="True"
+                              ShouldMute="True"
                               >
             
         </toolkit:MediaElement>
