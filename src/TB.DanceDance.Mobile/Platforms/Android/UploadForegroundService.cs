@@ -58,10 +58,14 @@ public class UploadForegroundService : Service
         if (intent.Action == nameof(ServiceAction.Start))
         {
             RegisterNotification();
-            // if (cancellationTokenSource?.IsCancellationRequested != false
-            //     && uploadingTask == null
-            //    )
-            //     uploadingTask = Uploading();
+            if (cancellationTokenSource?.IsCancellationRequested != false
+                && uploadingTask == null)
+            {
+                if (cancellationTokenSource is null || cancellationTokenSource?.IsCancellationRequested == true)
+                    cancellationTokenSource = new CancellationTokenSource();
+                
+                this.uploadingTask = Task.Run(Uploading);
+            }
         } else if (intent.Action == nameof(ServiceAction.Stop))
         {
             StopForeground(StopForegroundFlags.Remove);
@@ -104,13 +108,19 @@ public class UploadForegroundService : Service
     {
         try
         {
-            if (cancellationTokenSource is null || cancellationTokenSource?.IsCancellationRequested == true)
-                cancellationTokenSource = new CancellationTokenSource();
-
             VideosToUpload? video = null;
+
+            if (dbContext.VideosToUpload.Count() > 4)
+            {
+                dbContext.VideosToUpload.RemoveRange(dbContext.VideosToUpload.ToList());
+                await dbContext.SaveChangesAsync();
+            }
+
             while ((video = dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false)) != null)
             {
                 await videoUploader.Upload(video, cancellationTokenSource!.Token);
+                video.Uploaded = true;
+                await dbContext.SaveChangesAsync();
             }
         }
         catch (Exception ex)

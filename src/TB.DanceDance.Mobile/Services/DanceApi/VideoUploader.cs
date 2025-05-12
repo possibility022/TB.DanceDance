@@ -29,19 +29,12 @@ public class VideoUploader
         if (videoToUpload.Sas == null)
             throw new Exception("Sas is null"); //todo
 
-        if (videoToUpload.SasExpireAt > DateTime.Now)
+        if (videoToUpload.SasExpireAt < DateTime.Now.AddMinutes(-5))
             throw new Exception("Sas expired"); //todo
 
-        try
-        {
-            FileInfo fileInfo = new FileInfo(videoToUpload.FullFileName);
-            await using var fileStream = fileInfo.OpenRead();
-            await _uploader.UploadFileAsync(fileStream, new Uri(videoToUpload.Sas), token);
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine(e);
-        }
+        FileInfo fileInfo = new FileInfo(videoToUpload.FullFileName);
+        await using var fileStream = fileInfo.OpenRead();
+        await _uploader.UploadFileAsync(fileStream, new Uri(videoToUpload.Sas), token);
     }
 
     public async Task AddToUploadList(string? name, string filePath, Guid groupId, CancellationToken token)
