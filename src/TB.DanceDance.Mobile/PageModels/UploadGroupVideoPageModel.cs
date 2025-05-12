@@ -50,7 +50,7 @@ public partial class UploadGroupVideoPageModel : ObservableObject
         {
             foreach (FileResult file in SelectedFiles)
             {
-                await videoUploader.UploadVideoToGroup(file.FileName, file.FullPath, Groups[SelectedGroupIndex].Id,
+                await videoUploader.AddToUploadList(file.FileName, file.FullPath, Groups[SelectedGroupIndex].Id,
                     CancellationToken.None);
             }
         }

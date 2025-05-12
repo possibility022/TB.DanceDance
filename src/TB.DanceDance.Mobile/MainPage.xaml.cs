@@ -12,9 +12,17 @@ public partial class MainPage : ContentPage
     private void OnCounterClicked(object sender, EventArgs e)
     {
 #if ANDROID
-        Platform.CurrentActivity?.StartForegroundServiceCompat<UploadForegroundService>();
+        try
+        {
+            UploadForegroundService.StartService();
+            //Platform.CurrentActivity?.StartForegroundServiceCompat<UploadForegroundService>();
+        }
+        catch (Exception ex)
+        {
+            ErrorDetails.Text = ex.ToString();
+        }
 #endif
-        
+
         count++;
 
         if (count == 1)
@@ -25,4 +33,3 @@ public partial class MainPage : ContentPage
         SemanticScreenReader.Announce(CounterBtn.Text);
     }
 }
-

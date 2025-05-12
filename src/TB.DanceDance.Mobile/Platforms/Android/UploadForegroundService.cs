@@ -4,6 +4,7 @@ using Android.OS;
 using Android.Util;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Services.DanceApi;
+using Debug = System.Diagnostics.Debug;
 
 namespace TB.DanceDance.Mobile;
 
@@ -14,6 +15,12 @@ public class UploadForegroundService : Service
     private readonly VideoUploader videoUploader;
     private readonly IServiceScope serviceScope;
     private CancellationTokenSource? cancellationTokenSource;
+    
+    public enum ServiceAction
+    {
+        Start,
+        Stop
+    }
 
     public UploadForegroundService()
     {
@@ -40,18 +47,45 @@ public class UploadForegroundService : Service
         return null;
     }
 
-    public override void OnCreate()
-    {
-        base.OnCreate();
-        if (cancellationTokenSource?.IsCancellationRequested == true)
-            cancellationTokenSource = new CancellationTokenSource();
-    }
-
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         // Code not directly related to publishing the notification has been omitted for clarity.
         // Normally, this method would hold the code to be run when the service is started.
 
+        if (intent == null)
+            throw new ArgumentNullException(nameof(intent));
+        
+        if (intent.Action == nameof(ServiceAction.Start))
+        {
+            RegisterNotification();
+            // if (cancellationTokenSource?.IsCancellationRequested != false
+            //     && uploadingTask == null
+            //    )
+            //     uploadingTask = Uploading();
+        } else if (intent.Action == nameof(ServiceAction.Stop))
+        {
+            StopForeground(StopForegroundFlags.Remove);
+            StopSelfResult(startId);
+        }
+
+        return StartCommandResult.RedeliverIntent;
+    }
+
+    public static void StartService()
+    {
+        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null)
+            throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null");
+        
+        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null)
+            throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null");
+        
+        Intent startService = new Intent(Platform.CurrentActivity.ApplicationContext, typeof(UploadForegroundService));
+        startService.SetAction(nameof(ServiceAction.Start));
+        Platform.CurrentActivity.ApplicationContext.StartService(startService);
+    }
+
+    private void RegisterNotification()
+    {
         var notification = new Notification.Builder(this, "tb.dancedance.app")
             .SetContentTitle("Uploading Videos")
             .SetContentText("Videos content :)")
@@ -64,20 +98,30 @@ public class UploadForegroundService : Service
 
         // Enlist this instance of the service as a foreground service
         StartForeground(ServiceRunningNotificationId, notification);
-        if (cancellationTokenSource?.IsCancellationRequested == false
-            && uploadingTask == null
-            )
-            uploadingTask = Uploading();
-
-        return StartCommandResult.RedeliverIntent;
     }
 
     private async Task Uploading()
     {
-        VideosToUpload? video = null;
-        while ((video = dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false)) != null)
+        try
         {
-            await videoUploader.UploadVideoToGroup(video.FileName, video.FullFileName, Guid.Empty, cancellationTokenSource!.Token);
+            if (cancellationTokenSource is null || cancellationTokenSource?.IsCancellationRequested == true)
+                cancellationTokenSource = new CancellationTokenSource();
+
+            VideosToUpload? video = null;
+            while ((video = dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false)) != null)
+            {
+                await videoUploader.Upload(video, cancellationTokenSource!.Token);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+        finally
+        {
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = null;
+            uploadingTask = null;
         }
     }
 

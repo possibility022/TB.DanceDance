@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Mobile.Data;
 
@@ -17,29 +18,55 @@ public class VideoUploader
         _dbContext = dbContext;
     }
 
-    public async Task UploadVideoToGroup(string? name, string filePath, Guid groupId, CancellationToken token)
+    public async Task Upload(VideosToUpload videoToUpload, CancellationToken token)
+    {
+        if (videoToUpload == null)
+            throw new ArgumentNullException(nameof(videoToUpload));
+
+        if (videoToUpload.Uploaded)
+            return;
+
+        if (videoToUpload.Sas == null)
+            throw new Exception("Sas is null"); //todo
+
+        if (videoToUpload.SasExpireAt > DateTime.Now)
+            throw new Exception("Sas expired"); //todo
+
+        try
+        {
+            FileInfo fileInfo = new FileInfo(videoToUpload.FullFileName);
+            await using var fileStream = fileInfo.OpenRead();
+            await _uploader.UploadFileAsync(fileStream, new Uri(videoToUpload.Sas), token);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e);
+        }
+    }
+
+    public async Task AddToUploadList(string? name, string filePath, Guid groupId, CancellationToken token)
     {
         FileInfo fileInfo = new FileInfo(filePath);
         if (string.IsNullOrWhiteSpace(name))
             name = fileInfo.Name;
 
-        var existingEntry = 
-            await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath, cancellationToken: token);
-        
+        var existingEntry =
+            await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
+                cancellationToken: token);
+
         if (existingEntry?.Uploaded == true)
             return;
-        
+
         var uploadInformation = await _apiClient.GetUploadInformation(fileInfo.Name,
             name,
             SharingWithType.Group,
             groupId,
             fileInfo.CreationTimeUtc
         );
-        
+
         if (uploadInformation == null)
             throw new Exception("Upload Information could not be found");
-        
-        await using var fileStream = fileInfo.OpenRead();
+
 
         if (existingEntry is null)
         {
@@ -55,14 +82,9 @@ public class VideoUploader
             });
             await _dbContext.SaveChangesAsync(token);
         }
-        else
-        {
-            await _uploader.ResumeUploadAsync(fileStream, new Uri(uploadInformation.Sas), token);
-        }   
     }
 
     public void UploadVideoToEvent(string filePath, Guid eventName)
     {
-        
     }
 }
