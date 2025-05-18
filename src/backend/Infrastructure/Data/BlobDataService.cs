@@ -64,7 +64,10 @@ public class BlobDataService : IBlobDataService
             ExpiresOn = DateTimeOffset.Now.AddDays(7) 
         };
 
-        sasBuilder.SetPermissions(BlobSasPermissions.Create | BlobSasPermissions.Write);
+        sasBuilder.SetPermissions(BlobSasPermissions.Create | 
+                                  BlobSasPermissions.Add | 
+                                  BlobSasPermissions.Read |
+                                  BlobSasPermissions.Write);
         var sas = blobClient.GenerateSasUri(sasBuilder);
         return new SharedBlob()
         {
