@@ -44,7 +44,7 @@ public partial class UploadGroupVideoPageModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task UploadSelectedVideos()
+    private async Task UploadSelectedVideos()   
     {
         if (SelectedGroupIndex > -1)
         {
@@ -53,6 +53,8 @@ public partial class UploadGroupVideoPageModel : ObservableObject
                 await videoUploader.AddToUploadList(file.FileName, file.FullPath, Groups[SelectedGroupIndex].Id,
                     CancellationToken.None);
             }
+            
+            await Shell.Current.GoToAsync("//UploadManagerPage");
         }
     }
     
@@ -74,6 +76,6 @@ public partial class UploadGroupVideoPageModel : ObservableObject
             // The user canceled or something went wrong
         }
 
-        return Array.Empty<FileResult>();
+        return [];
     }
 }
