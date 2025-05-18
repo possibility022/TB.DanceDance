@@ -24,6 +24,15 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
         });
     }
 
+    [RelayCommand]
+    private async Task NavigateToUploadToEvent()
+    {
+        await Shell.Current.GoToAsync("uploadVideoPage", new Dictionary<string, object>()
+        {
+            { "eventId", EventId }
+        });
+    }
+
     [ObservableProperty] Guid eventId;
     
     [ObservableProperty] List<Video> videos = [];

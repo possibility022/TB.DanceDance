@@ -4,7 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
-             xmlns:models="clr-namespace:TB.DanceDance.API.Contracts.Models;assembly=TB.DanceDance.API.Contracts"
+             xmlns:models="clr-namespace:TB.DanceDance.Mobile.Data.Models"
              x:DataType="pageModels:EventsPageModel"
              x:Name="EventsPageView"
              x:Class="TB.DanceDance.Mobile.Pages.EventsPage">

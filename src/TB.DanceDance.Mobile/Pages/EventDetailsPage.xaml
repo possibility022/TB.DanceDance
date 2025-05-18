@@ -8,6 +8,7 @@
              x:Class="TB.DanceDance.Mobile.Pages.EventDetailsPage">
     <ContentPage.Content>
         <StackLayout Margin="10">
+            <Button Text="Upload Video" Command="{Binding NavigateToUploadToEventCommand}"></Button>
             <RefreshView IsRefreshing="{Binding IsRefreshing}"
                          Command="{Binding RefreshCommand}">
                 <ScrollView>

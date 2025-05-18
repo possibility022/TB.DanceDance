@@ -11,7 +11,7 @@ public partial class UploadManagerPage : ContentPage
 {
     public UploadManagerPage(UploadManagerPageModel model)
     {
-        InitializeComponent();
         BindingContext = model;
+        InitializeComponent();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
@@ -66,21 +67,50 @@ public class VideoUploader
 
         if (existingEntry is null)
         {
-            _dbContext.VideosToUpload.Add(new VideosToUpload()
-            {
-                Id = Guid.NewGuid(),
-                FileName = fileInfo.Name,
-                Uploaded = false,
-                FullFileName = fileInfo.FullName,
-                Sas = uploadInformation.Sas,
-                RemoteVideoId = uploadInformation.VideoId,
-                SasExpireAt = uploadInformation.ExpireAt.UtcDateTime,
-            });
+            _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
             await _dbContext.SaveChangesAsync(token);
         }
     }
 
-    public void UploadVideoToEvent(string filePath, Guid eventName)
+    private static VideosToUpload MapToEntity(FileInfo fileInfo, UploadVideoInformationResponse uploadInformation)
     {
+        return new VideosToUpload()
+        {
+            Id = Guid.NewGuid(),
+            FileName = fileInfo.Name,
+            Uploaded = false,
+            FullFileName = fileInfo.FullName,
+            Sas = uploadInformation.Sas,
+            RemoteVideoId = uploadInformation.VideoId,
+            SasExpireAt = uploadInformation.ExpireAt.UtcDateTime,
+        };
+    }
+
+    public async Task UploadVideoToEvent(string filePath, Guid eventId, CancellationToken token)
+    {
+        FileInfo fileInfo = new FileInfo(filePath);
+        
+        var existingEntry =
+            await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
+                cancellationToken: token);
+
+        if (existingEntry?.Uploaded == true)
+            return;
+
+        var uploadInformation = await _apiClient.GetUploadInformation(fileInfo.Name,
+            fileInfo.Name,
+            SharingWithType.Event,
+            eventId,
+            fileInfo.CreationTimeUtc
+        );
+
+        if (uploadInformation == null)
+            throw new Exception("Upload Information could not be found");
+        
+        if (existingEntry is null)
+        {
+            _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
+            await _dbContext.SaveChangesAsync(token);
+        }
     }
 }
