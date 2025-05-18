@@ -31,6 +31,8 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
+        builder.Services.AddSingleton<MainPageViewModel>();
+        
         builder.Services.AddTransient<VideoProvider>();
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
 
