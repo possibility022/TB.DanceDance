@@ -1,5 +1,4 @@
-﻿using IdentityModel.OidcClient;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text.Json;
 
 namespace TB.DanceDance.Mobile.Services.Auth;
@@ -12,6 +11,12 @@ static class TokenStorage
     public static void SetToken(SecurityToken token)
     {
         Token = token;
+    }
+
+    public static void ClearToken()
+    {
+        Token = null;
+        SecureStorage.Default.SetAsync(cache_key, string.Empty);
     }
     
     public static async Task SaveRefreshTokenInStorage()

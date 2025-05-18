@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -24,22 +24,26 @@
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
-            Spacing="25"
-            IsVisible="{Binding LoginInProgress, Converter={StaticResource InverseBooleanConverter}}"
-            >
+            Spacing="25">
+            <VerticalStackLayout IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}">
+                <Label
+                    Text="Hello! Please sign in :)"
+                    Style="{StaticResource Headline}"
+                    SemanticProperties.HeadingLevel="Level1" />
 
-            <Label
-                Text="Hello! Please sign in :)"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
+                <ActivityIndicator IsRunning="true" IsVisible="{Binding LoginInProgress}" />
 
-            <ActivityIndicator IsRunning="true" IsVisible="{Binding LoginInProgress}" />
-            
-            <Button
-                Text="Login"
-                Command="{Binding LoginCommand}"
-                IsEnabled="{Binding LoginEnabled}"
-                HorizontalOptions="Fill" />
+                <Button
+                    Text="Login"
+                    Command="{Binding LoginCommand}"
+                    IsEnabled="{Binding LoginEnabled}"
+                    HorizontalOptions="Fill" />
+            </VerticalStackLayout>
+            <VerticalStackLayout IsVisible="{Binding IsLoggedIn}">
+                <Button Text="Events" HorizontalOptions="Fill" Command="{Binding NavigateToEventsCommand}"></Button>
+                <Button Text="Group Videos" HorizontalOptions="Fill" Command="{Binding NavigateToGroupsCommand}"></Button>
+                <Button Text="Logout" HorizontalOptions="Fill" Command="{Binding LogoutCommand}"></Button>
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 

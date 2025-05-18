@@ -25,6 +25,26 @@ public partial class MainPageViewModel : ObservableObject
     private bool loginInProgress;
 
     [RelayCommand]
+    private async Task NavigateToGroups()
+    {
+        await Shell.Current.GoToAsync("//GroupVideosPage");
+    }
+    
+    [RelayCommand]
+    private async Task NavigateToEvents()
+    {
+        await Shell.Current.GoToAsync("//EventsPage");
+    }
+    
+    [RelayCommand]
+    private async Task Logout()
+    {
+        TokenStorage.ClearToken();
+        LoginEnabled = true;
+        IsLoggedIn = false;
+    }
+
+    [RelayCommand]
     private async Task Login()
     {
         try
