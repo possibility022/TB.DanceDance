@@ -91,7 +91,7 @@ public class DanceHttpApiClient
     {
         var builder = new UriBuilder(httpClient.BaseAddress);
         builder.Path = $"/api/videos/{videoBlobId}/stream";
-        builder.Query = $"?token={TokenStorage.LoginResult?.AccessToken}";
+        builder.Query = $"?token={TokenStorage.Token?.AccessToken}";
 
         return builder.Uri;
     }

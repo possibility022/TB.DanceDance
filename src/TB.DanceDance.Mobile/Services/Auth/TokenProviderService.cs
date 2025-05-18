@@ -1,6 +1,5 @@
 ﻿using IdentityModel.OidcClient;
-using System;
-using System.Threading.Tasks;
+using IdentityModel.OidcClient.Results;
 
 namespace TB.DanceDance.Mobile.Services.Auth;
 
@@ -13,14 +12,46 @@ public class TokenProviderService : ITokenProviderService
         this.oidcClient = oidcClient;
     }
 
-    private async Task<LoginResult?> FetchAccessToken()
+    private async Task<SecurityToken?> FetchAccessToken()
     {
+        if (TokenStorage.Token?.RefreshToken is null)
+            await TokenStorage.LoadRefreshTokenFromStorage();
+        
+        if (TokenStorage.Token?.RefreshToken is not null)
+        {
+            RefreshTokenResult? refreshResults = await oidcClient.RefreshTokenAsync(TokenStorage.Token.RefreshToken);
+            if (refreshResults is not null && !refreshResults.IsError)
+            {
+                TokenStorage.SetToken(new SecurityToken()
+                {
+                    RefreshToken = refreshResults.RefreshToken,
+                    AccessToken = refreshResults.AccessToken,
+                    IdentityToken = refreshResults.IdentityToken,
+                    AccessTokenExpiration = refreshResults.AccessTokenExpiration
+                });
+
+                await TokenStorage.SaveRefreshTokenInStorage();
+                
+                return TokenStorage.Token;
+            }
+        }
+
         var response = await oidcClient.LoginAsync();
 
-        if (response != null)
-            TokenStorage.LoginResult = response;
+        if (response?.IsError == false)
+        {
+            TokenStorage.SetToken(new SecurityToken()
+            {
+                RefreshToken = response.RefreshToken,
+                AccessToken = response.AccessToken,
+                IdentityToken = response.IdentityToken,
+                AccessTokenExpiration = response.AccessTokenExpiration
+            });
+            
+            await TokenStorage.SaveRefreshTokenInStorage();
+        }
 
-        return response;
+        return TokenStorage.Token;
     }
 
     /// <summary>
@@ -29,14 +60,14 @@ public class TokenProviderService : ITokenProviderService
     /// <returns>Valid access token or null if login failed.</returns>
     public async Task<string?> GetAccessToken()
     {
-        if (TokenStorage.LoginResult == null 
-            || TokenStorage.LoginResult.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(-5))
+        if (TokenStorage.Token?.AccessToken == null 
+            || TokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(-5))
         {
             var token = await FetchAccessToken();
             return token?.AccessToken;
         }
 
-        return TokenStorage.LoginResult.AccessToken;
+        return TokenStorage.Token.AccessToken;
     }
 }
 
@@ -44,7 +75,7 @@ public class StorageTokenProviderService : ITokenProviderService
 {
     public Task<string?> GetAccessToken()
     {
-        return Task.FromResult(TokenStorage.LoginResult?.AccessToken);
+        return Task.FromResult(TokenStorage.Token?.AccessToken);
     }
 }
 
