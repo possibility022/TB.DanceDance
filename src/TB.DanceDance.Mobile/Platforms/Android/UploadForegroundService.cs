@@ -73,6 +73,7 @@ public class UploadForegroundService : Service
             }
         } else if (intent.Action == nameof(ServiceAction.Stop))
         {
+            cancellationTokenSource?.Cancel();
             StopForeground(StopForegroundFlags.Remove);
             StopSelfResult(startId);
         }
@@ -90,6 +91,19 @@ public class UploadForegroundService : Service
         
         Intent startService = new Intent(Platform.CurrentActivity.ApplicationContext, typeof(UploadForegroundService));
         startService.SetAction(nameof(ServiceAction.Start));
+        Platform.CurrentActivity.ApplicationContext.StartService(startService);
+    }
+
+    public static void StopService()
+    {
+        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null)
+            throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null");
+        
+        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null)
+            throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null");
+        
+        Intent startService = new Intent(Platform.CurrentActivity.ApplicationContext, typeof(UploadForegroundService));
+        startService.SetAction(nameof(ServiceAction.Stop));
         Platform.CurrentActivity.ApplicationContext.StartService(startService);
     }
 

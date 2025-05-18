@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
 
@@ -16,6 +17,36 @@ public partial class UploadManagerPageModel : ObservableObject
     }
 
     [ObservableProperty] List<VideosToUpload> toUpload = new List<VideosToUpload>();
+
+    [RelayCommand]
+    private async Task UploadClicked()
+    {
+#if ANDROID
+        try
+        {
+            UploadForegroundService.StartService();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+#endif
+    }
+
+    [RelayCommand]
+    private async Task StopClicked()
+    {
+#if ANDROID
+        try
+        {
+            UploadForegroundService.StopService();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+#endif
+    }
 
     [RelayCommand]
     private async Task Appearing()
