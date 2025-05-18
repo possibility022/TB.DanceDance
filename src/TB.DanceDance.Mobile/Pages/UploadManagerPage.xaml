@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:models="clr-namespace:TB.DanceDance.Mobile.Data.Models.Storage"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             x:DataType="pageModels:UploadManagerPageModel"
+             x:Name="UploadManagerPageView"
+             x:Class="TB.DanceDance.Mobile.Pages.UploadManagerPage">
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Appearing"
+            BindingContext="{Binding Path=BindingContext, 
+        Source={x:Reference UploadManagerPageView}, 
+        x:DataType=pageModels:UploadManagerPageModel}"
+            Command="{Binding AppearingCommand}">
+        </toolkit:EventToCommandBehavior>
+    </ContentPage.Behaviors>
+    <ContentPage.Content>
+        <StackLayout Margin="10">
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefreshCommand}">
+                <ScrollView Margin="0,10,0,0">
+                    <StackLayout
+                        BindableLayout.ItemsSource="{Binding ToUpload}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:VideosToUpload">
+                                <Border Padding="10" Margin="0,10,0,0">
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding FileName}" FontSize="24">
+                                        </Label>
+                                        <Label Text="{Binding Uploaded}" FontSize="24"></Label>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </StackLayout>
+                </ScrollView>
+            </RefreshView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

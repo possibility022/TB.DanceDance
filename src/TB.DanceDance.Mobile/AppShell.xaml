@@ -21,6 +21,11 @@
     <ShellContent
         Title="Group Videos"
         ContentTemplate="{DataTemplate pages:GroupVideosPage}"
-        Route="GroupVideosPage" />
+        Route="GroupVideosPage" />    
+    
+    <ShellContent
+        Title="Upload Manager"
+        ContentTemplate="{DataTemplate pages:UploadManagerPage}"
+        Route="UploadManagerPage" />
     
 </Shell>

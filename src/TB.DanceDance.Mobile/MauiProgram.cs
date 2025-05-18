@@ -36,6 +36,7 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<EventsPageModel>();
         builder.Services.AddSingleton<GroupVideosPageModel>();
+        builder.Services.AddSingleton<UploadManagerPageModel>();
         builder.Services.AddSingleton<ITokenProviderService>(new StorageTokenProviderService());
         
         builder.Services.AddTransientWithShellRoute<UploadGroupVideoPage, UploadGroupVideoPageModel>("uploadVideoToGroup");
