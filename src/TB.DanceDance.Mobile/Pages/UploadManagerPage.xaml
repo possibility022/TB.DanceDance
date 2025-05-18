@@ -5,6 +5,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Data.Models.Storage"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
              x:DataType="pageModels:UploadManagerPageModel"
              x:Name="UploadManagerPageView"
              x:Class="TB.DanceDance.Mobile.Pages.UploadManagerPage">
@@ -17,6 +18,11 @@
             Command="{Binding AppearingCommand}">
         </toolkit:EventToCommandBehavior>
     </ContentPage.Behaviors>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:ColorConverter x:Key="ColorConverter"></converters:ColorConverter>
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <ContentPage.Content>
         <StackLayout Margin="10">
             <RefreshView IsRefreshing="{Binding IsRefreshing}"
@@ -26,11 +32,12 @@
                         BindableLayout.ItemsSource="{Binding ToUpload}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:VideosToUpload">
-                                <Border Padding="10" Margin="0,10,0,0">
+                                <Border Padding="10"
+                                        BackgroundColor="{Binding Uploaded, Converter={StaticResource ColorConverter}, ConverterParameter=#FF20B2AA}"
+                                        Margin="0,10,0,0">
                                     <VerticalStackLayout>
                                         <Label Text="{Binding FileName}" FontSize="24">
                                         </Label>
-                                        <Label Text="{Binding Uploaded}" FontSize="24"></Label>
                                     </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>
