@@ -36,6 +36,8 @@ public class VideoUploader
         FileInfo fileInfo = new FileInfo(videoToUpload.FullFileName);
         await using var fileStream = fileInfo.OpenRead();
         await _uploader.ResumeUploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
+        
+        videoToUpload.Uploaded = true;
     }
 
     public async Task AddToUploadList(string? name, string filePath, Guid groupId, CancellationToken token)

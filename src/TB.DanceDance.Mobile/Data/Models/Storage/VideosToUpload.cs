@@ -13,7 +13,7 @@ public class VideosToUpload
     public string FileName { get; set; } = string.Empty;
     public bool Uploaded { get; set; }
     public Guid RemoteVideoId { get; set; }
-    
+
     [MaxLength(1024)]
     public string Sas { get; set; } = string.Empty;
     public DateTime SasExpireAt { get; set; }

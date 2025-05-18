@@ -3,9 +3,7 @@ using Android.Content;
 using Android.OS;
 using Android.Util;
 using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Data.Models.Storage;
 using TB.DanceDance.Mobile.Services.DanceApi;
-using Debug = System.Diagnostics.Debug;
 
 namespace TB.DanceDance.Mobile;
 
@@ -109,15 +107,13 @@ public class UploadForegroundService : Service
     {
         try
         {
-            VideosToUpload? video = null;
-
             if (dbContext.VideosToUpload.Count() > 4)
             {
                 dbContext.VideosToUpload.RemoveRange(dbContext.VideosToUpload.ToList());
                 await dbContext.SaveChangesAsync();
             }
 
-            while ((video = dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false)) != null)
+            while (dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false) is { } video)
             {
                 await videoUploader.Upload(video, cancellationTokenSource!.Token);
                 video.Uploaded = true;
