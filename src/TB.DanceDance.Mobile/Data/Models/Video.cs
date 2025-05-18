@@ -1,6 +1,6 @@
 ﻿using TB.DanceDance.API.Contracts.Responses;
 
-namespace TB.DanceDance.Mobile.Models;
+namespace TB.DanceDance.Mobile.Data.Models;
 
 public record UploadState
 {

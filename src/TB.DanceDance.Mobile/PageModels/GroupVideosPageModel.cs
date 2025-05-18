@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Models;
+using TB.DanceDance.Mobile.Data.Models;
 
 namespace TB.DanceDance.Mobile.PageModels;
 

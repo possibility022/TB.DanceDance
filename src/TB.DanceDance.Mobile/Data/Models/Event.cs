@@ -1,4 +1,4 @@
-﻿namespace TB.DanceDance.Mobile.Models;
+﻿namespace TB.DanceDance.Mobile.Data.Models;
 
 public record Event
 {
