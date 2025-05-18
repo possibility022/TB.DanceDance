@@ -1,9 +1,11 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
+using Android.Runtime;
 using Android.Util;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Services.DanceApi;
+using Debug = System.Diagnostics.Debug;
 
 namespace TB.DanceDance.Mobile;
 
@@ -15,6 +17,9 @@ public class UploadForegroundService : Service
     private readonly IServiceScope serviceScope;
     private CancellationTokenSource? cancellationTokenSource;
     
+    const string channelId = "tbupload";
+    const string channelName = "Uploading Dance Video";
+
     public enum ServiceAction
     {
         Start,
@@ -46,6 +51,7 @@ public class UploadForegroundService : Service
         return null;
     }
 
+    [return:GeneratedEnum]
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         // Code not directly related to publishing the notification has been omitted for clarity.
@@ -62,7 +68,7 @@ public class UploadForegroundService : Service
             {
                 if (cancellationTokenSource is null || cancellationTokenSource?.IsCancellationRequested == true)
                     cancellationTokenSource = new CancellationTokenSource();
-                
+                Debug.WriteLine("Starting upload Task");
                 this.uploadingTask = Task.Run(Uploading);
             }
         } else if (intent.Action == nameof(ServiceAction.Stop))
@@ -89,40 +95,36 @@ public class UploadForegroundService : Service
 
     private void RegisterNotification()
     {
-        var notification = new Notification.Builder(this, "tb.dancedance.app")
-            .SetContentTitle("Uploading Videos")
-            .SetContentText("Videos content :)")
-            .SetSmallIcon(Resource.Drawable.abc_ic_arrow_drop_right_black_24dp)
-            //.SetContentIntent(BuildIntentToShowMainActivity())
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationImportance.Max);
+        NotificationManager manager = (NotificationManager)Platform.AppContext.GetSystemService(Context.NotificationService);
+        manager.CreateNotificationChannel(channel);
+        Notification notification = new Notification.Builder(this, channelId)
+            .SetContentTitle(channelName)
+            .SetSmallIcon(Resource.Drawable.abc_ab_share_pack_mtrl_alpha)
             .SetOngoing(true)
-            //.AddAction(BuildRestartTimerAction())
-            //.AddAction(BuildStopServiceAction())
             .Build();
 
-        // Enlist this instance of the service as a foreground service
-        StartForeground(ServiceRunningNotificationId, notification);
+        StartForeground(100, notification);
     }
 
     private async Task Uploading()
     {
         try
         {
-            if (dbContext.VideosToUpload.Count() > 4)
-            {
-                dbContext.VideosToUpload.RemoveRange(dbContext.VideosToUpload.ToList());
-                await dbContext.SaveChangesAsync();
-            }
-
+            Debug.WriteLine("Starting looking for videos to upload.");
             while (dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false) is { } video)
             {
+                Debug.WriteLine("Uploading one video.");
                 await videoUploader.Upload(video, cancellationTokenSource!.Token);
                 video.Uploaded = true;
+                Debug.WriteLine("Video uploaded.");
                 await dbContext.SaveChangesAsync();
             }
+            Debug.WriteLine("All videos uploaded.");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(ex);
+            System.Diagnostics.Debug.WriteLine("Foreground Service Exception. Exception: " + ex.ToString());
         }
         finally
         {
@@ -136,7 +138,6 @@ public class UploadForegroundService : Service
     {
         Log.Info("Dance Service", DateTime.Now.ToLongTimeString() + ": On Destroy");
         cancellationTokenSource?.Cancel();
-        uploadingTask?.Dispose();
         uploadingTask = null;
         serviceScope?.Dispose();
         base.OnDestroy();
