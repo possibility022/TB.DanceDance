@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Mobile.Data;
+using TB.DanceDance.Mobile.Data.Models.Storage;
 
 namespace TB.DanceDance.Mobile.Services.DanceApi;
 

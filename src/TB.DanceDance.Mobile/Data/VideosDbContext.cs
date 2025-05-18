@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Mobile.Data.Models.Storage;
 
 namespace TB.DanceDance.Mobile.Data;
 
