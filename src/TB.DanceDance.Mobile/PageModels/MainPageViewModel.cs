@@ -84,7 +84,7 @@ public partial class MainPageViewModel : ObservableObject
             await TokenStorage.LoadRefreshTokenFromStorage();
 
         if (TokenStorage.Token?.AccessTokenExpiration is not null &&
-            TokenStorage.Token.AccessTokenExpiration < DateTime.Now.AddMinutes(5))
+            TokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(5))
         {
             IsLoggedIn = true;
         }
