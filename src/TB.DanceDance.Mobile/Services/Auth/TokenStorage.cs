@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace TB.DanceDance.Mobile.Services.Auth;
 
@@ -31,7 +30,7 @@ static class TokenStorage
         }
         catch (Exception e)
         {
-            Debug.WriteLine(e);
+            Serilog.Log.Error(e, "Error during saving token into secure storage.");
         }
     }
 
@@ -48,7 +47,7 @@ static class TokenStorage
         }
         catch (Exception e)
         {
-            Debug.WriteLine(e.ToString());
+            Serilog.Log.Error(e, "Error during loading refresh token from secure storage.");
         }
 
         return Token?.RefreshToken;

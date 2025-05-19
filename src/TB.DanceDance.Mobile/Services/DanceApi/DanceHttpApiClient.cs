@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
@@ -50,7 +49,7 @@ public class DanceHttpApiClient
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Serilog.Log.Error(ex, "Error on getting videos for event {id}", eventId);
             throw;
         }
     }

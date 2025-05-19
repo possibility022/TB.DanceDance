@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Diagnostics;
 using TB.DanceDance.Mobile.Services.Auth;
 using TB.DanceDance.Mobile.Services.DanceApi;
 
@@ -56,7 +55,7 @@ public partial class MainPageViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.ToString());
+            Serilog.Log.Error(ex, "Error on login action on main page.");
         }
         finally
         {

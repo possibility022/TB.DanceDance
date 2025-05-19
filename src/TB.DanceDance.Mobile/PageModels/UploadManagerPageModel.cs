@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
 
@@ -28,7 +27,7 @@ public partial class UploadManagerPageModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Serilog.Log.Error(ex, "Error when starting upload service.");
         }
 #endif
     }
@@ -43,7 +42,7 @@ public partial class UploadManagerPageModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Serilog.Log.Error(ex, "Error when stopping upload service.");
         }
 #endif
     }

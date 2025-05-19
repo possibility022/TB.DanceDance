@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 
 namespace TB.DanceDance.Mobile.Data;
 
@@ -14,9 +13,9 @@ public class DataStorageInitialize : IMauiInitializeService
     
     public void Initialize(IServiceProvider services)
     {
-        Debug.WriteLine("Initializing data storage started");
+        Serilog.Log.Information("Initializing data storage started");
         dbContext.Database.EnsureCreated();
         dbContext.Database.Migrate();
-        Debug.WriteLine("Initializing data storage complete");
+        Serilog.Log.Information("Initializing data storage complete");
     }
 }

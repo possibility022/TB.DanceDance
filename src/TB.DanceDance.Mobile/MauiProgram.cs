@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.Hosting;
-using Microsoft.Maui.Hosting;
+using Serilog;
+using Serilog.Events;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.PageModels;
 using TB.DanceDance.Mobile.Pages;
@@ -27,9 +27,19 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
+        var serilogConfig = new LoggerConfiguration();
+        
+
 #if DEBUG
+        builder.Logging.ClearProviders();
 		builder.Logging.AddDebug();
+        serilogConfig.WriteTo.Debug();
+        serilogConfig.WriteTo.File(Path.Combine(FileSystem.Current.AppDataDirectory, "log.txt"), rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Debug);
+#else
+        serilogConfig.WriteTo.File(Path.Combine(FileSystem.Current.AppDataDirectory, "log.txt"), rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Information);
 #endif
+
+        builder.Services.AddSerilog(serilogConfig.CreateLogger());
 
         builder.Services.AddSingleton<MainPageViewModel>();
         

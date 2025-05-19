@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Diagnostics;
 using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
@@ -31,7 +30,7 @@ public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.ToString());
+            Serilog.Log.Error(ex, "Error while saving vide into memory.");
             if (File.Exists(path))
                 File.Delete(path);
         }
@@ -46,7 +45,7 @@ public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Serilog.Log.Error(ex, "Error when setting video url.");
         }
 #endif
 

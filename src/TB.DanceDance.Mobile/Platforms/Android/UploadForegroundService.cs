@@ -5,7 +5,6 @@ using Android.Runtime;
 using Android.Util;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Services.DanceApi;
-using Debug = System.Diagnostics.Debug;
 
 namespace TB.DanceDance.Mobile;
 
@@ -68,7 +67,7 @@ public class UploadForegroundService : Service
             {
                 if (cancellationTokenSource is null || cancellationTokenSource?.IsCancellationRequested == true)
                     cancellationTokenSource = new CancellationTokenSource();
-                Debug.WriteLine("Starting upload Task");
+                Serilog.Log.Information("Starting upload Task");
                 this.uploadingTask = Task.Run(Uploading);
             }
         } else if (intent.Action == nameof(ServiceAction.Stop))
@@ -125,20 +124,20 @@ public class UploadForegroundService : Service
     {
         try
         {
-            Debug.WriteLine("Starting looking for videos to upload.");
+            Serilog.Log.Information("Starting looking for videos to upload.");
             while (dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false) is { } video)
             {
-                Debug.WriteLine("Uploading one video.");
+                Serilog.Log.Information("Uploading one video.");
                 await videoUploader.Upload(video, cancellationTokenSource!.Token);
                 video.Uploaded = true;
-                Debug.WriteLine("Video uploaded.");
+                Serilog.Log.Information("Video uploaded.");
                 await dbContext.SaveChangesAsync();
             }
-            Debug.WriteLine("All videos uploaded.");
+            Serilog.Log.Information("All videos uploaded.");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine("Foreground Service Exception. Exception: " + ex.ToString());
+            Serilog.Log.Information(ex, "Foreground Service Exception.");
         }
         finally
         {
