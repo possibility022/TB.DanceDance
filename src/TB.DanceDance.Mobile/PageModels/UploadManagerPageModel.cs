@@ -62,6 +62,7 @@ public partial class UploadManagerPageModel : ObservableObject
             IsRefreshing = true;
             ToUpload = await dbContext.VideosToUpload
                 .OrderByDescending(r => r.Uploaded)
+                .AsNoTracking()
                 .ToListAsync();
         }
         catch (Exception ex)
