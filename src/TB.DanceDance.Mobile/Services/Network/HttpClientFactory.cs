@@ -31,7 +31,7 @@ public class HttpClientFactory : IHttpClientFactory
 #if DEBUG
     private const string ApiUrl = "https://localhost:7068";
 #else
-    private const string ApiUrl = "https://localhost:7068";
+    private const string ApiUrl = "https://wcsdance.azurewebsites.net";
 #endif
 
     private static void InitializeDanceApiClient()

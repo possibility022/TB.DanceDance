@@ -10,7 +10,7 @@ public static class AuthSettingsFactory
 #if DEBUG
     private const string AndroidAuthority = "https://10.0.2.2:7068";
 #else
-    private const string AndroidAuthority = "https://";
+    private const string AndroidAuthority = "https://wcsdance.azurewebsites.net";
 #endif
     
     private const string AndroidClientId = "tbdancedanceandroidapp";
