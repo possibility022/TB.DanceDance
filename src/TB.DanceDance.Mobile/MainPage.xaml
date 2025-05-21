@@ -4,6 +4,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
              xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
              x:DataType="pageModels:MainPageViewModel"
              x:Name="MainPageViewPage"
              x:Class="TB.DanceDance.Mobile.MainPage">
@@ -27,22 +28,27 @@
             Spacing="25">
             <VerticalStackLayout IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}">
                 <Label
-                    Text="Hello! Please sign in :)"
+                    Text="Hello!"
                     Style="{StaticResource Headline}"
                     SemanticProperties.HeadingLevel="Level1" />
+                
+                <Label
+                    Text="Please sign in / login :)"
+                    Style="{StaticResource Headline}"
+                    SemanticProperties.HeadingLevel="Level2" />
 
                 <ActivityIndicator IsRunning="true" IsVisible="{Binding LoginInProgress}" />
 
-                <Button
-                    Text="Login"
+                <controls:FillButton
+                    Text="Login / Sign in"
                     Command="{Binding LoginCommand}"
                     IsEnabled="{Binding LoginEnabled}"
-                    HorizontalOptions="Fill" />
+                    />
             </VerticalStackLayout>
             <VerticalStackLayout IsVisible="{Binding IsLoggedIn}">
-                <Button Text="Events" HorizontalOptions="Fill" Command="{Binding NavigateToEventsCommand}"></Button>
-                <Button Text="Group Videos" HorizontalOptions="Fill" Command="{Binding NavigateToGroupsCommand}"></Button>
-                <Button Text="Logout" HorizontalOptions="Fill" Command="{Binding LogoutCommand}"></Button>
+                <controls:FillButton Text="Events" Command="{Binding NavigateToEventsCommand}" ></controls:FillButton>
+                <controls:FillButton Text="Group Videos" Command="{Binding NavigateToGroupsCommand}" ></controls:FillButton>
+                <controls:FillButton Text="Logout" Command="{Binding LogoutCommand}" ></controls:FillButton>
             </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

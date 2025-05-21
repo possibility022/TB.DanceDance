@@ -129,7 +129,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         try
         {
             var result = await FilePicker.Default.PickMultipleAsync(options);
-            return result;
+            return result ?? [];
         }
         catch (Exception ex)
         {

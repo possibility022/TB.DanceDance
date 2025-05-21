@@ -24,7 +24,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
     <ContentPage.Content>
-        <StackLayout Margin="10">
+        <StackLayout Margin="10" Spacing="10">
             <Button Text="Start" Command="{Binding UploadClickedCommand}"></Button>
             <Button Text="Stop" Command="{Binding StopClickedCommand}"></Button>
             <RefreshView IsRefreshing="{Binding IsRefreshing}"

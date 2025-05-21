@@ -5,6 +5,7 @@
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:storage="clr-namespace:Microsoft.Maui.Storage;assembly=Microsoft.Maui.Essentials"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
              x:DataType="pageModels:UploadGroupVideoPageModel"
              x:Name="UploadGroupVideoPageName"
              x:Class="TB.DanceDance.Mobile.Pages.UploadGroupVideoPage">
@@ -27,7 +28,7 @@
                 Title="Select a group">
             </Picker>
             <Label Text="{Binding SelectedVideoName}"></Label>
-            <Button Text="Pick Videos" Command="{Binding PickVideosCommand}" />
+            <controls:FillButton Text="Pick Videos" Command="{Binding PickVideosCommand}" />
             <VerticalStackLayout
                 BindableLayout.ItemsSource="{Binding SelectedFiles}">
                 <BindableLayout.ItemTemplate>
@@ -40,7 +41,7 @@
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
-            <Button Text="Upload" IsEnabled="{Binding UploadButtonEnabled}" Command="{Binding UploadSelectedVideosCommand}" />
+            <controls:FillButton Text="Upload" IsEnabled="{Binding UploadButtonEnabled}" Command="{Binding UploadSelectedVideosCommand}" />
             </VerticalStackLayout>
         </Grid>
     </ContentPage.Content>

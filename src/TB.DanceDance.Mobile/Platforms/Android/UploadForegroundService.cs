@@ -1,4 +1,5 @@
-﻿using Android.App;
+﻿using _Microsoft.Android.Resource.Designer;
+using Android.App;
 using Android.Content;
 using Android.OS;
 using Android.Runtime;
@@ -109,11 +110,11 @@ public class UploadForegroundService : Service
     private void RegisterNotification()
     {
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationImportance.Max);
-        NotificationManager manager = (NotificationManager)Platform.AppContext.GetSystemService(Context.NotificationService);
+        NotificationManager manager = (NotificationManager)Platform.AppContext.GetSystemService(Context.NotificationService)!;
         manager.CreateNotificationChannel(channel);
         Notification notification = new Notification.Builder(this, channelId)
             .SetContentTitle(channelName)
-            .SetSmallIcon(Resource.Drawable.abc_ab_share_pack_mtrl_alpha)
+            .SetSmallIcon(ResourceConstant.Drawable.abc_ab_share_pack_mtrl_alpha)
             .SetOngoing(true)
             .Build();
 

@@ -91,11 +91,18 @@
 	  <MauiXaml Update="Pages\UploadVideoPage.xaml">
 	    <SubType>Designer</SubType>
 	  </MauiXaml>
+	  <MauiXaml Update="Pages\Controls\FillButton.xaml">
+	    <SubType>Designer</SubType>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Compile Update="Pages\UploadVideoPage.xaml.cs">
 	    <DependentUpon>UploadVideoPage.xaml</DependentUpon>
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="Pages\Controls\FillButton.xaml.cs">
+	    <DependentUpon>FillButton.xaml</DependentUpon>
 	    <SubType>Code</SubType>
 	  </Compile>
 	</ItemGroup>
