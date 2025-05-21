@@ -5,6 +5,7 @@ using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using TB.DanceDance.Mobile.Data;
+using TB.DanceDance.Mobile.Data.Models.Storage;
 using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile;
@@ -19,6 +20,8 @@ public class UploadForegroundService : Service
     
     const string channelId = "tbupload";
     const string channelName = "Uploading Dance Video";
+    
+    private TimeSpan Delay = TimeSpan.Zero;
 
     public enum ServiceAction
     {
@@ -128,11 +131,8 @@ public class UploadForegroundService : Service
             Serilog.Log.Information("Starting looking for videos to upload.");
             while (dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false) is { } video)
             {
-                Serilog.Log.Information("Uploading one video.");
-                await videoUploader.Upload(video, cancellationTokenSource!.Token);
-                video.Uploaded = true;
-                Serilog.Log.Information("Video uploaded.");
-                await dbContext.SaveChangesAsync();
+                await Task.Delay(Delay);
+                await Upload(video);
             }
             Serilog.Log.Information("All videos uploaded.");
         }
@@ -145,6 +145,24 @@ public class UploadForegroundService : Service
             cancellationTokenSource?.Dispose();
             cancellationTokenSource = null;
             uploadingTask = null;
+        }
+    }
+
+    private async Task Upload(VideosToUpload video)
+    {
+        try
+        {
+            Delay = TimeSpan.Zero;
+            Serilog.Log.Information("Uploading one video.");
+            await videoUploader.Upload(video, cancellationTokenSource!.Token);
+            video.Uploaded = true;
+            Serilog.Log.Information("Video uploaded.");
+            await dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Delay = TimeSpan.FromMinutes(1);
+            Serilog.Log.Warning(ex, "Foreground Service Exception.");
         }
     }
 
