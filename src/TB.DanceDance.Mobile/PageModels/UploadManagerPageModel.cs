@@ -15,8 +15,11 @@ public partial class UploadManagerPageModel : ObservableObject
         this.dbContext = dbContext;
     }
 
-    [ObservableProperty] List<VideosToUpload> toUpload = new List<VideosToUpload>();
+    [ObservableProperty] private List<VideosToUpload> toUpload = [];
 
+    [ObservableProperty] private bool uploadingInProgress;
+    [ObservableProperty] private bool isRefreshing;
+    
     [RelayCommand]
     private async Task UploadClicked()
     {
@@ -24,6 +27,19 @@ public partial class UploadManagerPageModel : ObservableObject
         try
         {
             UploadForegroundService.StartService();
+            UploadingInProgress = true;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(3000);
+                    UploadingInProgress = UploadForegroundService.IsInProgress();
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error(ex, "Checking status failed.");
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -52,7 +68,6 @@ public partial class UploadManagerPageModel : ObservableObject
     {
         await Refresh();
     }
-    [ObservableProperty] bool _isRefreshing;
 
     [RelayCommand]
     private async Task Refresh()
@@ -64,6 +79,10 @@ public partial class UploadManagerPageModel : ObservableObject
                 .OrderByDescending(r => r.Uploaded)
                 .AsNoTracking()
                 .ToListAsync();
+
+#if ANDROID
+            UploadingInProgress = UploadForegroundService.IsInProgress();
+#endif
         }
         catch (Exception ex)
         {

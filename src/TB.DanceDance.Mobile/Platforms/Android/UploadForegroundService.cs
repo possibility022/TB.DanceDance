@@ -24,6 +24,8 @@ public sealed class UploadForegroundService : Service
     private const int notificationId = 100;
     const string channelId = "tbupload";
     const string channelName = "Uploading Dance Video";
+
+    public static bool IsRunning = false;
     
     private TimeSpan delay = TimeSpan.Zero;
 
@@ -64,6 +66,7 @@ public sealed class UploadForegroundService : Service
         // Code not directly related to publishing the notification has been omitted for clarity.
         // Normally, this method would hold the code to be run when the service is started.
 
+        IsRunning = true;
         if (intent == null)
             throw new ArgumentNullException(nameof(intent));
         
@@ -200,10 +203,16 @@ public sealed class UploadForegroundService : Service
     public override void OnDestroy()
     {
         Log.Info("Dance Service", DateTime.Now.ToLongTimeString() + ": On Destroy");
+        IsRunning = false;
         cancellationTokenSource?.Cancel();
         notificationManager?.Cancel(notificationId);
         uploadingTask = null;
         serviceScope.Dispose();
         base.OnDestroy();
+    }
+
+    public static bool IsInProgress()
+    {
+        return IsRunning;
     }
 }
