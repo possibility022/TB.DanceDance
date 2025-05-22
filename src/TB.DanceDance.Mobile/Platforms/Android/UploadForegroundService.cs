@@ -4,6 +4,7 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Util;
+using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
 using TB.DanceDance.Mobile.Services.DanceApi;
@@ -11,17 +12,20 @@ using TB.DanceDance.Mobile.Services.DanceApi;
 namespace TB.DanceDance.Mobile;
 
 [Service(ForegroundServiceType = Android.Content.PM.ForegroundService.TypeDataSync)]
-public class UploadForegroundService : Service
+public sealed class UploadForegroundService : Service
 {
     private readonly VideosDbContext dbContext;
     private readonly VideoUploader videoUploader;
     private readonly IServiceScope serviceScope;
     private CancellationTokenSource? cancellationTokenSource;
-    
+    private NotificationChannel? notificationChannel;
+    private NotificationManager? notificationManager;
+
+    private const int notificationId = 100;
     const string channelId = "tbupload";
     const string channelName = "Uploading Dance Video";
     
-    private TimeSpan Delay = TimeSpan.Zero;
+    private TimeSpan delay = TimeSpan.Zero;
 
     public enum ServiceAction
     {
@@ -31,13 +35,13 @@ public class UploadForegroundService : Service
 
     public UploadForegroundService()
     {
-        Log.Debug("Dance Service", "UploadForegroundService Hashcode: " + this.GetHashCode());
+        Log.Debug("Dance Service", "UploadForegroundService Hashcode: " + GetHashCode());
 
         if (IPlatformApplication.Current != null)
         {
             serviceScope = IPlatformApplication.Current.Services.CreateScope();
-            this.dbContext = serviceScope.ServiceProvider.GetRequiredService<VideosDbContext>();
-            this.videoUploader = serviceScope.ServiceProvider.GetRequiredService<VideoUploader>();
+            dbContext = serviceScope.ServiceProvider.GetRequiredService<VideosDbContext>();
+            videoUploader = serviceScope.ServiceProvider.GetRequiredService<VideoUploader>();
         }
         else
         {
@@ -72,7 +76,7 @@ public class UploadForegroundService : Service
                 if (cancellationTokenSource is null || cancellationTokenSource?.IsCancellationRequested == true)
                     cancellationTokenSource = new CancellationTokenSource();
                 Serilog.Log.Information("Starting upload Task");
-                this.uploadingTask = Task.Run(Uploading);
+                uploadingTask = Task.Run(Uploading);
             }
         } else if (intent.Action == nameof(ServiceAction.Stop))
         {
@@ -86,10 +90,10 @@ public class UploadForegroundService : Service
 
     public static void StartService()
     {
-        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null)
+        if (Platform.CurrentActivity is null)
             throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null");
         
-        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null)
+        if (Platform.CurrentActivity.ApplicationContext is null)
             throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null");
         
         Intent startService = new Intent(Platform.CurrentActivity.ApplicationContext, typeof(UploadForegroundService));
@@ -99,10 +103,10 @@ public class UploadForegroundService : Service
 
     public static void StopService()
     {
-        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null)
+        if (Platform.CurrentActivity is null)
             throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is null");
         
-        if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null)
+        if (Platform.CurrentActivity.ApplicationContext is null)
             throw new Exception("Microsoft.Maui.ApplicationModel.Platform.CurrentActivity.ApplicationContext is null");
         
         Intent startService = new Intent(Platform.CurrentActivity.ApplicationContext, typeof(UploadForegroundService));
@@ -112,16 +116,21 @@ public class UploadForegroundService : Service
 
     private void RegisterNotification()
     {
-        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationImportance.Max);
-        NotificationManager manager = (NotificationManager)Platform.AppContext.GetSystemService(Context.NotificationService)!;
-        manager.CreateNotificationChannel(channel);
+        if (notificationChannel is null)
+        {
+            notificationChannel = new NotificationChannel(channelId, channelName, NotificationImportance.Min);
+            notificationManager =
+                (NotificationManager)Platform.AppContext.GetSystemService(NotificationService)!;
+            notificationManager.CreateNotificationChannel(notificationChannel);
+        }
+
         Notification notification = new Notification.Builder(this, channelId)
             .SetContentTitle(channelName)
             .SetSmallIcon(ResourceConstant.Drawable.abc_ab_share_pack_mtrl_alpha)
             .SetOngoing(true)
             .Build();
 
-        StartForeground(100, notification);
+        StartForeground(notificationId, notification);
     }
 
     private async Task Uploading()
@@ -129,11 +138,20 @@ public class UploadForegroundService : Service
         try
         {
             Serilog.Log.Information("Starting looking for videos to upload.");
-            while (dbContext.VideosToUpload.FirstOrDefault(r => r.Uploaded == false) is { } video)
+            
+            var videos = await dbContext.VideosToUpload.Where(r => r.Uploaded == false)
+                .ToArrayAsync();
+
+            for (int index = 0; index < videos.Length; index++)
             {
-                await Task.Delay(Delay);
-                await Upload(video);
+                await Task.Delay(delay);
+                if (cancellationTokenSource!.IsCancellationRequested)
+                    break;
+                
+                await Upload(videos[index]);
+                await UpdateNotification(index + 1, videos.Length, 0, 0);
             }
+            
             Serilog.Log.Information("All videos uploaded.");
         }
         catch (Exception ex)
@@ -142,17 +160,30 @@ public class UploadForegroundService : Service
         }
         finally
         {
-            cancellationTokenSource?.Dispose();
-            cancellationTokenSource = null;
-            uploadingTask = null;
+            StopService();
         }
+    }
+
+    private async Task UpdateNotification(int currentFile, int filesCount, int progress, int maxProgress)
+    {
+        await Task.Delay(500);
+
+        Notification notification = new Notification.Builder(this, channelId)
+            .SetContentTitle("Przesyłanie w toku")
+            .SetContentText($"Postęp: {currentFile}/{filesCount}")
+            .SetSmallIcon(Android.Resource.Drawable.IcDialogInfo)
+            //.SetProgress(maxProgress, progress, false)
+            .SetOngoing(true)
+            .Build();
+
+        notificationManager!.Notify(notificationId, notification);
     }
 
     private async Task Upload(VideosToUpload video)
     {
         try
         {
-            Delay = TimeSpan.Zero;
+            delay = TimeSpan.Zero;
             Serilog.Log.Information("Uploading one video.");
             await videoUploader.Upload(video, cancellationTokenSource!.Token);
             video.Uploaded = true;
@@ -161,7 +192,7 @@ public class UploadForegroundService : Service
         }
         catch (Exception ex)
         {
-            Delay = TimeSpan.FromMinutes(1);
+            delay = TimeSpan.FromMinutes(1);
             Serilog.Log.Warning(ex, "Foreground Service Exception.");
         }
     }
@@ -170,8 +201,9 @@ public class UploadForegroundService : Service
     {
         Log.Info("Dance Service", DateTime.Now.ToLongTimeString() + ": On Destroy");
         cancellationTokenSource?.Cancel();
+        notificationManager?.Cancel(notificationId);
         uploadingTask = null;
-        serviceScope?.Dispose();
+        serviceScope.Dispose();
         base.OnDestroy();
     }
 }
