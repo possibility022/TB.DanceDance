@@ -12,7 +12,6 @@
                               ShouldAutoPlay="True"
                               ShouldLoopPlayback="True"
                               ShouldKeepScreenOn="True"
-                              ShouldMute="True"
                               >
             
         </toolkit:MediaElement>
