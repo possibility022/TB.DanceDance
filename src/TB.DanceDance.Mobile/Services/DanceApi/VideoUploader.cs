@@ -22,8 +22,7 @@ public class VideoUploader
 
     public async Task Upload(VideosToUpload videoToUpload, CancellationToken token)
     {
-        if (videoToUpload == null)
-            throw new ArgumentNullException(nameof(videoToUpload));
+        ArgumentNullException.ThrowIfNull(videoToUpload);
 
         if (videoToUpload.Uploaded)
             return;
@@ -37,13 +36,13 @@ public class VideoUploader
         FileInfo fileInfo = new FileInfo(videoToUpload.FullFileName);
         await using var fileStream = fileInfo.OpenRead();
         await _uploader.ResumeUploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
-        
+
         videoToUpload.Uploaded = true;
     }
 
     public async Task AddToUploadList(string? name, string filePath, Guid groupId, CancellationToken token)
     {
-        FileInfo fileInfo = new FileInfo(filePath);
+        var fileInfo = new FileInfo(filePath);
         if (string.IsNullOrWhiteSpace(name))
             name = fileInfo.Name;
 
@@ -64,12 +63,8 @@ public class VideoUploader
         if (uploadInformation == null)
             throw new Exception("Upload Information could not be found");
 
-
-        if (existingEntry is null)
-        {
-            _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
-            await _dbContext.SaveChangesAsync(token);
-        }
+        _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
+        await _dbContext.SaveChangesAsync(token);
     }
 
     private static VideosToUpload MapToEntity(FileInfo fileInfo, UploadVideoInformationResponse uploadInformation)
@@ -89,7 +84,7 @@ public class VideoUploader
     public async Task UploadVideoToEvent(string filePath, Guid eventId, CancellationToken token)
     {
         FileInfo fileInfo = new FileInfo(filePath);
-        
+
         var existingEntry =
             await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
                 cancellationToken: token);
@@ -106,11 +101,8 @@ public class VideoUploader
 
         if (uploadInformation == null)
             throw new Exception("Upload Information could not be found");
-        
-        if (existingEntry is null)
-        {
-            _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
-            await _dbContext.SaveChangesAsync(token);
-        }
+
+        _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
+        await _dbContext.SaveChangesAsync(token);
     }
 }
