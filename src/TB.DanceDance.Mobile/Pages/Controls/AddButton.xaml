@@ -2,7 +2,6 @@
 <Button xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
         x:Class="TB.DanceDance.Mobile.Pages.Controls.AddButton"
-        BackgroundColor="{StaticResource Primary}"
         Text="+"
         FontSize="30"
         CornerRadius="30" 
