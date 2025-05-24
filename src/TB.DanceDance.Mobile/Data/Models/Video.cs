@@ -15,8 +15,9 @@ public record Video
     public DateTime When { get; set; }
     public string GroupName { get; set; } = string.Empty;
     public Guid GroupId { get; set; }
-
     public UploadState? UploadState { get; set; }
+    public bool Converted { get; set; } = false;
+
 
     public static List<Video> MapFromApiResponse(ICollection<GroupWithVideosResponse>? videosResponse)
     {
@@ -24,7 +25,7 @@ public record Video
             return new List<Video>();
 
         var list = new List<Video>();
-        
+
         foreach (var groupWithVideosResponse in videosResponse)
         {
             if (groupWithVideosResponse?.Videos != null)
@@ -38,7 +39,8 @@ public record Video
                         GroupName = groupWithVideosResponse.GroupName,
                         When = videoInformationModel.RecordedDateTime,
                         GroupId = groupWithVideosResponse.GroupId,
-                        BlobId = videoInformationModel.BlobId
+                        BlobId = videoInformationModel.BlobId,
+                        Converted = videoInformationModel.Converted,
                     });
                 }
             }
@@ -51,7 +53,11 @@ public record Video
     {
         var list = videosForEvent.Select(r => new Video()
         {
-            Id = r.Id, Name = r.Name, When = r.RecordedDateTime, BlobId = r.BlobId
+            Id = r.Id, 
+            Name = r.Name, 
+            When = r.RecordedDateTime, 
+            BlobId = r.BlobId,
+            Converted = r.Converted,
         }).ToList();
 
         return list;
