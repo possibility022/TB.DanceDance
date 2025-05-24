@@ -5,8 +5,14 @@
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Data.Models"
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
              x:DataType="pageModels:EventDetailsPageModel"
              x:Class="TB.DanceDance.Mobile.Pages.EventDetailsPage">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <ContentPage.Content>
         <Grid>
             <StackLayout Margin="10">
@@ -18,7 +24,7 @@
                             BindableLayout.ItemsSource="{Binding Videos}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:Video">
-                                    <Border Padding="10" Margin="0,10,0,0">
+                                    <Border Padding="10" Margin="0,10,0,0" IsEnabled="{Binding Converted}">
                                         <VerticalStackLayout>
                                             <Label Text="{Binding Name}" FontSize="24">
                                                 <Label.GestureRecognizers>
@@ -26,6 +32,11 @@
                                                         Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventDetailsPageModel}}, x:DataType=pageModels:EventDetailsPageModel}"
                                                         CommandParameter="{Binding .}" />
                                                 </Label.GestureRecognizers>
+                                            </Label>
+                                            <Label Text="Nagranie nie jest gotowe."
+                                                   IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
+                                                   TextColor="{StaticResource Magenta}"
+                                            >
                                             </Label>
                                         </VerticalStackLayout>
                                     </Border>
