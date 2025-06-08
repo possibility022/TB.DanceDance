@@ -70,6 +70,11 @@ public partial class MainPageViewModel : ObservableObject
         try
         {
             await CheckLoginStatus();
+            if (!IsLoggedIn && TokenStorage.Token != null)
+            {
+                // We have a refresh token, just login automatically
+                await Login();
+            }
         }
         finally
         {
