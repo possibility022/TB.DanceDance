@@ -21,7 +21,7 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>TB.DanceDance.Mobile</ApplicationTitle>
+		<ApplicationTitle>My West</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.tb.dancedance.mobile</ApplicationId>
