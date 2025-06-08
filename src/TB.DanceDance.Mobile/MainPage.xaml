@@ -28,19 +28,19 @@
             Spacing="25">
             <VerticalStackLayout IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}">
                 <Label
-                    Text="Hello!"
+                    Text="Cześć!"
                     Style="{StaticResource Headline}"
                     SemanticProperties.HeadingLevel="Level1" />
                 
                 <Label
-                    Text="Please sign in / login :)"
+                    Text="Zarejestruj się lub zaloguj :)"
                     Style="{StaticResource Headline}"
                     SemanticProperties.HeadingLevel="Level2" />
 
                 <ActivityIndicator IsRunning="true" IsVisible="{Binding LoginInProgress}" />
 
                 <controls:FillButton
-                    Text="Login / Sign in"
+                    Text="Zarejestruj / Zaloguj"
                     Command="{Binding LoginCommand}"
                     IsEnabled="{Binding LoginEnabled}"
                     />
