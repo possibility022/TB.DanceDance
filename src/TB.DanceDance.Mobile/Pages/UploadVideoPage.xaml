@@ -21,6 +21,13 @@
     <ContentPage.Content>
         <Grid>
             <VerticalStackLayout>
+                <Picker
+                    IsVisible="{Binding GroupSelectorAvailable}"
+                    ItemsSource="{Binding Groups}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedIndex="{Binding SelectedGroupIndex}"
+                    Title="Select a group">
+                </Picker>
                 <ActivityIndicator IsRunning="true" IsVisible="{Binding UploadButtonPressed}" />
                 <controls:FillButton Text="Pick Videos" Command="{Binding PickVideosCommand}" />
                 <VerticalStackLayout

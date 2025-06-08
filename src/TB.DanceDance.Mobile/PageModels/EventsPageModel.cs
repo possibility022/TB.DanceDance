@@ -17,7 +17,6 @@ public partial class EventsPageModel : ObservableObject
     [ObservableProperty] bool _isRefreshing;
     
     [ObservableProperty] private List<Event> _userEvents = [];
-    private bool _isInitialized;
 
     [RelayCommand]
     private async Task Appearing()
@@ -28,7 +27,7 @@ public partial class EventsPageModel : ObservableObject
     [RelayCommand]
     private async Task NavigateToEventDetails(Event @event)
     {
-        await Shell.Current.GoToAsync("eventDetails", new Dictionary<string, object>()
+        await Shell.Current.GoToAsync(Routes.Events.EventDetails, new Dictionary<string, object>()
         {
             { "eventId", @event.Id }
         });

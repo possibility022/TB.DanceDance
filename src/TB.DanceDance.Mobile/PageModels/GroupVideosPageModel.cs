@@ -45,7 +45,7 @@ public partial class GroupVideosPageModel : ObservableObject
     [RelayCommand]
     private async Task NavigateToWatchVideo(Video video)
     {
-        await Shell.Current.GoToAsync("watchVideo", new Dictionary<string, object>()
+        await Shell.Current.GoToAsync(Routes.Player, new Dictionary<string, object>()
         {
             { "videoBlobId", video.BlobId }
         });
@@ -54,7 +54,7 @@ public partial class GroupVideosPageModel : ObservableObject
     [RelayCommand]
     private async Task NavigateToUploadGroupVideo()
     {
-        await Shell.Current.GoToAsync("uploadVideoToGroup");
+        await Shell.Current.GoToAsync(Routes.Upload.Uploader);
     }
 
     private async Task LoadData()

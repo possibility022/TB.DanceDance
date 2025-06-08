@@ -17,7 +17,7 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     private async Task NavigateToWatchVideo(Video video)
     {
-        await Shell.Current.GoToAsync("watchVideo", new Dictionary<string, object>()
+        await Shell.Current.GoToAsync(Routes.Player, new Dictionary<string, object>()
         {
             { "videoBlobId", video.BlobId }
         });
@@ -26,7 +26,7 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     private async Task NavigateToUploadToEvent()
     {
-        await Shell.Current.GoToAsync("uploadVideoPage", new Dictionary<string, object>()
+        await Shell.Current.GoToAsync(Routes.Upload.Uploader, new Dictionary<string, object>()
         {
             { "eventId", EventId }
         });

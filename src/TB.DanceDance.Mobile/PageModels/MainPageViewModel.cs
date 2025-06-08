@@ -26,13 +26,13 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task NavigateToGroups()
     {
-        await Shell.Current.GoToAsync("//GroupVideosPage");
+        await Shell.Current.GoToAsync("//" + Routes.Groups.AllVideos);
     }
     
     [RelayCommand]
     private async Task NavigateToEvents()
     {
-        await Shell.Current.GoToAsync("//EventsPage");
+        await Shell.Current.GoToAsync("//" + Routes.Events.EventsList);
     }
     
     [RelayCommand]

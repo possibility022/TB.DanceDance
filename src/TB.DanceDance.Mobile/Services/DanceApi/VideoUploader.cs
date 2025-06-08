@@ -16,8 +16,9 @@ public class VideoUploader
     private readonly Channel<UploadProgressEvent> notificationChannel;
 
     private FileInfo? currentlyUploadedFile;
-    
-    public VideoUploader(DanceHttpApiClient apiClient, VideosDbContext dbContext, Channel<UploadProgressEvent> notificationChannel)
+
+    public VideoUploader(DanceHttpApiClient apiClient, VideosDbContext dbContext,
+        Channel<UploadProgressEvent> notificationChannel)
     {
         uploader = new BlobUploader();
         uploader.UploadProgress += _uploaderOnUploadProgress;
@@ -87,6 +88,14 @@ public class VideoUploader
 
         dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
         await dbContext.SaveChangesAsync(token);
+        StartUploading();
+    }
+
+    private void StartUploading()
+    {
+#if ANDROID
+        UploadForegroundService.StartService();
+#endif
     }
 
     private static VideosToUpload MapToEntity(FileInfo fileInfo, UploadVideoInformationResponse uploadInformation)
@@ -103,7 +112,7 @@ public class VideoUploader
         };
     }
 
-    public async Task UploadVideoToEvent(string filePath, Guid eventId, CancellationToken token)
+    private async Task AddToUploadList(string filePath, Guid groupOrEventId, SharingWithType sharingWith, CancellationToken token)
     {
         FileInfo fileInfo = new FileInfo(filePath);
 
@@ -116,8 +125,8 @@ public class VideoUploader
 
         var uploadInformation = await apiClient.GetUploadInformation(fileInfo.Name,
             fileInfo.Name,
-            SharingWithType.Event,
-            eventId,
+            sharingWith,
+            groupOrEventId,
             fileInfo.CreationTimeUtc
         );
 
@@ -126,5 +135,12 @@ public class VideoUploader
 
         dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
         await dbContext.SaveChangesAsync(token);
+        StartUploading();
     }
+
+    public Task UploadVideoToGroup(string filePath, Guid groupId, CancellationToken token)
+        => AddToUploadList(filePath, groupId, SharingWithType.Group, token);
+
+    public Task UploadVideoToEvent(string filePath, Guid eventId, CancellationToken token)
+        => AddToUploadList(filePath, eventId, SharingWithType.Event, token);
 }

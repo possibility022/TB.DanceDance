@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TB.DanceDance.Mobile"
     xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
+    xmlns:global="clr-namespace:"
     Shell.FlyoutBehavior="Flyout"
     Title="TB.DanceDance.Mobile">
 
@@ -16,16 +17,16 @@
     <ShellContent
         Title="Wydarzenia"
         ContentTemplate="{DataTemplate pages:EventsPage}"
-        Route="EventsPage" />
+        Route="{x:Static global:Routes+Events.EventsList}" />
 
     <ShellContent
         Title="Nagrania z Zajęć"
         ContentTemplate="{DataTemplate pages:GroupVideosPage}"
-        Route="GroupVideosPage" />    
+        Route="{x:Static global:Routes+Groups.AllVideos}" />
     
     <ShellContent
         Title="Status wysyłania plików"
         ContentTemplate="{DataTemplate pages:UploadManagerPage}"
-        Route="UploadManagerPage" />
+        Route="{x:Static global:Routes+Upload.Manager}" />
     
 </Shell>

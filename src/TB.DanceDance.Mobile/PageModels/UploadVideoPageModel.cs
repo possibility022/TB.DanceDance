@@ -23,6 +23,8 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     [ObservableProperty] private int selectedGroupIndex = -1;
     [ObservableProperty] private bool uploadButtonEnabled = false;
     [ObservableProperty] private bool uploadButtonPressed = false;
+    [ObservableProperty] private bool groupSelectorAvailable = false;
+    [ObservableProperty] private Guid? eventId;
 
     enum UploadTo
     {
@@ -36,6 +38,18 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     [RelayCommand]
     private async Task Appearing()
     {
+        try
+        {
+            if (uploadTo == UploadTo.Group)
+            {
+                var accesses = await apiClient.GetUserAccesses();
+                Groups = accesses?.Assigned.Groups.ToList() ?? [];
+            }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to get groups");
+        }
     }
 
     [RelayCommand]
@@ -77,10 +91,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                     }
                     else if (uploadTo == UploadTo.Group)
                     {
-                        throw new NotImplementedException();
-                        // todo handle upload to groups
-                        await videoUploader.AddToUploadList(file.FileName, file.FullPath, Groups[SelectedGroupIndex].Id,
-                            CancellationToken.None);
+                        await videoUploader.UploadVideoToGroup(file.FullPath, Groups[SelectedGroupIndex].Id, CancellationToken.None);
                     }
                     else
                     {
@@ -88,17 +99,14 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                     }
                 }
 
-                await Shell.Current.GoToAsync("//UploadManagerPage");
+                await Shell.Current.GoToAsync("..");
             }
             finally
             {
                 UploadButtonEnabled = true;
                 UploadButtonPressed = false;
             }
-        
     }
-
-    [ObservableProperty] private Guid? eventId;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -107,15 +115,21 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         {
             SetEventUploadStyle(eventIdFromRoute);
         }
-        else
-        {
-            throw new NotImplementedException();
-        }
+        
+        SetGroupUploadStyle();
     }
 
-    private void SetEventUploadStyle(Guid eventId)
+    private void SetGroupUploadStyle()
     {
-        EventId = eventId;
+        GroupSelectorAvailable = true;
+        EventId = null;
+        uploadTo = UploadTo.Group;
+    }
+
+    private void SetEventUploadStyle(Guid eventIdFromRoute)
+    {
+        GroupSelectorAvailable = false;
+        EventId = eventIdFromRoute;
         uploadTo = UploadTo.Event;
     }
 

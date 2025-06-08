@@ -56,10 +56,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<UploadManagerPageModel>();
         builder.Services.AddSingleton<ITokenProviderService>(new StorageTokenProviderService());
         
-        builder.Services.AddTransientWithShellRoute<UploadGroupVideoPage, UploadGroupVideoPageModel>("uploadVideoToGroup");
-        builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>("eventDetails");
-        builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>("watchVideo");
-        builder.Services.AddTransientWithShellRoute<UploadVideoPage, UploadVideoPageModel>("uploadVideoPage");
+        builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);
+        builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>(Routes.Player);
+        builder.Services.AddTransientWithShellRoute<UploadVideoPage, UploadVideoPageModel>(Routes.Upload.Uploader);
         
         
         builder.Services.AddDbContext<VideosDbContext>(options =>
