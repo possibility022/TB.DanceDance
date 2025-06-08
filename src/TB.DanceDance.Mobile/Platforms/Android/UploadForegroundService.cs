@@ -152,7 +152,7 @@ public sealed class UploadForegroundService : Service
                     break;
                 
                 await Upload(videos[index]);
-                await UpdateNotification(index + 1, videos.Length, 0, 0);
+                UpdateNotification(index + 1, videos.Length, 0, 0);
             }
             
             Serilog.Log.Information("All videos uploaded.");
@@ -167,10 +167,8 @@ public sealed class UploadForegroundService : Service
         }
     }
 
-    private async Task UpdateNotification(int currentFile, int filesCount, int progress, int maxProgress)
+    private void UpdateNotification(int currentFile, int filesCount, int progress, int maxProgress)
     {
-        await Task.Delay(500);
-
         Notification notification = new Notification.Builder(this, channelId)
             .SetContentTitle("Przesyłanie w toku")
             .SetContentText($"Postęp: {currentFile}/{filesCount}")

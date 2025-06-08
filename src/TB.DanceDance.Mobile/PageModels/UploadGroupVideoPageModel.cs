@@ -28,8 +28,15 @@ public partial class UploadGroupVideoPageModel : ObservableObject
     [RelayCommand]
     private async Task Appearing()
     {
-        var accesses = await apiClient.GetUserAccesses();
-        Groups = accesses?.Assigned.Groups.ToList() ?? [];
+        try
+        {
+            var accesses = await apiClient.GetUserAccesses();
+            Groups = accesses?.Assigned.Groups.ToList() ?? [];
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Failed to get groups");
+        }
     }
     
     [RelayCommand]

@@ -43,6 +43,9 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<MainPageViewModel>();
         
+        var networker = new Networker();
+        builder.Services.AddSingleton<Networker>(networker);
+        
         builder.Services.AddTransient<VideoProvider>();
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
 
