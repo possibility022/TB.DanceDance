@@ -43,6 +43,7 @@ public partial class UploadGroupVideoPageModel : ObservableObject
     private async Task PickVideos()
     {
         var files = await ListVideoFiles();
+        
         SelectedFiles = files.ToList();
         if (SelectedFiles.Count > 0 && SelectedGroupIndex > -1)
         {
@@ -76,7 +77,7 @@ public partial class UploadGroupVideoPageModel : ObservableObject
         try
         {
             var result = await FilePicker.Default.PickMultipleAsync(options);
-            return result;
+            return result ?? []; // it can be null for some reason
         }
         catch (Exception ex)
         {

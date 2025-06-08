@@ -7,7 +7,8 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
     public class BlobUploader
     {
         public int BufferSize { get; set; } = 1024 * 1024 * 4; // 4MB
-
+        
+        public event EventHandler<int>? UploadProgress;
 
         public async Task UploadFileAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
         {
@@ -29,6 +30,8 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
 
                 blockList.Add(blockIdBase64);
                 blockId++;
+                OnUploadProgress(blockId * BufferSize);
+                await Task.Delay(1000);
             }
 
             await blobClient.CommitBlockListAsync(blockList, cancellationToken: cancellationToken);
@@ -62,14 +65,20 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
                 var blockIdBase64 = Convert.ToBase64String(BitConverter.GetBytes(blockId));
                 using (var memoryStream = new MemoryStream(buffer, 0, bytesRead))
                 {
+                    // interesting, why I can do it using arrays and I have to initialize memory stream
                     await blobClient.StageBlockAsync(blockIdBase64, memoryStream, null, cancellationToken);
                 }
-
                 blockList.Add(blockIdBase64);
                 blockId++;
+                OnUploadProgress(blockId * BufferSize);
             }
 
             await blobClient.CommitBlockListAsync(blockList, cancellationToken: cancellationToken);
+        }
+
+        protected virtual void OnUploadProgress(int e)
+        {
+            UploadProgress?.Invoke(this, e);
         }
     }
 }

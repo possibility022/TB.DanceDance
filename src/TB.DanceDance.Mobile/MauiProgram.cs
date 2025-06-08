@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using System.Threading.Channels;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.PageModels;
 using TB.DanceDance.Mobile.Pages;
@@ -45,6 +46,7 @@ public static class MauiProgram
         
         var networker = new Networker();
         builder.Services.AddSingleton<Networker>(networker);
+        builder.Services.AddSingleton(Channel.CreateUnbounded<UploadProgressEvent>());
         
         builder.Services.AddTransient<VideoProvider>();
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
@@ -68,7 +70,6 @@ public static class MauiProgram
         builder.Services.AddTransient<IHttpClientFactory,HttpClientFactory>();
         
         builder.Services.AddTransient<VideoUploader>();
-        builder.Services.AddTransient<BlobUploader>();
         builder.Services.AddScoped<DanceHttpApiClient>();
 
 

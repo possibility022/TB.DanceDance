@@ -1,23 +1,45 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
+using System.Threading.Channels;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
+using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile.Services.DanceApi;
 
 public class VideoUploader
 {
-    private readonly BlobUploader _uploader;
-    private readonly DanceHttpApiClient _apiClient;
-    private readonly VideosDbContext _dbContext;
+    private readonly BlobUploader uploader;
+    private readonly DanceHttpApiClient apiClient;
+    private readonly VideosDbContext dbContext;
+    private readonly Channel<UploadProgressEvent> notificationChannel;
 
-    public VideoUploader(BlobUploader uploader, DanceHttpApiClient apiClient, VideosDbContext dbContext)
+    private FileInfo? currentlyUploadedFile;
+    
+    public VideoUploader(DanceHttpApiClient apiClient, VideosDbContext dbContext, Channel<UploadProgressEvent> notificationChannel)
     {
-        _uploader = uploader;
-        _apiClient = apiClient;
-        _dbContext = dbContext;
+        uploader = new BlobUploader();
+        uploader.UploadProgress += _uploaderOnUploadProgress;
+        this.apiClient = apiClient;
+        this.dbContext = dbContext;
+        this.notificationChannel = notificationChannel;
+    }
+
+    ~VideoUploader()
+    {
+        uploader.UploadProgress -= _uploaderOnUploadProgress;
+    }
+
+    private void _uploaderOnUploadProgress(object? sender, int e)
+    {
+        if (currentlyUploadedFile is not null)
+        {
+            notificationChannel.Writer.WriteAsync(new UploadProgressEvent()
+            {
+                FileName = currentlyUploadedFile.Name, FileSize = currentlyUploadedFile.Length, SendBytes = e
+            });
+        }
     }
 
     public async Task Upload(VideosToUpload videoToUpload, CancellationToken token)
@@ -33,9 +55,9 @@ public class VideoUploader
         if (videoToUpload.SasExpireAt < DateTime.Now.AddMinutes(-5))
             throw new Exception("Sas expired"); //todo
 
-        FileInfo fileInfo = new FileInfo(videoToUpload.FullFileName);
-        await using var fileStream = fileInfo.OpenRead();
-        await _uploader.ResumeUploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
+        currentlyUploadedFile = new FileInfo(videoToUpload.FullFileName);
+        await using var fileStream = currentlyUploadedFile.OpenRead();
+        await uploader.ResumeUploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
 
         videoToUpload.Uploaded = true;
     }
@@ -47,13 +69,13 @@ public class VideoUploader
             name = fileInfo.Name;
 
         var existingEntry =
-            await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
+            await dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
                 cancellationToken: token);
 
         if (existingEntry?.Uploaded == true)
             return;
 
-        var uploadInformation = await _apiClient.GetUploadInformation(fileInfo.Name,
+        var uploadInformation = await apiClient.GetUploadInformation(fileInfo.Name,
             name,
             SharingWithType.Group,
             groupId,
@@ -63,8 +85,8 @@ public class VideoUploader
         if (uploadInformation == null)
             throw new Exception("Upload Information could not be found");
 
-        _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
-        await _dbContext.SaveChangesAsync(token);
+        dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
+        await dbContext.SaveChangesAsync(token);
     }
 
     private static VideosToUpload MapToEntity(FileInfo fileInfo, UploadVideoInformationResponse uploadInformation)
@@ -86,13 +108,13 @@ public class VideoUploader
         FileInfo fileInfo = new FileInfo(filePath);
 
         var existingEntry =
-            await _dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
+            await dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
                 cancellationToken: token);
 
         if (existingEntry?.Uploaded == true)
             return;
 
-        var uploadInformation = await _apiClient.GetUploadInformation(fileInfo.Name,
+        var uploadInformation = await apiClient.GetUploadInformation(fileInfo.Name,
             fileInfo.Name,
             SharingWithType.Event,
             eventId,
@@ -102,7 +124,7 @@ public class VideoUploader
         if (uploadInformation == null)
             throw new Exception("Upload Information could not be found");
 
-        _dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
-        await _dbContext.SaveChangesAsync(token);
+        dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
+        await dbContext.SaveChangesAsync(token);
     }
 }

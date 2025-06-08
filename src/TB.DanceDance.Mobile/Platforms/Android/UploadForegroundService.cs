@@ -5,21 +5,29 @@ using Android.OS;
 using Android.Runtime;
 using Android.Util;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Channels;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
 using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile;
 
 [Service(ForegroundServiceType = Android.Content.PM.ForegroundService.TypeDataSync)]
 public sealed class UploadForegroundService : Service
 {
+    // This is any integer value unique to the application.
+    public const int ServiceRunningNotificationId = 827364823;
+    
     private readonly VideosDbContext dbContext;
     private readonly VideoUploader videoUploader;
     private readonly IServiceScope serviceScope;
     private CancellationTokenSource? cancellationTokenSource;
     private NotificationChannel? notificationChannel;
     private NotificationManager? notificationManager;
+    private Task? uploadingTask;
+    
+    private readonly Channel<UploadProgressEvent> channel;
 
     private const int notificationId = 100;
     const string channelId = "tbupload";
@@ -44,16 +52,13 @@ public sealed class UploadForegroundService : Service
             serviceScope = IPlatformApplication.Current.Services.CreateScope();
             dbContext = serviceScope.ServiceProvider.GetRequiredService<VideosDbContext>();
             videoUploader = serviceScope.ServiceProvider.GetRequiredService<VideoUploader>();
+            channel = serviceScope.ServiceProvider.GetRequiredService<Channel<UploadProgressEvent>>();
         }
         else
         {
             throw new NullReferenceException("IPlatformApplication.Current is null");
         }
     }
-    
-    // This is any integer value unique to the application.
-    public const int ServiceRunningNotificationId = 827364823;
-    private Task? uploadingTask;
 
     public override IBinder? OnBind(Intent? intent)
     {
@@ -145,17 +150,22 @@ public sealed class UploadForegroundService : Service
             var videos = await dbContext.VideosToUpload.Where(r => r.Uploaded == false)
                 .ToArrayAsync();
 
-            for (int index = 0; index < videos.Length; index++)
+            var (progressNotificationTask, token) = StartTaskForProgressEvents();
+            
+            foreach (var vid in videos)
             {
                 await Task.Delay(delay);
                 if (cancellationTokenSource!.IsCancellationRequested)
                     break;
                 
-                await Upload(videos[index]);
-                UpdateNotification(index + 1, videos.Length, 0, 0);
+                await Upload(vid);
             }
             
             Serilog.Log.Information("All videos uploaded.");
+
+            await token.CancelAsync();
+            await progressNotificationTask;
+
         }
         catch (Exception ex)
         {
@@ -167,13 +177,37 @@ public sealed class UploadForegroundService : Service
         }
     }
 
-    private void UpdateNotification(int currentFile, int filesCount, int progress, int maxProgress)
+    private (Task t, CancellationTokenSource cancellationTokenSource) StartTaskForProgressEvents()
     {
+        CancellationTokenSource progressCancellationTokenSource;
+        if (cancellationTokenSource is not null && !cancellationTokenSource.IsCancellationRequested)
+            progressCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationTokenSource.Token);
+        else 
+            progressCancellationTokenSource = new CancellationTokenSource();
+        
+        var t = Task.Run(() => AwaitUploadProgress(progressCancellationTokenSource.Token));
+        return (t, cancellationTokenSource!);
+    }
+
+    private async Task AwaitUploadProgress(CancellationToken cancellationToken)
+    {
+        while (await channel.Reader.WaitToReadAsync(cancellationToken))
+        {
+            var message = await channel.Reader.ReadAsync(cancellationToken);
+            
+            UpdateNotification(message.FileName, message.SendBytes, message.FileSize);
+        }
+    }
+
+    private void UpdateNotification(string fileName, int progress, long maxProgress)
+    {
+        int progressPercentage = (int)((double)progress / maxProgress * 100);
+        
         Notification notification = new Notification.Builder(this, channelId)
-            .SetContentTitle("Przesyłanie w toku")
-            .SetContentText($"Postęp: {currentFile}/{filesCount}")
+            .SetContentTitle("Przesyłanie w toku.")
+            .SetContentText($"Wysyłam: {fileName}")
             .SetSmallIcon(Android.Resource.Drawable.IcDialogInfo)
-            //.SetProgress(maxProgress, progress, false)
+            .SetProgress(100, progressPercentage, false)
             .SetOngoing(true)
             .Build();
 
