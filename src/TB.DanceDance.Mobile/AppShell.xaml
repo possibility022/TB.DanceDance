@@ -9,22 +9,22 @@
     Title="TB.DanceDance.Mobile">
 
     <ShellContent
-        Title="Home"
+        Title="Menu"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
     
     <ShellContent
-        Title="Events"
+        Title="Wydarzenia"
         ContentTemplate="{DataTemplate pages:EventsPage}"
         Route="EventsPage" />
 
     <ShellContent
-        Title="Group Videos"
+        Title="Nagrania z Zajęć"
         ContentTemplate="{DataTemplate pages:GroupVideosPage}"
         Route="GroupVideosPage" />    
     
     <ShellContent
-        Title="Upload Manager"
+        Title="Status wysyłania plików"
         ContentTemplate="{DataTemplate pages:UploadManagerPage}"
         Route="UploadManagerPage" />
     
