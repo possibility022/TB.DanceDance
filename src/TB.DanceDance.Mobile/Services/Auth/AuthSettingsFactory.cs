@@ -21,6 +21,7 @@ public static class AuthSettingsFactory
         if (DeviceInfo.Platform == DevicePlatform.Android)
             return GetClientOptionsForAndroid(httpClientHandler);
 
+        return GetClientOptionsForAndroid(httpClientHandler);
         throw new PlatformNotSupportedException("This platform is not supported.");
     }
 
