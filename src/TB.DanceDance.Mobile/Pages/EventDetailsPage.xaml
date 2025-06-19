@@ -11,6 +11,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
+            <converters:DateTimeConverter x:Key="DateTimeConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
     <ContentPage.Content>
@@ -33,6 +34,7 @@
                                                         CommandParameter="{Binding .}" />
                                                 </Label.GestureRecognizers>
                                             </Label>
+                                            <Label Text="{Binding When, Converter={StaticResource DateTimeConverter}}"/>
                                             <Label Text="Nagranie nie jest gotowe."
                                                    IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
                                                    TextColor="{StaticResource Magenta}"
