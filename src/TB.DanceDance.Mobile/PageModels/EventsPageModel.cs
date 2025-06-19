@@ -18,10 +18,13 @@ public partial class EventsPageModel : ObservableObject
     
     [ObservableProperty] private List<Event> _userEvents = [];
 
+    private bool eventsLoaded = false;
+
     [RelayCommand]
     private async Task Appearing()
     {
-        await Refresh();
+        if (!eventsLoaded)
+            await Refresh();
     }
 
     [RelayCommand]
@@ -56,5 +59,7 @@ public partial class EventsPageModel : ObservableObject
         var accesses = await _apiClient.GetUserAccesses();
         if (accesses != null)
             UserEvents = accesses.Assigned.Events.Select(Event.MapFromApiEvent).ToList();;
+        
+        eventsLoaded = true;
     }
 }

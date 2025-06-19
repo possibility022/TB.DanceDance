@@ -18,10 +18,13 @@ public partial class GroupVideosPageModel : ObservableObject
     
     [ObservableProperty] private List<Video> videos = [];
 
+    private bool videoLoaded = false;
+
     [RelayCommand]
     private async Task Appearing()
     {
-        await Refresh();
+        if (!videoLoaded)
+            await Refresh();
     }
     
     [RelayCommand]
@@ -61,5 +64,6 @@ public partial class GroupVideosPageModel : ObservableObject
     {
         var loadedVideos = await videoProvider.GetGroupVideosAsync();
         Videos = loadedVideos;
+        videoLoaded = true;
     }
 }
