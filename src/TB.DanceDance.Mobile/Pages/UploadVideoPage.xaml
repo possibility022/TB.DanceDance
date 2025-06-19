@@ -19,8 +19,8 @@
         </toolkit:EventToCommandBehavior>
     </ContentPage.Behaviors>
     <ContentPage.Content>
-        <Grid>
-            <VerticalStackLayout>
+        <Grid Margin="10, 0, 10, 0">
+            <VerticalStackLayout Spacing="10">
                 <Picker
                     IsVisible="{Binding GroupSelectorAvailable}"
                     ItemsSource="{Binding Groups}"
@@ -29,20 +29,20 @@
                     Title="Wybierz Grupę">
                 </Picker>
                 <ActivityIndicator IsRunning="true" IsVisible="{Binding UploadButtonPressed}" />
-                <controls:FillButton Text="Pick Videos" Command="{Binding PickVideosCommand}" />
+                <Button Text="Wybierz Nagranie" Command="{Binding PickVideosCommand}" />
                 <VerticalStackLayout
                     BindableLayout.ItemsSource="{Binding SelectedFiles}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="storage:FileResult">
                             <Border>
-                                <VerticalStackLayout Padding="10">
+                                <VerticalStackLayout Spacing="10">
                                     <Label Text="{Binding FileName}" FontSize="24" />
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </VerticalStackLayout>
-                <Button Text="Upload" IsEnabled="{Binding UploadButtonEnabled}"
+                <Button Text="Wyślij" IsEnabled="{Binding UploadButtonEnabled}"
                         Command="{Binding UploadSelectedVideosCommand}" />
             </VerticalStackLayout>
         </Grid>
