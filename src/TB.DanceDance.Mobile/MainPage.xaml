@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
@@ -22,35 +23,53 @@
             Command="{Binding AppearingCommand}">
         </toolkit:EventToCommandBehavior>
     </ContentPage.Behaviors>
-    <ScrollView>
-        <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
-            <VerticalStackLayout IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}">
-                <Label
-                    Text="Cześć!"
-                    Style="{StaticResource Headline}"
-                    SemanticProperties.HeadingLevel="Level1" />
-                
-                <Label
-                    Text="Zarejestruj się lub zaloguj :)"
-                    Style="{StaticResource Headline}"
-                    SemanticProperties.HeadingLevel="Level2" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0"
+                             IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}"
+                             VerticalOptions="Center">
+            
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            
+            <Label
+                Grid.Row="0"
+                Text="Cześć!"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
 
-                <ActivityIndicator IsRunning="true" IsVisible="{Binding LoginInProgress}" />
+            <Label
+                Grid.Row="1"
+                Text="Zarejestruj się lub zaloguj :)"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level2" />
 
-                <controls:FillButton
-                    Text="Zarejestruj / Zaloguj"
-                    Command="{Binding LoginCommand}"
-                    IsEnabled="{Binding LoginEnabled}"
-                    />
-            </VerticalStackLayout>
-            <VerticalStackLayout IsVisible="{Binding IsLoggedIn}">
-                <controls:FillButton Text="Events" Command="{Binding NavigateToEventsCommand}" ></controls:FillButton>
-                <controls:FillButton Text="Group Videos" Command="{Binding NavigateToGroupsCommand}" ></controls:FillButton>
-                <controls:FillButton Text="Logout" Command="{Binding LogoutCommand}" ></controls:FillButton>
-            </VerticalStackLayout>
-        </VerticalStackLayout>
-    </ScrollView>
+            <ActivityIndicator Grid.Row="2" IsRunning="true" IsVisible="{Binding LoginInProgress}" />
+
+            <controls:FillButton Grid.Row="3"
+                Text="Zarejestruj / Zaloguj"
+                Command="{Binding LoginCommand}"
+                IsEnabled="{Binding LoginEnabled}" />
+        </Grid>
+        <Grid Grid.Row="1" IsVisible="{Binding IsLoggedIn}" VerticalOptions="Center">
+
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <controls:FillButton Grid.Row="0" Text="Events" Command="{Binding NavigateToEventsCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="1" Text="Group Videos" Command="{Binding NavigateToGroupsCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="2" Text="Logout" Command="{Binding LogoutCommand}"></controls:FillButton>
+        </Grid>
+    </Grid>
 
 </ContentPage>
