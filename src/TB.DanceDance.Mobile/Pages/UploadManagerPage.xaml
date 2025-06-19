@@ -5,7 +5,6 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Data.Models.Storage"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
-             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
              x:DataType="pageModels:UploadManagerPageModel"
              x:Name="UploadManagerPageView"
              x:Class="TB.DanceDance.Mobile.Pages.UploadManagerPage">
@@ -18,22 +17,13 @@
             Command="{Binding AppearingCommand}">
         </toolkit:EventToCommandBehavior>
     </ContentPage.Behaviors>
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
     <ContentPage.Content>
         <StackLayout Margin="10" Spacing="10">
-            <Button Text="Start"
-                    Command="{Binding UploadClickedCommand}"
-                    IsEnabled="{Binding UploadingInProgress, Converter={StaticResource InverseBooleanConverter}}">
-            </Button>
-            <Button Text="Stop"
-                    Command="{Binding StopClickedCommand}"
-                    IsEnabled="{Binding UploadingInProgress}">
-            </Button>
             <Label Text="Wysyłanie odbywa się tylko przez WiFi"></Label>
+            <Label Text="Postęp wysyłania jest wyświetlany w powiadomieniu. Aplikacja nie ma uprawnienień do ich wyświetlania. Kliknij przycisk aby pozwolić na wyświetlanie powiadomień. (Nie spamujemy :))"
+                   IsVisible="{Binding NotificationBlocked}"
+                   />
+            <Button Text="Ustaw uprawnienia" IsVisible="{Binding NotificationBlocked}" Command="{Binding AskNotificationPermissionsCommand}"/>
             <RefreshView IsRefreshing="{Binding IsRefreshing}"
                          Command="{Binding RefreshCommand}">
                 <ScrollView Margin="0,10,0,0">

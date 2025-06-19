@@ -43,6 +43,18 @@ public sealed class UploadForegroundService : Service
         Stop
     }
 
+    public static async Task<bool> CheckIfNotificationPermissionsAreGranted()
+    {
+        var res = await Permissions.CheckStatusAsync<NotificationPermission>();
+        return res == PermissionStatus.Granted;
+    }
+
+    public static async Task<bool> AskForNotificationPermission()
+    {
+        PermissionStatus status = await Permissions.RequestAsync<NotificationPermission>();
+        return status == PermissionStatus.Granted;
+    }
+
     public UploadForegroundService()
     {
         Log.Debug("Dance Service", "UploadForegroundService Hashcode: " + GetHashCode());

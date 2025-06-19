@@ -19,54 +19,28 @@ public partial class UploadManagerPageModel : ObservableObject
 
     [ObservableProperty] private bool uploadingInProgress;
     [ObservableProperty] private bool isRefreshing;
-    
-    [RelayCommand]
-    private async Task UploadClicked()
-    {
-#if ANDROID
-        try
-        {
-            UploadForegroundService.StartService();
-            UploadingInProgress = true;
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(3000);
-                    UploadingInProgress = UploadForegroundService.IsInProgress();
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Error(ex, "Checking status failed.");
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            Serilog.Log.Error(ex, "Error when starting upload service.");
-        }
-#endif
-    }
-
-    [RelayCommand]
-    private async Task StopClicked()
-    {
-#if ANDROID
-        try
-        {
-            UploadForegroundService.StopService();
-        }
-        catch (Exception ex)
-        {
-            Serilog.Log.Error(ex, "Error when stopping upload service.");
-        }
-#endif
-    }
+    [ObservableProperty] private bool notificationBlocked;
 
     [RelayCommand]
     private async Task Appearing()
     {
         await Refresh();
+        await CheckNotificationSettings();
+    }
+
+    private async Task CheckNotificationSettings()
+    {
+#if ANDROID
+        NotificationBlocked = !(await UploadForegroundService.CheckIfNotificationPermissionsAreGranted());
+#endif
+    }
+
+    [RelayCommand]
+    private async Task AskNotificationPermissions()
+    {
+#if ANDROID
+        NotificationBlocked = !(await UploadForegroundService.AskForNotificationPermission());
+#endif
     }
 
     [RelayCommand]
