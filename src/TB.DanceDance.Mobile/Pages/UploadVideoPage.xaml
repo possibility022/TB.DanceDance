@@ -27,6 +27,14 @@
                     ItemDisplayBinding="{Binding Name}"
                     SelectedIndex="{Binding SelectedGroupIndex}"
                     Title="Wybierz Grupę">
+                    <Picker.Behaviors>
+                        <toolkit:EventToCommandBehavior 
+                            EventName="SelectedIndexChanged"
+                            BindingContext="{Binding Path=BindingContext, 
+                            Source={x:Reference UploadVideoPageView}, 
+                                x:DataType=pageModels:UploadVideoPageModel}"
+                            Command="{Binding GroupSelectedIndexChangedCommand}"></toolkit:EventToCommandBehavior>
+                    </Picker.Behaviors>
                 </Picker>
                 <ActivityIndicator IsRunning="true" IsVisible="{Binding UploadButtonPressed}" />
                 <Button Text="Wybierz Nagranie" Command="{Binding PickVideosCommand}" />

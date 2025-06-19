@@ -53,10 +53,13 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     }
 
     [RelayCommand]
-    private async Task PickVideos()
+    private async Task GroupSelectedIndexChanged()
     {
-        var files = await ListVideoFiles();
-        SelectedFiles = files.ToList();
+        SetUploadButton();
+    }
+
+    private void SetUploadButton()
+    {
         if (uploadTo == UploadTo.Event)
         {
             // for event
@@ -73,6 +76,14 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         {
             UploadButtonEnabled = true;
         }
+    }
+
+    [RelayCommand]
+    private async Task PickVideos()
+    {
+        var files = await ListVideoFiles();
+        SelectedFiles = files.ToList();
+        SetUploadButton();
     }
 
     [RelayCommand]
