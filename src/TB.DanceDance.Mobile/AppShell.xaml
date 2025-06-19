@@ -8,25 +8,27 @@
     xmlns:global="clr-namespace:"
     Shell.FlyoutBehavior="Flyout"
     Title="TB.DanceDance.Mobile">
-
+    
+        
     <ShellContent
         Title="Menu"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
     
     <ShellContent
-        Title="Wydarzenia"
-        ContentTemplate="{DataTemplate pages:EventsPage}"
-        Route="{x:Static global:Routes+Events.EventsList}" />
-
-    <ShellContent
-        Title="Nagrania z Zajęć"
-        ContentTemplate="{DataTemplate pages:GroupVideosPage}"
-        Route="{x:Static global:Routes+Groups.AllVideos}" />
-    
-    <ShellContent
         Title="Status wysyłania plików"
         ContentTemplate="{DataTemplate pages:UploadManagerPage}"
         Route="{x:Static global:Routes+Upload.Manager}" />
+    
+    <TabBar>
+        <Tab Title="Wydarzenia"
+             Icon="event.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:EventsPage}" Route="{x:Static global:Routes+Events.EventsList}" />
+        </Tab>
+        <Tab Title="Lekcje Reg."
+             Icon="dance.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:GroupVideosPage}" Route="{x:Static global:Routes+Groups.AllVideos}" />
+        </Tab>
+    </TabBar>
     
 </Shell>
