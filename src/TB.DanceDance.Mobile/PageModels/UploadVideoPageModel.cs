@@ -126,8 +126,10 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         {
             SetEventUploadStyle(eventIdFromRoute);
         }
-        
-        SetGroupUploadStyle();
+        else
+        {
+            SetGroupUploadStyle();
+        }
     }
 
     private void SetGroupUploadStyle()
