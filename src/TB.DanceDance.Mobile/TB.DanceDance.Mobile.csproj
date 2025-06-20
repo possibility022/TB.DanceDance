@@ -24,7 +24,7 @@
 		<ApplicationTitle>My West</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.tb.dancedance.mobile</ApplicationId>
+		<ApplicationId>tb.dancedance.mobile</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
