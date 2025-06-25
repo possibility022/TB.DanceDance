@@ -14,6 +14,7 @@
     }
     
     public const string Player= "player";
+    public const string GetAccess= "access";
     
     public static class Upload
     {

@@ -96,7 +96,7 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
-    public async Task<IActionResult> RequestAccess([FromBody] RequestEventAssigmentModelRequest requests, CancellationToken cancellationToken)
+    public async Task<IActionResult> RequestAccess([FromBody] RequestAssigmentModelRequest requests, CancellationToken cancellationToken)
     {
         if (requests == null)
             return BadRequest();

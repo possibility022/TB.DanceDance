@@ -64,11 +64,13 @@
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
             </Grid.RowDefinitions>
 
-            <controls:FillButton Grid.Row="0" Text="Events" Command="{Binding NavigateToEventsCommand}"></controls:FillButton>
-            <controls:FillButton Grid.Row="1" Text="Group Videos" Command="{Binding NavigateToGroupsCommand}"></controls:FillButton>
-            <controls:FillButton Grid.Row="2" Text="Logout" Command="{Binding LogoutCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="0" Text="Nagrania z Wydarzeń" Command="{Binding NavigateToEventsCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="1" Text="Nagrania z Zajęć Regularnych" Command="{Binding NavigateToGroupsCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="2" Text="Uzyskaj Dostępy" Command="{Binding NavigateToGetAccessCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="3" Text="Wyloguj" Command="{Binding LogoutCommand}"></controls:FillButton>
         </Grid>
     </Grid>
 

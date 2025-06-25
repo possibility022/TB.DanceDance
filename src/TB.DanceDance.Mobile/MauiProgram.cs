@@ -57,6 +57,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITokenProviderService>(new StorageTokenProviderService());
         
         builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);
+        builder.Services.AddTransientWithShellRoute<GetAccessPage, GetAccessPageModel>(Routes.GetAccess);
         builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>(Routes.Player);
         builder.Services.AddTransientWithShellRoute<UploadVideoPage, UploadVideoPageModel>(Routes.Upload.Uploader);
         

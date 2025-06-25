@@ -15,13 +15,19 @@ public class DanceHttpApiClient
         this.httpClient = httpClientFactory.CreateClient(nameof(DanceHttpApiClient));
     }
 
-    public async Task<UserEventsAndGroupsResponse?> GetUserAccesses()
+    public async Task<UserEventsAndGroupsResponse> GetUserAccesses()
     {
         var response = await httpClient.GetAsync("/api/videos/accesses/my");
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadFromJsonAsync<UserEventsAndGroupsResponse>();
-        return content;
+        return content ?? new UserEventsAndGroupsResponse();;
+    }
+
+    public async Task RequestAccess(RequestAssigmentModelRequest accessRequest)
+    {
+        var response = await httpClient.PostAsJsonAsync("/api/videos/accesses/request", accessRequest);
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task<ICollection<GroupWithVideosResponse>?> GetVideosFromGroups()

@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="pageModels:GetAccessPageModel"
+             x:Name="GetAccessPageView"
+             x:Class="TB.DanceDance.Mobile.Pages.GetAccessPage">
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Appearing"
+            BindingContext="{Binding Path=BindingContext, 
+        Source={x:Reference GetAccessPageView}, 
+        x:DataType=pageModels:GetAccessPageModel}"
+            Command="{Binding AppearingCommand}">
+        </toolkit:EventToCommandBehavior>
+    </ContentPage.Behaviors>
+    <ContentPage.Content>
+        <StackLayout Margin="10, 0, 10, 0">
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefreshCommand}">
+                <ScrollView VerticalOptions="Fill">
+                    <StackLayout
+                        BindableLayout.ItemsSource="{Binding Accesses}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:AccessModel">
+                                <Border Padding="10" Margin="0,10,0,0">
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding TypeAsFriendlyString}"/>
+                                    <HorizontalStackLayout>
+                                        <CheckBox IsEnabled="{Binding CanBeRequested}"
+                                                  IsChecked="{Binding IsRequesting, Mode=TwoWay}"
+                                                  ></CheckBox>
+                                        <Label Padding="0,3,0,0" Text="{Binding Name}" FontSize="24"/>
+                                    </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </StackLayout>
+                </ScrollView>
+            </RefreshView>
+            <Button Text="Uzyskaj Dostęp" Command="{Binding RequestAccessCommand}"></Button>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

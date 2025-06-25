@@ -34,6 +34,13 @@ public partial class MainPageViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync("//" + Routes.Events.EventsList);
     }
+
+    [RelayCommand]
+    private async Task NavigateToGetAccess()
+    {
+        await Shell.Current.GoToAsync(Routes.GetAccess);
+    }
+    
     
     [RelayCommand]
     private async Task Logout()
