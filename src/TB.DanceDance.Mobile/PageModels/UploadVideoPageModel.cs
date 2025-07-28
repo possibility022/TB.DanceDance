@@ -107,7 +107,9 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                     else
                     {
                         throw new ArgumentOutOfRangeException(nameof(uploadTo));
-                    }
+                    } 
+                    
+                    await Shell.Current.CurrentPage.DisplayAlert("Dodano", "Nagranie zostało dodane do kolejki wysyłania.", "OK");
                 }
 
                 await Shell.Current.GoToAsync("..");
