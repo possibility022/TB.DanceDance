@@ -44,8 +44,8 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<MainPageViewModel>();
         
-        var networker = new Networker();
-        builder.Services.AddSingleton<Networker>(networker);
+        var networker = new NetworkStatusMonitor();
+        builder.Services.AddSingleton<NetworkStatusMonitor>(networker);
         builder.Services.AddSingleton(Channel.CreateUnbounded<UploadProgressEvent>());
         
         builder.Services.AddTransient<VideoProvider>();

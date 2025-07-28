@@ -5,7 +5,7 @@ public class NetworkerSettings
     public bool UploadOnlyByWiFi { get; set; } = true;
 }
 
-public class Networker : IDisposable
+public class NetworkStatusMonitor : IDisposable
 {
     private static NetworkerSettings settings = new NetworkerSettings(); //todo, load from storage
 
@@ -17,7 +17,7 @@ public class Networker : IDisposable
 
     private Task runBackgroundServiceTask; 
 
-    public Networker()
+    public NetworkStatusMonitor()
     {
         runBackgroundServiceTask = StartNewTask();
         Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
@@ -73,7 +73,7 @@ public class Networker : IDisposable
         ManageBackgroundService(e.NetworkAccess, e.ConnectionProfiles);
     }
 
-    ~Networker()
+    ~NetworkStatusMonitor()
     {
         ReleaseUnmanagedResources();
     }
