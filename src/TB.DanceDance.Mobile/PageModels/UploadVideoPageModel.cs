@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Services.DanceApi;
 
@@ -32,7 +33,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         Event,
         Group
     }
-    
+
     private UploadTo uploadTo = UploadTo.NotSpecified;
 
     [RelayCommand]
@@ -89,36 +90,42 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     [RelayCommand]
     private async Task UploadSelectedVideos()
     {
-            try
+        try
+        {
+            UploadButtonPressed = true;
+            UploadButtonEnabled = false;
+            foreach (FileResult file in SelectedFiles)
             {
-                UploadButtonPressed = true;
-                UploadButtonEnabled = false;
-                foreach (FileResult file in SelectedFiles)
+                if (uploadTo == UploadTo.Event)
                 {
-                    if (uploadTo == UploadTo.Event)
-                    {
-                        await videoUploader.UploadVideoToEvent(file.FullPath, EventId!.Value,
-                            CancellationToken.None); //todo cancellation token
-                    }
-                    else if (uploadTo == UploadTo.Group)
-                    {
-                        await videoUploader.UploadVideoToGroup(file.FullPath, Groups[SelectedGroupIndex].Id, CancellationToken.None);
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(uploadTo));
-                    } 
-                    
-                    await Shell.Current.CurrentPage.DisplayAlert("Dodano", "Nagranie zostało dodane do kolejki wysyłania.", "OK");
+                    await videoUploader.UploadVideoToEvent(file.FullPath, EventId!.Value,
+                        CancellationToken.None); //todo cancellation token
+                }
+                else if (uploadTo == UploadTo.Group)
+                {
+                    await videoUploader.UploadVideoToGroup(file.FullPath, Groups[SelectedGroupIndex].Id,
+                        CancellationToken.None);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException(nameof(uploadTo));
                 }
 
-                await Shell.Current.GoToAsync("..");
+                await Shell.Current.CurrentPage.DisplayAlert("Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
+                    "OK");
             }
-            finally
-            {
-                UploadButtonEnabled = true;
-                UploadButtonPressed = false;
-            }
+
+            await Shell.Current.GoToAsync("..");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not upload videos.");
+        }
+        finally
+        {
+            UploadButtonEnabled = true;
+            UploadButtonPressed = false;
+        }
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
