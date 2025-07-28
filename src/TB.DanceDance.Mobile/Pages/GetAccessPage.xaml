@@ -35,6 +35,10 @@
                                                   ></CheckBox>
                                         <Label Padding="0,3,0,0" Text="{Binding Name}" FontSize="24"/>
                                     </HorizontalStackLayout>
+                                        <Label Text="Oczekuje na zatwierdzenie"
+                                               IsVisible="{Binding IsPending}"
+                                               TextColor="{StaticResource Magenta}"
+                                        />
                                     </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>

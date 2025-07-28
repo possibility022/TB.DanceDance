@@ -9,15 +9,17 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public record AccessModel
 {
-    public AccessModel(bool hasAccess)
+    public AccessModel(bool hasAccess, bool isPending)
     {
         IsRequesting = hasAccess;
-        CanBeRequested = !hasAccess;
+        CanBeRequested = !hasAccess && !isPending;
+        IsPending = isPending;
     }
     public string Name { get; init; } = string.Empty;
     public DateTime? DateTime { get; init; }
     public bool IsRequesting { get; set; }
     public bool CanBeRequested { get; }
+    public bool IsPending { get; set; }
 
     public string TypeAsFriendlyString =>
         Type switch
@@ -81,7 +83,13 @@ public partial class GetAccessPageModel : ObservableObject
                 };
 
                 await apiClient.RequestAccess(request);
+
+                await Refresh();
             }
+        }
+        catch(Exception ex)
+        {
+            Log.Error(ex, "Error on requesting access.");
         }
         finally
         {
@@ -113,17 +121,17 @@ public partial class GetAccessPageModel : ObservableObject
         var response = await apiClient.GetUserAccesses();
         var list = new List<AccessModel>();
 
-        list.AddRange(response.Available.Groups.Select(g => MapFromGroup(g, false)));
-        list.AddRange(response.Assigned.Groups.Select(g => MapFromGroup(g, true)));
-        list.AddRange(response.Available.Events.Select(g => MapFromEvent(g, false)));
-        list.AddRange(response.Assigned.Events.Select(g => MapFromEvent(g, true)));
+        list.AddRange(response.Available.Groups.Select(g => MapFromGroup(g, false, response.Pending.Groups)));
+        list.AddRange(response.Assigned.Groups.Select(g => MapFromGroup(g, true, response.Pending.Groups)));
+        list.AddRange(response.Available.Events.Select(g => MapFromEvent(g, false, response.Pending.Events)));
+        list.AddRange(response.Assigned.Events.Select(g => MapFromEvent(g, true, response.Pending.Events)));
         
         Accesses = list;
     }
     
-    private AccessModel MapFromEvent(Event @event, bool hasAccess)
+    private AccessModel MapFromEvent(Event @event, bool hasAccess, IReadOnlyCollection<Guid> pendingEvents)
     {
-        return new AccessModel(hasAccess)
+        return new AccessModel(hasAccess, pendingEvents.Contains(@event.Id))
         {
             Id = @event.Id,
             DateTime = null,
@@ -132,9 +140,9 @@ public partial class GetAccessPageModel : ObservableObject
         };
     }
 
-    private AccessModel MapFromGroup(Group group, bool hasAccess)
+    private AccessModel MapFromGroup(Group group, bool hasAccess, IReadOnlyCollection<Guid> pendingGroups)
     {
-        return new AccessModel(hasAccess)
+        return new AccessModel(hasAccess, pendingGroups.Contains(group.Id))
         {
             Id = group.Id,
             DateTime = null,
