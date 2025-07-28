@@ -100,7 +100,13 @@ public class UserService : IUserService
 
     public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
     {
-        var toSave = events.Select(@event => new EventAssigmentRequest()
+        var pendingRequests = await dbContext.EventAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
+            .Select(r => r.EventId)
+            .ToArrayAsync();
+        
+        var toSave = events
+            .Except(pendingRequests)
+            .Select(@event => new EventAssigmentRequest()
         {
             EventId = @event,
             UserId = user
@@ -112,7 +118,13 @@ public class UserService : IUserService
 
     public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
     {
-        var toSave = groups.Select(group => new GroupAssigmentRequest()
+        var pendingRequests = await dbContext.GroupAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
+            .Select(r => r.GroupId)
+            .ToArrayAsync();
+        
+        var toSave = groups
+            .Where(group => !pendingRequests.Contains(group.groupId))
+            .Select(group => new GroupAssigmentRequest()
         {
             GroupId = group.groupId,
             WhenJoined = group.joinedDate,
