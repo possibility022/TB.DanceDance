@@ -36,6 +36,11 @@
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:Video">
                                     <Border Padding="10" Margin="0,10,0,0" IsEnabled="{Binding Converted}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition></ColumnDefinition>
+                                                <ColumnDefinition></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
                                         <VerticalStackLayout>
                                             <Label Text="{Binding Name}" FontSize="24">
                                                 <Label.GestureRecognizers>
@@ -51,6 +56,12 @@
                                                    >
                                             </Label>
                                         </VerticalStackLayout>
+                                            <controls:EditButton Grid.Column="1"
+                                                                 Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:GroupVideosPageModel}}, x:DataType=pageModels:GroupVideosPageModel}"
+                                                                 CommandParameter="{Binding Id}"
+                                                                 HorizontalOptions="End"
+                                                                 VerticalOptions="Center" />
+                                            </Grid>
                                     </Border>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
