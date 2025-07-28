@@ -15,6 +15,13 @@ public class DanceHttpApiClient
         this.httpClient = httpClientFactory.CreateClient(nameof(DanceHttpApiClient));
     }
 
+    public async Task RenameVideoAsync(Guid videoId, string newName)
+    {
+        var request = new VideoRenameRequest() { NewName = newName };
+        var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/rename", request);
+        response.EnsureSuccessStatusCode();
+    }
+
     public async Task<UserEventsAndGroupsResponse> GetUserAccesses()
     {
         var response = await httpClient.GetAsync("/api/videos/accesses/my");

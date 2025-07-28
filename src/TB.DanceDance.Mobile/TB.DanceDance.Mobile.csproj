@@ -95,6 +95,8 @@
 		<MauiImage Update="Resources\Images\video_upload.png" />
 		<MauiImage Update="Resources\Images\event.png" />
 		<MauiImage Update="Resources\Images\dance.png" />
+		<MauiImage Update="Resources\Images\edit.png" />
+		<MauiImage Update="Resources\Images\dots_vertical.png" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
@@ -132,6 +134,12 @@
 	  <MauiXaml Update="Pages\Controls\FillButton.xaml">
 	    <SubType>Designer</SubType>
 	  </MauiXaml>
+	  <MauiXaml Update="Pages\Controls\ThreeDotsButton.xaml">
+	    <SubType>Designer</SubType>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Controls\EditButton.xaml">
+	    <SubType>Designer</SubType>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -141,6 +149,14 @@
 	  </Compile>
 	  <Compile Update="Pages\Controls\FillButton.xaml.cs">
 	    <DependentUpon>FillButton.xaml</DependentUpon>
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="Pages\Controls\ThreeDotsButton.xaml.cs">
+	    <DependentUpon>ThreeDotsButton.xaml</DependentUpon>
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="Pages\Controls\EditButton.xaml.cs">
+	    <DependentUpon>EditButton.xaml</DependentUpon>
 	    <SubType>Code</SubType>
 	  </Compile>
 	</ItemGroup>
