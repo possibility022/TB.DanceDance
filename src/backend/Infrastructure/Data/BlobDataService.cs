@@ -53,6 +53,7 @@ public class BlobDataService : IBlobDataService
             blobId = Guid.NewGuid().ToString();
 
         var blobClient = container.GetBlobClient(blobId);
+
         var sasBuilder = new BlobSasBuilder {
             // Be careful with SAS start time. If you set the start time for a SAS to the current time, failures might occur intermittently for the first few minutes.
             // This is due to different machines having slightly different current times (known as clock skew).
@@ -61,6 +62,7 @@ public class BlobDataService : IBlobDataService
             // The same generally applies to expiry time as well--remember that you may observe up to 15 minutes of clock skew in either direction on any request. For clients using a REST version prior to 2012-02-12,
             // the maximum duration for a SAS that does not reference a stored access policy is 1 hour. Any policies that specify a longer term than 1 hour will fail.
             //sasBuilder.StartsOn = DateTimeOffset.Now.AddMinutes(-25);
+            Resource = "b",
             ExpiresOn = DateTimeOffset.Now.AddDays(7) 
         };
 
