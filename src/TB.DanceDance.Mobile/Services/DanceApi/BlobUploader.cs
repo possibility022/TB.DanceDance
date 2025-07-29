@@ -31,7 +31,6 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
                 blockList.Add(blockIdBase64);
                 blockId++;
                 OnUploadProgress(blockId * BufferSize);
-                await Task.Delay(1000);
             }
 
             await blobClient.CommitBlockListAsync(blockList, cancellationToken: cancellationToken);
