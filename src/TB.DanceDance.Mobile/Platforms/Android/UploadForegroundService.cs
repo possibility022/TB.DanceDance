@@ -160,6 +160,20 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
         notificationManager!.Notify(notificationId, notification);
     }
 
+    public void UploadCompleteNotification()
+    {
+        if (notificationChannel is null)
+            return;
+        
+        Notification notification = new Notification.Builder(this, channelId)
+            .SetContentTitle("Przesyłanie ukończone.")
+            .SetSmallIcon(Android.Resource.Drawable.StatSysUploadDone)
+            .SetOngoing(false)
+            .Build();
+
+        notificationManager!.Notify(notificationId, notification);
+    }
+
     public void UploadProgressNotification(string fileName, int progress, long maxProgress)
     {
         int progressPercentage = (int)((double)progress / maxProgress * 100);

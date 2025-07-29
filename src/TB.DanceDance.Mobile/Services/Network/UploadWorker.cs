@@ -6,14 +6,6 @@ using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.Services.Network;
 
-public interface IPlatformNotification
-{
-    Task<bool> CheckIfNotificationPermissionsAreGranted();
-    void UploadPausedNotification();
-    void UploadProgressNotification(string fileName, int progress, long maxProgress);
-    Task<bool> AskForNotificationPermission();
-}
-
 public class UploadWorker : IDisposable
 {
     private readonly VideosDbContext dbContext;
@@ -88,7 +80,10 @@ public class UploadWorker : IDisposable
             }
 
             await mainLoopCanncellationTokenSource.CancelAsync();
-            await monitorProgressProcess;
+            // for some reason, when we wait for monitorProgressProcess, it stucks...
+            // await monitorProgressProcess;
+            
+            platformNotification?.UploadCompleteNotification();
 
             Serilog.Log.Information("All videos uploaded.");
         }
