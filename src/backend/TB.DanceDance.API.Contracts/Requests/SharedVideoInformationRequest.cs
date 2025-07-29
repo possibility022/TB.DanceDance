@@ -22,12 +22,6 @@ namespace TB.DanceDance.API.Contracts.Requests
 
         [Required]
         public SharingWithType SharingWithType { get; set; }
-        
-        /// <summary>
-        /// VideoId of an existing upload to resume. Provide this when you want to get a SAS URL for a previously created blob that was partially
-        /// uploaded, and you want to continue the upload.
-        /// </summary>
-        public Guid? VideoId { get; set; }
     }
 
     public enum SharingWithType
