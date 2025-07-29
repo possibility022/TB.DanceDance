@@ -40,14 +40,16 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
         {
             var address = NetworkAddressResolver.Resolve(blobUri);
             var blobClient = new BlockBlobClient(address);
-
-            var exists = await blobClient.ExistsAsync(cancellationToken);
-            if (exists != true)
+            
+            var existingBlockList = blobClient.GetBlockList(BlockListTypes.All);
+            var someDataAlreadyUploaded = existingBlockList.HasValue && existingBlockList.Value.UncommittedBlocks.Any();
+            
+            if (!someDataAlreadyUploaded)
             {
                 await UploadFileAsync(stream, blobUri, cancellationToken);
                 return;
             }
-                
+            
             var existingBlocks =
                 await blobClient.GetBlockListAsync(BlockListTypes.All, cancellationToken: cancellationToken);
             var blockList = existingBlocks.Value.UncommittedBlocks.Select(b => b.Name).ToList();

@@ -58,12 +58,18 @@ public class NetworkStatusMonitor : IDisposable
 #endif
                 return;
             }
+            else
+            {
+#if ANDROID
+                UploadForegroundService.PauseService();
+#endif
+            }
         }
         else
         {
             Serilog.Log.Information("Background service stopped");
 #if ANDROID
-            UploadForegroundService.StopService();
+            UploadForegroundService.PauseService();
 #endif
         }
     }
