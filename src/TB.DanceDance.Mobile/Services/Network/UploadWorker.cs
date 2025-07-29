@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using Azure;
+using System.Threading.Channels;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
 using TB.DanceDance.Mobile.Services.DanceApi;
@@ -17,6 +18,7 @@ public class UploadWorker : IDisposable
 {
     private readonly VideosDbContext dbContext;
     private readonly VideoUploader videoUploader;
+    private readonly DanceHttpApiClient apiClient;
     private readonly Channel<UploadProgressEvent> uploadProgressChannel;
     private IPlatformNotification? platformNotification;
     private CancellationTokenSource? mainLoopCanncellationTokenSource;
@@ -28,10 +30,12 @@ public class UploadWorker : IDisposable
     
     public UploadWorker(VideosDbContext dbContext, 
         VideoUploader videoUploader,
+        DanceHttpApiClient apiClient,
         Channel<UploadProgressEvent> uploadProgressChannel)
     {
         this.dbContext = dbContext;
         this.videoUploader = videoUploader;
+        this.apiClient = apiClient;
         this.uploadProgressChannel = uploadProgressChannel;
         Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
     }
@@ -109,6 +113,9 @@ public class UploadWorker : IDisposable
         {
             delay = TimeSpan.Zero;
             Serilog.Log.Information("Uploading one video.");
+            if (video.SasExpireAt < DateTime.Now.AddMinutes(-6))
+                await RefreshSas(video);
+            
             await videoUploader.Upload(video, token);
             video.Uploaded = true;
             Serilog.Log.Information("Video uploaded.");
@@ -120,11 +127,25 @@ public class UploadWorker : IDisposable
         {
             // Nothing to do, wait for resume
         }
+        catch (RequestFailedException requestFailedException)
+        {
+            if (requestFailedException.Status == 403)
+            {
+                await RefreshSas(video);
+            }
+        }
         catch (Exception ex)
         {
             delay = TimeSpan.FromMinutes(1);
             Serilog.Log.Warning(ex, "Foreground Service Exception.");
         }
+    }
+
+    private async Task RefreshSas(VideosToUpload videoToUpload)
+    {
+        var newUrl = await apiClient.RefreshUploadUrl(videoToUpload.RemoteVideoId);
+        videoToUpload.Sas = newUrl.Sas;
+        videoToUpload.SasExpireAt = newUrl.ExpireAt.DateTime;
     }
     
     private async Task DelayIfRequired()

@@ -54,7 +54,14 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
             }
             catch (RequestFailedException ex)
             {
-                // blob, most probably do not exists
+                if (ex.Status == 404)
+                {
+                    // nothing to do   
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return new List<string>();

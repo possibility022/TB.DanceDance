@@ -67,6 +67,15 @@ public class DanceHttpApiClient
         }
     }
 
+    public async Task<UploadVideoInformationResponse> RefreshUploadUrl(Guid videoId)
+    {
+        var response = await httpClient.GetAsync($"/api/videos/upload/{videoId}");
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadFromJsonAsync<UploadVideoInformationResponse>();
+        return content!;
+    }
+
     public async Task<UploadVideoInformationResponse?> GetUploadInformation(
         string fileName,
         string nameOfVideo,
