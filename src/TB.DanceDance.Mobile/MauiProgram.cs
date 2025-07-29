@@ -46,6 +46,10 @@ public static class MauiProgram
         
         var networker = new NetworkStatusMonitor();
         builder.Services.AddSingleton<NetworkStatusMonitor>(networker);
+        builder.Services.AddScoped<UploadWorker>();
+        #if ANDROID
+        builder.Services.AddSingleton<IPlatformNotification, UploadForegroundService>();
+        #endif
         builder.Services.AddSingleton(Channel.CreateUnbounded<UploadProgressEvent>());
         
         builder.Services.AddTransient<VideoProvider>();

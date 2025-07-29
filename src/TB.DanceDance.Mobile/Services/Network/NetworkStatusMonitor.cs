@@ -15,29 +15,11 @@ public class NetworkStatusMonitor : IDisposable
         set => settings = value;
     }
 
-    private Task runBackgroundServiceTask; 
-
     public NetworkStatusMonitor()
     {
-        runBackgroundServiceTask = StartNewTask();
         Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
     }
-
-    private Task StartNewTask()
-    {
-        return Task.Run(() =>
-        {
-            try
-            {
-                ManageBackgroundService(Connectivity.Current.NetworkAccess, Connectivity.ConnectionProfiles);
-            }
-            catch (Exception e)
-            {
-                Serilog.Log.Error(e, "Networker");
-            }
-        });
-    }
-
+    
     private void ManageBackgroundService(NetworkAccess access, IEnumerable<ConnectionProfile> connectionProfiles)
     {
         if (access == NetworkAccess.Internet)
@@ -58,19 +40,6 @@ public class NetworkStatusMonitor : IDisposable
 #endif
                 return;
             }
-            else
-            {
-#if ANDROID
-                UploadForegroundService.PauseService();
-#endif
-            }
-        }
-        else
-        {
-            Serilog.Log.Information("Background service stopped");
-#if ANDROID
-            UploadForegroundService.PauseService();
-#endif
         }
     }
 

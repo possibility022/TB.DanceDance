@@ -58,7 +58,7 @@ public class VideoUploader
 
         currentlyUploadedFile = new FileInfo(videoToUpload.FullFileName);
         await using var fileStream = currentlyUploadedFile.OpenRead();
-        await uploader.ResumeUploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
+        await uploader.UploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
 
         videoToUpload.Uploaded = true;
     }

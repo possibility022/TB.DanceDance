@@ -48,6 +48,9 @@ public partial class MainPageViewModel : ObservableObject
         TokenStorage.ClearToken();
         LoginEnabled = true;
         IsLoggedIn = false;
+#if ANDROID
+        UploadForegroundService.StopService();
+#endif
     }
 
     [RelayCommand]
@@ -82,6 +85,9 @@ public partial class MainPageViewModel : ObservableObject
                 // We have a refresh token, just login automatically
                 await Login();
             }
+#if ANDROID
+            UploadForegroundService.StartService();
+#endif
         }
         finally
         {

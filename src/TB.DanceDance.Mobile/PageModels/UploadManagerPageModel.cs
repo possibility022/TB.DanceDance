@@ -3,21 +3,23 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Data.Models.Storage;
+using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class UploadManagerPageModel : ObservableObject
 {
     private readonly VideosDbContext dbContext;
+    private readonly IPlatformNotification platformNotification;
 
-    public UploadManagerPageModel(VideosDbContext dbContext)
+    public UploadManagerPageModel(VideosDbContext dbContext, IPlatformNotification platformNotification)
     {
         this.dbContext = dbContext;
+        this.platformNotification = platformNotification;
     }
 
     [ObservableProperty] private List<VideosToUpload> toUpload = [];
 
-    [ObservableProperty] private bool uploadingInProgress;
     [ObservableProperty] private bool isRefreshing;
     [ObservableProperty] private bool notificationBlocked;
 
@@ -30,17 +32,13 @@ public partial class UploadManagerPageModel : ObservableObject
 
     private async Task CheckNotificationSettings()
     {
-#if ANDROID
-        NotificationBlocked = !(await UploadForegroundService.CheckIfNotificationPermissionsAreGranted());
-#endif
+        NotificationBlocked = !(await platformNotification.CheckIfNotificationPermissionsAreGranted());
     }
 
     [RelayCommand]
     private async Task AskNotificationPermissions()
     {
-#if ANDROID
-        NotificationBlocked = !(await UploadForegroundService.AskForNotificationPermission());
-#endif
+        NotificationBlocked = !(await platformNotification.AskForNotificationPermission());
     }
 
     [RelayCommand]
@@ -53,10 +51,6 @@ public partial class UploadManagerPageModel : ObservableObject
                 .OrderByDescending(r => r.Uploaded)
                 .AsNoTracking()
                 .ToListAsync();
-
-#if ANDROID
-            UploadingInProgress = UploadForegroundService.IsInProgress();
-#endif
         }
         catch (Exception ex)
         {
