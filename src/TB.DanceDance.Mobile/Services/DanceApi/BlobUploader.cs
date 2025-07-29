@@ -45,7 +45,6 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
 
         private static async Task<List<string>> CheckIfSomethingUploaded(BlockBlobClient blobClient, CancellationToken token)
         {
-            bool someDataAlreadyUploaded;
             try
             {
                 var existingBlocks =
@@ -55,7 +54,7 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
             }
             catch (RequestFailedException ex)
             {
-                someDataAlreadyUploaded = false;
+                // blob, most probably do not exists
             }
 
             return new List<string>();
