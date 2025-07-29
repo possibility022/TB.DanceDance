@@ -23,7 +23,7 @@ public class BlobUploaderTests : IAsyncLifetime
         using MemoryStream ms = new();
         WriteDataBytes(ms);
 
-        await blobUploader.UploadFileAsync(ms, uri, CancellationToken.None);
+        await blobUploader.UploadAsync(ms, uri, CancellationToken.None);
 
         ms.Position = 0;
 
@@ -64,11 +64,11 @@ public class BlobUploaderTests : IAsyncLifetime
         
         WriteDataBytes(ms);
 
-        await Assert.ThrowsAsync<TaskCanceledException>(async () =>  await blobUploader.UploadFileAsync(msWrapper, uri, cancellationTokenSource.Token));
+        await Assert.ThrowsAsync<TaskCanceledException>(async () =>  await blobUploader.UploadAsync(msWrapper, uri, cancellationTokenSource.Token));
             
         ms.Position = 0;
         
-        await blobUploader.ResumeUploadAsync(ms, uri, CancellationToken.None);
+        await blobUploader.UploadAsync(ms, uri, CancellationToken.None);
         
         // Verify the blob was uploaded
         var download = await blob.DownloadAsync();

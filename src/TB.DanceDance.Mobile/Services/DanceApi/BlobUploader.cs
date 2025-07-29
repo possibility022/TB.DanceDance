@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs.Models;
+﻿using Azure;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using TB.DanceDance.Mobile.Services.Network;
 
@@ -9,56 +10,21 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
         public int BufferSize { get; set; } = 1024 * 1024 * 4; // 4MB
         
         public event EventHandler<int>? UploadProgress;
-
-        public async Task UploadFileAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
-        {
-            var address = NetworkAddressResolver.Resolve(blobUri);
-            var blobClient = new BlockBlobClient(address);
-            var blockList = new List<string>();
-
-            byte[] buffer = new byte[BufferSize];
-            int bytesRead;
-            int blockId = 0;
-
-            while ((bytesRead = await stream.ReadAsync(buffer, 0, BufferSize, cancellationToken)) > 0)
-            {
-                var blockIdBase64 = Convert.ToBase64String(BitConverter.GetBytes(blockId));
-                using (var memoryStream = new MemoryStream(buffer, 0, bytesRead))
-                {
-                    await blobClient.StageBlockAsync(blockIdBase64, memoryStream, null, cancellationToken);
-                }
-
-                blockList.Add(blockIdBase64);
-                blockId++;
-                OnUploadProgress(blockId * BufferSize);
-            }
-
-            await blobClient.CommitBlockListAsync(blockList, cancellationToken: cancellationToken);
-        }
-
-        public async Task ResumeUploadAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
+        
+        public async Task UploadAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
         {
             var address = NetworkAddressResolver.Resolve(blobUri);
             var blobClient = new BlockBlobClient(address);
             
-            var existingBlockList = blobClient.GetBlockList(BlockListTypes.All);
-            var someDataAlreadyUploaded = existingBlockList.HasValue && existingBlockList.Value.UncommittedBlocks.Any();
-            
-            if (!someDataAlreadyUploaded)
-            {
-                await UploadFileAsync(stream, blobUri, cancellationToken);
-                return;
-            }
-            
-            var existingBlocks =
-                await blobClient.GetBlockListAsync(BlockListTypes.All, cancellationToken: cancellationToken);
-            var blockList = existingBlocks.Value.UncommittedBlocks.Select(b => b.Name).ToList();
+            var blockList = await CheckIfSomethingUploaded(blobClient, cancellationToken);
 
             byte[] buffer = new byte[BufferSize];
+            var blockId = blockList.Count;
             
-            int blockId = blockList.Count;
-
-            stream.Seek(blockId * BufferSize, SeekOrigin.Begin);
+            if (blockId > 0)
+            {
+                stream.Seek(blockId * BufferSize, SeekOrigin.Begin);
+            }
 
             int bytesRead;
             while ((bytesRead = await stream.ReadAsync(buffer, 0, BufferSize, cancellationToken)) > 0)
@@ -77,7 +43,25 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
             await blobClient.CommitBlockListAsync(blockList, cancellationToken: cancellationToken);
         }
 
-        protected virtual void OnUploadProgress(int e)
+        private static async Task<List<string>> CheckIfSomethingUploaded(BlockBlobClient blobClient, CancellationToken token)
+        {
+            bool someDataAlreadyUploaded;
+            try
+            {
+                var existingBlocks =
+                    await blobClient.GetBlockListAsync(BlockListTypes.All, cancellationToken: token);
+                var blockList = existingBlocks.Value.UncommittedBlocks.Select(b => b.Name).ToList();
+                return blockList;
+            }
+            catch (RequestFailedException ex)
+            {
+                someDataAlreadyUploaded = false;
+            }
+
+            return new List<string>();
+        }
+
+        protected void OnUploadProgress(int e)
         {
             UploadProgress?.Invoke(this, e);
         }
