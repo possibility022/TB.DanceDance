@@ -13,7 +13,7 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
 {
     // This is any integer value unique to the application.
     public const int ServiceRunningNotificationId = 827364823;
-    
+
     private readonly IServiceScope serviceScope;
     private CancellationTokenSource? cancellationTokenSource;
     private NotificationChannel? notificationChannel;
@@ -25,7 +25,7 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
     private const int notificationId = 100;
     const string channelId = "tbupload";
     const string channelName = "Uploading Dance Video";
-    
+
     public enum ServiceAction
     {
         Start,
@@ -52,7 +52,6 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
         {
             serviceScope = IPlatformApplication.Current.Services.CreateScope();
             worker = serviceScope.ServiceProvider.GetRequiredService<UploadWorker>();
-            worker.SetPlatformNotification(this);
         }
         else
         {
@@ -76,12 +75,13 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
         if (intent.Action == nameof(ServiceAction.Start))
         {
             RegisterNotification();
-
             uploadingTask ??= StartNewTask();
+            worker.SetPlatformNotification(this);
         }
         else if (intent.Action == nameof(ServiceAction.Stop))
         {
             cancellationTokenSource?.Cancel();
+            worker.SetPlatformNotification(null);
             StopForeground(StopForegroundFlags.Remove);
             StopSelfResult(startId);
         }
@@ -93,14 +93,16 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
     {
         if (cancellationTokenSource is null || cancellationTokenSource.IsCancellationRequested)
             cancellationTokenSource = new CancellationTokenSource();
-        
+
         Serilog.Log.Information("Starting upload Task");
         return Task.Run(async () =>
         {
             await worker.Work(cancellationTokenSource.Token);
             uploadingTask = null;
+            StopService();
         });
     }
+
     public static void StartService()
     {
         if (Platform.CurrentActivity is null)
@@ -150,7 +152,7 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
     {
         if (notificationChannel is null)
             return;
-        
+
         Notification notification = new Notification.Builder(this, channelId)
             .SetContentTitle("Przesyłanie wstrzymane. Oczekuje na WiFi.")
             .SetSmallIcon(Android.Resource.Drawable.IcMediaPause)
@@ -164,7 +166,7 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
     {
         if (notificationChannel is null)
             return;
-        
+
         Notification notification = new Notification.Builder(this, channelId)
             .SetContentTitle("Przesyłanie ukończone.")
             .SetSmallIcon(Android.Resource.Drawable.StatSysUploadDone)

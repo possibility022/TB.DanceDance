@@ -161,4 +161,16 @@
 	  </Compile>
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+	  <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios'">
+	  <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-maccatalyst'">
+	  <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
+	</ItemGroup>
+
 </Project>

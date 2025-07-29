@@ -36,11 +36,17 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
         serilogConfig.WriteTo.Debug();
         serilogConfig.WriteTo.File(Path.Combine(FileSystem.Current.AppDataDirectory, "log.txt"), rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Debug);
+#if ANDROID
+        serilogConfig
+            .WriteTo.AndroidLog()
+            .Enrich.WithProperty(Serilog.Core.Constants.SourceContextPropertyName, "tb.dancedance.mobile");
+#endif
 #else
         serilogConfig.WriteTo.File(Path.Combine(FileSystem.Current.AppDataDirectory, "log.txt"), rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Information);
 #endif
 
-        builder.Services.AddSerilog(serilogConfig.CreateLogger());
+        Log.Logger = serilogConfig.CreateLogger();
+        builder.Services.AddSerilog(Log.Logger);
 
         builder.Services.AddSingleton<MainPageViewModel>();
         

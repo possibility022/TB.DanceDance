@@ -32,7 +32,7 @@ public class UploadWorker : IDisposable
         Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
     }
 
-    public void SetPlatformNotification(IPlatformNotification notification)
+    public void SetPlatformNotification(IPlatformNotification? notification)
     {
         this.platformNotification = notification;
     }
@@ -79,10 +79,10 @@ public class UploadWorker : IDisposable
                 }
             }
 
+            Serilog.Log.Debug("Requesting cancellation on {token}.", mainLoopCanncellationTokenSource.Token.GetHashCode());
             await mainLoopCanncellationTokenSource.CancelAsync();
-            // for some reason, when we wait for monitorProgressProcess, it stucks...
-            // await monitorProgressProcess;
-            
+            await monitorProgressProcess;
+
             platformNotification?.UploadCompleteNotification();
 
             Serilog.Log.Information("All videos uploaded.");
@@ -95,10 +95,19 @@ public class UploadWorker : IDisposable
 
     private async Task MonitorProgress(CancellationToken cancellationToken)
     {
-        while (await uploadProgressChannel.Reader.WaitToReadAsync(cancellationToken))
+        try
         {
-            var message = await uploadProgressChannel.Reader.ReadAsync(cancellationToken);
-            platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
+            Serilog.Log.Debug("Cancellation status of token {token} - {status}.", cancellationToken.GetHashCode(),
+                cancellationToken.IsCancellationRequested);
+            while (await uploadProgressChannel.Reader.WaitToReadAsync(cancellationToken))
+            {
+                var message = await uploadProgressChannel.Reader.ReadAsync(cancellationToken);
+                platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            // nothing to do
         }
     }
     

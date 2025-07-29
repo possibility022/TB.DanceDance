@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Services.Auth;
 using TB.DanceDance.Mobile.Services.DanceApi;
 
@@ -8,10 +9,12 @@ namespace TB.DanceDance.Mobile.PageModels;
 public partial class MainPageViewModel : ObservableObject
 {
     private readonly DanceHttpApiClient danceHttpApi;
+    private readonly VideosDbContext dbContext;
 
-    public MainPageViewModel(DanceHttpApiClient danceHttpApi)
+    public MainPageViewModel(DanceHttpApiClient danceHttpApi, VideosDbContext dbContext)
     {
         this.danceHttpApi = danceHttpApi;
+        this.dbContext = dbContext;
     }
 
     [ObservableProperty]
@@ -86,7 +89,8 @@ public partial class MainPageViewModel : ObservableObject
                 await Login();
             }
 #if ANDROID
-            UploadForegroundService.StartService();
+            //if (dbContext.VideosToUpload.Any(r => r.Uploaded == false))
+                UploadForegroundService.StartService();
 #endif
         }
         finally
