@@ -53,6 +53,10 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Install Workflows
+        run: dotnet workload restore
+        working-directory: ./src/TB.DanceDance.Mobile
       - name: Restore dependencies
         run: dotnet restore
         working-directory: ./src/TB.DanceDance.Mobile
