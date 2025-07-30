@@ -61,9 +61,9 @@ jobs:
         run: dotnet restore
         working-directory: ./src/TB.DanceDance.Mobile
       - name: Build Mobile Project
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore --framework net9.0-android
         working-directory: ./src/TB.DanceDance.Mobile
       - name: Test
-        run: dotnet test --verbosity normal
+        run: dotnet test --verbosity normal --framework net9.0
         working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
       
