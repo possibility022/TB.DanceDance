@@ -7,7 +7,7 @@ on:
       - master
 
 jobs:
-  build:
+  build-api:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,15 +19,9 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      - name: Install dependencies
-        run: dotnet restore
-        working-directory: ./src/backend
       - name: Build
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./src/backend
-      - name: Test
-        run: dotnet test --no-restore --verbosity normal
-        working-directory: ./src/backend
+        run: dotnet build --configuration Release
+        working-directory: ./src/backend/TB.DanceDance.API.csproj
         
   frontend:
     runs-on: ubuntu-latest
@@ -61,7 +55,11 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
       - name: Restore dependencies
         run: dotnet restore
-        working-directory: ./TB.DanceDance.Mobile
+        working-directory: ./src/TB.DanceDance.Mobile
       - name: Build Mobile Project
         run: dotnet build --configuration Release --no-restore
-        working-directory: ./TB.DanceDance.Mobile
+        working-directory: ./src/TB.DanceDance.Mobile
+      - name: Test
+        run: dotnet test --verbosity normal
+        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests.csproj
+      
