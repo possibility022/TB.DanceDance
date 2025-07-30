@@ -42,7 +42,7 @@ jobs:
         
         
   build-mobile:
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     strategy:
       matrix:
         dotnet-version: ['9.0.x']
@@ -55,7 +55,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
           
       - name: Install Workflows
-        run: dotnet workload restore
+        run: dotnet workload install maui
         working-directory: ./src/TB.DanceDance.Mobile
       - name: Restore dependencies
         run: dotnet restore
