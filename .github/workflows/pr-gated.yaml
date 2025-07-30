@@ -45,3 +45,23 @@ jobs:
       - name: Build frontend project
         working-directory: ./src/frontend
         run: npm run build
+        
+        
+  build-mobile:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['9.0.x']
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./TB.DanceDance.Mobile
+      - name: Build Mobile Project
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./TB.DanceDance.Mobile
