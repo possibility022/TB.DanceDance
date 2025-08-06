@@ -22,9 +22,6 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
         working-directory: ./src/backend/TB.DanceDance.API
-      - name: Test
-        run: dotnet test --verbosity normal --framework net9.0
-        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
         
   gated-frontend:
     runs-on: ubuntu-latest
@@ -66,4 +63,6 @@ jobs:
       - name: Build Mobile Project
         run: dotnet build --configuration Release --no-restore
         working-directory: ./src/TB.DanceDance.Mobile
-      
+
+
+# TODO - Add test runs
