@@ -7,7 +7,7 @@ on:
       - master
 
 jobs:
-  build:
+  build-api:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,15 +19,12 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      - name: Install dependencies
-        run: dotnet restore
-        working-directory: ./src/backend
       - name: Build
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./src/backend
+        run: dotnet build --configuration Release
+        working-directory: ./src/backend/TB.DanceDance.API
       - name: Test
-        run: dotnet test --no-restore --verbosity normal
-        working-directory: ./src/backend
+        run: dotnet test --verbosity normal --framework net9.0
+        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
         
   frontend:
     runs-on: ubuntu-latest
@@ -45,3 +42,28 @@ jobs:
       - name: Build frontend project
         working-directory: ./src/frontend
         run: npm run build
+        
+        
+  build-mobile:
+    runs-on: macOS-latest
+    strategy:
+      matrix:
+        dotnet-version: ['9.0.x']
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Install Workflows
+        run: dotnet workload install maui
+        working-directory: ./src/TB.DanceDance.Mobile
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: ./src/TB.DanceDance.Mobile
+      - name: Build Mobile Project
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src/TB.DanceDance.Mobile
+      

@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             x:DataType="pageModels:MainPageViewModel"
+             x:Name="MainPageViewPage"
+             x:Class="TB.DanceDance.Mobile.MainPage">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Appearing"
+            BindingContext="{Binding Path=BindingContext, 
+        Source={x:Reference MainPageViewPage}, 
+        x:DataType=pageModels:MainPageViewModel}"
+            Command="{Binding AppearingCommand}">
+        </toolkit:EventToCommandBehavior>
+    </ContentPage.Behaviors>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0"
+                             IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}"
+                             VerticalOptions="Center">
+            
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            
+            <Label
+                Grid.Row="0"
+                Text="Cześć!"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Grid.Row="1"
+                Text="Zarejestruj się lub zaloguj :)"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level2" />
+
+            <ActivityIndicator Grid.Row="2" IsRunning="true" IsVisible="{Binding LoginInProgress}" />
+
+            <controls:FillButton Grid.Row="3"
+                Text="Zarejestruj / Zaloguj"
+                Command="{Binding LoginCommand}"
+                IsEnabled="{Binding LoginEnabled}" />
+        </Grid>
+        <Grid Grid.Row="1" IsVisible="{Binding IsLoggedIn}" VerticalOptions="Center">
+
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <controls:FillButton Grid.Row="0" Text="Nagrania z Wydarzeń" Command="{Binding NavigateToEventsCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="1" Text="Nagrania z Zajęć Regularnych" Command="{Binding NavigateToGroupsCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="2" Text="Uzyskaj Dostępy" Command="{Binding NavigateToGetAccessCommand}"></controls:FillButton>
+            <controls:FillButton Grid.Row="3" Text="Wyloguj" Command="{Binding LogoutCommand}"></controls:FillButton>
+        </Grid>
+    </Grid>
+
+</ContentPage>

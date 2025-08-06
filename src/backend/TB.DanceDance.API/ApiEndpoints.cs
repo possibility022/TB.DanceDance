@@ -14,6 +14,7 @@ public static class ApiEndpoints
 
         public const string Rename = $"{Base}/{{videoId:guid}}/rename";
         public const string GetUploadUrl = $"{Base}/upload";
+        public const string RefreshUploadUrl = $"{Base}/upload/{{videoId:guid}}";
 
 
         public static class Access

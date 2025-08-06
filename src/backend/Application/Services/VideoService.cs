@@ -49,6 +49,17 @@ public class VideoService : IVideoService
 
         return any;
     }
+    
+    public async Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId)
+    {
+        var query = GetBaseVideosForUserQuery(userId)
+            .Where(v => v.Id == videoId)
+            .AnyAsync();
+
+        var any = await query;
+
+        return any;
+    }
 
     public Task<Video?> GetVideoByBlobAsync(string userId, string blobId)
     {
