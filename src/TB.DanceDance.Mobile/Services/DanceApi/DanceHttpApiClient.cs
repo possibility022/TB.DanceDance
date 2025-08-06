@@ -116,4 +116,12 @@ public class DanceHttpApiClient
 
         return builder.Uri;
     }
+
+    public async Task CreateEvent(string eventName, DateTime eventDate)
+    {
+        var body = new CreateNewEventRequest() { Event = new Event() { Date = eventDate, Name = eventName } };
+        var res = await httpClient.PostAsJsonAsync($"/api/events", body);
+
+        res.EnsureSuccessStatusCode();
+    }
 }

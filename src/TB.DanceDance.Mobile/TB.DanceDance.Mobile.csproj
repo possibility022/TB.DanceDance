@@ -94,6 +94,8 @@
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\video_upload.png" />
 		<MauiImage Update="Resources\Images\event.png" />
+		<MauiImage Update="Resources\Images\add_event.png" />
+		<MauiImage Update="Resources\Images\add_eventt.png" />
 		<MauiImage Update="Resources\Images\dance.png" />
 		<MauiImage Update="Resources\Images\edit.png" />
 		<MauiImage Update="Resources\Images\dots_vertical.png" />
@@ -140,6 +142,9 @@
 	  <MauiXaml Update="Pages\Controls\EditButton.xaml">
 	    <SubType>Designer</SubType>
 	  </MauiXaml>
+	  <MauiXaml Update="Pages\Controls\AddEventButton.xaml">
+	    <SubType>Designer</SubType>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -157,6 +162,10 @@
 	  </Compile>
 	  <Compile Update="Pages\Controls\EditButton.xaml.cs">
 	    <DependentUpon>EditButton.xaml</DependentUpon>
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="Pages\Controls\AddEventButton.xaml.cs">
+	    <DependentUpon>AddEventButton.xaml</DependentUpon>
 	    <SubType>Code</SubType>
 	  </Compile>
 	</ItemGroup>

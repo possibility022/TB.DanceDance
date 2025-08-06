@@ -5,6 +5,7 @@
         private const string EVENT = "event";
         public const string EventsList = EVENT;
         public const string EventDetails = $"{EVENT}Details";
+        public const string Add = $"{EVENT}Add";
     }
     
     public static class Groups

@@ -5,7 +5,7 @@ using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class EventsPageModel : ObservableObject
+public partial class EventsPageModel : ObservableObject, IQueryAttributable
 {
     private readonly DanceHttpApiClient _apiClient;
 
@@ -34,6 +34,22 @@ public partial class EventsPageModel : ObservableObject
         {
             { "eventId", @event.Id }
         });
+    }
+
+    [RelayCommand]
+    private async Task NavigateToAddEvent()
+    {
+        await Shell.Current.GoToAsync(Routes.Events.Add);
+    }
+    
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        var weHaveIt = query.TryGetValue("refreshEventList", out object? refreshListRequired);
+        if (weHaveIt && refreshListRequired is bool refreshListRequiredAsBool)
+        {
+            if (refreshListRequiredAsBool)
+                Refresh();//todo fireandforgetsafeasync
+        }
     }
     
     [RelayCommand]
