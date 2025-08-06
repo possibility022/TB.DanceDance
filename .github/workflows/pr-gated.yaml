@@ -7,7 +7,7 @@ on:
       - master
 
 jobs:
-  build-api:
+  gated-build-api:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,7 +26,7 @@ jobs:
         run: dotnet test --verbosity normal --framework net9.0
         working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
         
-  frontend:
+  gated-frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,7 +44,7 @@ jobs:
         run: npm run build
         
         
-  build-mobile:
+  gated-build-mobile:
     runs-on: macOS-latest
     strategy:
       matrix:
