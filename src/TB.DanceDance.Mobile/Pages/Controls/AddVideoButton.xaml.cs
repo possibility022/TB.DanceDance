@@ -1,8 +1,8 @@
 ﻿namespace TB.DanceDance.Mobile.Pages.Controls;
 
-public partial class AddButton
+public partial class AddVideoButton
 {
-    public AddButton()
+    public AddVideoButton()
     {
         InitializeComponent();
     }

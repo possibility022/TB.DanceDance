@@ -70,7 +70,7 @@
                 </RefreshView>
             </StackLayout>
             <VerticalStackLayout HorizontalOptions="End" VerticalOptions="End">
-                <controls:AddButton Command="{Binding NavigateToUploadGroupVideoCommand}"></controls:AddButton>
+                <controls:AddVideoButton Command="{Binding NavigateToUploadGroupVideoCommand}"></controls:AddVideoButton>
             </VerticalStackLayout>
         </Grid>
     </ContentPage.Content>

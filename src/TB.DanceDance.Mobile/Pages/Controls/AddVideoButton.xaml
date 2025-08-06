@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Button xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-        x:Class="TB.DanceDance.Mobile.Pages.Controls.AddButton"
+        x:Class="TB.DanceDance.Mobile.Pages.Controls.AddVideoButton"
         ImageSource="video_upload.png"
         CornerRadius="30" 
         HeightRequest="60" 
