@@ -42,7 +42,7 @@ jobs:
         
         
   gated-build-mobile:
-    runs-on: macOS-latest
+    runs-on: macos-15
     strategy:
       matrix:
         dotnet-version: ['9.0.x']
