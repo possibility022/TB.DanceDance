@@ -64,12 +64,11 @@ jobs:
 #        run: xcodebuild -version
 
       - name: Restore dependencies
-        run: dotnet restore --framework net9.0-android
+        run: dotnet restore
         working-directory: ./src/TB.DanceDance.Mobile
 
       - name: Publish MAUI Android AAB
-        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f ${{ matrix.dotnet-version }}-android --no-restore
-        working-directory: ./src/TB.DanceDance.Mobile/TB.DanceDance.Mobile.csproj
+        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release --no-restore
       
 #      - name: Build Mobile Project
 #        run: dotnet build --configuration Release --no-restore --framework net9.0-android
