@@ -67,8 +67,12 @@ jobs:
         run: dotnet restore
         working-directory: ./src/TB.DanceDance.Mobile
 
-      - name: Publish MAUI Android AAB
-        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release --no-restore
+      - name: Build MAUI Android
+        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f net9.0-android --no-restore 
+        
+      - name: Run Mobile Tests
+        run: dotnet test
+        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
       
 #      - name: Build Mobile Project
 #        run: dotnet build --configuration Release --no-restore --framework net9.0-android
