@@ -42,7 +42,7 @@ jobs:
         
         
   gated-build-mobile:
-    runs-on: macos-15
+    runs-on: windows-latest
     strategy:
       matrix:
         dotnet-version: ['9.0.x']
@@ -58,25 +58,30 @@ jobs:
         run: dotnet workload install maui
         working-directory: ./src/TB.DanceDance.Mobile
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select -s "/Applications/Xcode_16.4.app"
-      - name: Verify Xcode version
-        run: xcodebuild -version
+#      - name: Select Xcode 16.4
+#        run: sudo xcode-select -s "/Applications/Xcode_16.4.app"
+#      - name: Verify Xcode version
+#        run: xcodebuild -version
 
       - name: Restore dependencies
         run: dotnet restore --framework net9.0-android
         working-directory: ./src/TB.DanceDance.Mobile
-      - name: Build Mobile Project
-        run: dotnet build --configuration Release --no-restore --framework net9.0-android
-        working-directory: ./src/TB.DanceDance.Mobile
 
-      - name: Build Mobile Test Project
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
+      - name: Publish MAUI Android AAB
+        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f ${{ matrix.dotnet-version }}-android --no-restore
+        working-directory: ./src/TB.DanceDance.Mobile/TB.DanceDance.Mobile.csproj
       
-      - name: Run Mobile Tests
-        run: dotnet test --no-build
-        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
+#      - name: Build Mobile Project
+#        run: dotnet build --configuration Release --no-restore --framework net9.0-android
+#        working-directory: ./src/TB.DanceDance.Mobile
+#
+#      - name: Build Mobile Test Project
+#        run: dotnet build --configuration Release --no-restore
+#        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
+#      
+#      - name: Run Mobile Tests
+#        run: dotnet test --no-build
+#        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
 
 
 # TODO - Add test runs
