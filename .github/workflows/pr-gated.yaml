@@ -64,10 +64,10 @@ jobs:
         run: xcodebuild -version
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore --framework net9.0-android
         working-directory: ./src/TB.DanceDance.Mobile
       - name: Build Mobile Project
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore --framework net9.0-android
         working-directory: ./src/TB.DanceDance.Mobile
 
       - name: Build Mobile Test Project
