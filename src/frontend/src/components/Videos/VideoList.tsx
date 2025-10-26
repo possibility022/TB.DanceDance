@@ -38,12 +38,20 @@ export function VideoList(props: ListOfVideos) {
         const url = '/videos/' + vid.blobId
         void navigate(url, { state: props.sharedScope })
     }
+    
+    const getNameColumn = (title: string, isConverted: boolean) => {
+        if (isConverted){
+            return <td>{title}</td>
+        } else {
+            return <td>{title} - <p className="has-text-warning">Oczekuje na konwersje.</p></td>
+        }
+    }
 
     const list = props.videos.map(r => {
 
         return (
             <tr key={r.id} onClick={() => goToVideo(r)} className={getIsSelectedIndicator(r, props.selectedVideo)}>
-                <td>{r.name}</td>
+                {getNameColumn(r.name, r.converted)}
                 <td>{formatDate(r.recordedDateTime)}</td>
             </tr>
         )
