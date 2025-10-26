@@ -74,9 +74,7 @@ export class AuthService implements IAuthService, TokenProvider {
     private getAccessTokenInternal = async (refreshTokenIfExpired: boolean): Promise<string | null> => {
         const token = this.getTokenFromStorage()
         if (token) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const o = this.parseJwt(token)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             const expireAt = o?.exp as number
             const expire = new Date(expireAt * 1000)
 
@@ -109,7 +107,6 @@ export class AuthService implements IAuthService, TokenProvider {
     parseJwt = (token: string) => {
         const base64Url = token.split(".")[1];
         const base64 = base64Url.replace("-", "+").replace("_", "/");
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return JSON.parse(window.atob(base64));
     };
 
@@ -148,7 +145,6 @@ export class AuthService implements IAuthService, TokenProvider {
         if (item === null)
             return null
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const oidcStorage = JSON.parse(item) as OidcStorage
         return oidcStorage
     }

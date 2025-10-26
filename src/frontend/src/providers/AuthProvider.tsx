@@ -13,7 +13,6 @@ class DummyIAuthService implements IAuthService{
     getUser(): Promise<User> {
         throw new Error("Method not implemented.");
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     parseJwt(token: string): object {
         throw new Error("Method not implemented.");
     }
