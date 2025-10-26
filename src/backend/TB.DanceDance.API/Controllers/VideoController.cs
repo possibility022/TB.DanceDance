@@ -1,4 +1,5 @@
-﻿using Domain.Services;
+﻿using Domain.Entities;
+using Domain.Services;
 using IdentityServer4.Validation;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
@@ -14,9 +15,9 @@ namespace TB.DanceDance.API.Controllers;
 public class VideoController : Controller
 {
     public VideoController(IVideoService videoService,
-                           ITokenValidator tokenValidator,
-                           IUserService userService,
-                           ILogger<VideoController> logger)
+        ITokenValidator tokenValidator,
+        IUserService userService,
+        ILogger<VideoController> logger)
     {
         this.videoService = videoService;
         this.tokenValidator = tokenValidator;
@@ -49,9 +50,15 @@ public class VideoController : Controller
     [Route(ApiEndpoints.Video.GetStream)]
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string token)
+    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token)
     {
         // todo create better authentication. Send send tokens in headers
+
+        if (string.IsNullOrEmpty(token) && Request.Headers.TryGetValue("Authorization", out var tokenFromHeader))
+        {
+            token = tokenFromHeader.FirstOrDefault()?.Substring("Bearer ".Length);
+        }
+
         var validationRes = await tokenValidator.ValidateAccessTokenAsync(token);
         if (validationRes == null)
             // Idk when this can happen
@@ -85,20 +92,41 @@ public class VideoController : Controller
         return Ok();
     }
 
+    [HttpGet]
+    [Route(ApiEndpoints.Video.RefreshUploadUrl)]
+    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute]Guid videoId)
+    {
+        string user  = User.GetSubject();
+        var hasAccess = await videoService.DoesUserHasAccessAsync(videoId, user);
+        if (!hasAccess)
+            return Unauthorized();
+
+        var sharedBlob = await videoService.GetSharingLink(videoId);
+        
+        if (sharedBlob == null)
+            return NotFound();
+        
+        return new UploadVideoInformationResponse()
+        {
+            Sas = sharedBlob.Sas.ToString(), VideoId = sharedBlob.VideoId, ExpireAt = sharedBlob.ExpireAt
+        };
+    }
+
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
-    public async Task<ActionResult<UploadVideoInformation>> GetUploadInformation([FromBody] SharedVideoInformationRequest sharedVideoInformations)
+    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation(
+        [FromBody] SharedVideoInformationRequest sharedVideoInformation)
     {
         string? user = null;
-        var sharedWith = sharedVideoInformations?.SharedWith;
+        var sharedWith = sharedVideoInformation?.SharedWith;
 
-        if (sharedVideoInformations == null || sharedWith == null)
+        if (sharedVideoInformation == null || sharedWith == null)
         {
-            ModelState.AddModelError(nameof(sharedVideoInformations.SharedWith), "EntityId within SharedWith is empty.");
+            ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "EntityId within SharedWith is empty.");
         }
         else
         {
-            if (sharedVideoInformations.SharingWithType == SharingWithType.Group)
+            if (sharedVideoInformation.SharingWithType == SharingWithType.Group)
             {
                 user = User.GetSubject();
 
@@ -106,11 +134,13 @@ public class VideoController : Controller
 
                 if (!canUploadToGroup)
                 {
-                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user, sharedWith);
+                    logger.LogWarning(
+                        "User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user,
+                        sharedWith);
                     return new UnauthorizedResult();
                 }
             }
-            else if (sharedVideoInformations.SharingWithType == SharingWithType.Event)
+            else if (sharedVideoInformation.SharingWithType == SharingWithType.Event)
             {
                 user = User.GetSubject();
 
@@ -118,7 +148,9 @@ public class VideoController : Controller
 
                 if (!canUploadToEvent)
                 {
-                    logger.LogWarning("User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user, sharedWith);
+                    logger.LogWarning(
+                        "User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user,
+                        sharedWith);
                     return new UnauthorizedResult();
                 }
             }
@@ -135,16 +167,14 @@ public class VideoController : Controller
 
         var sharedBlob = await videoService.GetSharingLink(
             user,
-            sharedVideoInformations.NameOfVideo,
-            sharedVideoInformations.FileName,
-            sharedVideoInformations.SharingWithType == SharingWithType.Event,
-            sharedVideoInformations.SharedWith.Value);
+            sharedVideoInformation.NameOfVideo,
+            sharedVideoInformation.FileName,
+            sharedVideoInformation.SharingWithType == SharingWithType.Event,
+            sharedVideoInformation.SharedWith.Value);
 
-        return new UploadVideoInformation()
+        return new UploadVideoInformationResponse()
         {
-            Sas = sharedBlob.Sas.ToString()
+            Sas = sharedBlob.Sas.ToString(), VideoId = sharedBlob.VideoId, ExpireAt = sharedBlob.ExpireAt
         };
     }
-
-
 }

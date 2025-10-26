@@ -48,7 +48,7 @@ public class ContractMappers
     {
         return new Domain.Entities.Event()
         {
-            Date = request.Event.Date,
+            Date = request.Event.Date.ToUniversalTime(),
             Name = request.Event.Name,
             Type = Domain.Entities.EventType.Unknown,
             Owner = user.GetSubject(),

@@ -83,7 +83,12 @@ builder.Services.AddScoped<IIdentityClient, IdentityClient>();
 
 var app = builder.Build();
 app.UseCors();
+#if DEBUG
+// Enable http for debug
+#else
 app.UseHttpsRedirection();
+#endif
+
 
 app.UseStaticFiles();
 app.UseIdentityServer();

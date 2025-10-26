@@ -3,17 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API", "TB.DanceDance.API\TB.DanceDance.API.csproj", "{00AB21FF-2965-488B-9EC4-143C420CBC43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API", "backend\TB.DanceDance.API\TB.DanceDance.API.csproj", "{00AB21FF-2965-488B-9EC4-143C420CBC43}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Contracts", "TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj", "{B80736FA-6C67-4C42-B054-F260BA426044}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.API.Contracts", "backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj", "{B80736FA-6C67-4C42-B054-F260BA426044}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Services.Converter.Deamon", "TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj", "{0AC9442C-9382-4C29-A99A-9FA73C0438E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.DanceDance.Services.Converter.Deamon", "backend\TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj", "{0AC9442C-9382-4C29-A99A-9FA73C0438E9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{4BC66137-318B-4019-A22C-5740606930EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "backend\Application\Application.csproj", "{4BC66137-318B-4019-A22C-5740606930EB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{ECC40FED-8610-44FF-8F64-D03884BA01E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "backend\Domain\Domain.csproj", "{ECC40FED-8610-44FF-8F64-D03884BA01E8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{CFADCAD4-D023-46DD-9D85-A70653BD4936}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "backend\Infrastructure\Infrastructure.csproj", "{CFADCAD4-D023-46DD-9D85-A70653BD4936}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile", "TB.DanceDance.Mobile\TB.DanceDance.Mobile.csproj", "{1631BE11-699C-4B12-AA64-D7DD0A946131}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile.Tests", "tests\TB.DanceDance.Mobile.Tests\TB.DanceDance.Mobile.Tests.csproj", "{2DDB44D0-2374-44D8-8FB3-ECC5D1840DA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +49,14 @@ Global
 		{CFADCAD4-D023-46DD-9D85-A70653BD4936}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFADCAD4-D023-46DD-9D85-A70653BD4936}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFADCAD4-D023-46DD-9D85-A70653BD4936}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1631BE11-699C-4B12-AA64-D7DD0A946131}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DDB44D0-2374-44D8-8FB3-ECC5D1840DA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DDB44D0-2374-44D8-8FB3-ECC5D1840DA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DDB44D0-2374-44D8-8FB3-ECC5D1840DA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DDB44D0-2374-44D8-8FB3-ECC5D1840DA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

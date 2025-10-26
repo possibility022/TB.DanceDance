@@ -44,7 +44,7 @@ public class EventsController : Controller
     }
 
     [Route(ApiEndpoints.Video.Access.GetUserAccess)]
-    public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync()
+    public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken cancellationToken)
     {
         var user = User.GetSubject();
         (var userGroups, var userEvents) = await userService.GetUserEventsAndGroupsAsync(user);
@@ -71,6 +71,11 @@ public class EventsController : Controller
         responseModel.Available.Groups = listOfGroups.Except(userGroups)
             .Select(group => ContractMappers.MapToGroupContract(group))
             .ToArray();
+        
+        var myPendingRequests = await userService.GetPendingUserRequests(user, cancellationToken);
+
+        responseModel.Pending.Events = myPendingRequests.Events;
+        responseModel.Pending.Groups = myPendingRequests.Groups;
 
         return responseModel;
     }
@@ -96,7 +101,7 @@ public class EventsController : Controller
 
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
-    public async Task<IActionResult> RequestAccess([FromBody] RequestEventAssigmentModelRequest requests, CancellationToken cancellationToken)
+    public async Task<IActionResult> RequestAccess([FromBody] RequestAssigmentModelRequest requests, CancellationToken cancellationToken)
     {
         if (requests == null)
             return BadRequest();
@@ -172,7 +177,7 @@ public class EventsController : Controller
     {
         var userId = User.GetSubject();
 
-        var accessRequests = await userService.GetAccessRequestsAsync(userId);
+        var accessRequests = await userService.GetAccessRequestsToApproveAsync(userId);
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;

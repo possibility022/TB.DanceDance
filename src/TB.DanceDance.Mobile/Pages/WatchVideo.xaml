@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
+             x:DataType="pageModels:WatchVideoPageModel"
+             Shell.NavBarIsVisible="false"
+             Shell.NavBarHasShadow="false"
+             x:Class="TB.DanceDance.Mobile.Pages.WatchVideo">
+    <ContentPage.Content>
+        <toolkit:MediaElement Source="{Binding Media}"
+                              ShouldShowPlaybackControls="True"
+                              ShouldAutoPlay="True"
+                              ShouldLoopPlayback="True"
+                              ShouldKeepScreenOn="True"
+                              >
+            
+        </toolkit:MediaElement>
+    </ContentPage.Content>
+</ContentPage>

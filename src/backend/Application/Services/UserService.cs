@@ -100,7 +100,13 @@ public class UserService : IUserService
 
     public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
     {
-        var toSave = events.Select(@event => new EventAssigmentRequest()
+        var pendingRequests = await dbContext.EventAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
+            .Select(r => r.EventId)
+            .ToArrayAsync();
+        
+        var toSave = events
+            .Except(pendingRequests)
+            .Select(@event => new EventAssigmentRequest()
         {
             EventId = @event,
             UserId = user
@@ -112,7 +118,13 @@ public class UserService : IUserService
 
     public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
     {
-        var toSave = groups.Select(group => new GroupAssigmentRequest()
+        var pendingRequests = await dbContext.GroupAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
+            .Select(r => r.GroupId)
+            .ToArrayAsync();
+        
+        var toSave = groups
+            .Where(group => !pendingRequests.Contains(group.groupId))
+            .Select(group => new GroupAssigmentRequest()
         {
             GroupId = group.groupId,
             WhenJoined = group.joinedDate,
@@ -179,7 +191,35 @@ public class UserService : IUserService
         return query;
     }
 
-    public async Task<ICollection<RequestedAccess>> GetAccessRequestsAsync(string userId)
+    /// <summary>
+    /// Returns events and group ids that user requested access.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<UserRequests> GetPendingUserRequests(string userId, CancellationToken cancellationToken)
+    {
+        var eventsRequests = dbContext.EventAssigmentRequests.Where(r => r.UserId == userId && r.Approved != true)
+                .Select(r => new { Id = r.EventId, IsEvent = true })
+            ;
+        var groupRequests = dbContext.GroupAssigmentRequests.Where(r => r.UserId == userId && r.Approved != true)
+            .Select(r => new { Id = r.GroupId, IsEvent = false });
+
+        var results = await eventsRequests.Union(groupRequests).ToArrayAsync(cancellationToken);
+
+        return new UserRequests()
+        {
+            Events = results.Where(r => r.IsEvent == true).Select(r => r.Id).ToArray(),
+            Groups = results.Where(r => r.IsEvent == false).Select(r => r.Id).ToArray()
+        };
+    }
+    
+    /// <summary>
+    /// Returns a list of requests that given user can approve.
+    /// </summary>
+    /// <param name="userId">User id</param>
+    /// <returns></returns>
+    public async Task<ICollection<RequestedAccess>> GetAccessRequestsToApproveAsync(string userId)
     {
         var query = (GetEventRequestsThatCanBeApprovedByUser(userId))
                     .Union
