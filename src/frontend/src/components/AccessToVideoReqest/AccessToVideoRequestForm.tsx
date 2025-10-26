@@ -21,7 +21,6 @@ const requestStatusReducer: React.Reducer<IRequestState, Action> = (state: IRequ
     if (action === 'receivedOk')
         return { ...state, areWeWaiting: false, wasOk: true }
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     throw new Error(`Argument out of range. Action: ${action}`)
 }
 
@@ -62,7 +61,6 @@ export function AccessToVideoRequestForm() {
 
     const mapToList = (items: Array<{ name: string, id: string | number }>) => {
         return items.map(ev => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             return <li key={ev.id}>{ev.name}</li>
         })
     }

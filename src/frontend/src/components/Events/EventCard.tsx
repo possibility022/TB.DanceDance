@@ -8,7 +8,6 @@ import VideoInformation from '../../types/ApiModels/VideoInformation';
 import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IEventCardProps {
     event: Event
     onSelected(id: string): void

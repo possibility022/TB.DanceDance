@@ -20,7 +20,6 @@ export default class ConfigProvider {
 
     // todo get rid of this
     private static replaceValues<T>(input: T) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const c: any = { ...input }
         let autUrl = process.env.REACT_APP_AUTH_URL as string
 
@@ -34,15 +33,12 @@ export default class ConfigProvider {
         }
 
         for (const key in c) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
             const v = c[key]
             if (typeof v === 'string') {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 c[key] = v.replaceAll(REACT_APP_AUTH_URL_TO_REPLACE, autUrl).replaceAll(REACT_APP_REDIRECT_URI_TO_REPLACE, redirectUri)
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return c as T
     }
 }

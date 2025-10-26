@@ -14,6 +14,9 @@ string connectionString =
 
 const string containerName = "videos";
 
+const string backupVideoUrl =
+    "https://file-examples.com/storage/fe3613964468fe0549ac73d/2017/04/file_example_MP4_640_3MG.mp4";
+
 var videos = new[]
 {
     ("82b39019-d983-44ce-924a-f3fa2f651261", "https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"),
@@ -69,7 +72,21 @@ var upload = async ((string id, string uri) blobAndUri) =>
         Console.WriteLine("{0} - Blob exists", blobAndUri.id);
         return;
     }
-    var stream = await httpClient.GetStreamAsync(blobAndUri.uri);
+
+    Stream stream;
+    
+    try
+    {
+        // ReSharper disable once AccessToDisposedClosure
+        stream = await httpClient.GetStreamAsync(blobAndUri.uri);
+    }
+    catch (Exception ex)
+    {
+        blobAndUri.uri = backupVideoUrl;
+        // ReSharper disable once AccessToDisposedClosure
+        stream = await httpClient.GetStreamAsync(blobAndUri.uri);
+    }
+    
     videosContainer.UploadBlob(blobAndUri.id, stream);
     Console.WriteLine("Uploaded: {0} - {1}", blobAndUri.uri, blobAndUri.id);
 };

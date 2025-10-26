@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 
 export const REACT_APP_AUTH_URL_TO_REPLACE = 'https://localhost:7068'
 export const REACT_APP_REDIRECT_URI_TO_REPLACE = 'http://localhost:3000/callback'
@@ -8,7 +6,6 @@ export const IDENTITY_CONFIG: IdentityConfig = {
     authority: REACT_APP_AUTH_URL_TO_REPLACE, //(string): The URL of the OIDC provider.
     client_id: 'tbdancedancefront', //(string): Your client application's identifier as registered with the OIDC provider.
     redirect_uri: REACT_APP_REDIRECT_URI_TO_REPLACE, //The URI of your client application to receive a response from the OIDC provider.
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     login: `${REACT_APP_AUTH_URL_TO_REPLACE}/login`,
     register: `${REACT_APP_AUTH_URL_TO_REPLACE}/account/register`,
     automaticSilentRenew: false, //(boolean, default: false): Flag to indicate if there should be an automatic attempt to renew the access token prior to its expiration.

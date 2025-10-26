@@ -126,7 +126,6 @@ export function VideoPlayerScreen() {
                 height='100%'
                 controls={true}
                 config={{ file: { attributes: { controlsList: 'nodownload' } } }}
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                 onContextMenu={(e: Event) => e.preventDefault()}
 
                 url={url} />

@@ -53,7 +53,7 @@ builder.Services.AddAuthorization(o =>
 
     o.AddPolicy(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert, c =>
     {
-        c.RequireScope(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
+        c.RequireClaim(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
         c.RequireAuthenticatedUser();
     });
 

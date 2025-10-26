@@ -11,7 +11,6 @@ export const Callback = () => {
     const callback = useCallback(() => {
         authContext.signinRedirectCallback()
             .catch((e) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 if (e['error'] === 'login_required') {
                     authContext.signinRedirect()
                         .catch(console.error)
