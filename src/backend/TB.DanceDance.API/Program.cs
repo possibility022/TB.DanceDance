@@ -16,6 +16,11 @@ if (builder.Environment.IsDevelopment())
     builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
 }
 
+if (builder.Environment.IsProduction())
+{
+    builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
+}
+
 // Add services to the container.
 
 builder.Services.RegisterApplicationServices();
@@ -86,7 +91,13 @@ app.UseCors();
 #if DEBUG
 // Enable http for debug
 #else
-app.UseHttpsRedirection();
+
+var noHttps = Environment.GetEnvironmentVariable("TB.DanceDance.NoHttps");
+Console.WriteLine("NoHttps: {0}", noHttps);
+if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.OrdinalIgnoreCase))
+{
+    app.UseHttpsRedirection();
+}
 #endif
 
 

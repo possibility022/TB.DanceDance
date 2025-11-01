@@ -1,4 +1,32 @@
 services:
+  api:
+    image: tb.dancedance.api:latest
+    container_name: tbdancedanceapi
+    build:
+      dockerfile: /backend/TB.DanceDance.API/Dockerfile
+      context: ./src/
+      args:
+        BUILD_CONFIGURATION: Debug
+    depends_on:
+      - azuriteStorage
+      - postgresDb
+    environment:
+      - TB.DanceDance.Cors.Origins=http://localhost:3000/
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTPS_PORTS=8081 
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=1c64c3811ab9dcb6a5df1d077ad410dfc6f483cc7118aa8be2e8d81ff9c1111x
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx 
+      - TB.DanceDance.IdpCertPassword=1c64c3811ab9dcb6a5df1d077ad410dfc6f483cc7118aa8be2e8d81ff9c1111x
+      - TB.DanceDance.IdpCert=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
+      - ConnectionStrings:PostgreDb=Server=postgresDb;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=dancedance
+      - ConnectionStrings:PostgreDbIdentityStore=Server=postgresDb;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore
+      - ConnectionStrings:Blob=AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://azuriteStorage:10000/devstoreaccount1;QueueEndpoint=http://azuriteStorage:10001/devstoreaccount1;TableEndpoint=http://azuriteStorage:10002/devstoreaccount1;
+    volumes:
+      - ./aspnetapp.pfx:/https/aspnetapp.pfx
+      - dataProtectionKeys:/home/app/.aspnet/DataProtection-Keys/
+    ports:
+      - "7068:8081"
+      - "8080:8080"
   postgresDb:
     image: postgres
     environment:
@@ -32,3 +60,4 @@ services:
 volumes:
   postgresDance:
   azuriteStorageDance:
+  dataProtectionKeys:
