@@ -3,7 +3,6 @@ using Domain.Exceptions;
 using IdentityServer4;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
-using Microsoft.AspNetCore.Authorization;
 using TB.DanceDance.API;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,12 +32,12 @@ builder.Services.AddCors(setup =>
     {
         if (builder.Environment.IsDevelopment())
         {
-            c.WithOrigins(CorsConfig.GetDevOrigins());
+            c.WithOrigins(CorsConfigProvider.GetDevOrigins());
         }
         else
         {
-            var config = CorsConfig.GetFromEnvironmentVariable();
-            c.WithOrigins(config.AllowedOrigins);
+            var config = CorsConfigProvider.GetFromEnvironmentVariable(builder.Configuration);
+            c.WithOrigins(config);
         }
 
         c.AllowAnyHeader()
