@@ -83,7 +83,7 @@ export default class ConfigProvider {
     private static replaceValues<T>(input: T) {
         const c: any = { ...input }
         let autUrl = this.resolvePrimaryHost()
-        let backupUrl = process.env.REACT_APP_AUTH_URL_BACKUP ?? 'https://ddapi.tomb.my.id'
+        let backupUrl = process.env.REACT_APP_AUTH_URL_BACKUP
 
         if (this.failoverServerShouldBeUsed() && backupUrl){
             autUrl = backupUrl
