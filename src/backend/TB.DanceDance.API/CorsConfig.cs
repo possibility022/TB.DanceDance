@@ -2,16 +2,20 @@
 {
     public class CorsConfig
     {
-        public string[] AllowedOrigins { get; set; } = new string[0];
+        public string[] AllowedOrigins { get; set; } = [];
 
         public static string[] GetDevOrigins()
         {
-            return new[] { "http://localhost:3000/", "http://localhost:3000", "https://localhost:3000/", "https://localhost:3000" };
+            return ["http://localhost:3000/", "http://localhost:3000", "https://localhost:3000/", "https://localhost:3000"
+            ];
         }
 
-        public static CorsConfig GetFromEnvironmentVariable()
+        public static CorsConfig GetFromEnvironmentVariable(IConfiguration section)
         {
-            var origins = Environment.GetEnvironmentVariable("TB.DanceDance.Cors.Origins");
+            var origins= section.GetSection("TB")
+                .GetSection("DanceDance")
+                .GetSection("Cors")["Origins"];
+                
             var config = new CorsConfig();
             if (!string.IsNullOrEmpty(origins))
                 config.AllowedOrigins = origins.Split(";");
