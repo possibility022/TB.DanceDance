@@ -61,6 +61,23 @@ export default class ConfigProvider {
         
         return autUrl
     }
+    
+    public static resolveApiHost(){
+        let baseUrl = process.env.REACT_APP_API_BASE_URL
+        let backupUrl = process.env.REACT_APP_API_BASE_URL_BACKUP
+        
+        if (this.failoverServerShouldBeUsed() && backupUrl)
+        {
+            baseUrl = backupUrl
+        }
+
+        if (!baseUrl)
+        {
+            baseUrl = 'https://localhost:7068'
+        }
+        
+        return baseUrl
+    }
 
     // todo get rid of this
     private static replaceValues<T>(input: T) {

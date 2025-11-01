@@ -1,21 +1,14 @@
 import axios, { AxiosInstance } from 'axios';
 import { authService } from '../providers/AuthProvider';
 import { TokenProvider } from './AuthService';
+import ConfigProvider from "./ConfigProvider";
 
 
 const tokenProvider: TokenProvider = authService
 
 const apiClientFactory = () => {
-
-    let baseUrl = process.env.REACT_APP_API_BASE_URL
-
-    if (!baseUrl)
-    {
-        baseUrl = 'https://localhost:7068'
-    }
-
     const instance = axios.create({
-        baseURL: baseUrl
+        baseURL: ConfigProvider.resolveApiHost()
     });
 
     applyInterceptor(instance)
