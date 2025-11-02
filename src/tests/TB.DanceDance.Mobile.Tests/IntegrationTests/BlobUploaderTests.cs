@@ -92,7 +92,7 @@ public class BlobUploaderTests : IAsyncLifetime
         ms.Position = 0;
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         var container = await DockerHelper.GetInitializedAzuriteContainer();
         var connectionString = container.GetConnectionString();
@@ -100,8 +100,8 @@ public class BlobUploaderTests : IAsyncLifetime
         await this.client.CreateIfNotExistsAsync();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
