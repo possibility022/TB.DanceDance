@@ -36,9 +36,4 @@ public class EventService : IEventService
     {
         return dbContext.AssingedToEvents.Any(r => r.EventId == eventId && r.UserId == userId);
     }
-
-    public bool IsUserAssignedToGroup(Guid groupId, string userId)
-    {
-        return dbContext.AssingedToGroups.Any(r => r.GroupId == groupId && r.UserId == userId);
-    }
 }

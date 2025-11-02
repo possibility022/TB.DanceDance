@@ -80,7 +80,7 @@ public static class TestDataFactory
     /// Scenario (c): One User assigned to an Event. Event has one video (shared with the event).
     /// Returns all created entities and linking records.
     /// </summary>
-    public static (User user, Event evt, AssignedToEvent participation, Video video, SharedWith eventShare)
+    public static (User user, User owner, Event evt, AssignedToEvent participation, Video video, SharedWith eventShare)
         OneUserAssignedToEvent_WithOneVideo()
     {
         // Create user and event
@@ -88,6 +88,7 @@ public static class TestDataFactory
         var user = userB.Build();
 
         var eventB = new EventDataBuilder();
+        var owner = eventB.BuildOwner();
         var evt = eventB.Build();
 
         // Assign user to event
@@ -100,6 +101,6 @@ public static class TestDataFactory
         var video = videoB.Build();
         var eventShare = videoB.ShareWithEvent(evt, user).BuildShares().Single();
 
-        return (user, evt, participation, video, eventShare);
+        return (user, owner, evt, participation, video, eventShare);
     }
 }

@@ -131,6 +131,7 @@ public class EventDataBuilder
     private DateTime _date;
     private EventType _type;
     private string _owner;
+    private UserDataBuilder _ownerBuilder;
 
     public EventDataBuilder()
     {
@@ -138,16 +139,48 @@ public class EventDataBuilder
         _name = TestDataBuilder.RandomName("Event");
         _date = DateTime.UtcNow.Date.AddDays(1);
         _type = EventType.PointedEvent;
-        _owner = TestDataBuilder.RandomUserId();
+        _ownerBuilder = new UserDataBuilder();
+        _owner = _ownerBuilder.UserId;
     }
 
     public EventDataBuilder WithId(Guid id) { _id = id; return this; }
     public EventDataBuilder WithName(string name) { _name = name; return this; }
     public EventDataBuilder OnDate(DateTime date) { _date = date; return this; }
     public EventDataBuilder OfType(EventType type) { _type = type; return this; }
-    public EventDataBuilder WithOwner(string userId) { _owner = userId; return this; }
-    public EventDataBuilder WithOwner(User user) { _owner = user.Id; return this; }
-    public EventDataBuilder WithOwner(UserDataBuilder userBuilder) { _owner = userBuilder.UserId; return this; }
+
+    // Allows overriding owner by raw userId
+    public EventDataBuilder WithOwner(string userId)
+    {
+        _owner = userId;
+        _ownerBuilder = new UserDataBuilder().WithId(userId);
+        return this;
+    }
+
+    // Allows overriding owner by existing User entity
+    public EventDataBuilder WithOwner(User user)
+    {
+        _owner = user.Id;
+        // Build a simple builder mirroring the provided user
+        _ownerBuilder = new UserDataBuilder()
+            .WithId(user.Id)
+            .WithFirstName(user.FirstName)
+            .WithLastName(user.LastName)
+            .WithEmail(user.Email);
+        return this;
+    }
+
+    // Allows overriding owner by a UserDataBuilder
+    public EventDataBuilder WithOwner(UserDataBuilder userBuilder)
+    {
+        _ownerBuilder = userBuilder;
+        _owner = userBuilder.UserId;
+        return this;
+    }
+
+    public string OwnerUserId => _owner;
+
+    // Expose the created owner user for convenience
+    public User BuildOwner() => (_ownerBuilder ?? new UserDataBuilder().WithId(_owner)).Build();
 
     public Event Build() => new Event
     {
