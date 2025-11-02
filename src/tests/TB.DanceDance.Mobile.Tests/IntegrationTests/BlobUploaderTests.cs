@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Tests;
 
 namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 

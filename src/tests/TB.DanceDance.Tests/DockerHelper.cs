@@ -1,6 +1,6 @@
 ﻿using Testcontainers.Azurite;
 
-namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
+namespace TB.DanceDance.Tests;
 
 public static class DockerHelper
 {
