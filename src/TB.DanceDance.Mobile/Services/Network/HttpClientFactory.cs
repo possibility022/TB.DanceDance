@@ -1,6 +1,7 @@
 ﻿using IdentityModel.OidcClient;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
+using Serilog;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using TB.DanceDance.Mobile.Services.Auth;
@@ -28,28 +29,51 @@ public class HttpClientFactory : IHttpClientFactory
         return danceApiClient!;
     }
 
+    private static bool useBackupServer;
+
+    public static async Task ValidatePrimaryHostIsAvailable()
+    {
+        var socketHandler = CreateSocketHandler();
+        var resilienceHandler = new ResilienceHandler(CreateRetryPipeline())
+        {
+            InnerHandler = socketHandler
+        };
+        
+        using var httpClient = new HttpClient(resilienceHandler);
+        try
+        {
+            var response = await httpClient.GetAsync(new Uri(NetworkAddressResolver.Resolve(ApiMainUrl) + KeysPath));
+            if (response.IsSuccessStatusCode)
+                useBackupServer = false;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "An error occured while validating the primary host");
+        }
+
+        var responseFromBackup = await httpClient.GetAsync(new Uri(NetworkAddressResolver.Resolve(BackupUrl) + KeysPath));
+        if (responseFromBackup.IsSuccessStatusCode)
+        {
+            useBackupServer = true;
+        }
+    }
+
+    public static string ApiUrl => useBackupServer  ? BackupUrl : ApiMainUrl;
+
 #if DEBUG
-    private const string ApiUrl = "https://localhost:7068";
+    private const string ApiMainUrl = "https://localhost:7068";
 #else
-    private const string ApiUrl = "https://wcsdance.azurewebsites.net";
+    private const string ApiMainUrl = "https://ddapi.tomb.my.id";
 #endif
+
+    private const string BackupUrl = "https://wcsdance.azurewebsites.net";
+    private const string KeysPath = "/.well-known/openid-configuration/jwks";
 
     private static void InitializeDanceApiClient()
     {
-        var retryPipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
-            .AddRetry(new HttpRetryStrategyOptions { BackoffType = DelayBackoffType.Exponential, MaxRetryAttempts = 3 })
-            .Build();
+        var retryPipeline = CreateRetryPipeline();
 
-        var socketHandler = new SocketsHttpHandler
-        {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-#if DEBUG
-            SslOptions = new SslClientAuthenticationOptions()
-            {
-                RemoteCertificateValidationCallback = RemoteCertificateValidationCallback
-            }
-#endif
-        };
+        var socketHandler = CreateSocketHandler();
 
         var tokenProvider = new TokenProviderService(new OidcClient(
             AuthSettingsFactory.GetClientOptions(socketHandler)
@@ -65,6 +89,27 @@ public class HttpClientFactory : IHttpClientFactory
         var httpClient = new HttpClient(resilienceHandler);
         httpClient.BaseAddress = new Uri(apiUrl);
         danceApiClient = httpClient;
+    }
+
+    private static ResiliencePipeline<HttpResponseMessage> CreateRetryPipeline()
+    {
+        return new ResiliencePipelineBuilder<HttpResponseMessage>()
+            .AddRetry(new HttpRetryStrategyOptions { BackoffType = DelayBackoffType.Exponential, MaxRetryAttempts = 3 })
+            .Build();
+    }
+
+    private static SocketsHttpHandler CreateSocketHandler()
+    {
+        return new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+#if DEBUG
+            SslOptions = new SslClientAuthenticationOptions()
+            {
+                RemoteCertificateValidationCallback = RemoteCertificateValidationCallback
+            }
+#endif
+        };
     }
 
 #if DEBUG

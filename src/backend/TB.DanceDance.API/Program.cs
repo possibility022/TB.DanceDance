@@ -3,7 +3,6 @@ using Domain.Exceptions;
 using IdentityServer4;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
-using Microsoft.AspNetCore.Authorization;
 using TB.DanceDance.API;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +13,11 @@ builder.Configuration
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
+}
+
+if (builder.Environment.IsProduction())
+{
+    builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
 }
 
 // Add services to the container.
@@ -28,12 +32,12 @@ builder.Services.AddCors(setup =>
     {
         if (builder.Environment.IsDevelopment())
         {
-            c.WithOrigins(CorsConfig.GetDevOrigins());
+            c.WithOrigins(CorsConfigProvider.GetDevOrigins());
         }
         else
         {
-            var config = CorsConfig.GetFromEnvironmentVariable();
-            c.WithOrigins(config.AllowedOrigins);
+            var config = CorsConfigProvider.GetFromEnvironmentVariable(builder.Configuration);
+            c.WithOrigins(config);
         }
 
         c.AllowAnyHeader()
@@ -86,7 +90,13 @@ app.UseCors();
 #if DEBUG
 // Enable http for debug
 #else
-app.UseHttpsRedirection();
+
+var noHttps = Environment.GetEnvironmentVariable("TB.DanceDance.NoHttps");
+Console.WriteLine("NoHttps: {0}", noHttps);
+if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.OrdinalIgnoreCase))
+{
+    app.UseHttpsRedirection();
+}
 #endif
 
 

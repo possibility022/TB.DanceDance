@@ -69,11 +69,12 @@ public static class DependencyInjection
 
         if (productionPolicies)
         {
-            var cert = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCert");
+            var cert = configuration.GetSection("TB").GetSection("DanceDance")["IdpCert"];
             if (cert == null)
-                throw new Exception("Cert is not available in environment variables");
+                throw new Exception("Cert is not available in configuration.");
 
-            var password = Environment.GetEnvironmentVariable("TB.DanceDance.IdpCertPassword");
+            var password = configuration.GetSection("TB").GetSection("DanceDance")["IdpCertPassword"];
+            
             var certBytes = Convert.FromBase64String(cert);
             identityBuilder
                 .AddAspNetIdentity<User>()
