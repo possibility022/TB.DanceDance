@@ -63,7 +63,7 @@ public class HttpClientFactory : IHttpClientFactory
 #if DEBUG
     private const string ApiMainUrl = "https://localhost:7068";
 #else
-    private string ApiMainUrl = "https://ddapi.tomb.my.id";
+    private const string ApiMainUrl = "https://ddapi.tomb.my.id";
 #endif
 
     private const string BackupUrl = "https://wcsdance.azurewebsites.net";
