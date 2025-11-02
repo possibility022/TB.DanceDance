@@ -2,7 +2,7 @@
 
 namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
-public static class DockerHelper
+public static class MobileDockerHelper
 {
     private const string AzuriteImage = "mcr.microsoft.com/azure-storage/azurite:latest";
     
