@@ -3,17 +3,18 @@ using CommunityToolkit.Mvvm.Input;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Services.Auth;
 using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    private readonly DanceHttpApiClient danceHttpApi;
+    private readonly IServiceProvider serviceProvider;
     private readonly VideosDbContext dbContext;
 
-    public MainPageViewModel(DanceHttpApiClient danceHttpApi, VideosDbContext dbContext)
+    public MainPageViewModel(IServiceProvider serviceProvider, VideosDbContext dbContext)
     {
-        this.danceHttpApi = danceHttpApi;
+        this.serviceProvider = serviceProvider;
         this.dbContext = dbContext;
     }
 
@@ -63,7 +64,8 @@ public partial class MainPageViewModel : ObservableObject
         {
             LoginInProgress = true;
             LoginEnabled = false;
-            await danceHttpApi.GetUserAccesses(); //todo create method to login
+            await HttpClientFactory.ValidatePrimaryHostIsAvailable();
+            await serviceProvider.GetRequiredService<DanceHttpApiClient>().GetUserAccesses();
             await CheckLoginStatus();
         }
         catch (Exception ex)
