@@ -75,11 +75,15 @@ public static class DependencyInjection
 
             var password = configuration.GetSection("TB").GetSection("DanceDance")["IdpCertPassword"];
             
+            
             var certBytes = Convert.FromBase64String(cert);
+            var signedCert = X509CertificateLoader.LoadPkcs12(certBytes, password,
+                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+            
             identityBuilder
                 .AddAspNetIdentity<User>()
                 .RegisterIdenityServerStorage(configuration.GetConnectionString("PostgreDbIdentityStore") ?? throw new AppException("Identity connection string is null."))
-                .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet))
+                .AddSigningCredential(signedCert)
                 .AddProfileService<TbProfileService>();
 
         }
