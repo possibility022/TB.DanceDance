@@ -1,4 +1,9 @@
-﻿using Testcontainers.Azurite;
+﻿using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Tests;
+using Testcontainers.Azurite;
+using Testcontainers.PostgreSql;
+[assembly: AssemblyFixture(typeof(DanceDbFixture))]
 
 namespace TB.DanceDance.Tests;
 
@@ -14,5 +19,33 @@ public static class DockerHelper
     {
         await AzuriteContainer.StartAsync();
         return AzuriteContainer;
+    }
+}
+public class DanceDbFixture() : IAsyncLifetime
+{
+    private const string PostgresImage = "postgres";
+
+    private readonly PostgreSqlContainer container = new PostgreSqlBuilder()
+        .WithImage(PostgresImage)
+        .Build();
+
+    public DanceDbContext DbContextFactory()
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<DanceDbContext>()
+            .UseNpgsql(container.GetConnectionString());
+        
+        DanceDbContext danceDbContext = new DanceDbContext(optionsBuilder.Options);
+        return danceDbContext;
+    }
+    
+    public ValueTask DisposeAsync()
+    {
+        return container.DisposeAsync();
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await container.StartAsync();
+        await DbContextFactory().Database.EnsureCreatedAsync();
     }
 }
