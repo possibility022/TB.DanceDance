@@ -94,7 +94,7 @@ public class BlobUploaderTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        var container = await MobileDockerHelper.GetInitializedAzuriteContainer();
+        var container = await DockerHelper.GetInitializedAzuriteContainer();
         var connectionString = container.GetConnectionString();
         this.client = new BlobContainerClient(connectionString, "videostoconvert");
         await this.client.CreateIfNotExistsAsync();
