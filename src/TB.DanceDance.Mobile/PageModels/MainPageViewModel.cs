@@ -64,6 +64,9 @@ public partial class MainPageViewModel : ObservableObject
         {
             LoginInProgress = true;
             LoginEnabled = false;
+            // This is important to use a service provider.
+            // If we inject DanceHttpApiClient, it will create
+            // a client without checking if a primary host is available.
             await HttpClientFactory.ValidatePrimaryHostIsAvailable();
             await serviceProvider.GetRequiredService<DanceHttpApiClient>().GetUserAccesses();
             await CheckLoginStatus();
