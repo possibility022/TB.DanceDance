@@ -7,7 +7,7 @@ namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 public class BlobUploaderTests : IAsyncLifetime
 {
     private readonly BlobUploader blobUploader;
-    BlobContainerClient client;
+    BlobContainerClient? client;
 
     public BlobUploaderTests()
     {
@@ -28,9 +28,9 @@ public class BlobUploaderTests : IAsyncLifetime
         ms.Position = 0;
 
         // Verify the blob was uploaded
-        var download = await blob.DownloadAsync();
+        var download = await blob.DownloadAsync(TestContext.Current.CancellationToken);
         using MemoryStream downloadedMs = new();
-        await download.Value.Content.CopyToAsync(downloadedMs);
+        await download.Value.Content.CopyToAsync(downloadedMs, TestContext.Current.CancellationToken);
 
         // Check if the content is correct
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
@@ -68,12 +68,12 @@ public class BlobUploaderTests : IAsyncLifetime
             
         ms.Position = 0;
         
-        await blobUploader.UploadAsync(ms, uri, CancellationToken.None);
+        await blobUploader.UploadAsync(ms, uri, TestContext.Current.CancellationToken);
         
         // Verify the blob was uploaded
-        var download = await blob.DownloadAsync();
+        var download = await blob.DownloadAsync(TestContext.Current.CancellationToken);
         using MemoryStream downloadedMs = new();
-        await download.Value.Content.CopyToAsync(downloadedMs);
+        await download.Value.Content.CopyToAsync(downloadedMs, TestContext.Current.CancellationToken);
 
         // Check if the content is correct
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
