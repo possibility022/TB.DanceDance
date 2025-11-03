@@ -27,9 +27,9 @@ public class AccessService : IAccessService
             .AnyAsync(cancellationToken);
     }
     
-    public Task<bool> DoesUserHasAccessToEvent(Guid eventId, string userId)
+    public Task<bool> DoesUserHasAccessToEvent(Guid eventId, string userId, CancellationToken cancellationToken)
     {
-        return dbContext.AssingedToEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+        return dbContext.AssingedToEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId, cancellationToken);
     }
     
     private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
@@ -50,22 +50,22 @@ public class AccessService : IAccessService
             select video;
     }
 
-    public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
+    public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId, CancellationToken cancellationToken)
     {
         var query = GetBaseVideosForUserQuery(userId)
             .Where(v => v.BlobId == videoBlobId)
-            .AnyAsync();
+            .AnyAsync(cancellationToken);
 
         var any = await query;
 
         return any;
     }
     
-    public async Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId)
+    public async Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId, CancellationToken cancellationToken)
     {
         var query = GetBaseVideosForUserQuery(userId)
             .Where(v => v.Id == videoId)
-            .AnyAsync();
+            .AnyAsync(cancellationToken);
 
         var any = await query;
 

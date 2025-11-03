@@ -112,9 +112,6 @@ public class EventsController : Controller
     [HttpPost]
     public async Task<IActionResult> RequestAccess([FromBody] RequestAssigmentModelRequest requests, CancellationToken cancellationToken)
     {
-        if (requests == null)
-            return BadRequest();
-
         if (requests.Events?.Any() != true && requests.Groups?.Any() != true)
             return BadRequest();
 
@@ -129,15 +126,15 @@ public class EventsController : Controller
         var token = GetAccessTokenFromHeader();
         var userData = await identityClient.GetNameAsync(token, cancellationToken);
 
-        await accessManagementService.AddOrUpdateUserAsync(userData);
+        await accessManagementService.AddOrUpdateUserAsync(userData, cancellationToken);
 
         if (requests.Events?.Count > 0)
-            await accessManagementService.SaveEventsAssigmentRequest(user, requests.Events);
+            await accessManagementService.SaveEventsAssigmentRequest(user, requests.Events, cancellationToken);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await accessManagementService.SaveGroupsAssigmentRequests(user, model);
+            await accessManagementService.SaveGroupsAssigmentRequests(user, model, cancellationToken);
         }
 
         return Ok();
@@ -167,7 +164,7 @@ public class EventsController : Controller
 
         if (videos.Length == 0)
         {
-            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId);
+            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId, token);
             if (!isAssigned)
                 return Unauthorized();
         }
@@ -181,11 +178,11 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
-    public async Task<RequestedAccessesResponse> GetRequestAccessList()
+    public async Task<RequestedAccessesResponse> GetRequestAccessList(CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
 
-        var accessRequests = await accessManagementService.GetAccessRequestsToApproveAsync(userId);
+        var accessRequests = await accessManagementService.GetAccessRequestsToApproveAsync(userId, cancellationToken);
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;
@@ -193,7 +190,7 @@ public class EventsController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
-    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody)
+    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
 
@@ -202,7 +199,7 @@ public class EventsController : Controller
         if (requestBody.IsApproved)
             results = await accessManagementService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
         else
-            results = await accessManagementService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+            results = await accessManagementService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId, cancellationToken);
 
         if (results)
             return Ok();

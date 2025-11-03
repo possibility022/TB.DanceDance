@@ -1,5 +1,4 @@
 ﻿using Application.Services;
-using Domain.Entities;
 using Infrastructure.Data;
 
 namespace TB.DanceDance.Tests.Application;
@@ -175,7 +174,7 @@ public class AccessServiceTests : BaseTestClass
         SeedDbContext.Add(data.participation);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await accessService.DoesUserHasAccessToEvent(data.evt.Id, data.user.Id);
+        var result = await accessService.DoesUserHasAccessToEvent(data.evt.Id, data.user.Id, TestContext.Current.CancellationToken);
         Assert.True(result);
     }
 
@@ -194,7 +193,7 @@ public class AccessServiceTests : BaseTestClass
         SeedDbContext.Add(stranger);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await accessService.DoesUserHasAccessToEvent(evt.Id, stranger.Id);
+        var result = await accessService.DoesUserHasAccessToEvent(evt.Id, stranger.Id, TestContext.Current.CancellationToken);
         Assert.False(result);
     }
 
@@ -218,7 +217,7 @@ public class AccessServiceTests : BaseTestClass
         SeedDbContext.Add(membershipA);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await accessService.DoesUserHasAccessToEvent(evtB.Id, user.Id);
+        var result = await accessService.DoesUserHasAccessToEvent(evtB.Id, user.Id, TestContext.Current.CancellationToken);
         Assert.False(result);
     }
 
@@ -240,7 +239,7 @@ public class AccessServiceTests : BaseTestClass
         SeedDbContext.Add(m2);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await accessService.DoesUserHasAccessToEvent(evt.Id, user.Id);
+        var result = await accessService.DoesUserHasAccessToEvent(evt.Id, user.Id, TestContext.Current.CancellationToken);
         Assert.True(result);
     }
 }

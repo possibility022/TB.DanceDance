@@ -1,8 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
-using Domain;
-using Domain.Entities;
 using Domain.Models;
 using Domain.Services;
 
@@ -11,7 +9,7 @@ namespace Infrastructure.Data.BlobStorage;
 public class BlobDataService : IBlobDataService
 {
     private readonly string blobConnectionString;
-    private BlobContainerClient container;
+    private BlobContainerClient container = null!;
 
     public BlobDataService(string blobConnectionString, string containerName)
     {
@@ -26,10 +24,10 @@ public class BlobDataService : IBlobDataService
         container.CreateIfNotExists();
     }
 
-    public Task<Stream> OpenStream(string blobName)
+    public Task<Stream> OpenStream(string blobName, CancellationToken cancellationToken)
     {
         var client = container.GetBlobClient(blobName);
-        return client.OpenReadAsync(new BlobOpenReadOptions(false));
+        return client.OpenReadAsync(new BlobOpenReadOptions(false), cancellationToken);
     }
 
     public Task Upload(string blobId, Stream stream)

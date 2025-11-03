@@ -26,35 +26,35 @@ public class VideoService : IVideoService
         this.accessService = accessService;
     }
 
-    public async Task<Video?> GetVideoByBlobAsync(string userId, string blobId)
+    public async Task<Video?> GetVideoByBlobAsync(string userId, string blobId, CancellationToken cancellationToken)
     {
-        var hasAccess = await accessService.DoesUserHasAccessAsync(blobId, userId);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(blobId, userId, cancellationToken);
         if (!hasAccess)
             return null;
 
-        return await dbContext.Videos.Where(r => r.BlobId == blobId).FirstOrDefaultAsync();
+        return await dbContext.Videos.Where(r => r.BlobId == blobId).FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<Stream> OpenStream(string blobName)
+    public Task<Stream> OpenStream(string blobName, CancellationToken cancellationToken)
     {
-        return blobService.OpenStream(blobName);
+        return blobService.OpenStream(blobName, cancellationToken);
     }
 
-    public async Task<bool> RenameVideoAsync(Guid guid, string newName)
+    public async Task<bool> RenameVideoAsync(Guid guid, string newName, CancellationToken cancellationToken)
     {
-        var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == guid);
+        var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == guid, cancellationToken: cancellationToken);
 
         if (video == null)
             return false;
 
         video.Name = newName;
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
 
-    public async Task<UploadContext?> GetSharingLink(Guid videoId)
+    public async Task<UploadContext?> GetSharingLink(Guid videoId, CancellationToken cancellationToken)
     {
-        var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId);
+        var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId, cancellationToken: cancellationToken);
         
         if (video is null)
             return null;
@@ -70,7 +70,7 @@ public class VideoService : IVideoService
         };
     }
 
-    public async Task<UploadContext> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith)
+    public async Task<UploadContext> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith, CancellationToken cancellationToken)
     {
         var sas = videoUploaderService.GetUploadSasUri();
 
@@ -97,7 +97,7 @@ public class VideoService : IVideoService
         };
 
         dbContext.Videos.Add(video);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return new UploadContext()
         {

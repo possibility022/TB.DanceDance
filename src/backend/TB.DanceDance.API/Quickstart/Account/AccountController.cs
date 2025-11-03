@@ -227,7 +227,7 @@ public class AccountController : Controller
                     FirstName = input.FirstName,
                     LastName = input.LastName,
                     Id = userFromDb.Id
-                });
+                }, CancellationToken.None);
 
                 // TODO - Email Verification
                 //var code = await userManager.GenerateEmailConfirmationTokenAsync(user);

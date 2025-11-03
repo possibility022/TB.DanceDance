@@ -15,11 +15,11 @@ public class AccessManagementService : IAccessManagementService
         this.dbContext = dbContext;
     }
 
-    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
+    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, CancellationToken cancellationToken)
     {
         var pendingRequests = await dbContext.EventAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
             .Select(r => r.EventId)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
         
         var toSave = events
             .Except(pendingRequests)
@@ -30,14 +30,14 @@ public class AccessManagementService : IAccessManagementService
         });
 
         dbContext.EventAssigmentRequests.AddRange(toSave);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
+    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, CancellationToken cancellationToken)
     {
         var pendingRequests = await dbContext.GroupAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
             .Select(r => r.GroupId)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
         
         var toSave = groups
             .Where(group => !pendingRequests.Contains(group.groupId))
@@ -49,10 +49,10 @@ public class AccessManagementService : IAccessManagementService
         });
 
         dbContext.GroupAssigmentRequests.AddRange(toSave);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public Task AddOrUpdateUserAsync(Domain.Entities.User user)
+    public Task AddOrUpdateUserAsync(Domain.Entities.User user, CancellationToken cancellationToken)
     {
         var record = dbContext.Users.Find(user.Id);
         if (record != null)
@@ -66,7 +66,7 @@ public class AccessManagementService : IAccessManagementService
             dbContext.Users.Add(user);
         }
 
-        return dbContext.SaveChangesAsync();
+        return dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private IQueryable<RequestedAccess> GetEventRequestsThatCanBeApprovedByUser(string userId)
@@ -130,19 +130,20 @@ public class AccessManagementService : IAccessManagementService
             Groups = results.Where(r => r.IsEvent == false).Select(r => r.Id).ToArray()
         };
     }
-    
+
     /// <summary>
     /// Returns a list of requests that given user can approve.
     /// </summary>
     /// <param name="userId">User id</param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<ICollection<RequestedAccess>> GetAccessRequestsToApproveAsync(string userId)
+    public async Task<ICollection<RequestedAccess>> GetAccessRequestsToApproveAsync(string userId, CancellationToken cancellationToken)
     {
         var query = (GetEventRequestsThatCanBeApprovedByUser(userId))
                     .Union
                     (GetGroupRequestsThatCanBeApprovedByUser(userId));
 
-        var queryResults = await query.ToListAsync();
+        var queryResults = await query.ToListAsync(cancellationToken);
         return queryResults;
     }
 
@@ -200,7 +201,7 @@ public class AccessManagementService : IAccessManagementService
         return true;
     }
 
-    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId)
+    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken cancellationToken)
     {
         AssigmentRequestBase requestBase;
 
@@ -209,12 +210,12 @@ public class AccessManagementService : IAccessManagementService
             var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
             var request = await query
                 .Where(r => r.RequestId == requestId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (request == null)
                 return false;
 
-            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
+            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId, cancellationToken))!;
 
         }
         else
@@ -222,16 +223,16 @@ public class AccessManagementService : IAccessManagementService
             var query = GetEventRequestsThatCanBeApprovedByUser(userId);
             var request = await query
                 .Where(r => r.RequestId == requestId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (request == null)
                 return false;
 
-            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
+            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId, cancellationToken))!;
         }
 
         requestBase.Decline(userId);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return true;
     }
