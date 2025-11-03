@@ -3,6 +3,7 @@ using Application.Services;
 using Domain.Exceptions;
 using Domain.Services;
 using Infrastructure.Data;
+using Infrastructure.Data.BlobStorage;
 using Infrastructure.Identity;
 using Infrastructure.Identity.Extensions;
 using Microsoft.AspNetCore.Identity;

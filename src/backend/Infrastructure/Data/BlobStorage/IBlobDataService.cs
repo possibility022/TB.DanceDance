@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 
-namespace Application.Services;
+namespace Infrastructure.Data.BlobStorage;
 
 public interface IBlobDataService
 {

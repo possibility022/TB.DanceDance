@@ -1,10 +1,9 @@
-﻿using Application.Services;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using Domain.Entities;
 
-namespace Infrastructure.Data;
+namespace Infrastructure.Data.BlobStorage;
 
 public class BlobDataService : IBlobDataService
 {

@@ -1,7 +1,6 @@
-﻿using Application.Services;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
-namespace Infrastructure.Data;
+namespace Infrastructure.Data.BlobStorage;
 
 public class BlobDataServiceFactory : IBlobDataServiceFactory
 {

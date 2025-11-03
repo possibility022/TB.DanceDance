@@ -1,4 +1,4 @@
-﻿namespace Application.Services;
+﻿namespace Infrastructure.Data.BlobStorage;
 
 public interface IBlobDataServiceFactory
 {
