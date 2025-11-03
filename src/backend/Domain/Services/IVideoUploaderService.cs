@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Models;
 
 namespace Domain.Services;
 

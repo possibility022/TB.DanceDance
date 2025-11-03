@@ -1,7 +1,9 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
+using Domain;
 using Domain.Entities;
+using Domain.Models;
 
 namespace Infrastructure.Data.BlobStorage;
 

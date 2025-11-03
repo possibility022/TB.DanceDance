@@ -1,4 +1,6 @@
-﻿using Domain.Entities;
+﻿using Domain;
+using Domain.Entities;
+using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,5 +1,6 @@
 ﻿using Application;
 using Application.Services;
+using Domain;
 using Domain.Exceptions;
 using Domain.Services;
 using Infrastructure.Data;
