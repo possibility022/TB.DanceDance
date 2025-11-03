@@ -1,6 +1,5 @@
 ﻿using Domain.Entities;
 using Domain.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
