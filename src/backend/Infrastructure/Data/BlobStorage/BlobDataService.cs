@@ -4,6 +4,7 @@ using Azure.Storage.Sas;
 using Domain;
 using Domain.Entities;
 using Domain.Models;
+using Domain.Services;
 
 namespace Infrastructure.Data.BlobStorage;
 

@@ -1,4 +1,6 @@
-﻿namespace Domain;
+﻿using Domain.Services;
+
+namespace Domain;
 
 public interface IBlobDataServiceFactory
 {
