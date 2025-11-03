@@ -17,7 +17,7 @@ public class AccessService : IAccessService
     {
         return dbContext.AssingedToEvents
             .Where(r => r.UserId == userId && r.EventId == eventId)
-            .AnyAsync();
+            .AnyAsync(cancellationToken);
     }
 
     public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId, CancellationToken cancellationToken)
