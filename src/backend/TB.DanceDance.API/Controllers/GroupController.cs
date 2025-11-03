@@ -27,7 +27,7 @@ public class GroupController : Controller
         var userId = User.GetSubject();
 
         var videos = await groupService
-            .GetUserVideosFromGroups(userId)
+            .GetUserVideosForAllGroups(userId)
             .ToListAsync();
 
         var response = MapToVideoForGroupInfoResponse(videos);
@@ -42,7 +42,7 @@ public class GroupController : Controller
         var userId = User.GetSubject();
 
         var videos = await groupService
-            .GetUserVideosForGroupAsync(userId, groupId)
+            .GetUserVideosForGroup(userId, groupId)
             .ToListAsync();
 
         var videosByGroups = MapToVideoForGroupInfoResponse(videos);

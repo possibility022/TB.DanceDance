@@ -13,7 +13,7 @@ public class GroupService : IGroupService
         this.dbContext = dbContext;
     }
 
-    public IQueryable<VideoFromGroupInfo> GetUserVideosForGroupAsync(string userId, Guid groupId)
+    public IQueryable<VideoFromGroupInfo> GetUserVideosForGroup(string userId, Guid groupId)
     {
         var q = from danceGroup in dbContext.Groups
                 join assignedTo in dbContext.AssingedToGroups on danceGroup.Id equals assignedTo.GroupId
@@ -31,7 +31,7 @@ public class GroupService : IGroupService
         return q;
     }
 
-    public IQueryable<VideoFromGroupInfo> GetUserVideosFromGroups(string userId)
+    public IQueryable<VideoFromGroupInfo> GetUserVideosForAllGroups(string userId)
     {
         var q = from assignedTo in dbContext.AssingedToGroups
                 join sharedWith in dbContext.SharedWith on assignedTo.GroupId equals sharedWith.GroupId
