@@ -34,7 +34,7 @@ public class GroupServiceTests : BaseTestClass
         SeedDbContext.AddRange(user, group, membership, v, share);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Single(result);
         Assert.Equal(group.Id, result.Single().GroupId);
         Assert.Equal(group.Name, result.Single().GroupName);
@@ -57,7 +57,7 @@ public class GroupServiceTests : BaseTestClass
         SeedDbContext.AddRange(user, group, membership, v, share);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -78,7 +78,7 @@ public class GroupServiceTests : BaseTestClass
         SeedDbContext.AddRange(user, groupA, groupB, membershipA, vB, shareB);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, groupA.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, groupA.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -98,7 +98,7 @@ public class GroupServiceTests : BaseTestClass
         SeedDbContext.AddRange(user, group, membership, v, directShare);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -124,7 +124,7 @@ public class GroupServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Equal(new[] { v2.Id, v3.Id, v1.Id }, result.Select(r => r.Video.Id).ToArray());
     }
 
@@ -146,8 +146,8 @@ public class GroupServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
-        Assert.Equal(2, result.Count);
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(2, result.Length);
         Assert.All(result, r => Assert.Equal(v.Id, r.Video.Id));
     }
 
@@ -163,7 +163,7 @@ public class GroupServiceTests : BaseTestClass
         SeedDbContext.AddRange(user, group, v, share);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -183,7 +183,7 @@ public class GroupServiceTests : BaseTestClass
         SeedDbContext.AddRange(user, group, membership, v, share);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForGroup(user.Id, group.Id).ToList();
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -209,8 +209,8 @@ public class GroupServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForAllGroups(user.Id).ToList();
-        Assert.Equal(2, result.Count);
+        var result = await groupService.GetUserVideosForAllGroups(user.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(2, result.Length);
         // Ordered by recorded desc
         Assert.Equal(new[] { vB.Id, vA.Id }, result.Select(r => r.Video.Id).ToArray());
         Assert.Contains(result, r => r.GroupId == groupA.Id && r.Video.Id == vA.Id);
@@ -238,7 +238,7 @@ public class GroupServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = groupService.GetUserVideosForAllGroups(user.Id).ToList();
+        var result = await groupService.GetUserVideosForAllGroups(user.Id, TestContext.Current.CancellationToken);
         Assert.Single(result);
         Assert.Equal(vA.Id, result.Single().Video.Id);
         Assert.Equal(groupA.Id, result.Single().GroupId);

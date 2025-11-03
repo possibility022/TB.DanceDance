@@ -3,7 +3,7 @@
 namespace Domain.Services;
 public interface IGroupService
 {
-    Task<ICollection<Group>> GetAllGroups(CancellationToken token);
-    IQueryable<VideoFromGroupInfo> GetUserVideosForGroup(string userId, Guid groupId);
-    IQueryable<VideoFromGroupInfo> GetUserVideosForAllGroups(string userId);
+    Task<ICollection<Group>> GetAllGroups(CancellationToken cancellationToken);
+    Task<VideoFromGroupInfo[]> GetUserVideosForGroup(string userId, Guid groupId, CancellationToken cancellationToken);
+    Task<VideoFromGroupInfo[]> GetUserVideosForAllGroups(string userId, CancellationToken cancellationToken);
 }

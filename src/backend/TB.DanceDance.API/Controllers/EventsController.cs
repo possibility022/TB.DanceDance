@@ -3,7 +3,6 @@ using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
@@ -92,7 +91,7 @@ public class EventsController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Event.AddEvent)]
-    public async Task<IActionResult> CreateEventAsync([FromBody] CreateNewEventRequest request)
+    public async Task<IActionResult> CreateEventAsync([FromBody] CreateNewEventRequest request, CancellationToken token)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -103,7 +102,7 @@ public class EventsController : Controller
         if (!ModelState.IsValid)
             return BadRequest();
 
-        var createdEvent = await eventService.CreateEventAsync(@event);
+        var createdEvent = await eventService.CreateEventAsync(@event,token);
 
 
         return Created("", createdEvent); //todo
@@ -160,14 +159,13 @@ public class EventsController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Event.Videos)]
-    public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId)
+    public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId, CancellationToken token)
     {
         var userId = User.GetSubject();
         var videos = await eventService
-            .GetVideos(eventId, userId)
-            .ToListAsync();
+            .GetVideos(eventId, userId, token);
 
-        if (videos.Count == 0)
+        if (videos.Length == 0)
         {
             var isAssigned = eventService.IsUserAssignedToEvent(eventId, userId);
             if (!isAssigned)
