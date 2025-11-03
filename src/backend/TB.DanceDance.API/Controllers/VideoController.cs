@@ -16,18 +16,18 @@ public class VideoController : Controller
 {
     public VideoController(IVideoService videoService,
         ITokenValidator tokenValidator,
-        IUserService userService,
+        IAccessService accessService,
         ILogger<VideoController> logger)
     {
         this.videoService = videoService;
         this.tokenValidator = tokenValidator;
-        this.userService = userService;
+        this.accessService = accessService;
         this.logger = logger;
     }
 
     private readonly IVideoService videoService;
     private readonly ITokenValidator tokenValidator;
-    private readonly IUserService userService;
+    private readonly IAccessService accessService;
     private readonly ILogger<VideoController> logger;
 
 
@@ -130,7 +130,7 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var canUploadToGroup = await userService.CanUserUploadToGroupAsync(user, sharedWith.Value);
+                var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value);
 
                 if (!canUploadToGroup)
                 {
@@ -144,7 +144,7 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var canUploadToEvent = await userService.CanUserUploadToEventAsync(user, sharedWith.Value);
+                var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value);
 
                 if (!canUploadToEvent)
                 {

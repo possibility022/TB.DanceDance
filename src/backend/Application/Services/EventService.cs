@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 public class EventService : IEventService
@@ -9,6 +10,11 @@ public class EventService : IEventService
     public EventService(IApplicationContext danceDbContext)
     {
         dbContext = danceDbContext;
+    }
+    
+    public async Task<ICollection<Event>> GetAllEvents(CancellationToken token)
+    {
+        return await dbContext.Events.ToListAsync(token);
     }
 
     public async Task<Event> CreateEventAsync(Event @event)

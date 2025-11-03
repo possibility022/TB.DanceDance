@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -12,6 +13,11 @@ public class GroupService : IGroupService
         this.dbContext = dbContext;
     }
 
+    public async Task<ICollection<Group>> GetAllGroups(CancellationToken token)
+    {
+        return await dbContext.Groups.ToListAsync(token);
+    }
+    
     public IQueryable<VideoFromGroupInfo> GetUserVideosForGroup(string userId, Guid groupId)
     {
         var q = from danceGroup in dbContext.Groups

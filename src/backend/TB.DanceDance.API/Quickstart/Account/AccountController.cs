@@ -37,7 +37,7 @@ public class AccountController : Controller
     private readonly UserManager<User> userManager;
     private readonly SignInManager<User> signInManager;
     private readonly ILogger<AccountController> logger;
-    private readonly IUserService userService;
+    private readonly IAccessManagementService accessManagementService;
 
     public AccountController(
         IIdentityServerInteractionService interaction,
@@ -47,14 +47,14 @@ public class AccountController : Controller
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         ILogger<AccountController> logger,
-        IUserService userService
+        IAccessManagementService accessManagementService
         )
     {
         _interaction = interaction;
         _clientStore = clientStore;
         _schemeProvider = schemeProvider;
         _events = events;
-        this.userService = userService;
+        this.accessManagementService = accessManagementService;
         this.userManager = userManager;
         this.signInManager = signInManager;
         this.logger = logger;
@@ -221,7 +221,7 @@ public class AccountController : Controller
                 if (userFromDb == null)
                     throw new AppException($"User with email {user.Email} could not be found after registration.");
 
-                await userService.AddOrUpdateUserAsync(new Domain.Entities.User()
+                await accessManagementService.AddOrUpdateUserAsync(new Domain.Entities.User()
                 {
                     Email = userFromDb.Email,
                     FirstName = input.FirstName,

@@ -65,7 +65,7 @@ public static class DependencyInjection
             .AddIdentityServer();
 
 
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAccessManagementService, AccessManagementService>();
 
         if (productionPolicies)
         {

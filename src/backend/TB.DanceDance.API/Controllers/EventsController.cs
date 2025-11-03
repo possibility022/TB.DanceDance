@@ -14,23 +14,33 @@ namespace TB.DanceDance.API.Controllers;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class EventsController : Controller
 {
-    private readonly IUserService userService;
+    private readonly IAccessManagementService accessManagementService;
+    private readonly IAccessService accessService;
     private readonly IEventService eventService;
     private readonly IIdentityClient identityClient;
+    private readonly IGroupService groupService;
 
-    public EventsController(IUserService userService, IEventService eventService, IIdentityClient identityClient)
+    public EventsController(
+        IAccessManagementService accessManagementService,
+        IAccessService accessService,
+        IEventService eventService, 
+        IIdentityClient identityClient,
+        IGroupService groupService
+        )
     {
-        this.userService = userService;
+        this.accessManagementService = accessManagementService;
+        this.accessService = accessService;
         this.eventService = eventService;
         this.identityClient = identityClient;
+        this.groupService = groupService;
     }
 
     [Route(ApiEndpoints.Video.Access.GetAll)]
     [HttpGet]
-    public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups()
+    public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups(CancellationToken token)
     {
-        var listOfEvents = await userService.GetAllEvents();
-        var listOfGroups = await userService.GetAllGroups();
+        var listOfEvents = await eventService.GetAllEvents(token);
+        var listOfGroups = await groupService.GetAllGroups(token);
 
         return new EventsAndGroupsResponse()
         {
@@ -47,7 +57,7 @@ public class EventsController : Controller
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken cancellationToken)
     {
         var user = User.GetSubject();
-        (var userGroups, var userEvents) = await userService.GetUserEventsAndGroupsAsync(user);
+        (var userGroups, var userEvents) = await accessService.GetUserEventsAndGroupsAsync(user);
 
         var responseModel = new UserEventsAndGroupsResponse();
 
@@ -60,19 +70,19 @@ public class EventsController : Controller
                 .Select(@event => ContractMappers.MapToEventContract(@event))
                 .ToArray();
 
-        var listOfEvents = await userService.GetAllEvents();
+        var listOfEvents = await eventService.GetAllEvents(cancellationToken);
 
         responseModel.Available.Events = listOfEvents.Except(userEvents)
             .Select(@event => ContractMappers.MapToEventContract(@event))
             .ToArray();
 
-        var listOfGroups = await userService.GetAllGroups();
+        var listOfGroups = await groupService.GetAllGroups(cancellationToken);
 
         responseModel.Available.Groups = listOfGroups.Except(userGroups)
             .Select(group => ContractMappers.MapToGroupContract(group))
             .ToArray();
         
-        var myPendingRequests = await userService.GetPendingUserRequests(user, cancellationToken);
+        var myPendingRequests = await accessManagementService.GetPendingUserRequests(user, cancellationToken);
 
         responseModel.Pending.Events = myPendingRequests.Events;
         responseModel.Pending.Groups = myPendingRequests.Groups;
@@ -120,15 +130,15 @@ public class EventsController : Controller
         var token = GetAccessTokenFromHeader();
         var userData = await identityClient.GetNameAsync(token, cancellationToken);
 
-        await userService.AddOrUpdateUserAsync(userData);
+        await accessManagementService.AddOrUpdateUserAsync(userData);
 
         if (requests.Events?.Count > 0)
-            await userService.SaveEventsAssigmentRequest(user, requests.Events);
+            await accessManagementService.SaveEventsAssigmentRequest(user, requests.Events);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await userService.SaveGroupsAssigmentRequests(user, model);
+            await accessManagementService.SaveGroupsAssigmentRequests(user, model);
         }
 
         return Ok();
@@ -177,7 +187,7 @@ public class EventsController : Controller
     {
         var userId = User.GetSubject();
 
-        var accessRequests = await userService.GetAccessRequestsToApproveAsync(userId);
+        var accessRequests = await accessManagementService.GetAccessRequestsToApproveAsync(userId);
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;
@@ -192,9 +202,9 @@ public class EventsController : Controller
         bool results;
 
         if (requestBody.IsApproved)
-            results = await userService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+            results = await accessManagementService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
         else
-            results = await userService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+            results = await accessManagementService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
 
         if (results)
             return Ok();
