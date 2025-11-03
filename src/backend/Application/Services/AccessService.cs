@@ -27,6 +27,51 @@ public class AccessService : IAccessService
             .AnyAsync(cancellationToken);
     }
     
+    public Task<bool> DoesUserHasAccessToEvent(Guid eventId, string userId)
+    {
+        return dbContext.AssingedToEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId);
+    }
+    
+    private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
+    {
+        return from video in dbContext.Videos
+            join sharedWith in dbContext.SharedWith on video.Id equals sharedWith.VideoId
+            join events in dbContext.Events.DefaultIfEmpty() on sharedWith.EventId equals events.Id into eventsGroup
+            from events in eventsGroup.DefaultIfEmpty()
+            join groups in dbContext.Groups.DefaultIfEmpty() on sharedWith.GroupId equals groups.Id into groupsGroup
+            from groups in groupsGroup.DefaultIfEmpty()
+            join eventsAssignments in dbContext.AssingedToEvents.DefaultIfEmpty() on events.Id equals eventsAssignments.EventId into eventsAssignmentsGroup
+            from eventsAssignments in eventsAssignmentsGroup.DefaultIfEmpty()
+            join groupsAssignments in dbContext.AssingedToGroups.DefaultIfEmpty() on groups.Id equals groupsAssignments.GroupId into groupsAssignmentsGroup
+            from groupsAssignments in groupsAssignmentsGroup.DefaultIfEmpty()
+            where
+                sharedWith.UserId == userId || eventsAssignments.UserId == userId || groupsAssignments.UserId == userId && groupsAssignments.WhenJoined < video.RecordedDateTime
+            orderby video.RecordedDateTime descending
+            select video;
+    }
+
+    public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
+    {
+        var query = GetBaseVideosForUserQuery(userId)
+            .Where(v => v.BlobId == videoBlobId)
+            .AnyAsync();
+
+        var any = await query;
+
+        return any;
+    }
+    
+    public async Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId)
+    {
+        var query = GetBaseVideosForUserQuery(userId)
+            .Where(v => v.Id == videoId)
+            .AnyAsync();
+
+        var any = await query;
+
+        return any;
+    }
+    
     public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId, CancellationToken cancellationToken)
     {
         if (userId is null)

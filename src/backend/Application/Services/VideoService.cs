@@ -11,62 +11,28 @@ public class VideoService : IVideoService
     private readonly IApplicationContext dbContext;
     private readonly IBlobDataService blobService;
     private readonly IVideoUploaderService videoUploaderService;
+    private readonly IAccessService accessService;
 
     public VideoService(
         IApplicationContext dbContext,
         IBlobDataServiceFactory blobServiceFactory,
-        IVideoUploaderService videoUploaderService)
+        IVideoUploaderService videoUploaderService,
+        IAccessService accessService
+        )
     {
         this.dbContext = dbContext;
         blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
         this.videoUploaderService = videoUploaderService;
+        this.accessService = accessService;
     }
 
-    private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
+    public async Task<Video?> GetVideoByBlobAsync(string userId, string blobId)
     {
-        return from video in dbContext.Videos
-               join sharedWith in dbContext.SharedWith on video.Id equals sharedWith.VideoId
-               join events in dbContext.Events.DefaultIfEmpty() on sharedWith.EventId equals events.Id into eventsGroup
-               from events in eventsGroup.DefaultIfEmpty()
-               join groups in dbContext.Groups.DefaultIfEmpty() on sharedWith.GroupId equals groups.Id into groupsGroup
-               from groups in groupsGroup.DefaultIfEmpty()
-               join eventsAssignments in dbContext.AssingedToEvents.DefaultIfEmpty() on events.Id equals eventsAssignments.EventId into eventsAssignmentsGroup
-               from eventsAssignments in eventsAssignmentsGroup.DefaultIfEmpty()
-               join groupsAssignments in dbContext.AssingedToGroups.DefaultIfEmpty() on groups.Id equals groupsAssignments.GroupId into groupsAssignmentsGroup
-               from groupsAssignments in groupsAssignmentsGroup.DefaultIfEmpty()
-               where
-               sharedWith.UserId == userId || eventsAssignments.UserId == userId || groupsAssignments.UserId == userId && groupsAssignments.WhenJoined < video.RecordedDateTime
-               orderby video.RecordedDateTime descending
-               select video;
-    }
+        var hasAccess = await accessService.DoesUserHasAccessAsync(blobId, userId);
+        if (!hasAccess)
+            return null;
 
-    public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId)
-    {
-        var query = GetBaseVideosForUserQuery(userId)
-            .Where(v => v.BlobId == videoBlobId)
-            .AnyAsync();
-
-        var any = await query;
-
-        return any;
-    }
-    
-    public async Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId)
-    {
-        var query = GetBaseVideosForUserQuery(userId)
-            .Where(v => v.Id == videoId)
-            .AnyAsync();
-
-        var any = await query;
-
-        return any;
-    }
-
-    public Task<Video?> GetVideoByBlobAsync(string userId, string blobId)
-    {
-        return GetBaseVideosForUserQuery(userId)
-            .Where(r => r.BlobId == blobId)
-            .FirstOrDefaultAsync();
+        return await dbContext.Videos.Where(r => r.BlobId == blobId).FirstOrDefaultAsync();
     }
 
     public Task<Stream> OpenStream(string blobName)
@@ -76,7 +42,7 @@ public class VideoService : IVideoService
 
     public async Task<bool> RenameVideoAsync(Guid guid, string newName)
     {
-        var video = await dbContext.Videos.FirstAsync(r => r.Id == guid);
+        var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == guid);
 
         if (video == null)
             return false;

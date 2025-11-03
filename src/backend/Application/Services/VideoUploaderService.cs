@@ -67,6 +67,9 @@ public class VideoUploaderService : IVideoUploaderService
         if (video == null)
             return null;
 
+        if (video.BlobId == null)
+            return null;
+        
         var videoAlreadyUploaded = await publishedVideosBlobs.BlobExistsAsync(video.BlobId);
 
         if (!videoAlreadyUploaded)

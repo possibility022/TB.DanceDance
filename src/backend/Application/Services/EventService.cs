@@ -37,9 +37,4 @@ public class EventService : IEventService
 
         return q.ToArrayAsync(cancellationToken);
     }
-
-    public bool IsUserAssignedToEvent(Guid eventId, string userId)
-    {
-        return dbContext.AssingedToEvents.Any(r => r.EventId == eventId && r.UserId == userId);
-    }
 }

@@ -72,7 +72,7 @@ public class VideoController : Controller
         if (userSubjectId == null)
             return BadRequest();
 
-        var hasAccess = await videoService.DoesUserHasAccessAsync(guid, userSubjectId);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(guid, userSubjectId);
         if (!hasAccess)
             return new UnauthorizedResult();
 
@@ -84,6 +84,9 @@ public class VideoController : Controller
     [HttpPost]
     public async Task<IActionResult> RenameVideo([FromRoute] Guid videoId, [FromBody] VideoRenameRequest input)
     {
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, User.GetSubject());
+        if (!hasAccess)
+            return Unauthorized();
         var res = await videoService.RenameVideoAsync(videoId, input.NewName);
 
         if (res == false)
@@ -97,7 +100,7 @@ public class VideoController : Controller
     public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute]Guid videoId)
     {
         string user  = User.GetSubject();
-        var hasAccess = await videoService.DoesUserHasAccessAsync(videoId, user);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, user);
         if (!hasAccess)
             return Unauthorized();
 

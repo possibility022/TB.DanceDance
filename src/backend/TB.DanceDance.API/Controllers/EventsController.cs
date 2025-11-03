@@ -167,7 +167,7 @@ public class EventsController : Controller
 
         if (videos.Length == 0)
         {
-            var isAssigned = eventService.IsUserAssignedToEvent(eventId, userId);
+            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId);
             if (!isAssigned)
                 return Unauthorized();
         }
