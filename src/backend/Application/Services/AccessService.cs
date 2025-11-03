@@ -13,21 +13,21 @@ public class AccessService : IAccessService
         this.dbContext = dbContext;
     }
     
-    public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId)
+    public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId, CancellationToken cancellationToken)
     {
         return dbContext.AssingedToEvents
             .Where(r => r.UserId == userId && r.EventId == eventId)
             .AnyAsync();
     }
 
-    public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId)
+    public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId, CancellationToken cancellationToken)
     {
         return dbContext.AssingedToGroups
             .Where(r => r.UserId == userId && r.GroupId == groupId)
-            .AnyAsync();
+            .AnyAsync(cancellationToken);
     }
     
-    public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId)
+    public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId, CancellationToken cancellationToken)
     {
         if (userId is null)
             throw new ArgumentNullException(nameof(userId));
@@ -77,6 +77,6 @@ public class AccessService : IAccessService
                      select @event
                      ;
 
-        return (await groups.ToListAsync(), await events.ToListAsync());
+        return (await groups.ToListAsync(cancellationToken), await events.ToListAsync(cancellationToken));
     }
 }

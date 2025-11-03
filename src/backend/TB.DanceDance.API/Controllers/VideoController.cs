@@ -115,7 +115,9 @@ public class VideoController : Controller
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
     public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation(
-        [FromBody] SharedVideoInformationRequest sharedVideoInformation)
+        [FromBody] SharedVideoInformationRequest sharedVideoInformation,
+        CancellationToken cancellationToken
+        )
     {
         string? user = null;
         var sharedWith = sharedVideoInformation?.SharedWith;
@@ -130,7 +132,7 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value);
+                var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value, cancellationToken);
 
                 if (!canUploadToGroup)
                 {
@@ -144,7 +146,7 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value);
+                var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value, cancellationToken);
 
                 if (!canUploadToEvent)
                 {

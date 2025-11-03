@@ -56,7 +56,7 @@ public class EventsController : Controller
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken cancellationToken)
     {
         var user = User.GetSubject();
-        (var userGroups, var userEvents) = await accessService.GetUserEventsAndGroupsAsync(user);
+        (var userGroups, var userEvents) = await accessService.GetUserEventsAndGroupsAsync(user, cancellationToken);
 
         var responseModel = new UserEventsAndGroupsResponse();
 
