@@ -52,6 +52,7 @@ public class EventServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var created = await eventService.CreateEventAsync(evt, CancellationToken.None);
+        SeedDbContext.ChangeTracker.Clear();
 
         Assert.NotEqual(Guid.Empty, created.Id);
         Assert.True(SeedDbContext.Events.Any(e => e.Id == created.Id));
@@ -70,6 +71,7 @@ public class EventServiceTests : BaseTestClass
 
         var created = await eventService.CreateEventAsync(evt, TestContext.Current.CancellationToken);
 
+        SeedDbContext.ChangeTracker.Clear();
         var ownerMemberships = SeedDbContext.AssingedToEvents
             .Where(a => a.EventId == created.Id && a.UserId == created.Owner).ToList();
         Assert.Single(ownerMemberships);
@@ -88,6 +90,7 @@ public class EventServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync();
 
         var created = await eventService.CreateEventAsync(evt, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Equal(owner.Id, created.Owner);
         Assert.True(SeedDbContext.AssingedToEvents.Any(a => a.EventId == created.Id && a.UserId == owner.Id));
     }
@@ -306,6 +309,7 @@ public class EventServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await eventService.GetVideos(evt.Id, owner.Id,TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(result);
     }
 }

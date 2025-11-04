@@ -77,6 +77,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var can = await accessService.CanUserUploadToGroupAsync(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.False(can);
     }
 
@@ -123,6 +124,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var (groups, events) = await accessService.GetUserEventsAndGroupsAsync(user.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(groups);
         Assert.Empty(events);
     }
@@ -157,6 +159,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var (groups, events) = await accessService.GetUserEventsAndGroupsAsync(user.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Equal(2, groups.Count); // duplicate groups expected
         Assert.Equal(2, events.Count); // duplicate events expected
         Assert.True(groups.All(g => g.Id == group.Id));
@@ -175,6 +178,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await accessService.DoesUserHasAccessToEvent(data.evt.Id, data.user.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.True(result);
     }
 
@@ -194,6 +198,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await accessService.DoesUserHasAccessToEvent(evt.Id, stranger.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.False(result);
     }
 
@@ -218,6 +223,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await accessService.DoesUserHasAccessToEvent(evtB.Id, user.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.False(result);
     }
 

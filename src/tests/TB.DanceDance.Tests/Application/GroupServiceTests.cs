@@ -125,6 +125,7 @@ public class GroupServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Equal(new[] { v2.Id, v3.Id, v1.Id }, result.Select(r => r.Video.Id).ToArray());
     }
 
@@ -147,6 +148,7 @@ public class GroupServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Equal(2, result.Length);
         Assert.All(result, r => Assert.Equal(v.Id, r.Video.Id));
     }
@@ -164,6 +166,7 @@ public class GroupServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(result);
     }
 
@@ -184,6 +187,7 @@ public class GroupServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(result);
     }
 
@@ -210,6 +214,7 @@ public class GroupServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await groupService.GetUserVideosForAllGroups(user.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Equal(2, result.Length);
         // Ordered by recorded desc
         Assert.Equal(new[] { vB.Id, vA.Id }, result.Select(r => r.Video.Id).ToArray());
