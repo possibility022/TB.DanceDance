@@ -1,26 +1,14 @@
-﻿using Infrastructure.Data;
+﻿using DotNet.Testcontainers.Builders;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Tests;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 [assembly: AssemblyFixture(typeof(DanceDbFixture))]
+[assembly: AssemblyFixture(typeof(BlobStorageFixture))]
 
 namespace TB.DanceDance.Tests;
 
-public static class DockerHelper
-{
-    private const string AzuriteImage = "mcr.microsoft.com/azure-storage/azurite:latest";
-    
-    private static readonly AzuriteContainer AzuriteContainer = new AzuriteBuilder()
-        .WithImage(AzuriteImage)
-        .Build();
-    
-    public static async Task<AzuriteContainer> GetInitializedAzuriteContainer()
-    {
-        await AzuriteContainer.StartAsync();
-        return AzuriteContainer;
-    }
-}
 public class DanceDbFixture() : IAsyncLifetime
 {
     private const string PostgresImage = "postgres";
@@ -47,5 +35,30 @@ public class DanceDbFixture() : IAsyncLifetime
     {
         await container.StartAsync();
         await DbContextFactory().Database.EnsureCreatedAsync();
+    }
+}
+
+public class BlobStorageFixture() : IAsyncLifetime
+{
+    private const string AzuriteImage = "mcr.microsoft.com/azure-storage/azurite";
+    
+    private readonly AzuriteContainer container = new AzuriteBuilder()
+        .WithImage(AzuriteImage)
+        .Build();
+
+
+    public string GetConnectionString()
+    {
+        return container.GetConnectionString();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return container.DisposeAsync();
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await container.StartAsync();
     }
 }
