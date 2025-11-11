@@ -81,7 +81,7 @@ internal sealed class Deamon : BackgroundService
         Log.Information("Getting video information.");
         var info = await converter.GetInfoAsync(inputVideo);
         Log.Information("Updating video informations.");
-        await client.UploadVideoToTransformInformations(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
+        await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
             RecordedDateTime = info.Value.Item1,
@@ -94,10 +94,10 @@ internal sealed class Deamon : BackgroundService
         using var convertedVideo = File.OpenRead(convertedFilePath);
 
         Log.Information("Sending content");
-        await client.UploadContent(nextVideoToConvert.Id, convertedVideo);
+        await client.UploadContent(nextVideoToConvert.Id, convertedVideo, token);
 
         Log.Information("Publishing video.");
-        await client.PublishTransformedVideo(nextVideoToConvert.Id);
+        await client.PublishTransformedVideo(nextVideoToConvert.Id, token);
 
         if (File.Exists(inputVideo))
             File.Delete(inputVideo);
