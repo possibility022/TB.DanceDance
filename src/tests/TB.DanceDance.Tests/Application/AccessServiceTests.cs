@@ -1,5 +1,6 @@
 ﻿using Application.Services;
 using Infrastructure.Data;
+using Domain.Entities;
 
 namespace TB.DanceDance.Tests.Application;
 
@@ -247,5 +248,170 @@ public class AccessServiceTests : BaseTestClass
 
         var result = await accessService.DoesUserHasAccessToEvent(evt.Id, user.Id, TestContext.Current.CancellationToken);
         Assert.True(result);
+    }
+    
+    // X1: Direct user share grants access by blob
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenDirectlyShared()
+    {
+        var user = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var directShare = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id };
+        SeedDbContext.AddRange(user, video, directShare);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
+    }
+
+    // X2: Event share grants access when user is assigned to the event (blob overload)
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenSharedToEvent_AndUserAssigned()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var evtB = new EventDataBuilder();
+        var owner = evtB.BuildOwner();
+        var evt = evtB.Build();
+        var membership = userB.AssignTo(evt);
+
+        var sharer = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(sharer).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = sharer.Id, EventId = evt.Id };
+
+        // Persist principals first to satisfy FKs, then add share
+        SeedDbContext.AddRange(owner, user, evt, membership, sharer, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.Add(share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
+    }
+
+    // X3: Event share denies access when user is not assigned (blob overload)
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenSharedToEvent_AndUserNotAssigned()
+    {
+        var evtB = new EventDataBuilder();
+        var owner = evtB.BuildOwner();
+        var evt = evtB.Build();
+        var user = new UserDataBuilder().Build();
+        var sharer = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(sharer).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = sharer.Id, EventId = evt.Id };
+        SeedDbContext.AddRange(owner, evt, user, sharer, video, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.False(has);
+    }
+
+    // X4: Group share grants access when recorded after join (blob overload)
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenSharedToGroup_AfterJoin()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var joinedAt = DateTime.UtcNow;
+        var membership = userB.AssignTo(group, joinedAt);
+
+        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, GroupId = group.Id };
+
+        SeedDbContext.AddRange(user, group, membership, video, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
+    }
+
+    // X5: Group share denies access when recorded before join (blob overload)
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenSharedToGroup_BeforeJoin()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var joinedAt = DateTime.UtcNow;
+        var membership = userB.AssignTo(group, joinedAt);
+
+        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt.AddMinutes(-5)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, GroupId = group.Id };
+
+        SeedDbContext.AddRange(user, group, membership, video, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
+    }
+
+    // X6: Group share denies access when recorded exactly at join time (strict inequality) (blob overload)
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenSharedToGroup_AtJoinTime()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var joinedAt = DateTime.UtcNow;
+        var membership = userB.AssignTo(group, joinedAt);
+
+        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, GroupId = group.Id };
+
+        SeedDbContext.AddRange(user, group, membership, video, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
+    }
+
+    // X7: No share present -> no access (blob overload)
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByBlob_ReturnsFalse_WhenNoShares()
+    {
+        var user = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        SeedDbContext.AddRange(user, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        Assert.False(has);
+    }
+
+    // Y1: By videoId - event share with assignment grants access
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByVideoId_ReturnsTrue_WhenSharedToEvent_AndUserAssigned()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var evtB = new EventDataBuilder();
+        var owner = evtB.BuildOwner();
+        var evt = evtB.Build();
+        var membership = userB.AssignTo(evt);
+
+        var video = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = evt.Id };
+
+        SeedDbContext.AddRange(owner, user, evt, membership, video, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.Id, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
+    }
+
+    // Y2: By videoId - direct share grants access
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ByVideoId_ReturnsTrue_WhenDirectlyShared()
+    {
+        var user = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(user).Build();
+        var directShare = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id };
+        SeedDbContext.AddRange(user, video, directShare);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var has = await accessService.DoesUserHasAccessAsync(video.Id, user.Id, TestContext.Current.CancellationToken);
+        Assert.True(has);
     }
 }

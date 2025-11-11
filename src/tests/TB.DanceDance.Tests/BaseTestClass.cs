@@ -15,9 +15,16 @@ public abstract class BaseTestClass : IAsyncLifetime
 
     protected abstract ValueTask Initialize(DanceDbContext runtimeDbContext);
 
-    public ValueTask DisposeAsync()
+    protected virtual ValueTask BeforeDispose(DanceDbContext runtimeDbContext)
     {
-        return SeedDbContext.DisposeAsync();
+        // nothing here
+        return ValueTask.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await BeforeDispose(runtimeDbContext);
+        await SeedDbContext.DisposeAsync();
     }
 
     public ValueTask InitializeAsync()

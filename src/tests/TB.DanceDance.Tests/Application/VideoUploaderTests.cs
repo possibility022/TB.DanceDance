@@ -1,6 +1,5 @@
 ﻿using Application.Services;
 using Domain;
-using Domain.Entities;
 using Infrastructure.Data;
 using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +8,10 @@ namespace TB.DanceDance.Tests.Application;
 
 public class VideoUploaderTests : BaseTestClass
 {
+    
+    private static readonly SemaphoreSlim Locker = new(1);
+    private bool lockedByThisClass = false;
+    
     private readonly BlobStorageFixture blobStorageFixture;
 
     private BlobDataServiceFactory factory;
@@ -20,11 +23,26 @@ public class VideoUploaderTests : BaseTestClass
         this.factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
     }
 
-    protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
+    protected override ValueTask BeforeDispose(DanceDbContext runtimeDbContext)
     {
+        if (lockedByThisClass)
+            Locker.Release(1);
+        
+        return base.BeforeDispose(runtimeDbContext);
+    }
+
+    protected override async ValueTask Initialize(DanceDbContext runtimeDbContext)
+    {
+        var isIn = await Locker.WaitAsync(TimeSpan.FromSeconds(10));
+        lockedByThisClass = isIn;
+        
+        if (!isIn)
+        {
+            throw new("Could not acquire lock");
+        }
+        
         factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
         this.uploaderService = new VideoUploaderService(factory, runtimeDbContext);
-        return ValueTask.CompletedTask;
     }
 
     private async Task MakeAllExistingVideosIneligible()
@@ -35,7 +53,7 @@ public class VideoUploaderTests : BaseTestClass
             foreach (var vid in existing)
             {
                 vid.Converted = true;
-                vid.LockedTill = DateTime.UtcNow.AddHours(1);
+                vid.LockedTill = DateTime.UtcNow.AddDays(365 * 10);
             }
             await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
