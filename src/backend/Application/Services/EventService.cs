@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 public class EventService : IEventService
@@ -10,17 +11,22 @@ public class EventService : IEventService
     {
         dbContext = danceDbContext;
     }
+    
+    public async Task<ICollection<Event>> GetAllEvents(CancellationToken cancellationToken)
+    {
+        return await dbContext.Events.ToListAsync(cancellationToken);
+    }
 
-    public async Task<Event> CreateEventAsync(Event @event)
+    public async Task<Event> CreateEventAsync(Event @event, CancellationToken cancellationToken)
     {
         @event.Id = Guid.NewGuid();
         dbContext.Events.Add(@event);
         dbContext.AssingedToEvents.Add(new AssignedToEvent() { EventId = @event.Id, UserId = @event.Owner });
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
         return @event;
     }
 
-    public IQueryable<Video> GetVideos(Guid eventId, string userId)
+    public Task<Video[]> GetVideos(Guid eventId, string userId, CancellationToken cancellationToken)
     {
         var q = from assignedTo in dbContext.AssingedToEvents
                 join sharedWith in dbContext.SharedWith on assignedTo.EventId equals sharedWith.EventId
@@ -29,16 +35,6 @@ public class EventService : IEventService
                 orderby video.RecordedDateTime descending
                 select video;
 
-        return q;
-    }
-
-    public bool IsUserAssignedToEvent(Guid eventId, string userId)
-    {
-        return dbContext.AssingedToEvents.Any(r => r.EventId == eventId && r.UserId == userId);
-    }
-
-    public bool IsUserAssignedToGroup(Guid groupId, string userId)
-    {
-        return dbContext.AssingedToGroups.Any(r => r.GroupId == groupId && r.UserId == userId);
+        return q.ToArrayAsync(cancellationToken);
     }
 }

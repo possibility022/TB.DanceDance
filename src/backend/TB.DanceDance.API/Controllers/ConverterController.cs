@@ -16,9 +16,9 @@ public class ConverterController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Converter.Videos)]
-    public async Task<IActionResult> GetVideosToConvert()
+    public async Task<IActionResult> GetVideosToConvert(CancellationToken cancellationToken)
     {
-        var video = await videoUploaderService.GetNextVideoToTransformAsync();
+        var video = await videoUploaderService.GetNextVideoToTransformAsync(cancellationToken);
 
         if (video == null)
             return NotFound();
@@ -35,16 +35,17 @@ public class ConverterController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Converter.Videos)]
-    public async Task<IActionResult> UpdateVideoInfo([FromBody] UpdateVideoInfoRequest publishVideo)
+    public async Task<IActionResult> UpdateVideoInfo([FromBody] UpdateVideoInfoRequest publishVideo, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
             return BadRequest();
 
-        var res = await videoUploaderService.UpdateVideoInformations(
+        var res = await videoUploaderService.UpdateVideoInformation(
             publishVideo.VideoId,
             publishVideo.Duration,
             publishVideo.RecordedDateTime,
-            publishVideo.Metadata
+            publishVideo.Metadata,
+            cancellationToken
             );
 
         if (!res)
@@ -56,9 +57,9 @@ public class ConverterController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Converter.GetPublishSas)]
-    public async Task<IActionResult> GetPublishSas([FromRoute] Guid videoId)
+    public async Task<IActionResult> GetPublishSas([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
-        var shared = await videoUploaderService.GetSasForConvertedVideoAsync(videoId);
+        var shared = await videoUploaderService.GetSasForConvertedVideoAsync(videoId, cancellationToken);
 
         return Ok(new GetPublishSasResponse()
         {
@@ -68,9 +69,9 @@ public class ConverterController : Controller
 
     [HttpPost]
     [Route(ApiEndpoints.Converter.Upload)]
-    public async Task<IActionResult> PublishConvertedVideo([FromRoute] Guid videoId)
+    public async Task<IActionResult> PublishConvertedVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
-        var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId);
+        var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId, cancellationToken);
         if (newId == null)
             return BadRequest();
 

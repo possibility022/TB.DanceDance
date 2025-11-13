@@ -5,104 +5,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class UserService : IUserService
+public class AccessManagementService : IAccessManagementService
 {
     private readonly IApplicationContext dbContext;
 
-    public UserService(IApplicationContext dbContext
+    public AccessManagementService(IApplicationContext dbContext
         )
     {
         this.dbContext = dbContext;
     }
 
-    public Task<bool> CanUserUploadToEventAsync(string userId, Guid eventId)
-    {
-        return dbContext.AssingedToEvents
-            .Where(r => r.UserId == userId && r.EventId == eventId)
-            .AnyAsync();
-    }
-
-    public Task<bool> CanUserUploadToGroupAsync(string userId, Guid groupId)
-    {
-        return dbContext.AssingedToGroups
-            .Where(r => r.UserId == userId && r.GroupId == groupId)
-            .AnyAsync();
-    }
-
-    class GroupAndEventQueryResults()
-    {
-        public Group? Group { get; set; }
-        public Event? Event { get; set; }
-    }
-
-    public async Task<(ICollection<Group>, ICollection<Event>)> GetUserEventsAndGroupsAsync(string userId)
-    {
-        if (userId is null)
-            throw new ArgumentNullException(nameof(userId));
-
-
-        // For query below I am getting: Unable to translate set operation after client projection has been applied. Consider moving the set operation before the last 'Select' call.
-        // I will use two queries for now.
-        //var query =
-        //    (from groupAssign in dbContext.AssingedToGroups
-        //     join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
-        //     where groupAssign.UserId == userId
-        //     select new GroupAndEventQueryResults()
-        //     {
-        //         Event = null,
-        //         Group = @group
-        //     })
-        //    .Union((
-        //    from eventAssign in dbContext.AssingedToEvents
-        //    join @event in dbContext.Events on eventAssign.EventId equals @event.Id
-        //    where eventAssign.UserId == userId
-        //    select new GroupAndEventQueryResults()
-        //    {
-        //        Event = @event,
-        //        Group = null
-        //    }
-        //     ))
-        //    .ToList();
-
-        //foreach (var res in query)
-        //{
-        //    if (res.Group != null)
-        //        userGroups.Add(res.Group);
-
-        //    if (res.Event != null)
-        //        userEvents.Add(res.Event);
-        //}
-
-        var groups = from groupAssign in dbContext.AssingedToGroups
-                     join @group in dbContext.Groups on groupAssign.GroupId equals @group.Id
-                     where groupAssign.UserId == userId
-                     select @group;
-        ;
-
-        var events = from eventAssign in dbContext.AssingedToEvents
-                     join @event in dbContext.Events on eventAssign.EventId equals @event.Id
-                     where eventAssign.UserId == userId
-                     select @event
-                     ;
-
-        return (await groups.ToListAsync(), await events.ToListAsync());
-    }
-
-    public async Task<ICollection<Event>> GetAllEvents()
-    {
-        return await dbContext.Events.ToListAsync();
-    }
-
-    public async Task<ICollection<Group>> GetAllGroups()
-    {
-        return await dbContext.Groups.ToListAsync();
-    }
-
-    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events)
+    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, CancellationToken cancellationToken)
     {
         var pendingRequests = await dbContext.EventAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
             .Select(r => r.EventId)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
         
         var toSave = events
             .Except(pendingRequests)
@@ -113,14 +30,14 @@ public class UserService : IUserService
         });
 
         dbContext.EventAssigmentRequests.AddRange(toSave);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups)
+    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, CancellationToken cancellationToken)
     {
         var pendingRequests = await dbContext.GroupAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
             .Select(r => r.GroupId)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken);
         
         var toSave = groups
             .Where(group => !pendingRequests.Contains(group.groupId))
@@ -132,10 +49,10 @@ public class UserService : IUserService
         });
 
         dbContext.GroupAssigmentRequests.AddRange(toSave);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public Task AddOrUpdateUserAsync(Domain.Entities.User user)
+    public Task AddOrUpdateUserAsync(Domain.Entities.User user, CancellationToken cancellationToken)
     {
         var record = dbContext.Users.Find(user.Id);
         if (record != null)
@@ -149,7 +66,7 @@ public class UserService : IUserService
             dbContext.Users.Add(user);
         }
 
-        return dbContext.SaveChangesAsync();
+        return dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private IQueryable<RequestedAccess> GetEventRequestsThatCanBeApprovedByUser(string userId)
@@ -213,19 +130,20 @@ public class UserService : IUserService
             Groups = results.Where(r => r.IsEvent == false).Select(r => r.Id).ToArray()
         };
     }
-    
+
     /// <summary>
     /// Returns a list of requests that given user can approve.
     /// </summary>
     /// <param name="userId">User id</param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task<ICollection<RequestedAccess>> GetAccessRequestsToApproveAsync(string userId)
+    public async Task<ICollection<RequestedAccess>> GetAccessRequestsToApproveAsync(string userId, CancellationToken cancellationToken)
     {
         var query = (GetEventRequestsThatCanBeApprovedByUser(userId))
                     .Union
                     (GetGroupRequestsThatCanBeApprovedByUser(userId));
 
-        var queryResults = await query.ToListAsync();
+        var queryResults = await query.ToListAsync(cancellationToken);
         return queryResults;
     }
 
@@ -283,7 +201,7 @@ public class UserService : IUserService
         return true;
     }
 
-    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId)
+    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken cancellationToken)
     {
         AssigmentRequestBase requestBase;
 
@@ -292,12 +210,12 @@ public class UserService : IUserService
             var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
             var request = await query
                 .Where(r => r.RequestId == requestId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (request == null)
                 return false;
 
-            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
+            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId, cancellationToken))!;
 
         }
         else
@@ -305,16 +223,16 @@ public class UserService : IUserService
             var query = GetEventRequestsThatCanBeApprovedByUser(userId);
             var request = await query
                 .Where(r => r.RequestId == requestId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (request == null)
                 return false;
 
-            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
+            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId, cancellationToken))!;
         }
 
         requestBase.Decline(userId);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return true;
     }
