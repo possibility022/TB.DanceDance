@@ -2,17 +2,33 @@
 using Azure.Storage.Sas;
 using TB.DanceDance.Mobile.Services.DanceApi;
 using TB.DanceDance.Tests;
+using TB.DanceDance.Tests.TestsFixture;
+[assembly: AssemblyFixture(typeof(BlobStorageFixture))]
 
 namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
 public class BlobUploaderTests : IAsyncLifetime
 {
     private readonly BlobUploader blobUploader;
-    BlobContainerClient? client;
+    BlobContainerClient client = null!;
 
-    public BlobUploaderTests()
+    private readonly BlobStorageFixture fixture;
+    
+    public BlobUploaderTests(BlobStorageFixture fixture)
     {
+        this.fixture = fixture;
         blobUploader = new BlobUploader() { BufferSize = 100 };
+    }
+    
+    public async ValueTask InitializeAsync()
+    {
+        this.client = new BlobContainerClient(fixture.GetConnectionString(), "videostoconvert");
+        await this.client.CreateIfNotExistsAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
@@ -91,18 +107,5 @@ public class BlobUploaderTests : IAsyncLifetime
         }
         
         ms.Position = 0;
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        var container = await DockerHelper.GetInitializedAzuriteContainer();
-        var connectionString = container.GetConnectionString();
-        this.client = new BlobContainerClient(connectionString, "videostoconvert");
-        await this.client.CreateIfNotExistsAsync();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
     }
 }

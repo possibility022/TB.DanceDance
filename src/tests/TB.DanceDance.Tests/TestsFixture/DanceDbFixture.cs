@@ -1,11 +1,8 @@
 ﻿using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Tests.TestsFixture;
-using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
-
 [assembly: AssemblyFixture(typeof(DanceDbFixture))]
-[assembly: AssemblyFixture(typeof(BlobStorageFixture))]
 
 namespace TB.DanceDance.Tests.TestsFixture;
 
@@ -38,30 +35,5 @@ public class DanceDbFixture() : IAsyncLifetime
         await container.StartAsync();
         if (InitializeDbAtStart)
             await DbContextFactory().Database.EnsureCreatedAsync();
-    }
-}
-
-public class BlobStorageFixture() : IAsyncLifetime
-{
-    private const string AzuriteImage = "mcr.microsoft.com/azure-storage/azurite";
-    
-    private readonly AzuriteContainer container = new AzuriteBuilder()
-        .WithImage(AzuriteImage)
-        .Build();
-
-
-    public string GetConnectionString()
-    {
-        return container.GetConnectionString();
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return container.DisposeAsync();
-    }
-
-    public async ValueTask InitializeAsync()
-    {
-        await container.StartAsync();
     }
 }
