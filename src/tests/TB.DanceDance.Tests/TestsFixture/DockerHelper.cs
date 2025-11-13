@@ -1,13 +1,13 @@
-﻿using DotNet.Testcontainers.Builders;
-using Infrastructure.Data;
+﻿using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.Tests;
+using TB.DanceDance.Tests.TestsFixture;
 using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
+
 [assembly: AssemblyFixture(typeof(DanceDbFixture))]
 [assembly: AssemblyFixture(typeof(BlobStorageFixture))]
 
-namespace TB.DanceDance.Tests;
+namespace TB.DanceDance.Tests.TestsFixture;
 
 public class DanceDbFixture() : IAsyncLifetime
 {
@@ -17,6 +17,8 @@ public class DanceDbFixture() : IAsyncLifetime
         .WithImage(PostgresImage)
         .Build();
 
+    public bool InitializeDbAtStart { get; set; } = true;
+    
     public DanceDbContext DbContextFactory()
     {
         var optionsBuilder = new DbContextOptionsBuilder<DanceDbContext>()
@@ -34,7 +36,8 @@ public class DanceDbFixture() : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await container.StartAsync();
-        await DbContextFactory().Database.EnsureCreatedAsync();
+        if (InitializeDbAtStart)
+            await DbContextFactory().Database.EnsureCreatedAsync();
     }
 }
 

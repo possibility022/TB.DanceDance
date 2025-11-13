@@ -3,6 +3,7 @@ using Domain;
 using Infrastructure.Data;
 using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Application;
 

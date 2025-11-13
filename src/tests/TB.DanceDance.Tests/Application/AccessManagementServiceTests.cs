@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Application;
 

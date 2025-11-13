@@ -1,6 +1,7 @@
 ﻿using Application.Services;
 using Domain.Entities;
 using Infrastructure.Data;
+using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Application;
 
