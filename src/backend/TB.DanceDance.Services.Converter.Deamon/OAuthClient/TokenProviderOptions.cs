@@ -1,6 +1,6 @@
 ﻿namespace TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
-class TokenProviderOptions
+internal class TokenProviderOptions
 {
     public required string Scope { get; set; }
     public required string ClientId { get; set; }

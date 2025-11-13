@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Runtime.CompilerServices;
 using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
+[assembly: InternalsVisibleTo("TB.DanceDance.Tests")]
 
 ProgramConfig.Configure();
 
