@@ -19,9 +19,9 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      - name: Build
-        run: dotnet build --configuration Release
-        working-directory: ./src/backend/TB.DanceDance.API
+      - name: Run tests
+        run: dotnet test --configuration Release
+        working-directory: ./src/tests/TB.DanceDance.Tests
         
   gated-frontend:
     runs-on: ubuntu-latest
