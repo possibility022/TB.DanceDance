@@ -3,7 +3,9 @@ using Microsoft.Extensions.Hosting;
 using System.Runtime.CompilerServices;
 using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
+using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 [assembly: InternalsVisibleTo("TB.DanceDance.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 ProgramConfig.Configure();
 
@@ -32,7 +34,8 @@ builder.Services.AddSingleton<ApiHttpClient>((s) =>
 });
 
 builder.Services.AddScoped<HttpClient>();
-builder.Services.AddScoped<DanceDanceApiClient>();
+builder.Services.AddScoped<IDanceDanceApiClient, DanceDanceApiClient>();
+builder.Services.AddScoped<IFFmpegClientConverter, FFmpegClientConverter>();
 builder.Services.AddScoped<Deamon>();
 
 builder.Services.AddHostedService<Deamon>();

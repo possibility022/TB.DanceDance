@@ -5,13 +5,13 @@ using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 namespace TB.DanceDance.Services.Converter.Deamon;
 internal sealed class Deamon : BackgroundService
 {
-    private readonly DanceDanceApiClient client;
-    private readonly FFmpegClientConverter converter;
+    private readonly IDanceDanceApiClient client;
+    private readonly IFFmpegClientConverter converter;
 
-    public Deamon(DanceDanceApiClient client)
+    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter)
     {
         this.client = client;
-        converter = new FFmpegClientConverter();
+        this.converter = converter;
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
@@ -91,10 +91,13 @@ internal sealed class Deamon : BackgroundService
 
         Log.Information("Converting video.");
         await converter.ConvertAsync(inputVideo, convertedFilePath);
-        using var convertedVideo = File.OpenRead(convertedFilePath);
-
-        Log.Information("Sending content");
-        await client.UploadContent(nextVideoToConvert.Id, convertedVideo, token);
+        
+        // Ensure the stream is disposed before deleting the file on Windows
+        using (var convertedVideo = File.OpenRead(convertedFilePath))
+        {
+            Log.Information("Sending content");
+            await client.UploadContent(nextVideoToConvert.Id, convertedVideo, token);
+        }
 
         Log.Information("Publishing video.");
         await client.PublishTransformedVideo(nextVideoToConvert.Id, token);

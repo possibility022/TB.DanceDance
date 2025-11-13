@@ -6,7 +6,7 @@ using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
-internal class DanceDanceApiClient : IDisposable
+internal class DanceDanceApiClient : IDanceDanceApiClient, IDisposable
 {
     private readonly ApiHttpClient apiClient;
     private readonly HttpClient blobClient;
