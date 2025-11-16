@@ -96,6 +96,11 @@ jobs:
         with:
           name: mobile-test-binaries
           path: ./artifacts/mobile-tests
+      
+      - name: Pull required Docker images (Azurite and Postgres)
+        run: |
+          docker pull mcr.microsoft.com/azure-storage/azurite:latest
+          docker pull postgres
           
       - name: Run mobile tests from binaries (using vstest)
         run: dotnet vstest ./artifacts/mobile-tests/TB.DanceDance.Mobile.Tests.dll
