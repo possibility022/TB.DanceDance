@@ -19,9 +19,9 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
-      - name: Build
-        run: dotnet build --configuration Release
-        working-directory: ./src/backend/TB.DanceDance.API
+      - name: Run tests
+        run: dotnet test --configuration Release
+        working-directory: ./src/tests/TB.DanceDance.Tests
         
   gated-frontend:
     runs-on: ubuntu-latest
@@ -82,7 +82,7 @@ jobs:
 
 
   run-mobile-tests:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: gated-build-mobile
     steps:
       - uses: actions/checkout@v3
@@ -96,8 +96,11 @@ jobs:
         with:
           name: mobile-test-binaries
           path: ./artifacts/mobile-tests
+      
+      - name: Pull required Docker images (Azurite and Postgres)
+        run: |
+          docker pull mcr.microsoft.com/azure-storage/azurite:latest
+          docker pull postgres
           
-      - name: List downloaded files
-        run: ls -laR ./artifacts/mobile-tests
       - name: Run mobile tests from binaries (using vstest)
         run: dotnet vstest ./artifacts/mobile-tests/TB.DanceDance.Mobile.Tests.dll

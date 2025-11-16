@@ -1,5 +1,4 @@
-﻿using Domain.Entities;
-using Domain.Services;
+﻿using Domain.Services;
 using IdentityServer4.Validation;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
@@ -16,28 +15,28 @@ public class VideoController : Controller
 {
     public VideoController(IVideoService videoService,
         ITokenValidator tokenValidator,
-        IUserService userService,
+        IAccessService accessService,
         ILogger<VideoController> logger)
     {
         this.videoService = videoService;
         this.tokenValidator = tokenValidator;
-        this.userService = userService;
+        this.accessService = accessService;
         this.logger = logger;
     }
 
     private readonly IVideoService videoService;
     private readonly ITokenValidator tokenValidator;
-    private readonly IUserService userService;
+    private readonly IAccessService accessService;
     private readonly ILogger<VideoController> logger;
 
 
     [Route(ApiEndpoints.Video.GetSingle)]
     [HttpGet]
-    public async Task<IActionResult> GetInformationAsync(string guid)
+    public async Task<IActionResult> GetInformationAsync(string guid, CancellationToken cancellationToken)
     {
         string user = User.GetSubject();
 
-        var info = await videoService.GetVideoByBlobAsync(user, guid);
+        var info = await videoService.GetVideoByBlobAsync(user, guid, cancellationToken);
 
         if (info == null)
             return NotFound();
@@ -50,7 +49,7 @@ public class VideoController : Controller
     [Route(ApiEndpoints.Video.GetStream)]
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token)
+    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token, CancellationToken cancellationToken)
     {
         // todo create better authentication. Send send tokens in headers
 
@@ -72,19 +71,22 @@ public class VideoController : Controller
         if (userSubjectId == null)
             return BadRequest();
 
-        var hasAccess = await videoService.DoesUserHasAccessAsync(guid, userSubjectId);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(guid, userSubjectId, cancellationToken);
         if (!hasAccess)
             return new UnauthorizedResult();
 
-        var stream = await videoService.OpenStream(guid);
+        var stream = await videoService.OpenStream(guid, cancellationToken);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 
     [Route(ApiEndpoints.Video.Rename)]
     [HttpPost]
-    public async Task<IActionResult> RenameVideo([FromRoute] Guid videoId, [FromBody] VideoRenameRequest input)
+    public async Task<IActionResult> RenameVideo([FromRoute] Guid videoId, [FromBody] VideoRenameRequest input, CancellationToken cancellationToken)
     {
-        var res = await videoService.RenameVideoAsync(videoId, input.NewName);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, User.GetSubject(), cancellationToken);
+        if (!hasAccess)
+            return Unauthorized();
+        var res = await videoService.RenameVideoAsync(videoId, input.NewName, cancellationToken);
 
         if (res == false)
             return BadRequest();
@@ -94,14 +96,14 @@ public class VideoController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Video.RefreshUploadUrl)]
-    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute]Guid videoId)
+    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute]Guid videoId, CancellationToken cancellationToken)
     {
         string user  = User.GetSubject();
-        var hasAccess = await videoService.DoesUserHasAccessAsync(videoId, user);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, user, cancellationToken);
         if (!hasAccess)
             return Unauthorized();
 
-        var sharedBlob = await videoService.GetSharingLink(videoId);
+        var sharedBlob = await videoService.GetSharingLink(videoId, cancellationToken);
         
         if (sharedBlob == null)
             return NotFound();
@@ -115,7 +117,9 @@ public class VideoController : Controller
     [Route(ApiEndpoints.Video.GetUploadUrl)]
     [HttpPost]
     public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation(
-        [FromBody] SharedVideoInformationRequest sharedVideoInformation)
+        [FromBody] SharedVideoInformationRequest sharedVideoInformation,
+        CancellationToken cancellationToken
+        )
     {
         string? user = null;
         var sharedWith = sharedVideoInformation?.SharedWith;
@@ -130,7 +134,7 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var canUploadToGroup = await userService.CanUserUploadToGroupAsync(user, sharedWith.Value);
+                var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value, cancellationToken);
 
                 if (!canUploadToGroup)
                 {
@@ -144,7 +148,7 @@ public class VideoController : Controller
             {
                 user = User.GetSubject();
 
-                var canUploadToEvent = await userService.CanUserUploadToEventAsync(user, sharedWith.Value);
+                var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value, cancellationToken);
 
                 if (!canUploadToEvent)
                 {
@@ -170,7 +174,8 @@ public class VideoController : Controller
             sharedVideoInformation.NameOfVideo,
             sharedVideoInformation.FileName,
             sharedVideoInformation.SharingWithType == SharingWithType.Event,
-            sharedVideoInformation.SharedWith.Value);
+            sharedVideoInformation.SharedWith.Value,
+            cancellationToken);
 
         return new UploadVideoInformationResponse()
         {

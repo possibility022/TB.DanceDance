@@ -3,7 +3,6 @@ using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
@@ -22,13 +21,12 @@ public class GroupController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Group.Videos)]
-    public async Task<IActionResult> GetVideosAsync()
+    public async Task<IActionResult> GetVideosAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
 
         var videos = await groupService
-            .GetUserVideosFromGroups(userId)
-            .ToListAsync();
+            .GetUserVideosForAllGroups(userId, cancellationToken);
 
         var response = MapToVideoForGroupInfoResponse(videos);
 
@@ -37,13 +35,12 @@ public class GroupController : Controller
 
     [HttpGet]
     [Route(ApiEndpoints.Group.VideosForGroup)]
-    public async Task<IActionResult> GetVidesPerGroup(Guid groupId)
+    public async Task<IActionResult> GetVideosPerGroup(Guid groupId, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
 
         var videos = await groupService
-            .GetUserVideosForGroupAsync(userId, groupId)
-            .ToListAsync();
+            .GetUserVideosForGroup(userId, groupId, cancellationToken);
 
         var videosByGroups = MapToVideoForGroupInfoResponse(videos);
         var group = videosByGroups.FirstOrDefault();
@@ -54,7 +51,7 @@ public class GroupController : Controller
         return Ok(group);
     }
 
-    private static IEnumerable<GroupWithVideosResponse> MapToVideoForGroupInfoResponse(List<VideoFromGroupInfo> videos)
+    private static IEnumerable<GroupWithVideosResponse> MapToVideoForGroupInfoResponse(IEnumerable<VideoFromGroupInfo> videos)
     {
         var dict = new Dictionary<Guid, (string, List<VideoInformationModel>)>();
 
