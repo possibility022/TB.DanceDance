@@ -97,7 +97,5 @@ jobs:
           name: mobile-test-binaries
           path: ./artifacts/mobile-tests
           
-      - name: List downloaded files
-        run: ls -laR ./artifacts/mobile-tests
       - name: Run mobile tests from binaries (using vstest)
         run: dotnet vstest ./artifacts/mobile-tests/TB.DanceDance.Mobile.Tests.dll
