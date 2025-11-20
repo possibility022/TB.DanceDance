@@ -1,9 +1,9 @@
 ﻿using Azure;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using TB.DanceDance.Mobile.Services.Network;
+using TB.DanceDance.Mobile.Library.Services.Network;
 
-namespace TB.DanceDance.Mobile.Services.DanceApi
+namespace TB.DanceDance.Mobile.Library.Services.DanceApi
 {
     public class BlobUploader
     {

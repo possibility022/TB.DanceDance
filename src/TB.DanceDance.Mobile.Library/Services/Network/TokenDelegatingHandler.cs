@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using System.Net.Http.Headers;
-using TB.DanceDance.Mobile.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.Auth;
 
-namespace TB.DanceDance.Mobile.Services.Network;
+namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public class TokenDelegatingHandler : ResilienceHandler
 {

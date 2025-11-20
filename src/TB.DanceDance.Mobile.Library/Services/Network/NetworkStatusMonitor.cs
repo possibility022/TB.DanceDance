@@ -1,6 +1,6 @@
 ﻿using Microsoft.Maui.Networking;
 
-namespace TB.DanceDance.Mobile.Services.Network;
+namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public class NetworkerSettings
 {

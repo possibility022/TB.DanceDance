@@ -1,9 +1,9 @@
 ﻿using Microsoft.Maui.Storage;
 using System.Text.Json;
 
-namespace TB.DanceDance.Mobile.Services.Auth;
+namespace TB.DanceDance.Mobile.Library.Services.Auth;
 
-static class TokenStorage
+public static class TokenStorage
 {
     public static SecurityToken? Token { get; private set; }
     private const string cache_key = "security_token";

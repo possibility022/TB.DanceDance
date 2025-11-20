@@ -1,7 +1,6 @@
 ﻿using Microsoft.Maui.Devices;
-using TB.DanceDance.Mobile.Services.Auth;
 
-namespace TB.DanceDance.Mobile.Services.Network;
+namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public class NetworkAddressResolver
 {

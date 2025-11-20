@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
 using TB.DanceDance.API.Contracts.Models;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 

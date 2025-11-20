@@ -1,15 +1,14 @@
-﻿using Duende.IdentityModel.OidcClient;
-using Duende.IdentityModel.OidcClient.Browser;
+﻿using Duende.IdentityModel.OidcClient.Browser;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Maui.Devices;
 using Polly;
 using Serilog;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using TB.DanceDance.Mobile.Services.Auth;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-namespace TB.DanceDance.Mobile.Services.Network;
+namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public interface IBrowserFactory
 {
@@ -55,7 +54,7 @@ public class HttpClientFactory : IHttpClientFactory
 
     private static bool useBackupServer;
 
-    public async Task ValidatePrimaryHostIsAvailable()
+    public static async Task ValidatePrimaryHostIsAvailable(NetworkAddressResolver networkAddressResolver)
     {
         var socketHandler = CreateSocketHandler();
         var resilienceHandler = new ResilienceHandler(CreateRetryPipeline())

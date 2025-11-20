@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.Mobile.Data.Models.Storage;
+namespace TB.DanceDance.Mobile.Library.Data.Models.Storage;
 
 public class VideosToUpload
 {

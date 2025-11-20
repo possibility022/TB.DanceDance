@@ -1,9 +1,8 @@
 ﻿using Duende.IdentityModel.OidcClient;
 using Microsoft.Maui.Devices;
-using TB.DanceDance.Mobile.Services.Network;
 using IBrowser = Duende.IdentityModel.OidcClient.Browser.IBrowser;
 
-namespace TB.DanceDance.Mobile.Services.Auth;
+namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public class AuthSettingsFactory
 {

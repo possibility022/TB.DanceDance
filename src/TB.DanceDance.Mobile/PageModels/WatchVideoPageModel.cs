@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 

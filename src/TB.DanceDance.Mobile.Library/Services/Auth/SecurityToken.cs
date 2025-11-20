@@ -1,4 +1,4 @@
-﻿namespace TB.DanceDance.Mobile.Services.Auth;
+﻿namespace TB.DanceDance.Mobile.Library.Services.Auth;
 
 public record SecurityToken
 {

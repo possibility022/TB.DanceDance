@@ -1,7 +1,7 @@
-﻿using TB.DanceDance.Mobile.Data.Models;
-using TB.DanceDance.Mobile.Services.DanceApi;
+﻿using TB.DanceDance.Mobile.Library.Data.Models;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-namespace TB.DanceDance.Mobile.Data;
+namespace TB.DanceDance.Mobile.Library.Data;
 
 public class VideoProvider
 {

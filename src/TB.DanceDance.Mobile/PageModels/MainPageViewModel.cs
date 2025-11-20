@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Services.Auth;
-using TB.DanceDance.Mobile.Services.DanceApi;
-using TB.DanceDance.Mobile.Services.Network;
+using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
@@ -67,7 +67,7 @@ public partial class MainPageViewModel : ObservableObject
             // This is important to use a service provider.
             // If we inject DanceHttpApiClient, it will create
             // a client without checking if a primary host is available.
-            await HttpClientFactory.ValidatePrimaryHostIsAvailable();
+            await HttpClientFactory.ValidatePrimaryHostIsAvailable(new NetworkAddressResolver(DeviceInfo.Platform));
             await serviceProvider.GetRequiredService<DanceHttpApiClient>().GetUserAccesses();
             await CheckLoginStatus();
         }

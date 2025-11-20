@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.Mobile.Data.Models.Storage;
+using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 
-namespace TB.DanceDance.Mobile.Data;
+namespace TB.DanceDance.Mobile.Library.Data;
 
 public class VideosDbContext : DbContext
 {

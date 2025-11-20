@@ -1,11 +1,11 @@
 ﻿using Azure;
 using Microsoft.Maui.Networking;
 using System.Threading.Channels;
-using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Data.Models.Storage;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Data.Models.Storage;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-namespace TB.DanceDance.Mobile.Services.Network;
+namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public class UploadWorker : IDisposable
 {

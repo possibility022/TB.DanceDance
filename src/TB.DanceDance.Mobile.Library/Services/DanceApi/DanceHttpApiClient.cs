@@ -2,9 +2,9 @@
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
-using TB.DanceDance.Mobile.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.Auth;
 
-namespace TB.DanceDance.Mobile.Services.DanceApi;
+namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 public class DanceHttpApiClient
 {

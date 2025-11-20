@@ -6,11 +6,13 @@ using Serilog;
 using Serilog.Events;
 using System.Threading.Channels;
 using TB.DanceDance.Mobile.Data;
+using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.Network;
 using TB.DanceDance.Mobile.PageModels;
 using TB.DanceDance.Mobile.Pages;
 using TB.DanceDance.Mobile.Services.Auth;
-using TB.DanceDance.Mobile.Services.DanceApi;
-using TB.DanceDance.Mobile.Services.Network;
 
 namespace TB.DanceDance.Mobile;
 

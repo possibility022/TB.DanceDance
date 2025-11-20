@@ -2,11 +2,11 @@
 using System.Threading.Channels;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Data.Models.Storage;
-using TB.DanceDance.Mobile.Services.Network;
+using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Data.Models.Storage;
+using TB.DanceDance.Mobile.Library.Services.Network;
 
-namespace TB.DanceDance.Mobile.Services.DanceApi;
+namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 public class VideoUploader
 {

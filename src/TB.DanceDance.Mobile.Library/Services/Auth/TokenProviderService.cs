@@ -1,7 +1,7 @@
 ﻿using Duende.IdentityModel.OidcClient;
 using Duende.IdentityModel.OidcClient.Results;
 
-namespace TB.DanceDance.Mobile.Services.Auth;
+namespace TB.DanceDance.Mobile.Library.Services.Auth;
 
 public class TokenProviderService : ITokenProviderService
 {
