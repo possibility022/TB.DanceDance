@@ -1,27 +1,37 @@
-﻿using IdentityModel.OidcClient;
+﻿using Duende.IdentityModel.OidcClient;
+using Microsoft.Maui.Devices;
 using TB.DanceDance.Mobile.Services.Network;
+using IBrowser = Duende.IdentityModel.OidcClient.Browser.IBrowser;
 
 namespace TB.DanceDance.Mobile.Services.Auth;
 
-public static class AuthSettingsFactory
+public class AuthSettingsFactory
 {
+    private readonly IBrowser browser;
+    private readonly DevicePlatform platform;
     private const string AndroidClientId = "tbdancedanceandroidapp";
     private const string AndroidRedirectUri = "tbdancedanceandroidapp://";
     
-    public static OidcClientOptions GetClientOptions(HttpMessageHandler httpClientHandler)
+    public AuthSettingsFactory(IBrowser browser, DevicePlatform platform)
     {
-        if (DeviceInfo.Platform == DevicePlatform.Android)
+        this.browser = browser;
+        this.platform = platform;
+    }
+    
+    public OidcClientOptions GetClientOptions(HttpMessageHandler httpClientHandler)
+    {
+        if (platform == DevicePlatform.Android)
             return GetClientOptionsForAndroid(httpClientHandler);
 
         return GetClientOptionsForAndroid(httpClientHandler);
         throw new PlatformNotSupportedException("This platform is not supported.");
     }
 
-    private static OidcClientOptions GetBasicOptions(HttpMessageHandler handler)
+    private OidcClientOptions GetBasicOptions(HttpMessageHandler handler)
     {
         var options = new OidcClientOptions()
         {
-            Browser = new MauiAuthenticationBrowser(),
+            Browser = browser,
             Scope = "openid tbdancedanceapi.read offline_access profile",
             BackchannelHandler = handler,
         };
@@ -29,7 +39,7 @@ public static class AuthSettingsFactory
         return options;
     }
 
-    private static OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler)
+    private OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler)
     {
         var options = GetBasicOptions(handler);
         options.Authority = HttpClientFactory.ApiUrl;

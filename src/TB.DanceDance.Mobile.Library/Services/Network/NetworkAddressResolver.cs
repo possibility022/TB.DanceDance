@@ -1,7 +1,16 @@
-﻿namespace TB.DanceDance.Mobile.Services.Network;
+﻿using Microsoft.Maui.Devices;
+using TB.DanceDance.Mobile.Services.Auth;
 
-public static class NetworkAddressResolver
+namespace TB.DanceDance.Mobile.Services.Network;
+
+public class NetworkAddressResolver
 {
+    private readonly DevicePlatform platform;
+
+    public NetworkAddressResolver(DevicePlatform platform)
+    {
+        this.platform = platform;
+    }
     
 #if DEBUG
 
@@ -11,11 +20,11 @@ public static class NetworkAddressResolver
     
 #endif
     
-    public static Uri Resolve(Uri uri)
+    public Uri Resolve(Uri uri)
     {
         #if DEBUG
 
-        if (DeviceInfo.Platform == DevicePlatform.Android)
+        if (platform == DevicePlatform.Android)
         {
             if (uri.Host.Equals(Localhost))
                 return new UriBuilder(uri) { Host = AndroidHostMachine }.Uri;
@@ -28,11 +37,11 @@ public static class NetworkAddressResolver
         return uri;
     }
     
-    public static string Resolve(string uri)
+    public string Resolve(string uri)
     {
 #if DEBUG
 
-        if (DeviceInfo.Platform == DevicePlatform.Android)
+        if (platform == DevicePlatform.Android)
         {
             return uri.Replace(Localhost, AndroidHostMachine)
                 .Replace(LoopAddress, AndroidHostMachine);

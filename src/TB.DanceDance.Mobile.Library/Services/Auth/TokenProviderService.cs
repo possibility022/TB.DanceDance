@@ -1,5 +1,5 @@
-﻿using IdentityModel.OidcClient;
-using IdentityModel.OidcClient.Results;
+﻿using Duende.IdentityModel.OidcClient;
+using Duende.IdentityModel.OidcClient.Results;
 
 namespace TB.DanceDance.Mobile.Services.Auth;
 
@@ -68,14 +68,6 @@ public class TokenProviderService : ITokenProviderService
         }
 
         return TokenStorage.Token.AccessToken;
-    }
-}
-
-public class StorageTokenProviderService : ITokenProviderService
-{
-    public Task<string?> GetAccessToken()
-    {
-        return Task.FromResult(TokenStorage.Token?.AccessToken);
     }
 }
 

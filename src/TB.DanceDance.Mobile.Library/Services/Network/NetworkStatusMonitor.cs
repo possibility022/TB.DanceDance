@@ -1,4 +1,6 @@
-﻿namespace TB.DanceDance.Mobile.Services.Network;
+﻿using Microsoft.Maui.Networking;
+
+namespace TB.DanceDance.Mobile.Services.Network;
 
 public class NetworkerSettings
 {

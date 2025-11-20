@@ -7,13 +7,20 @@ namespace TB.DanceDance.Mobile.Services.DanceApi
 {
     public class BlobUploader
     {
+        private readonly NetworkAddressResolver networkAddressResolver;
+
+        public BlobUploader(NetworkAddressResolver networkAddressResolver)
+        {
+            this.networkAddressResolver = networkAddressResolver;
+        }
+        
         public int BufferSize { get; set; } = 1024 * 1024 * 4; // 4MB
         
         public event EventHandler<int>? UploadProgress;
         
         public async Task UploadAsync(Stream stream, Uri blobUri, CancellationToken cancellationToken)
         {
-            var address = NetworkAddressResolver.Resolve(blobUri);
+            var address = networkAddressResolver.Resolve(blobUri);
             var blobClient = new BlockBlobClient(address);
             
             var blockList = await CheckIfSomethingUploaded(blobClient, cancellationToken);

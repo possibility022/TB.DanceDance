@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Tests", "tests\TB.DanceDance.Tests\TB.DanceDance.Tests.csproj", "{88213173-6043-484C-B76A-75481BFE9C7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.DanceDance.Mobile.Library", "TB.DanceDance.Mobile.Library\TB.DanceDance.Mobile.Library.csproj", "{146A26B6-A0F6-4F6A-9F17-C9397DFC1AD1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{88213173-6043-484C-B76A-75481BFE9C7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88213173-6043-484C-B76A-75481BFE9C7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88213173-6043-484C-B76A-75481BFE9C7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{146A26B6-A0F6-4F6A-9F17-C9397DFC1AD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{146A26B6-A0F6-4F6A-9F17-C9397DFC1AD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{146A26B6-A0F6-4F6A-9F17-C9397DFC1AD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{146A26B6-A0F6-4F6A-9F17-C9397DFC1AD1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,9 +18,9 @@ public class VideoUploader
     private FileInfo? currentlyUploadedFile;
 
     public VideoUploader(DanceHttpApiClient apiClient, VideosDbContext dbContext,
-        Channel<UploadProgressEvent> notificationChannel)
+        Channel<UploadProgressEvent> notificationChannel, NetworkAddressResolver networkAddressResolver)
     {
-        uploader = new BlobUploader();
+        uploader = new BlobUploader(networkAddressResolver);
         uploader.UploadProgress += _uploaderOnUploadProgress;
         this.apiClient = apiClient;
         this.dbContext = dbContext;

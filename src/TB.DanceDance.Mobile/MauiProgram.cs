@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using Duende.IdentityModel.OidcClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -64,7 +65,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<EventsPageModel>();
         builder.Services.AddSingleton<GroupVideosPageModel>();
         builder.Services.AddSingleton<UploadManagerPageModel>();
-        builder.Services.AddSingleton<ITokenProviderService>(new StorageTokenProviderService());
+
+        var authSettingsFactory = new AuthSettingsFactory(new MauiAuthenticationBrowser(), DeviceInfo.Platform);
+        var options = authSettingsFactory.GetClientOptions(HttpClientFactory.CreateSocketHandler());
+        
+        builder.Services.AddSingleton<ITokenProviderService>(new TokenProviderService(new OidcClient(options)));
         
         builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);
         builder.Services.AddTransientWithShellRoute<AddEventPage, AddEventPageModel>(Routes.Events.Add);

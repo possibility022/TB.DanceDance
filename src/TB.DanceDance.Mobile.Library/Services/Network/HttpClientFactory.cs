@@ -1,5 +1,7 @@
-﻿using IdentityModel.OidcClient;
+﻿using Duende.IdentityModel.OidcClient;
+using Duende.IdentityModel.OidcClient.Browser;
 using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Maui.Devices;
 using Polly;
 using Serilog;
 using System.Net.Security;
@@ -9,8 +11,28 @@ using TB.DanceDance.Mobile.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.Services.Network;
 
+public interface IBrowserFactory
+{
+    IBrowser CreateBrowser();
+}
+
 public class HttpClientFactory : IHttpClientFactory
 {
+    private readonly IBrowserFactory browserFactory;
+    private readonly TokenProviderService tokenProvider;
+    private readonly DevicePlatform platform;
+    private readonly NetworkAddressResolver networkAddressResolver;
+
+    public HttpClientFactory(IBrowserFactory browserFactory,
+        TokenProviderService tokenProvider,
+        DevicePlatform platform)
+    {
+        this.browserFactory = browserFactory;
+        this.tokenProvider = tokenProvider;
+        this.platform = platform;
+        this.networkAddressResolver = new NetworkAddressResolver(platform);
+    }
+    
     public HttpClient CreateClient(string name)
     {
         if (name == nameof(DanceHttpApiClient))
@@ -19,19 +41,21 @@ public class HttpClientFactory : IHttpClientFactory
         throw new ArgumentOutOfRangeException($"Client for name '{name}' not found.");
     }
 
-    private static HttpClient? danceApiClient;
+    private HttpClient? danceApiClient;
 
-    private static HttpClient ResolveClientForDanceApi()
+    private HttpClient ResolveClientForDanceApi()
     {
+        var authSettingsFactory = new AuthSettingsFactory(browserFactory.CreateBrowser(), platform);
+        
         if (danceApiClient == null)
-            InitializeDanceApiClient();
+            InitializeDanceApiClient(authSettingsFactory, tokenProvider);
 
         return danceApiClient!;
     }
 
     private static bool useBackupServer;
 
-    public static async Task ValidatePrimaryHostIsAvailable()
+    public async Task ValidatePrimaryHostIsAvailable()
     {
         var socketHandler = CreateSocketHandler();
         var resilienceHandler = new ResilienceHandler(CreateRetryPipeline())
@@ -42,7 +66,7 @@ public class HttpClientFactory : IHttpClientFactory
         using var httpClient = new HttpClient(resilienceHandler);
         try
         {
-            var response = await httpClient.GetAsync(new Uri(NetworkAddressResolver.Resolve(ApiMainUrl) + KeysPath));
+            var response = await httpClient.GetAsync(new Uri(networkAddressResolver.Resolve(ApiMainUrl) + KeysPath));
             if (response.IsSuccessStatusCode)
                 useBackupServer = false;
         }
@@ -51,7 +75,7 @@ public class HttpClientFactory : IHttpClientFactory
             Log.Error(e, "An error occured while validating the primary host");
         }
 
-        var responseFromBackup = await httpClient.GetAsync(new Uri(NetworkAddressResolver.Resolve(BackupUrl) + KeysPath));
+        var responseFromBackup = await httpClient.GetAsync(new Uri(networkAddressResolver.Resolve(BackupUrl) + KeysPath));
         if (responseFromBackup.IsSuccessStatusCode)
         {
             useBackupServer = true;
@@ -69,22 +93,18 @@ public class HttpClientFactory : IHttpClientFactory
     private const string BackupUrl = "https://wcsdance.azurewebsites.net";
     private const string KeysPath = "/.well-known/openid-configuration/jwks";
 
-    private static void InitializeDanceApiClient()
+    private void InitializeDanceApiClient(AuthSettingsFactory factory, TokenProviderService tokenProvider)
     {
         var retryPipeline = CreateRetryPipeline();
 
         var socketHandler = CreateSocketHandler();
 
-        var tokenProvider = new TokenProviderService(new OidcClient(
-            AuthSettingsFactory.GetClientOptions(socketHandler)
-        ));
-
         var resilienceHandler =
             new TokenDelegatingHandler(tokenProvider, retryPipeline) { InnerHandler = socketHandler };
 
-        AuthSettingsFactory.GetClientOptions(socketHandler);
+        factory.GetClientOptions(socketHandler);//todo - check this
 
-        string apiUrl = NetworkAddressResolver.Resolve(ApiUrl);
+        string apiUrl = networkAddressResolver.Resolve(ApiUrl);
 
         var httpClient = new HttpClient(resilienceHandler);
         httpClient.BaseAddress = new Uri(apiUrl);
@@ -98,7 +118,7 @@ public class HttpClientFactory : IHttpClientFactory
             .Build();
     }
 
-    private static SocketsHttpHandler CreateSocketHandler()
+    public static SocketsHttpHandler CreateSocketHandler()
     {
         return new SocketsHttpHandler
         {

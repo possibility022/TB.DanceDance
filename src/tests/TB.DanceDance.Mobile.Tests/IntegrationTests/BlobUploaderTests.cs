@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Services.Network;
 using TB.DanceDance.Tests;
 using TB.DanceDance.Tests.TestsFixture;
 [assembly: AssemblyFixture(typeof(BlobStorageFixture))]
@@ -17,7 +18,7 @@ public class BlobUploaderTests : IAsyncLifetime
     public BlobUploaderTests(BlobStorageFixture fixture)
     {
         this.fixture = fixture;
-        blobUploader = new BlobUploader() { BufferSize = 100 };
+        blobUploader = new BlobUploader(new NetworkAddressResolver(DevicePlatform.Android)) { BufferSize = 100 };
     }
     
     public async ValueTask InitializeAsync()
