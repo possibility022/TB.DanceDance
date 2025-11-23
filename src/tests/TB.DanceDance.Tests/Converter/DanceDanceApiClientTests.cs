@@ -11,12 +11,12 @@ namespace TB.DanceDance.Tests.Converter;
 
 public class DanceDanceApiClientTests : IDisposable
 {
-    WireMockServer server;
-    private DanceDanceApiClient danceApiClient;
-    private ApiHttpClient apiHttpClient;
-    private TokenHttpHandler tokenHttpHandler;
-    private OAuthHttpClient oAuthHttpClient;
-    private HttpClient blobHttpClient;
+    readonly WireMockServer server;
+    private readonly DanceDanceApiClient danceApiClient;
+    private readonly ApiHttpClient apiHttpClient;
+    private readonly TokenHttpHandler tokenHttpHandler;
+    private readonly OAuthHttpClient oAuthHttpClient;
+    private readonly HttpClient blobHttpClient;
 
     public DanceDanceApiClientTests()
     {
