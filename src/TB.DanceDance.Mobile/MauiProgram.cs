@@ -68,9 +68,19 @@ public static class MauiProgram
         builder.Services.AddSingleton<GroupVideosPageModel>();
         builder.Services.AddSingleton<UploadManagerPageModel>();
 
-        var authSettingsFactory = new AuthSettingsFactory(new MauiAuthenticationBrowser(), DeviceInfo.Platform);
+        var browserFactory = new BrowserFactory();
+        browserFactory.SetFactory(() => new MauiAuthenticationBrowser());
+
+        var networkAddressResolver = new NetworkAddressResolver(DeviceInfo.Platform);
+        builder.Services.AddSingleton(networkAddressResolver);
+
+        builder.Services.AddSingleton<IBrowserFactory>(browserFactory);
+
+        var authSettingsFactory = new AuthSettingsFactory(browserFactory, networkAddressResolver, DeviceInfo.Platform);
+        builder.Services.AddSingleton(authSettingsFactory);
+
         var options = authSettingsFactory.GetClientOptions(HttpClientFactory.CreateSocketHandler());
-        
+                
         builder.Services.AddSingleton<ITokenProviderService>(new TokenProviderService(new OidcClient(options)));
         
         builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);

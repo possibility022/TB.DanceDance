@@ -15,21 +15,37 @@ public interface IBrowserFactory
     IBrowser CreateBrowser();
 }
 
+public class BrowserFactory : IBrowserFactory
+{
+    Func<IBrowser> factory;
+
+    public void SetFactory(Func<IBrowser> factory)
+    {
+        this.factory = factory;
+    }
+
+    public IBrowser CreateBrowser()
+    {
+        if (factory == null)
+            throw new InvalidOperationException("Browser factory is not set.");
+        return factory();
+    }
+}
+
 public class HttpClientFactory : IHttpClientFactory
 {
-    private readonly IBrowserFactory browserFactory;
-    private readonly TokenProviderService tokenProvider;
-    private readonly DevicePlatform platform;
+    private readonly ITokenProviderService tokenProvider;
     private readonly NetworkAddressResolver networkAddressResolver;
+    private readonly AuthSettingsFactory authSettingsFactory;
 
     public HttpClientFactory(IBrowserFactory browserFactory,
-        TokenProviderService tokenProvider,
-        DevicePlatform platform)
+        ITokenProviderService tokenProvider,
+        NetworkAddressResolver networkAddressResolver,
+        AuthSettingsFactory authSettingsFactory)
     {
-        this.browserFactory = browserFactory;
         this.tokenProvider = tokenProvider;
-        this.platform = platform;
-        this.networkAddressResolver = new NetworkAddressResolver(platform);
+        this.networkAddressResolver = networkAddressResolver;
+        this.authSettingsFactory = authSettingsFactory;
     }
     
     public HttpClient CreateClient(string name)
@@ -43,9 +59,7 @@ public class HttpClientFactory : IHttpClientFactory
     private HttpClient? danceApiClient;
 
     private HttpClient ResolveClientForDanceApi()
-    {
-        var authSettingsFactory = new AuthSettingsFactory(browserFactory.CreateBrowser(), platform);
-        
+    {        
         if (danceApiClient == null)
             InitializeDanceApiClient(authSettingsFactory, tokenProvider);
 
@@ -61,23 +75,34 @@ public class HttpClientFactory : IHttpClientFactory
         {
             InnerHandler = socketHandler
         };
-        
+
         using var httpClient = new HttpClient(resilienceHandler);
         try
         {
             var response = await httpClient.GetAsync(new Uri(networkAddressResolver.Resolve(ApiMainUrl) + KeysPath));
             if (response.IsSuccessStatusCode)
                 useBackupServer = false;
+
+            return;
         }
         catch (Exception e)
         {
             Log.Error(e, "An error occured while validating the primary host");
         }
 
-        var responseFromBackup = await httpClient.GetAsync(new Uri(networkAddressResolver.Resolve(BackupUrl) + KeysPath));
-        if (responseFromBackup.IsSuccessStatusCode)
+        useBackupServer = true;
+
+        try
         {
-            useBackupServer = true;
+            var responseFromBackup = await httpClient.GetAsync(new Uri(networkAddressResolver.Resolve(BackupUrl) + KeysPath));
+            if (responseFromBackup.IsSuccessStatusCode)
+            {
+                useBackupServer = true;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "An error occured while validating the backup host");
         }
     }
 
@@ -92,7 +117,7 @@ public class HttpClientFactory : IHttpClientFactory
     private const string BackupUrl = "https://wcsdance.azurewebsites.net";
     private const string KeysPath = "/.well-known/openid-configuration/jwks";
 
-    private void InitializeDanceApiClient(AuthSettingsFactory factory, TokenProviderService tokenProvider)
+    private void InitializeDanceApiClient(AuthSettingsFactory factory, ITokenProviderService tokenProvider)
     {
         var retryPipeline = CreateRetryPipeline();
 
@@ -100,8 +125,6 @@ public class HttpClientFactory : IHttpClientFactory
 
         var resilienceHandler =
             new TokenDelegatingHandler(tokenProvider, retryPipeline) { InnerHandler = socketHandler };
-
-        factory.GetClientOptions(socketHandler);//todo - check this
 
         string apiUrl = networkAddressResolver.Resolve(ApiUrl);
 

@@ -10,6 +10,7 @@ public static class DependencyInjection
     {
 
         services
+            .AddScoped<IAccessService, AccessService>()
             .AddScoped<IVideoService, VideoService>()
             .AddScoped<IEventService, EventService>()
             .AddScoped<IGroupService, GroupService>()

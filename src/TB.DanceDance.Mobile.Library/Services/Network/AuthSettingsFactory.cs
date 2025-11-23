@@ -1,19 +1,20 @@
 ﻿using Duende.IdentityModel.OidcClient;
 using Microsoft.Maui.Devices;
-using IBrowser = Duende.IdentityModel.OidcClient.Browser.IBrowser;
 
 namespace TB.DanceDance.Mobile.Library.Services.Network;
 
 public class AuthSettingsFactory
 {
-    private readonly IBrowser browser;
+    private readonly IBrowserFactory browserFactory;
+    private readonly NetworkAddressResolver networkAddressResolver;
     private readonly DevicePlatform platform;
     private const string AndroidClientId = "tbdancedanceandroidapp";
     private const string AndroidRedirectUri = "tbdancedanceandroidapp://";
     
-    public AuthSettingsFactory(IBrowser browser, DevicePlatform platform)
+    public AuthSettingsFactory(IBrowserFactory browserFactory, NetworkAddressResolver networkAddressResolver, DevicePlatform platform)
     {
-        this.browser = browser;
+        this.browserFactory = browserFactory;
+        this.networkAddressResolver = networkAddressResolver;
         this.platform = platform;
     }
     
@@ -30,7 +31,7 @@ public class AuthSettingsFactory
     {
         var options = new OidcClientOptions()
         {
-            Browser = browser,
+            Browser = browserFactory.CreateBrowser(),
             Scope = "openid tbdancedanceapi.read offline_access profile",
             BackchannelHandler = handler,
         };
@@ -41,7 +42,7 @@ public class AuthSettingsFactory
     private OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler)
     {
         var options = GetBasicOptions(handler);
-        options.Authority = HttpClientFactory.ApiUrl;
+        options.Authority = networkAddressResolver.Resolve(HttpClientFactory.ApiUrl);
         options.ClientId = AndroidClientId;
         options.RedirectUri = AndroidRedirectUri;
         return options;
