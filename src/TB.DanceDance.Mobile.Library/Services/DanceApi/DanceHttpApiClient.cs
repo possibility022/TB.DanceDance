@@ -6,7 +6,7 @@ using TB.DanceDance.Mobile.Library.Services.Auth;
 
 namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-public class DanceHttpApiClient
+public class DanceHttpApiClient : IDanceHttpApiClient
 {
     private readonly HttpClient httpClient;
 

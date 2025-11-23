@@ -11,13 +11,13 @@ namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 public class VideoUploader
 {
     private readonly BlobUploader uploader;
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
     private readonly VideosDbContext dbContext;
     private readonly Channel<UploadProgressEvent> notificationChannel;
 
     private FileInfo? currentlyUploadedFile;
 
-    public VideoUploader(DanceHttpApiClient apiClient, VideosDbContext dbContext,
+    public VideoUploader(IDanceHttpApiClient apiClient, VideosDbContext dbContext,
         Channel<UploadProgressEvent> notificationChannel, NetworkAddressResolver networkAddressResolver)
     {
         uploader = new BlobUploader(networkAddressResolver);
