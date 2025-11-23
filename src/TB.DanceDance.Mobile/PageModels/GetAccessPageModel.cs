@@ -35,9 +35,9 @@ public record AccessModel
 
 public partial class GetAccessPageModel : ObservableObject
 {
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public GetAccessPageModel(DanceHttpApiClient  apiClient)
+    public GetAccessPageModel(IDanceHttpApiClient  apiClient)
     {
         this.apiClient = apiClient;
     }

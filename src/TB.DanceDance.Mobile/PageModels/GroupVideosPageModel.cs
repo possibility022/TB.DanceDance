@@ -11,9 +11,9 @@ namespace TB.DanceDance.Mobile.PageModels;
 public partial class GroupVideosPageModel : ObservableObject
 {
     private readonly VideoProvider videoProvider;
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public GroupVideosPageModel(VideoProvider videoProvider, DanceHttpApiClient apiClient)
+    public GroupVideosPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient)
     {
         this.videoProvider = videoProvider;
         this.apiClient = apiClient;

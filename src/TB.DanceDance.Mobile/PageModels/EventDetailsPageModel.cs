@@ -11,9 +11,9 @@ namespace TB.DanceDance.Mobile.PageModels;
 public partial class EventDetailsPageModel : ObservableObject, IQueryAttributable
 {
     private readonly VideoProvider videoProvider;
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public EventDetailsPageModel(VideoProvider videoProvider, DanceHttpApiClient apiClient)
+    public EventDetailsPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient)
     {
         this.videoProvider = videoProvider;
         this.apiClient = apiClient;

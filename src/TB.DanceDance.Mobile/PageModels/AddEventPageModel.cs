@@ -6,9 +6,9 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class AddEventPageModel: ObservableObject
 {
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public AddEventPageModel(DanceHttpApiClient apiClient)
+    public AddEventPageModel(IDanceHttpApiClient apiClient)
     {
         this.apiClient = apiClient;
     }

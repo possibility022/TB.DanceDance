@@ -7,9 +7,9 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class EventsPageModel : ObservableObject, IQueryAttributable
 {
-    private readonly DanceHttpApiClient _apiClient;
+    private readonly IDanceHttpApiClient _apiClient;
 
-    public EventsPageModel(DanceHttpApiClient apiClient)
+    public EventsPageModel(IDanceHttpApiClient apiClient)
     {
         _apiClient = apiClient;
     }

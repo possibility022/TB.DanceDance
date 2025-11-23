@@ -97,8 +97,8 @@ public static class MauiProgram
 
         builder.Services.AddTransient<IHttpClientFactory,HttpClientFactory>();
         
-        builder.Services.AddTransient<VideoUploader>();
-        builder.Services.AddScoped<DanceHttpApiClient>();
+        builder.Services.AddTransient<IVideoUploader, VideoUploader>();
+        builder.Services.AddScoped<IDanceHttpApiClient, DanceHttpApiClient>();
 
 
 		return builder.Build();
