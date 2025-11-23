@@ -10,27 +10,35 @@ namespace TB.DanceDance.Mobile.Library.Services.Network;
 public class UploadWorker : IDisposable
 {
     private readonly VideosDbContext dbContext;
-    private readonly VideoUploader videoUploader;
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IVideoUploader videoUploader;
+    private readonly IDanceHttpApiClient apiClient;
     private readonly Channel<UploadProgressEvent> uploadProgressChannel;
     private IPlatformNotification? platformNotification;
     private CancellationTokenSource? mainLoopCanncellationTokenSource;
     private CancellationTokenSource? currentVideoProcessCancellationSource;
     
     private bool isPaused = false;
-    private readonly SemaphoreSlim pauseLock = new SemaphoreSlim(0, 1);
+    private readonly SemaphoreSlim pauseLock = new(0, 1);
     private TimeSpan delay = TimeSpan.Zero;
     
     public UploadWorker(VideosDbContext dbContext, 
-        VideoUploader videoUploader,
-        DanceHttpApiClient apiClient,
+        IVideoUploader videoUploader,
+        IDanceHttpApiClient apiClient,
         Channel<UploadProgressEvent> uploadProgressChannel)
     {
         this.dbContext = dbContext;
         this.videoUploader = videoUploader;
         this.apiClient = apiClient;
         this.uploadProgressChannel = uploadProgressChannel;
-        Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
+        try
+        {
+            Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
+        }
+        catch (Exception)
+        {
+            // In test or non-platform environments, Connectivity may not be implemented.
+            Serilog.Log.Debug("Connectivity not available in this environment; skipping subscription.");
+        }
     }
 
     public void SetPlatformNotification(IPlatformNotification? notification)
@@ -188,7 +196,14 @@ public class UploadWorker : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        Connectivity.ConnectivityChanged -= ConnectivityOnConnectivityChanged;
+        try
+        {
+            Connectivity.ConnectivityChanged -= ConnectivityOnConnectivityChanged;
+        }
+        catch (Exception)
+        {
+            // ignore
+        }
         this.currentVideoProcessCancellationSource?.Dispose();
         this.mainLoopCanncellationTokenSource?.Dispose();
     }

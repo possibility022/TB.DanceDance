@@ -8,7 +8,7 @@ using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-public class VideoUploader
+public class VideoUploader : IVideoUploader
 {
     private readonly BlobUploader uploader;
     private readonly IDanceHttpApiClient apiClient;
