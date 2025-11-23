@@ -60,8 +60,6 @@ public class TokenProviderService : ITokenProviderService
     /// <returns>Valid access token or null if login failed.</returns>
     public async Task<string?> GetAccessToken()
     {
-        await FetchAccessToken();
-
         if (TokenStorage.Token?.AccessToken == null 
             || TokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(-5))
         {
