@@ -5,14 +5,16 @@ namespace TB.DanceDance.Mobile.Library.Services.Network;
 public class BackupServerHttpHandler : DelegatingHandler
 {
     private readonly ServersConfiguration configuration;
+    private readonly DanceApiHttpClientFactory danceApiHttpClientFactory;
     private bool useBackupServer;
     private DateTime? nextPrimaryCheck;
     private Task? hostCheck;
 
-    public BackupServerHttpHandler(ServersConfiguration configuration, HttpMessageHandler innerHandler) :
+    public BackupServerHttpHandler(ServersConfiguration configuration, HttpMessageHandler innerHandler, DanceApiHttpClientFactory danceApiHttpClientFactory) :
         base(innerHandler)
     {
         this.configuration = configuration;
+        this.danceApiHttpClientFactory = danceApiHttpClientFactory;
     }
 
     protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -123,8 +125,7 @@ public class BackupServerHttpHandler : DelegatingHandler
     {
         try
         {
-            using var httpClient = new HttpClient();
-
+            using var httpClient = new HttpClient(this.danceApiHttpClientFactory.CreateBaseHttpMessageHandlerChain());
 
             var response = await httpClient.GetAsync(uri);
             return response.IsSuccessStatusCode;

@@ -3,30 +3,38 @@ using System.Text.Json;
 
 namespace TB.DanceDance.Mobile.Library.Services.Auth;
 
-public static class TokenStorage
+public class TokenStorage
 {
-    public static SecurityToken? Token { get; private set; }
-    private const string cache_key = "security_token";
+    public const string PrimaryStorageKey = "PrimaryTokenStorage";
+    public const string SecondaryStorageKey = "SecondaryTokenStorage";
+    
+    public SecurityToken? Token { get; private set; }
+    private readonly string cacheKey;
 
-    public static void SetToken(SecurityToken token)
+    public TokenStorage(string cacheKey)
+    {
+        this.cacheKey = $"access_token_{cacheKey}";
+    }
+
+    public void SetToken(SecurityToken token)
     {
         Token = token;
     }
 
-    public static void ClearToken()
+    public void ClearToken()
     {
         Token = null;
-        SecureStorage.Default.SetAsync(cache_key, string.Empty);
+        SecureStorage.Default.SetAsync(cacheKey, string.Empty);
     }
     
-    public static async Task SaveRefreshTokenInStorage()
+    public async Task SaveRefreshTokenInStorage()
     {
         try
         {
             if (Token != null)
             {
                 var json = JsonSerializer.Serialize(Token);
-                await SecureStorage.Default.SetAsync(cache_key, json);
+                await SecureStorage.Default.SetAsync(cacheKey, json);
             }
         }
         catch (Exception e)
@@ -36,11 +44,11 @@ public static class TokenStorage
     }
 
 
-    public static async Task<string?> LoadRefreshTokenFromStorage()
+    public async Task<string?> LoadRefreshTokenFromStorage()
     {
         try
         {
-            var json = await SecureStorage.Default.GetAsync(cache_key);
+            var json = await SecureStorage.Default.GetAsync(cacheKey);
             if (json is not null)
             {
                 Token = JsonSerializer.Deserialize<SecurityToken>(json);

@@ -18,25 +18,25 @@ namespace TB.DanceDance.Mobile;
 
 public static class MauiProgram
 {
-	public static MauiApp CreateMauiApp()
-	{
-		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
             .UseMauiCommunityToolkitMediaElement()
             .UseMauiCommunityToolkit()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			});
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 
         var serilogConfig = new LoggerConfiguration();
-        
+
 
 #if DEBUG
         builder.Logging.ClearProviders();
-		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
         serilogConfig.WriteTo.Debug();
         serilogConfig.WriteTo.File(Path.Combine(FileSystem.Current.AppDataDirectory, "log.txt"), rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Debug);
 #if ANDROID
@@ -52,15 +52,15 @@ public static class MauiProgram
         builder.Services.AddSerilog(Log.Logger);
 
         builder.Services.AddSingleton<MainPageViewModel>();
-        
+
         var networker = new NetworkStatusMonitor();
         builder.Services.AddSingleton<NetworkStatusMonitor>(networker);
         builder.Services.AddScoped<UploadWorker>();
-        #if ANDROID
+#if ANDROID
         builder.Services.AddSingleton<IPlatformNotification, UploadForegroundService>();
-        #endif
+#endif
         builder.Services.AddSingleton(Channel.CreateUnbounded<UploadProgressEvent>());
-        
+
         builder.Services.AddTransient<VideoProvider>();
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
 
@@ -79,28 +79,41 @@ public static class MauiProgram
         var authSettingsFactory = new AuthSettingsFactory(browserFactory, networkAddressResolver, DeviceInfo.Platform);
         builder.Services.AddSingleton(authSettingsFactory);
 
-        var options = authSettingsFactory.GetClientOptions(HttpClientFactory.CreateSocketHandler());
-                
-        builder.Services.AddSingleton<ITokenProviderService>(new TokenProviderService(new OidcClient(options)));
-        
+        var handler = DanceApiHttpClientFactory.CreateBaseHttpMessageHandlerChain(networkAddressResolver);
+
+        var primaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.ApiMainUrl);
+        var secondaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.ApiBackupUrl);
+
+        var primaryTokenStorage = new TokenStorage(TokenStorage.PrimaryStorageKey);
+        var secondaryTokenStorage = new TokenStorage(TokenStorage.SecondaryStorageKey);
+
+        builder.Services.AddKeyedSingleton(TokenStorage.PrimaryStorageKey, primaryTokenStorage);
+        builder.Services.AddKeyedSingleton(TokenStorage.SecondaryStorageKey, secondaryTokenStorage);
+
+        var primaryTokenProvider = new TokenProviderService(new OidcClient(primaryOptions), primaryTokenStorage);
+        var secondaryTokenProvider = new TokenProviderService(new OidcClient(secondaryOptions), secondaryTokenStorage);
+
+        builder.Services.AddKeyedSingleton<ITokenProviderService>(TokenStorage.PrimaryStorageKey, primaryTokenProvider);
+        builder.Services.AddKeyedSingleton<ITokenProviderService>(TokenStorage.SecondaryStorageKey, secondaryTokenProvider);
+
         builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);
         builder.Services.AddTransientWithShellRoute<AddEventPage, AddEventPageModel>(Routes.Events.Add);
         builder.Services.AddTransientWithShellRoute<GetAccessPage, GetAccessPageModel>(Routes.GetAccess);
         builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>(Routes.Player);
         builder.Services.AddTransientWithShellRoute<UploadVideoPage, UploadVideoPageModel>(Routes.Upload.Uploader);
-        
-        
+
+
         builder.Services.AddDbContext<VideosDbContext>(options =>
         {
             options.UseSqlite(Constants.VideosDatabasePath);
         });
 
-        builder.Services.AddTransient<IHttpClientFactory,HttpClientFactory>();
-        
+        builder.Services.AddTransient<IHttpClientFactory, DanceApiHttpClientFactory>();
+
         builder.Services.AddTransient<IVideoUploader, VideoUploader>();
         builder.Services.AddScoped<IDanceHttpApiClient, DanceHttpApiClient>();
 
 
-		return builder.Build();
-	}
+        return builder.Build();
+    }
 }

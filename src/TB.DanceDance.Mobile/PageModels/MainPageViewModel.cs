@@ -10,12 +10,18 @@ namespace TB.DanceDance.Mobile.PageModels;
 public partial class MainPageViewModel : ObservableObject
 {
     private readonly IServiceProvider serviceProvider;
-
+    private readonly TokenStorage primaryTokenStorage;
+    private readonly TokenStorage secondaryTokenStorage;
     private Task? _checkHostTask = null;
 
-    public MainPageViewModel(IServiceProvider serviceProvider)
+    public MainPageViewModel(IServiceProvider serviceProvider, 
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage,
+        [FromKeyedServices(TokenStorage.SecondaryStorageKey)] TokenStorage secondaryTokenStorage
+        )
     {
         this.serviceProvider = serviceProvider;
+        this.primaryTokenStorage = primaryTokenStorage;
+        this.secondaryTokenStorage = secondaryTokenStorage;
     }
 
     [ObservableProperty]
@@ -49,7 +55,8 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task Logout()
     {
-        TokenStorage.ClearToken();
+        primaryTokenStorage.ClearToken();
+        secondaryTokenStorage.ClearToken();
         LoginEnabled = true;
         IsLoggedIn = false;
 #if ANDROID
@@ -79,26 +86,13 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    private void CheckHost()
-    {
-        if (_checkHostTask != null)
-        {
-            return;
-        }
-        // This is important to use a service provider.
-        // If we inject DanceHttpApiClient, it will create
-        // a client without checking if a primary host is available.
-        _checkHostTask = HttpClientFactory.ValidatePrimaryHostIsAvailable(new NetworkAddressResolver(DeviceInfo.Platform));
-    }
-
     [RelayCommand]
     private async Task Appearing()
     {
         try
         {
             await CheckLoginStatus();
-            CheckHost();
-            if (!IsLoggedIn && TokenStorage.Token != null)
+            if (!IsLoggedIn && primaryTokenStorage.Token != null)
             {
                 // We have a refresh token, just login automatically
                 await Login();
@@ -116,14 +110,14 @@ public partial class MainPageViewModel : ObservableObject
 
     private async Task CheckLoginStatus()
     {
-        if (TokenStorage.Token is null)
-            await TokenStorage.LoadRefreshTokenFromStorage();
+        if (primaryTokenStorage.Token is null)
+            await primaryTokenStorage.LoadRefreshTokenFromStorage();
 
         if (_checkHostTask is not null)
             await _checkHostTask;
 
-        if (TokenStorage.Token?.AccessTokenExpiration is not null &&
-            TokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
+        if (primaryTokenStorage.Token?.AccessTokenExpiration is not null &&
+            primaryTokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
         {
             IsLoggedIn = true;
         }

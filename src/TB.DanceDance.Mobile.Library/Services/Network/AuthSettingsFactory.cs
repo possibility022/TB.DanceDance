@@ -18,12 +18,12 @@ public class AuthSettingsFactory
         this.platform = platform;
     }
     
-    public OidcClientOptions GetClientOptions(HttpMessageHandler httpClientHandler)
+    public OidcClientOptions GetClientOptions(HttpMessageHandler httpClientHandler, string authority)
     {
         if (platform == DevicePlatform.Android)
-            return GetClientOptionsForAndroid(httpClientHandler);
+            return GetClientOptionsForAndroid(httpClientHandler, authority);
 
-        return GetClientOptionsForAndroid(httpClientHandler);
+        return GetClientOptionsForAndroid(httpClientHandler, authority);
         throw new PlatformNotSupportedException("This platform is not supported.");
     }
 
@@ -39,10 +39,10 @@ public class AuthSettingsFactory
         return options;
     }
 
-    private OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler)
+    private OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler, string authority)
     {
         var options = GetBasicOptions(handler);
-        options.Authority = networkAddressResolver.Resolve(HttpClientFactory.ApiUrl);
+        options.Authority = networkAddressResolver.Resolve(authority);
         options.ClientId = AndroidClientId;
         options.RedirectUri = AndroidRedirectUri;
         return options;

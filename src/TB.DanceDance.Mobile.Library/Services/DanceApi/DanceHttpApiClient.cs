@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http.Json;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
@@ -8,10 +9,18 @@ namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 public class DanceHttpApiClient : IDanceHttpApiClient
 {
+    private readonly ITokenProviderService primaryTokenProviderService;
+    private readonly ITokenProviderService secondaryTokenProviderService;
     private readonly HttpClient httpClient;
 
-    public DanceHttpApiClient(IHttpClientFactory httpClientFactory)
+    public DanceHttpApiClient(IHttpClientFactory httpClientFactory,
+        
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)]ITokenProviderService primaryTokenProviderService,
+        [FromKeyedServices(TokenStorage.SecondaryStorageKey)]ITokenProviderService secondaryTokenProviderService
+        )
     {
+        this.primaryTokenProviderService = primaryTokenProviderService;
+        this.secondaryTokenProviderService = secondaryTokenProviderService;
         this.httpClient = httpClientFactory.CreateClient(nameof(DanceHttpApiClient));
     }
 
@@ -110,9 +119,15 @@ public class DanceHttpApiClient : IDanceHttpApiClient
     
     public Uri GetVideoUri(string videoBlobId)
     {
-        var builder = new UriBuilder(httpClient.BaseAddress);
-        builder.Path = $"/api/videos/{videoBlobId}/stream";
-        builder.Query = $"?token={TokenStorage.Token?.AccessToken}";
+        var token = primaryTokenProviderService.GetValidAccessTokenNoFetch();
+        if (token == null)
+            token = secondaryTokenProviderService.GetValidAccessTokenNoFetch();
+        
+        var builder = new UriBuilder(httpClient.BaseAddress!)
+        {
+            Path = $"/api/videos/{videoBlobId}/stream", 
+            Query = $"?token={token}"
+        };
 
         return builder.Uri;
     }

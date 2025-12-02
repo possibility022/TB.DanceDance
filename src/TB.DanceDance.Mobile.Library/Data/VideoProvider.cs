@@ -5,9 +5,9 @@ namespace TB.DanceDance.Mobile.Library.Data;
 
 public class VideoProvider
 {
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public VideoProvider(DanceHttpApiClient apiClient)
+    public VideoProvider(IDanceHttpApiClient apiClient)
     {
         this.apiClient = apiClient;
     }
