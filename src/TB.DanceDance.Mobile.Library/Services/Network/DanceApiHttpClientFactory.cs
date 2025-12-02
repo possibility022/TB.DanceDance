@@ -104,7 +104,7 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
             HealthEndpoint = KeysPath,
             Primary = new Uri(ApiMainUrl),
             Secondary = new Uri(ApiBackupUrl),
-        }, innerHandler, this);
+        }, innerHandler, CreateBaseHttpMessageHandlerChain);
     }
 
     private static ResiliencePipeline<HttpResponseMessage> CreateRetryPipeline()

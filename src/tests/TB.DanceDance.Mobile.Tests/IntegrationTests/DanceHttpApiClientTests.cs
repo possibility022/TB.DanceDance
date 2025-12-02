@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using NSubstitute;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
@@ -15,14 +15,18 @@ public class DanceHttpApiClientTests : IDisposable
 {
     private readonly WireMockServer server;
     private readonly DanceHttpApiClient client;
+    private readonly ITokenProviderService tokenProvider;
+    private readonly ITokenProviderService secondaryTokenProvider;
 
     private class TestHttpClientFactory : IHttpClientFactory
     {
         private readonly Uri baseAddress;
+
         public TestHttpClientFactory(string baseUrl)
         {
             baseAddress = new Uri(baseUrl);
         }
+
         public HttpClient CreateClient(string name)
         {
             return new HttpClient { BaseAddress = baseAddress };
@@ -31,9 +35,12 @@ public class DanceHttpApiClientTests : IDisposable
 
     public DanceHttpApiClientTests()
     {
+        tokenProvider = Substitute.For<ITokenProviderService>();
+        secondaryTokenProvider = Substitute.For<ITokenProviderService>();
+
         server = WireMockServer.Start();
         var factory = new TestHttpClientFactory(server.Url!);
-        client = new DanceHttpApiClient(factory);
+        client = new DanceHttpApiClient(factory, tokenProvider, secondaryTokenProvider);
     }
 
     [Fact]
@@ -56,7 +63,10 @@ public class DanceHttpApiClientTests : IDisposable
         {
             Assigned = new EventsAndGroups
             {
-                Events = new List<Event> { new Event { Id = Guid.NewGuid(), Name = "E", Date = DateTime.UtcNow } }
+                Events = new List<Event>
+                {
+                    new Event { Id = Guid.NewGuid(), Name = "E", Date = DateTime.UtcNow }
+                }
             }
         };
 
@@ -95,10 +105,7 @@ public class DanceHttpApiClientTests : IDisposable
         server.Given(Request.Create().WithPath("/api/videos/accesses/request").UsingPost())
             .RespondWith(Response.Create().WithStatusCode(200));
 
-        await client.RequestAccess(new RequestAssigmentModelRequest
-        {
-            Events = new List<Guid> { Guid.NewGuid() }
-        });
+        await client.RequestAccess(new RequestAssigmentModelRequest { Events = new List<Guid> { Guid.NewGuid() } });
 
         var logs = server.FindLogEntries(Request.Create().WithPath("/api/videos/accesses/request").UsingPost());
         Assert.Single(logs);
@@ -113,17 +120,27 @@ public class DanceHttpApiClientTests : IDisposable
             {
                 GroupId = Guid.NewGuid(),
                 GroupName = "G",
-                Videos = new List<VideoInformationModel>{ new VideoInformationModel{ Id = Guid.NewGuid(), BlobId = "b", Name = "n", Converted = true, RecordedDateTime = DateTime.UtcNow } }
+                Videos = new List<VideoInformationModel>
+                {
+                    new VideoInformationModel
+                    {
+                        Id = Guid.NewGuid(),
+                        BlobId = "b",
+                        Name = "n",
+                        Converted = true,
+                        RecordedDateTime = DateTime.UtcNow
+                    }
+                }
             }
         };
         server.Given(Request.Create().WithPath("/api/groups/videos").UsingGet())
-            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type","application/json")
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(payload)));
 
         var res = await client.GetVideosFromGroups();
         Assert.NotNull(res);
-        Assert.Single(res!);
-        Assert.Single(res!.First().Videos);
+        Assert.Single(res);
+        Assert.Single(res.First().Videos);
     }
 
     [Fact]
@@ -132,14 +149,21 @@ public class DanceHttpApiClientTests : IDisposable
         var eventId = Guid.NewGuid();
         var vids = new List<VideoInformationResponse>
         {
-            new VideoInformationResponse{ Id = Guid.NewGuid(), BlobId = "b1", Name = "v1", Converted = false, RecordedDateTime = DateTime.UtcNow }
+            new VideoInformationResponse
+            {
+                Id = Guid.NewGuid(),
+                BlobId = "b1",
+                Name = "v1",
+                Converted = false,
+                RecordedDateTime = DateTime.UtcNow
+            }
         };
 
         // normal
         server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").UsingGet())
             .InScenario("videos")
             .WillSetStateTo("null")
-            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type","application/json")
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(vids)));
 
         var list = await client.GetVideosForEvent(eventId);
@@ -149,7 +173,8 @@ public class DanceHttpApiClientTests : IDisposable
         server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").UsingGet())
             .InScenario("videos").WhenStateIs("null")
             .WillSetStateTo("error")
-            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type","application/json").WithBody("null"));
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
+                .WithBody("null"));
 
         var empty = await client.GetVideosForEvent(eventId);
         Assert.Empty(empty);
@@ -168,12 +193,10 @@ public class DanceHttpApiClientTests : IDisposable
         var id = Guid.NewGuid();
         var payload = new UploadVideoInformationResponse
         {
-            Sas = server.Url + "/blob/sas",
-            VideoId = id,
-            ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
+            Sas = server.Url + "/blob/sas", VideoId = id, ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
         };
         server.Given(Request.Create().WithPath($"/api/videos/upload/{id}").UsingGet())
-            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type","application/json")
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(payload)));
 
         var res = await client.RefreshUploadUrl(id);
@@ -186,38 +209,39 @@ public class DanceHttpApiClientTests : IDisposable
     {
         var payload = new UploadVideoInformationResponse
         {
-            Sas = server.Url + "/blob/vid",
-            VideoId = Guid.NewGuid(),
-            ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
+            Sas = server.Url + "/blob/vid", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
         };
         server.Given(Request.Create().WithPath("/api/videos/upload").UsingPost())
-            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type","application/json")
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(payload)));
 
-        var res = await client.GetUploadInformation("file.mp4", "Nice name", SharingWithType.Event, Guid.NewGuid(), DateTime.UtcNow);
+        var res = await client.GetUploadInformation("file.mp4", "Nice name", SharingWithType.Event, Guid.NewGuid(),
+            DateTime.UtcNow);
         Assert.NotNull(res);
-        Assert.Equal(payload.Sas, res!.Sas);
+        Assert.Equal(payload.Sas, res.Sas);
     }
 
     [Fact]
     public async Task GetStream_StreamsContent()
     {
         var blobId = "abc";
-        var bytes = new byte[] {1,2,3,4,5};
+        var bytes = new byte[] { 1, 2, 3, 4, 5 };
         server.Given(Request.Create().WithPath($"/api/videos/{blobId}/stream").UsingGet())
-            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type","application/octet-stream")
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/octet-stream")
                 .WithBody(bytes));
 
-        using var stream = await client.GetStream(blobId);
+        await using var stream = await client.GetStream(blobId);
         using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
+        await stream.CopyToAsync(ms, TestContext.Current.CancellationToken);
         Assert.Equal(bytes, ms.ToArray());
     }
 
     [Fact]
     public void GetVideoUri_IncludesAccessTokenQuery()
     {
-        TokenStorage.SetToken(new SecurityToken { AccessToken = "tok123", IdentityToken = null, RefreshToken = null, AccessTokenExpiration = DateTimeOffset.UtcNow.AddHours(1) });
+        tokenProvider.GetValidAccessTokenNoFetch()
+            .Returns("tok123");
+        
         var blobId = "xyz";
         var uri = client.GetVideoUri(blobId);
         Assert.StartsWith(server.Url, uri.ToString());

@@ -40,7 +40,8 @@ public class BackupServerHttpHandlerTests : IDisposable
                 HealthEndpoint = HealthEndpoint,
                 Primary = new Uri(primary.Url!),
                 Secondary = new Uri(secondary.Url!)
-            }, new SocketsHttpHandler());
+            }, new SocketsHttpHandler(), 
+            () => new SocketsHttpHandler());
     }
 
     private Uri CreateRequestUri(WireMockServer server)
