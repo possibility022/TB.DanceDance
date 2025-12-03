@@ -104,12 +104,3 @@ jobs:
 
       - name: Run Mobile Test Project
         run: dotnet test ./src/tests/TB.DanceDance.Mobile.Tests/TB.DanceDance.Mobile.Tests.csproj
-
-  gated-build-mobile-library-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
