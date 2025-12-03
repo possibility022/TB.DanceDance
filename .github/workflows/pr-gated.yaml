@@ -65,24 +65,8 @@ jobs:
       - name: Build MAUI Android
         run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f net9.0-android --no-restore 
 
-      - name: Restore Mobile Test Project
-        run: dotnet restore
-        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
-
-      - name: Build Mobile Test Project
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./src/tests/TB.DanceDance.Mobile.Tests
-
-      - name: Publish Mobile Test DLLs as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mobile-test-binaries
-          path: src/tests/TB.DanceDance.Mobile.Tests/bin/Release/net9.0/
-          if-no-files-found: error
-
-
   run-mobile-tests:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: gated-build-mobile
     steps:
       - uses: actions/checkout@v3
@@ -91,16 +75,10 @@ jobs:
         with:
           dotnet-version: '9.0.x'
           
-      - name: Download test binaries artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: mobile-test-binaries
-          path: ./artifacts/mobile-tests
-      
       - name: Pull required Docker images (Azurite and Postgres)
         run: |
           docker pull mcr.microsoft.com/azure-storage/azurite:latest
           docker pull postgres
           
-      - name: Run mobile tests from binaries (using vstest)
-        run: dotnet vstest ./artifacts/mobile-tests/TB.DanceDance.Mobile.Tests.dll
+      - name: Run Mobile Test Project
+        run: dotnet test ./src/tests/TB.DanceDance.Mobile.Tests/TB.DanceDance.Mobile.Tests.csproj
