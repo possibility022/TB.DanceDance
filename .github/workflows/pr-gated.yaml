@@ -65,7 +65,7 @@ jobs:
       - name: Build MAUI Android
         run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f net9.0-android --no-restore 
 
-  run-mobile-tests:
+  run-mobile-library-tests:
     runs-on: ubuntu-latest
     needs: gated-build-mobile
     steps:
