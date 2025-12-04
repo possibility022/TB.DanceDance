@@ -45,7 +45,7 @@ $UnsecurePassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($B
 Set-Content -Path $passwordPath -Value $UnsecurePassword -NoNewline
 
 Set-Location $mobileDir
-dotnet publish -f net9.0-android -c Release -p:AndroidKeyStore=true -p:AndroidSigningKeyStore=$keystorePath -p:AndroidSigningKeyAlias=$alias -p:AndroidSigningKeyPass=file:$passwordPath -p:AndroidSigningStorePass=file:$passwordPath
+dotnet publish -f net10.0-android -c Release -p:AndroidKeyStore=true -p:AndroidSigningKeyStore=$keystorePath -p:AndroidSigningKeyAlias=$alias -p:AndroidSigningKeyPass=file:$passwordPath -p:AndroidSigningStorePass=file:$passwordPath
 Set-Location $originalLocation
 
 Remove-Item $passwordPath -ErrorAction SilentlyContinue
