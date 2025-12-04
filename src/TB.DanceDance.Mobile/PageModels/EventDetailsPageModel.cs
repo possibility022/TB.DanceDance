@@ -47,7 +47,7 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
 
             if (newName.Length is < 5 or > 50)
             {
-                await Shell.Current.CurrentPage.DisplayAlert("Zła nazwa", "Nazwa musi mieć od 5 do 50 znaków.", "Ok");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Zła nazwa", "Nazwa musi mieć od 5 do 50 znaków.", "Ok");
                 return;
             }
             

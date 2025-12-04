@@ -112,7 +112,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                 }
             }
             
-            await Shell.Current.CurrentPage.DisplayAlert("Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
+            await Shell.Current.CurrentPage.DisplayAlertAsync("Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
                 "OK");
 
             
