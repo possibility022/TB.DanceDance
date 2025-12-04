@@ -5,13 +5,13 @@ using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 namespace TB.DanceDance.Services.Converter.Deamon;
 internal sealed class Deamon : BackgroundService
 {
-    private readonly DanceDanceApiClient client;
-    private readonly FFmpegClientConverter converter;
+    private readonly IDanceDanceApiClient client;
+    private readonly IFFmpegClientConverter converter;
 
-    public Deamon(DanceDanceApiClient client)
+    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter)
     {
         this.client = client;
-        converter = new FFmpegClientConverter();
+        this.converter = converter;
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
@@ -81,7 +81,7 @@ internal sealed class Deamon : BackgroundService
         Log.Information("Getting video information.");
         var info = await converter.GetInfoAsync(inputVideo);
         Log.Information("Updating video informations.");
-        await client.UploadVideoToTransformInformations(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
+        await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
             RecordedDateTime = info.Value.Item1,
@@ -91,13 +91,16 @@ internal sealed class Deamon : BackgroundService
 
         Log.Information("Converting video.");
         await converter.ConvertAsync(inputVideo, convertedFilePath);
-        using var convertedVideo = File.OpenRead(convertedFilePath);
-
-        Log.Information("Sending content");
-        await client.UploadContent(nextVideoToConvert.Id, convertedVideo);
+        
+        // Ensure the stream is disposed before deleting the file on Windows
+        using (var convertedVideo = File.OpenRead(convertedFilePath))
+        {
+            Log.Information("Sending content");
+            await client.UploadContent(nextVideoToConvert.Id, convertedVideo, token);
+        }
 
         Log.Information("Publishing video.");
-        await client.PublishTransformedVideo(nextVideoToConvert.Id);
+        await client.PublishTransformedVideo(nextVideoToConvert.Id, token);
 
         if (File.Exists(inputVideo))
             File.Delete(inputVideo);

@@ -1,15 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.Mobile.Data.Models;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Data.Models;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class EventsPageModel : ObservableObject, IQueryAttributable
 {
-    private readonly DanceHttpApiClient _apiClient;
+    private readonly IDanceHttpApiClient _apiClient;
 
-    public EventsPageModel(DanceHttpApiClient apiClient)
+    public EventsPageModel(IDanceHttpApiClient apiClient)
     {
         _apiClient = apiClient;
     }

@@ -1,14 +1,14 @@
 ﻿using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
 {
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public WatchVideoPageModel(DanceHttpApiClient apiClient)
+    public WatchVideoPageModel(IDanceHttpApiClient apiClient)
     {
         this.apiClient = apiClient;
     }

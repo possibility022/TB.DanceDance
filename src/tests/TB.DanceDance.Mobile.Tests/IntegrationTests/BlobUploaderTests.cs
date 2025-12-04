@@ -1,17 +1,35 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.Network;
+using TB.DanceDance.Tests.TestsFixture;
+
+[assembly: AssemblyFixture(typeof(BlobStorageFixture))]
 
 namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
 public class BlobUploaderTests : IAsyncLifetime
 {
     private readonly BlobUploader blobUploader;
-    BlobContainerClient client;
+    BlobContainerClient client = null!;
 
-    public BlobUploaderTests()
+    private readonly BlobStorageFixture fixture;
+    
+    public BlobUploaderTests(BlobStorageFixture fixture)
     {
-        blobUploader = new BlobUploader() { BufferSize = 100 };
+        this.fixture = fixture;
+        blobUploader = new BlobUploader(new NetworkAddressResolver(DevicePlatform.Unknown)) { BufferSize = 100 };
+    }
+    
+    public async ValueTask InitializeAsync()
+    {
+        this.client = new BlobContainerClient(fixture.GetConnectionString(), "videostoconvert");
+        await this.client.CreateIfNotExistsAsync();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
@@ -28,9 +46,9 @@ public class BlobUploaderTests : IAsyncLifetime
         ms.Position = 0;
 
         // Verify the blob was uploaded
-        var download = await blob.DownloadAsync();
+        var download = await blob.DownloadAsync(TestContext.Current.CancellationToken);
         using MemoryStream downloadedMs = new();
-        await download.Value.Content.CopyToAsync(downloadedMs);
+        await download.Value.Content.CopyToAsync(downloadedMs, TestContext.Current.CancellationToken);
 
         // Check if the content is correct
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
@@ -68,12 +86,12 @@ public class BlobUploaderTests : IAsyncLifetime
             
         ms.Position = 0;
         
-        await blobUploader.UploadAsync(ms, uri, CancellationToken.None);
+        await blobUploader.UploadAsync(ms, uri, TestContext.Current.CancellationToken);
         
         // Verify the blob was uploaded
-        var download = await blob.DownloadAsync();
+        var download = await blob.DownloadAsync(TestContext.Current.CancellationToken);
         using MemoryStream downloadedMs = new();
-        await download.Value.Content.CopyToAsync(downloadedMs);
+        await download.Value.Content.CopyToAsync(downloadedMs, TestContext.Current.CancellationToken);
 
         // Check if the content is correct
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
@@ -90,18 +108,5 @@ public class BlobUploaderTests : IAsyncLifetime
         }
         
         ms.Position = 0;
-    }
-
-    public async Task InitializeAsync()
-    {
-        var container = await DockerHelper.GetInitializedAzuriteContainer();
-        var connectionString = container.GetConnectionString();
-        this.client = new BlobContainerClient(connectionString, "videostoconvert");
-        await this.client.CreateIfNotExistsAsync();
-    }
-
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
     }
 }

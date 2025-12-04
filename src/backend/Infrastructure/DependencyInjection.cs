@@ -1,8 +1,10 @@
 ﻿using Application;
 using Application.Services;
+using Domain;
 using Domain.Exceptions;
 using Domain.Services;
 using Infrastructure.Data;
+using Infrastructure.Data.BlobStorage;
 using Infrastructure.Identity;
 using Infrastructure.Identity.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -65,7 +67,7 @@ public static class DependencyInjection
             .AddIdentityServer();
 
 
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAccessManagementService, AccessManagementService>();
 
         if (productionPolicies)
         {
@@ -75,11 +77,15 @@ public static class DependencyInjection
 
             var password = configuration.GetSection("TB").GetSection("DanceDance")["IdpCertPassword"];
             
+            
             var certBytes = Convert.FromBase64String(cert);
+            var signedCert = X509CertificateLoader.LoadPkcs12(certBytes, password,
+                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+            
             identityBuilder
                 .AddAspNetIdentity<User>()
                 .RegisterIdenityServerStorage(configuration.GetConnectionString("PostgreDbIdentityStore") ?? throw new AppException("Identity connection string is null."))
-                .AddSigningCredential(new X509Certificate2(certBytes, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet))
+                .AddSigningCredential(signedCert)
                 .AddProfileService<TbProfileService>();
 
         }

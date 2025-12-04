@@ -1,4 +1,6 @@
-﻿using Domain.Entities;
+﻿using Domain;
+using Domain.Entities;
+using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,27 +19,27 @@ public class VideoUploaderService : IVideoUploaderService
         this.danceDbContext = danceDbContext;
     }
 
-    public async Task<Video?> GetNextVideoToTransformAsync()
+    public async Task<Video?> GetNextVideoToTransformAsync(CancellationToken cancellationToken)
     {
         var video = await danceDbContext.Videos
-            .Where(
-                r => (r.LockedTill == null || r.LockedTill < DateTime.UtcNow) && r.Converted == false)
+            .Where(r => (r.LockedTill == null || r.LockedTill < DateTime.UtcNow) && r.Converted == false)
             .OrderByDescending(r => r.SharedDateTime)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (video == null)
             return null;
 
         video.LockedTill = DateTime.SpecifyKind(DateTime.Now.AddDays(1), DateTimeKind.Utc);
 
-        await danceDbContext.SaveChangesAsync();
+        await danceDbContext.SaveChangesAsync(cancellationToken);
 
         return video;
     }
 
-    public async Task<bool> UpdateVideoInformations(Guid videoId, TimeSpan duration, DateTime recorded, byte[]? metadata)
+    public async Task<bool> UpdateVideoInformation(Guid videoId, TimeSpan duration, DateTime recorded,
+        byte[]? metadata, CancellationToken cancellationToken)
     {
-        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId);
+        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId, cancellationToken);
 
         if (video == null)
             return false;
@@ -47,22 +49,21 @@ public class VideoUploaderService : IVideoUploaderService
 
         if (metadata != null)
         {
-            danceDbContext.VideoMetadata.Add(new VideoMetadata()
-            {
-                Metadata = metadata,
-                VideoId = video.Id,
-            });
+            danceDbContext.VideoMetadata.Add(new VideoMetadata() { Metadata = metadata, VideoId = video.Id, });
         }
 
-        await danceDbContext.SaveChangesAsync();
+        await danceDbContext.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 
-    public async Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId)
+    public async Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, CancellationToken cancellationToken)
     {
-        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoToConvertId);
+        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoToConvertId, cancellationToken: cancellationToken);
         if (video == null)
+            return null;
+
+        if (video.BlobId == null)
             return null;
 
         var videoAlreadyUploaded = await publishedVideosBlobs.BlobExistsAsync(video.BlobId);
@@ -71,7 +72,7 @@ public class VideoUploaderService : IVideoUploaderService
             return null;
 
         video.Converted = true;
-        await danceDbContext.SaveChangesAsync();
+        await danceDbContext.SaveChangesAsync(cancellationToken);
 
         return video.Id;
     }
@@ -86,18 +87,18 @@ public class VideoUploaderService : IVideoUploaderService
     {
         return videosToConvertBlobs.GetUploadSas();
     }
-    
+
     public SharedBlob GetUploadSasUri(string blobId)
     {
         if (string.IsNullOrWhiteSpace(blobId))
             throw new ArgumentNullException(nameof(blobId));
-        
+
         return videosToConvertBlobs.GetUploadSas(blobId);
     }
 
-    public async Task<SharedBlob?> GetSasForConvertedVideoAsync(Guid videoId)
+    public async Task<SharedBlob?> GetSasForConvertedVideoAsync(Guid videoId, CancellationToken cancellationToken)
     {
-        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId);
+        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId,cancellationToken);
         if (video == null)
             return null;
 
@@ -105,7 +106,7 @@ public class VideoUploaderService : IVideoUploaderService
 
         var sas = publishedVideosBlobs.GetUploadSas(video.BlobId);
 
-        await danceDbContext.SaveChangesAsync();
+        await danceDbContext.SaveChangesAsync(cancellationToken);
 
 
         return sas;

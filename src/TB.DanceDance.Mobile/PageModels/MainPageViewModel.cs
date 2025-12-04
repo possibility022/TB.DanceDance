@@ -1,29 +1,35 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Services.Auth;
-using TB.DanceDance.Mobile.Services.DanceApi;
-using TB.DanceDance.Mobile.Services.Network;
+using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
     private readonly IServiceProvider serviceProvider;
-    private readonly VideosDbContext dbContext;
+    private readonly TokenStorage primaryTokenStorage;
+    private readonly TokenStorage secondaryTokenStorage;
+    private Task? _checkHostTask = null;
 
-    public MainPageViewModel(IServiceProvider serviceProvider, VideosDbContext dbContext)
+    public MainPageViewModel(IServiceProvider serviceProvider, 
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage,
+        [FromKeyedServices(TokenStorage.SecondaryStorageKey)] TokenStorage secondaryTokenStorage
+        )
     {
         this.serviceProvider = serviceProvider;
-        this.dbContext = dbContext;
+        this.primaryTokenStorage = primaryTokenStorage;
+        this.secondaryTokenStorage = secondaryTokenStorage;
     }
 
     [ObservableProperty]
     private bool isLoggedIn;
-    
+
     [ObservableProperty]
     private bool loginEnabled;
-    
+
     [ObservableProperty]
     private bool loginInProgress;
 
@@ -32,7 +38,7 @@ public partial class MainPageViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync("//" + Routes.Groups.AllVideos);
     }
-    
+
     [RelayCommand]
     private async Task NavigateToEvents()
     {
@@ -44,12 +50,13 @@ public partial class MainPageViewModel : ObservableObject
     {
         await Shell.Current.GoToAsync(Routes.GetAccess);
     }
-    
-    
+
+
     [RelayCommand]
     private async Task Logout()
     {
-        TokenStorage.ClearToken();
+        primaryTokenStorage.ClearToken();
+        secondaryTokenStorage.ClearToken();
         LoginEnabled = true;
         IsLoggedIn = false;
 #if ANDROID
@@ -64,11 +71,8 @@ public partial class MainPageViewModel : ObservableObject
         {
             LoginInProgress = true;
             LoginEnabled = false;
-            // This is important to use a service provider.
-            // If we inject DanceHttpApiClient, it will create
-            // a client without checking if a primary host is available.
-            await HttpClientFactory.ValidatePrimaryHostIsAvailable();
-            await serviceProvider.GetRequiredService<DanceHttpApiClient>().GetUserAccesses();
+
+            await serviceProvider.GetRequiredService<IDanceHttpApiClient>().GetUserAccesses();
             await CheckLoginStatus();
         }
         catch (Exception ex)
@@ -81,14 +85,14 @@ public partial class MainPageViewModel : ObservableObject
             LoginInProgress = false;
         }
     }
-    
+
     [RelayCommand]
     private async Task Appearing()
     {
         try
         {
             await CheckLoginStatus();
-            if (!IsLoggedIn && TokenStorage.Token != null)
+            if (!IsLoggedIn && primaryTokenStorage.Token != null)
             {
                 // We have a refresh token, just login automatically
                 await Login();
@@ -106,11 +110,14 @@ public partial class MainPageViewModel : ObservableObject
 
     private async Task CheckLoginStatus()
     {
-        if (TokenStorage.Token is null)
-            await TokenStorage.LoadRefreshTokenFromStorage();
+        if (primaryTokenStorage.Token is null)
+            await primaryTokenStorage.LoadRefreshTokenFromStorage();
 
-        if (TokenStorage.Token?.AccessTokenExpiration is not null &&
-            TokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
+        if (_checkHostTask is not null)
+            await _checkHostTask;
+
+        if (primaryTokenStorage.Token?.AccessTokenExpiration is not null &&
+            primaryTokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
         {
             IsLoggedIn = true;
         }

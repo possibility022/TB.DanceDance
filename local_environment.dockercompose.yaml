@@ -13,6 +13,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTPS_PORTS=8081 
+      # RUN dotnet dev-certs https -i .\aspnetapp.pfx --clean --password 1c64c3811ab9dcb6a5df1d077ad410dfc6f483cc7118aa8be2e8d81ff9c1111x
+      # AND dotnet dev-certs https --trust
+      # To import dev certificate
       - ASPNETCORE_Kestrel__Certificates__Default__Password=1c64c3811ab9dcb6a5df1d077ad410dfc6f483cc7118aa8be2e8d81ff9c1111x
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx 
       - TB:DanceDance:Cors:Origins=http://localhost:3000/

@@ -23,21 +23,43 @@ public class DesignTimeContextFactory :
 
     IdentityStoreContext IDesignTimeDbContextFactory<IdentityStoreContext>.CreateDbContext(string[] args)
     {
+        return CreateIdentityStoreContext();
+    }
+
+    public static IdentityStoreContext CreateIdentityStoreContext(string? connectionString = null, Action<DbContextOptionsBuilder<IdentityStoreContext>>? options = null)
+    {
+        if (connectionString == null)
+            connectionString =
+                "Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore";
+        
         var optionsBuilder = new DbContextOptionsBuilder<IdentityStoreContext>();
-        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore");
+        optionsBuilder.UseNpgsql(connectionString);
+        
+        options?.Invoke(optionsBuilder);
 
         return new IdentityStoreContext(optionsBuilder.Options);
     }
 
     ConfigurationDbContext IDesignTimeDbContextFactory<ConfigurationDbContext>.CreateDbContext(string[] args)
     {
+        return CreateConfigurationDbContext();
+    }
+
+    public static ConfigurationDbContext CreateConfigurationDbContext(string? connectionString = null,  Action<DbContextOptionsBuilder<ConfigurationDbContext>>? options = null)
+    {
+        if (connectionString == null)
+            connectionString =
+                "Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore";
+        
         var assemblyName = GetMigrationAssembly();
 
         var optionsBuilder = new DbContextOptionsBuilder<ConfigurationDbContext>();
 
-        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore",
+        optionsBuilder.UseNpgsql(connectionString,
             b => b.MigrationsAssembly(assemblyName)
-            ); ;
+        ); ;
+        
+        options?.Invoke(optionsBuilder);
 
         return new ConfigurationDbContext(optionsBuilder.Options, new IdentityServer4.EntityFramework.Options.ConfigurationStoreOptions()
         {
@@ -47,12 +69,23 @@ public class DesignTimeContextFactory :
 
     PersistedGrantDbContext IDesignTimeDbContextFactory<PersistedGrantDbContext>.CreateDbContext(string[] args)
     {
+        return CreatePersistedGrantDbContext();
+    }
+
+    public static PersistedGrantDbContext CreatePersistedGrantDbContext(string? connectionString = null,  Action<DbContextOptionsBuilder<PersistedGrantDbContext>>? options = null)
+    {
+        if (connectionString == null)
+            connectionString =
+                "Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore";
+        
         var assemblyName = GetMigrationAssembly();
 
         var optionsBuilder = new DbContextOptionsBuilder<PersistedGrantDbContext>();
-        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=identitystore",
+        optionsBuilder.UseNpgsql(connectionString,
             b => b.MigrationsAssembly(assemblyName));
 
+        options?.Invoke(optionsBuilder);
+        
         return new PersistedGrantDbContext(optionsBuilder.Options, new IdentityServer4.EntityFramework.Options.OperationalStoreOptions
         {
             DefaultSchema = PersistedGrantDbContextDefaultSchema

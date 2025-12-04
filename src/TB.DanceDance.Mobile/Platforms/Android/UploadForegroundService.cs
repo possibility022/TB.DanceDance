@@ -4,7 +4,7 @@ using Android.Content;
 using Android.OS;
 using Android.Runtime;
 using Android.Util;
-using TB.DanceDance.Mobile.Services.Network;
+using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile;
 

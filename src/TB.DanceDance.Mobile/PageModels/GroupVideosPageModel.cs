@@ -2,17 +2,18 @@
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
 using TB.DanceDance.Mobile.Data;
-using TB.DanceDance.Mobile.Data.Models;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Data.Models;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class GroupVideosPageModel : ObservableObject
 {
     private readonly VideoProvider videoProvider;
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public GroupVideosPageModel(VideoProvider videoProvider, DanceHttpApiClient apiClient)
+    public GroupVideosPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient)
     {
         this.videoProvider = videoProvider;
         this.apiClient = apiClient;

@@ -1,0 +1,239 @@
+﻿using Domain.Entities;
+using Domain.Models;
+using Domain.Services;
+using Microsoft.EntityFrameworkCore;
+
+namespace Application.Services;
+
+public class AccessManagementService : IAccessManagementService
+{
+    private readonly IApplicationContext dbContext;
+
+    public AccessManagementService(IApplicationContext dbContext
+        )
+    {
+        this.dbContext = dbContext;
+    }
+
+    public async Task SaveEventsAssigmentRequest(string user, ICollection<Guid> events, CancellationToken cancellationToken)
+    {
+        var pendingRequests = await dbContext.EventAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
+            .Select(r => r.EventId)
+            .ToArrayAsync(cancellationToken);
+        
+        var toSave = events
+            .Except(pendingRequests)
+            .Select(@event => new EventAssigmentRequest()
+        {
+            EventId = @event,
+            UserId = user
+        });
+
+        dbContext.EventAssigmentRequests.AddRange(toSave);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SaveGroupsAssigmentRequests(string user, ICollection<(Guid groupId, DateTime joinedDate)> groups, CancellationToken cancellationToken)
+    {
+        var pendingRequests = await dbContext.GroupAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
+            .Select(r => r.GroupId)
+            .ToArrayAsync(cancellationToken);
+        
+        var toSave = groups
+            .Where(group => !pendingRequests.Contains(group.groupId))
+            .Select(group => new GroupAssigmentRequest()
+        {
+            GroupId = group.groupId,
+            WhenJoined = group.joinedDate,
+            UserId = user
+        });
+
+        dbContext.GroupAssigmentRequests.AddRange(toSave);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task AddOrUpdateUserAsync(Domain.Entities.User user, CancellationToken cancellationToken)
+    {
+        var record = dbContext.Users.Find(user.Id);
+        if (record != null)
+        {
+            record.FirstName = user.FirstName;
+            record.LastName = user.LastName;
+            user.Email = user.Email;
+        }
+        else
+        {
+            dbContext.Users.Add(user);
+        }
+
+        return dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private IQueryable<RequestedAccess> GetEventRequestsThatCanBeApprovedByUser(string userId)
+    {
+        var query = from eventRequests in dbContext.EventAssigmentRequests
+                    join events in dbContext.Events on eventRequests.EventId equals events.Id
+                    join eventRequestor in dbContext.Users on eventRequests.UserId equals eventRequestor.Id
+                    where events.Owner == userId && eventRequests.Approved == null
+                    select new RequestedAccess
+                    {
+                        IsGroup = false,
+                        RequestId = eventRequests.Id,
+                        Name = events.Name,
+                        RequestorFirstName = eventRequestor.FirstName,
+                        RequestorLastName = eventRequestor.LastName,
+                        WhenJoined = null,
+                    };
+
+        return query;
+    }
+
+    private IQueryable<RequestedAccess> GetGroupRequestsThatCanBeApprovedByUser(string userId)
+    {
+        var query = from groupRequests in dbContext.GroupAssigmentRequests
+                    join groupAdmins in dbContext.GroupsAdmins on groupRequests.GroupId equals groupAdmins.GroupId
+                    join groups in dbContext.Groups on groupRequests.GroupId equals groups.Id
+                    join groupRequestor in dbContext.Users on groupRequests.UserId equals groupRequestor.Id
+                    where groupAdmins.UserId == userId && groupRequests.Approved == null
+                    select new RequestedAccess
+                    {
+                        IsGroup = true,
+                        RequestId = groupRequests.Id,
+                        Name = groups.Name,
+                        RequestorFirstName = groupRequestor.FirstName,
+                        RequestorLastName = groupRequestor.LastName,
+                        WhenJoined = groupRequests.WhenJoined,
+                    };
+
+        return query;
+    }
+
+    /// <summary>
+    /// Returns events and group ids that user requested access.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<UserRequests> GetPendingUserRequests(string userId, CancellationToken cancellationToken)
+    {
+        var eventsRequests = dbContext.EventAssigmentRequests.Where(r => r.UserId == userId && r.Approved != true)
+                .Select(r => new { Id = r.EventId, IsEvent = true })
+            ;
+        var groupRequests = dbContext.GroupAssigmentRequests.Where(r => r.UserId == userId && r.Approved != true)
+            .Select(r => new { Id = r.GroupId, IsEvent = false });
+
+        var results = await eventsRequests.Union(groupRequests).ToArrayAsync(cancellationToken);
+
+        return new UserRequests()
+        {
+            Events = results.Where(r => r.IsEvent == true).Select(r => r.Id).ToArray(),
+            Groups = results.Where(r => r.IsEvent == false).Select(r => r.Id).ToArray()
+        };
+    }
+
+    /// <summary>
+    /// Returns a list of requests that given user can approve.
+    /// </summary>
+    /// <param name="userId">User id</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<ICollection<RequestedAccess>> GetAccessRequestsToApproveAsync(string userId, CancellationToken cancellationToken)
+    {
+        var query = (GetEventRequestsThatCanBeApprovedByUser(userId))
+                    .Union
+                    (GetGroupRequestsThatCanBeApprovedByUser(userId));
+
+        var queryResults = await query.ToListAsync(cancellationToken);
+        return queryResults;
+    }
+
+    public async Task<bool> ApproveAccessRequest(Guid requestId, bool isGroup, string userId)
+    {
+        // todo, how can I make this code simpler? Logic is the same but works on different entities.
+        if (isGroup)
+        {
+            var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync();
+
+            if (request == null)
+                return false;
+
+            var requestRecord = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId))!;
+
+            await dbContext.AssingedToGroups.AddAsync(new AssignedToGroup()
+            {
+                GroupId = requestRecord.GroupId,
+                UserId = requestRecord.UserId,
+                WhenJoined = requestRecord.WhenJoined,
+                Id = Guid.NewGuid(),
+            });
+
+            requestRecord.Approve(userId);
+
+            await dbContext.SaveChangesAsync();
+        }
+        else
+        {
+            var query = GetEventRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync();
+
+            if (request == null)
+                return false;
+
+            var requestRecord = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId))!;
+
+            await dbContext.AssingedToEvents.AddAsync(new AssignedToEvent()
+            {
+                EventId = requestRecord.EventId,
+                UserId = requestRecord.UserId,
+                Id = Guid.NewGuid(),
+            });
+
+            requestRecord.Approve(userId);
+
+            await dbContext.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DeclineAccessRequest(Guid requestId, bool isGroup, string userId, CancellationToken cancellationToken)
+    {
+        AssigmentRequestBase requestBase;
+
+        if (isGroup)
+        {
+            var query = GetGroupRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (request == null)
+                return false;
+
+            requestBase = (await dbContext.GroupAssigmentRequests.FindAsync(request.RequestId, cancellationToken))!;
+
+        }
+        else
+        {
+            var query = GetEventRequestsThatCanBeApprovedByUser(userId);
+            var request = await query
+                .Where(r => r.RequestId == requestId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (request == null)
+                return false;
+
+            requestBase = (await dbContext.EventAssigmentRequests.FindAsync(request.RequestId, cancellationToken))!;
+        }
+
+        requestBase.Decline(userId);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+}

@@ -1,14 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.Mobile.Services.DanceApi;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class AddEventPageModel: ObservableObject
 {
-    private readonly DanceHttpApiClient apiClient;
+    private readonly IDanceHttpApiClient apiClient;
 
-    public AddEventPageModel(DanceHttpApiClient apiClient)
+    public AddEventPageModel(IDanceHttpApiClient apiClient)
     {
         this.apiClient = apiClient;
     }
