@@ -1,4 +1,4 @@
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+﻿$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $tempConfigFile = Join-Path $scriptDir 'keystoreConfig.tmp'
 
 if (Test-Path $tempConfigFile) {
