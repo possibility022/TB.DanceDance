@@ -6,19 +6,19 @@ on:
     branches:
       - master
 
+env:
+  DOTNET_VERSION: '10.0.x'
+
 jobs:
   gated-build-api:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: ['9.0.x']
-
+    
     steps:
       - uses: actions/checkout@v3
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Run tests
         run: dotnet test --configuration Release
         working-directory: ./src/tests/TB.DanceDance.Tests
@@ -45,16 +45,13 @@ jobs:
     runs-on: windows-latest
     env:
       ManualAzuriteConfigured: true
-    strategy:
-      matrix:
-        dotnet-version: ['9.0.x']
 
     steps:
       - uses: actions/checkout@v3
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: ${{ env.DOTNET_VERSION }}
           
       - name: Install Workflows
         run: dotnet workload install maui
