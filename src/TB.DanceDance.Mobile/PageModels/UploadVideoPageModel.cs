@@ -9,9 +9,9 @@ namespace TB.DanceDance.Mobile.PageModels;
 public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
 {
     private readonly IDanceHttpApiClient apiClient;
-    private readonly VideoUploader videoUploader;
+    private readonly IVideoUploader videoUploader;
 
-    public UploadVideoPageModel(IDanceHttpApiClient apiClient, VideoUploader videoUploader)
+    public UploadVideoPageModel(IDanceHttpApiClient apiClient, IVideoUploader videoUploader)
     {
         this.apiClient = apiClient;
         this.videoUploader = videoUploader;
