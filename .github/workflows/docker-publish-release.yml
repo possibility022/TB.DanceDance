@@ -1,13 +1,17 @@
-name: docker-publish-release.yml
+name: Push Docker Images
 on:
   workflow_dispatch:
   push: 
     branches:
       - '**'
 
+env:
+  apiDockerHubRepo: possibility022/tbdancedanceapi
+  converterDockerHubRepo: possibility022/tbdancedanceconverter
+
 jobs:
-  build-docker-backend-api:
-    name: Build and Push Docker API Image
+  build-and-push-api-docker-image:
+    name: Build and Push API Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -24,8 +28,7 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: |
-            my-docker-hub-namespace/my-docker-hub-repository
-            ghcr.io/${{ github.repository }}
+            ${{ env.apiDockerHubRepo }}
 
       - name: Build and push Docker images
         id: push
@@ -34,6 +37,36 @@ jobs:
           context: ./src
           push: true
           file: src/backend/TB.DanceDance.API/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          
+        
+  build-and-push-converter-docker-image:
+    name: Build and Push Converter Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v5
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: |
+            ${{ env.converterDockerHubRepo }}
+
+      - name: Build and push Docker images
+        id: push
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: ./src/backend/TB.DanceDance.Services.Converter.Deamon
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           
