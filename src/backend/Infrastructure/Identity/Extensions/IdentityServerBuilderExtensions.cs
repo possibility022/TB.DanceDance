@@ -5,27 +5,30 @@ namespace Infrastructure.Identity.Extensions;
 
 public static class Extensions
 {
-    public static IIdentityServerBuilder RegisterIdenityServerStorage(this IIdentityServerBuilder builder, string connectionString)
+    extension(IIdentityServerBuilder builder)
     {
-        var assembly = DesignTimeContextFactory.GetMigrationAssembly();
-
-        return builder.AddConfigurationStore(options =>
+        public IIdentityServerBuilder RegisterIdentityServerStorage(string connectionString)
         {
-            options.ConfigureDbContext = b =>
-            {
-                b.UseNpgsql(connectionString, postgre => postgre.MigrationsAssembly(assembly));
-            };
+            var assembly = DesignTimeContextFactory.GetMigrationAssembly();
 
-            options.DefaultSchema = DesignTimeContextFactory.ConfigurationDbContextDefaultSchema;
-        })
-        .AddOperationalStore(options =>
-        {
-            options.ConfigureDbContext = b =>
-            {
-                b.UseNpgsql(connectionString, postgre => postgre.MigrationsAssembly(assembly));
-            };
+            return builder.AddConfigurationStore(options =>
+                {
+                    options.ConfigureDbContext = b =>
+                    {
+                        b.UseNpgsql(connectionString, postgre => postgre.MigrationsAssembly(assembly));
+                    };
 
-            options.DefaultSchema = DesignTimeContextFactory.PersistedGrantDbContextDefaultSchema;
-        });
+                    options.DefaultSchema = DesignTimeContextFactory.ConfigurationDbContextDefaultSchema;
+                })
+                .AddOperationalStore(options =>
+                {
+                    options.ConfigureDbContext = b =>
+                    {
+                        b.UseNpgsql(connectionString, postgre => postgre.MigrationsAssembly(assembly));
+                    };
+
+                    options.DefaultSchema = DesignTimeContextFactory.PersistedGrantDbContextDefaultSchema;
+                });
+        }
     }
 }
