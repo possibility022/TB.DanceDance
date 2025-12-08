@@ -7,6 +7,7 @@ on:
 
 jobs:
   build-docker-backend-api:
+    name: Build and Push Docker API Image
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
