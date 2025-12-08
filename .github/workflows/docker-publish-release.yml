@@ -13,11 +13,12 @@ jobs:
     name: Build and Push API Docker Image
     uses: .github/workflows/docker-publish-release.yml
     with:
-      docker-username: ${{ secrets.DOCKER_USERNAME }}
-      docker-password: ${{ secrets.DOCKER_PASSWORD }}
       docker-build-context: ./src
       docker-build-file: src/backend/TB.DanceDance.API/Dockerfile
       docker-repo: ${{ env.apiDockerHubRepo }}
+    secrets:
+      docker-username: ${{ secrets.DOCKER_USERNAME }}
+      docker-password: ${{ secrets.DOCKER_PASSWORD }}
   
   build-and-push-converter-docker-image:
     name: Build and Push Converter Docker Image
