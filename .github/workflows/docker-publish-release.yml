@@ -1,0 +1,28 @@
+name: Push Docker Images
+on:
+  release: 
+    types:
+      - released
+
+jobs:
+  build-and-push-api-docker-image:
+    name: Build and Push API Docker Image
+    uses: ./.github/workflows/publish-to-docker-hub.yml
+    with:
+      docker-build-context: ./src
+      docker-build-file: src/backend/TB.DanceDance.API/Dockerfile
+      docker-repo: possibility022/tbdancedanceapi
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  
+  build-and-push-converter-docker-image:
+    uses: ./.github/workflows/publish-to-docker-hub.yml
+    with:
+      docker-build-context: src/backend
+      docker-build-file: src/backend/TB.DanceDance.Services.Converter.Deamon/Dockerfile
+      docker-repo: possibility022/tbdancedanceconverter
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        

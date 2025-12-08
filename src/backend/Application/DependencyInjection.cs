@@ -6,16 +6,19 @@ namespace Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
+        public IServiceCollection RegisterApplicationServices()
+        {
 
-        services
-            .AddScoped<IAccessService, AccessService>()
-            .AddScoped<IVideoService, VideoService>()
-            .AddScoped<IEventService, EventService>()
-            .AddScoped<IGroupService, GroupService>()
-            .AddScoped<IVideoUploaderService, VideoUploaderService>();
+            services
+                .AddScoped<IAccessService, AccessService>()
+                .AddScoped<IVideoService, VideoService>()
+                .AddScoped<IEventService, EventService>()
+                .AddScoped<IGroupService, GroupService>()
+                .AddScoped<IVideoUploaderService, VideoUploaderService>();
 
-        return services;
+            return services;
+        }
     }
 }

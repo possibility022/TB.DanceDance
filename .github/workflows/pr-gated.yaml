@@ -6,19 +6,20 @@ on:
     branches:
       - master
 
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_ANDROID_VERSION: 'net10.0-android'
+
 jobs:
   gated-build-api:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: ['9.0.x']
-
+    
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - uses: actions/checkout@v5
+      - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Run tests
         run: dotnet test --configuration Release
         working-directory: ./src/tests/TB.DanceDance.Tests
@@ -27,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -45,16 +46,13 @@ jobs:
     runs-on: windows-latest
     env:
       ManualAzuriteConfigured: true
-    strategy:
-      matrix:
-        dotnet-version: ['9.0.x']
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - uses: actions/checkout@v5
+      - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: ${{ env.DOTNET_VERSION }}
           
       - name: Install Workflows
         run: dotnet workload install maui
@@ -65,7 +63,7 @@ jobs:
         working-directory: ./src/TB.DanceDance.Mobile
 
       - name: Build MAUI Android
-        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f net9.0-android --no-restore
+        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f ${{ env.DOTNET_ANDROID_VERSION }} --no-restore
 
       - run: npm install -g azurite
       - shell: bash
@@ -104,3 +102,29 @@ jobs:
 
       - name: Run Mobile Test Project
         run: dotnet test ./src/tests/TB.DanceDance.Mobile.Tests/TB.DanceDance.Mobile.Tests.csproj
+  
+  gated-docker-converter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build Converter Image
+        id: push
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: src/backend
+          push: false
+          file: src/backend/TB.DanceDance.Services.Converter.Deamon/Dockerfile
+          
+  gated-docker-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build Converter Image
+        id: push
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: src
+          push: false
+          file: src/backend/TB.DanceDance.API/Dockerfile

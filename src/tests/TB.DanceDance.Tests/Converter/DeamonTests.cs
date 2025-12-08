@@ -35,6 +35,7 @@ public class DeamonTests
 
         // Act
         await deamon.StartAsync(cts.Token);
+        await Task.Delay(10, TestContext.Current.CancellationToken);
         await deamon.StopAsync(CancellationToken.None);
 
         // Assert
@@ -99,6 +100,7 @@ public class DeamonTests
 
         // Act
         await deamon.StartAsync(cts.Token);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
         await deamon.StopAsync(CancellationToken.None);
 
         // Assert

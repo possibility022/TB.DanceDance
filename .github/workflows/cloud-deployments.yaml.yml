@@ -1,0 +1,95 @@
+﻿name: Deploy To Cloud
+on:
+  release: 
+    types:
+      - released
+
+permissions:
+  contents: read
+  
+jobs:
+  deploy-frontend:
+    name: 'Deploy Frontend'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        
+      - name: Deploy Frontend to Azure
+        id: deployfrontend
+        env:
+          CI: ""
+          REACT_APP_REDIRECT_URI: ${{ vars.REACT_APP_REDIRECT_URI }}
+          REACT_APP_AUTH_URL: ${{ vars.REACT_APP_AUTH_URL }}
+          REACT_APP_API_BASE_URL: ${{ vars.REACT_APP_API_BASE_URL }}
+          REACT_APP_AUTH_URL_BACKUP: ${{ vars.REACT_APP_AUTH_URL_BACKUP }}
+          REACT_APP_API_BASE_URL_BACKUP: ${{ vars.REACT_APP_API_BASE_URL_BACKUP }}
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_YELLOW_POND_0D634B603 }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "src/frontend" #
+          api_location: ""
+          output_location: "build" 
+          
+          
+  deploy-backend:
+    name: 'Build API Artifact'
+    runs-on: ubuntu-latest
+    env:
+      AZURE_WEBAPP_NAME: wcsdance    # set this to the name of your Azure Web App
+      AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+      DOTNET_VERSION: '10.0.x'                 # set this to the .NET Core version to use
+      PACKAGE_PATH: ${{ github.workspace }}/artifacts
+      
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set up dependency caching for faster builds
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Build with dotnet
+        run: dotnet build ./src/backend/TB.DanceDance.API/TB.DanceDance.API.csproj --configuration Release
+
+      - name: dotnet publish
+        run: dotnet publish ./src/backend/TB.DanceDance.API/TB.DanceDance.API.csproj -c Release -o ${{env.PACKAGE_PATH}}/API
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-dancedance-api
+          path: ${{env.PACKAGE_PATH}}/API
+          
+  deploy:
+    name: 'Deploy API to Azure'
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    environment:
+      name: 'Development'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-dancedance-api
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_DANCEDANCE_API_PUBLISH_PROFILE }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

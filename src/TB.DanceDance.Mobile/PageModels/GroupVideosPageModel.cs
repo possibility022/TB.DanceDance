@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
-using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -71,7 +70,7 @@ public partial class GroupVideosPageModel : ObservableObject
 
             if (newName.Length is < 5 or > 50)
             {
-                await Shell.Current.CurrentPage.DisplayAlert("Zła nazwa", "Nazwa musi mieć od 5 do 50 znaków.", "Ok");
+                await Shell.Current.CurrentPage.DisplayAlertAsync("Zła nazwa", "Nazwa musi mieć od 5 do 50 znaków.", "Ok");
                 return;
             }
             

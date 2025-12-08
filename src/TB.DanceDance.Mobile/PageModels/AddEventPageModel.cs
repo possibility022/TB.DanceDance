@@ -23,7 +23,7 @@ public partial class AddEventPageModel: ObservableObject
 
         if (results is not null)
         {
-            await Shell.Current.CurrentPage.DisplayAlert("Ups", results, "Ok");
+            await Shell.Current.CurrentPage.DisplayAlertAsync("Ups", results, "Ok");
             return;
         }
         

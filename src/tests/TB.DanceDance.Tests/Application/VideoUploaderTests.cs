@@ -98,7 +98,7 @@ public class VideoUploaderTests : BaseTestClass
 
         var vEligible = new VideoDataBuilder()
             .UploadedBy(user)
-            .SharedAt(DateTime.UtcNow.AddMinutes(-5))
+            .SharedAt(DateTime.UtcNow.AddDays(5))
             .Build();
 
         SeedDbContext.AddRange(user, vLocked, vConverted, vEligible);
