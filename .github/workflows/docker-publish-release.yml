@@ -17,8 +17,8 @@ jobs:
       docker-build-file: src/backend/TB.DanceDance.API/Dockerfile
       docker-repo: ${{ env.apiDockerHubRepo }}
     secrets:
-      docker-username: ${{ secrets.DOCKER_USERNAME }}
-      docker-password: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   
   build-and-push-converter-docker-image:
     name: Build and Push Converter Docker Image

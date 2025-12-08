@@ -3,9 +3,9 @@
 on:
   workflow_call:
     secrets:
-      docker-username:
+      DOCKER_USERNAME:
         required: true
-      docker-password:
+      DOCKER_PASSWORD:
         required: true
     inputs:
       docker-build-context:
