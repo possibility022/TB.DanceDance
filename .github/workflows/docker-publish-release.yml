@@ -10,7 +10,7 @@ env:
 jobs:
   build-and-push-api-docker-image:
     name: Build and Push API Docker Image
-    uses: .github/workflows/docker-publish-release.yml
+    uses: .github/workflows/publish-to-docker-hub.yml
     with:
       docker-build-context: ./src
       docker-build-file: src/backend/TB.DanceDance.API/Dockerfile
