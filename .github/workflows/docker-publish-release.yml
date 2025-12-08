@@ -33,6 +33,7 @@ jobs:
         with:
           context: ./src
           push: true
+          file: src/backend/TB.DanceDance.API/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           
