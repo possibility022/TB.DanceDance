@@ -3,8 +3,6 @@ on:
   release: 
     types:
       - released
-env:
-  converterDockerHubRepo: possibility022/tbdancedanceconverter
 
 jobs:
   build-and-push-api-docker-image:
