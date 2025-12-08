@@ -3,7 +3,9 @@ on:
   release: 
     types:
       - released
-
+  push: 
+    branches:
+      - '**'
 env:
   converterDockerHubRepo: possibility022/tbdancedanceconverter
 
