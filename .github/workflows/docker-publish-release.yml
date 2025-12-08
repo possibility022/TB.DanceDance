@@ -1,5 +1,6 @@
 name: docker-publish-release.yml
 on:
+  workflow_dispatch:
   push: 
     branches:
       - 'master'
