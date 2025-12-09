@@ -16,6 +16,7 @@ env:
 jobs:
   deploy-frontend:
     name: 'Deploy Frontend'
+    environment: 'production-azure'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
