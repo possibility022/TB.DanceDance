@@ -104,7 +104,10 @@ public class GroupDataBuilder
     public Group Build() => new Group
     {
         Id = _id,
-        Name = _name
+        Name = _name,
+        SeasonClosed = false,
+        SeasonStart = DateOnly.FromDateTime(new DateTime(2022, 9, 1)),
+        SeasonEnd = DateOnly.FromDateTime(new DateTime(2023, 8, 1)),
     };
 
     public AssignedToGroup AddMember(User user, DateTime? whenJoined = null) => new AssignedToGroup
