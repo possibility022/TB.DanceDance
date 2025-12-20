@@ -89,7 +89,6 @@ public class GroupDataBuilder
     {
         _id = Guid.NewGuid();
         _name = TestDataBuilder.RandomName("Group");
-        _seasonClosed = false;
         _seasonStart = DateOnly.FromDateTime(new DateTime(2022, 9, 1));
         _seasonEnd = DateOnly.FromDateTime(new DateTime(2023, 8, 31));
     }
@@ -106,12 +105,6 @@ public class GroupDataBuilder
         return this;
     }
 
-    public GroupDataBuilder WithSeasonClosed(bool closed)
-    {
-        _seasonClosed = closed;
-        return this;
-    }
-
     public GroupDataBuilder WithSeasonDates(DateOnly start, DateOnly end)
     {
         _seasonStart = start;
@@ -123,7 +116,6 @@ public class GroupDataBuilder
     {
         Id = _id,
         Name = _name,
-        SeasonClosed = _seasonClosed,
         SeasonStart = _seasonStart,
         SeasonEnd = _seasonEnd,
     };
