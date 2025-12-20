@@ -82,7 +82,6 @@ public class GroupDataBuilder
 {
     private Guid _id;
     private string _name;
-    private bool _seasonClosed;
     private DateOnly _seasonStart;
     private DateOnly _seasonEnd;
 

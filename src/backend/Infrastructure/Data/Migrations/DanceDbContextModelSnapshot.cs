@@ -17,7 +17,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -133,15 +133,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("SeasonClosed")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateOnly>("SeasonEnd")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("SeasonStart")
-                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
