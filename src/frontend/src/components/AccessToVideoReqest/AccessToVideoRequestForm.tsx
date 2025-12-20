@@ -7,6 +7,7 @@ import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
 import { Event, Group } from '../../types/ApiModels/EventsAndGroups';
+import {formatDateToYearOnly} from "../../extensions/DateExtensions";
 interface IRequestState {
     wasSend: boolean
     areWeWaiting: boolean
@@ -38,8 +39,8 @@ export function AccessToVideoRequestForm() {
     const [isSendButtonEnabled, setIsSendButtonEnabled] = useState(false)
     const [selectedGroup, setSelectedGroup] = useState<Group>()
 
-    const [alreadyAssignedEvents, setAlreadyAssignedEvents] = useState<Array<Event>>([])
-    const [alreadyAssignedGroups, setAlreadyAssignedGroups] = useState<Array<Group>>([])
+    const [alreadyAssignedEvents, setAlreadyAssignedEvents] = useState<Array<string>>([])
+    const [alreadyAssignedGroups, setAlreadyAssignedGroups] = useState<Array<string>>([])
 
     const [notificationMessage, setNotificationMessage] = useState<string>('')
 
@@ -59,12 +60,6 @@ export function AccessToVideoRequestForm() {
         return itemToSelect
     }
 
-    const mapToList = (items: Array<{ name: string, id: string | number }>) => {
-        return items.map(ev => {
-            return <li key={ev.id}>{ev.name}</li>
-        })
-    }
-
     React.useEffect(() => {
         videoInfoService.GetAvailableEventsAndGroups()
             .then(userGroupAndEvents => {
@@ -76,8 +71,8 @@ export function AccessToVideoRequestForm() {
 
                 const eventsToSet = new Array<IItemToSelect<string>>()
 
-                setAlreadyAssignedEvents(userGroupAndEvents.assigned.events)
-                setAlreadyAssignedGroups(userGroupAndEvents.assigned.groups)
+                setAlreadyAssignedEvents(userGroupAndEvents.assigned.events.map(e => eventToDisplayName(e)))
+                setAlreadyAssignedGroups(userGroupAndEvents.assigned.groups.map(g => groupToDisplayName(g)))
 
                 for (const el of userGroupAndEvents.available.events) {
                     const mapped = mapToItemToSelect(el)
@@ -86,10 +81,16 @@ export function AccessToVideoRequestForm() {
 
                 setEvents(eventsToSet)
 
-                setAvailableGroupNames(userGroupAndEvents.available.groups.map(r => r.name))
+                setAvailableGroupNames(
+                    userGroupAndEvents.available.groups.map(g => groupToDisplayName(g)))
             })
             .catch(e => console.error(e))
     }, [])
+
+    const eventToDisplayName = (event: Event) => event.name;
+
+    const groupToDisplayName = (group: Group) =>
+        group.name + " (" + formatDateToYearOnly(group.seasonStart) + "-" + formatDateToYearOnly(group.seasonEnd) + ")";
 
     const onGroupSelected = (selectedItem: string, selectedIndex: number) => {
         if (selectedIndex >= 0) {
@@ -220,6 +221,10 @@ export function AccessToVideoRequestForm() {
         }
     }
 
+    function mapToList(alreadyAssigned: Array<string>) {
+        return alreadyAssigned.map(e => <li>{e}</li>)
+    }
+
     return (
         <div>
             <div className="content">
@@ -240,6 +245,7 @@ export function AccessToVideoRequestForm() {
                     </div>
                     <div hidden={alreadyAssignedGroups.length == 0}>
                         Masz już dostęp do:
+
                         <ul>
                             {mapToList(alreadyAssignedGroups)}
                         </ul>
