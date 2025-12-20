@@ -6,6 +6,7 @@ import { VideoInfoService } from '../services/VideoInfoService';
 import { IGroupWithVideosResponse } from '../types/ApiModels/GroupsWithVideosResponse';
 import VideoInformation from '../types/ApiModels/VideoInformation';
 import { GroupId } from "../types/ApiModels/TypeIds";
+import {formatDateToPlDate, formatDateToYearOnly} from "../extensions/DateExtensions";
 
 
 const videoService = new VideoInfoService()
@@ -67,7 +68,7 @@ export function VideoScreen() {
     const renderListOfGroups = (groups: Array<IGroupWithVideosResponse>, activeGroup: string) => {
         if (groups?.length > 0) {
             return groups.map(r => {
-                return <li key={r.groupId} className={r.groupId == activeGroup ? 'is-active' : ''}><a onClick={() => {setActiveGroup(r.groupId)}}>{r.groupName}</a></li>
+                return <li key={r.groupId} className={r.groupId == activeGroup ? 'is-active' : ''}><a onClick={() => {setActiveGroup(r.groupId)}}>{r.groupName} ({formatDateToYearOnly(r.seasonStart)} - {formatDateToYearOnly(r.seasonEnd)})</a></li>
             })
         }
         return []

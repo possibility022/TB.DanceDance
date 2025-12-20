@@ -53,7 +53,7 @@ public class GroupController : Controller
 
     private static IEnumerable<GroupWithVideosResponse> MapToVideoForGroupInfoResponse(IEnumerable<VideoFromGroupInfo> videos)
     {
-        var dict = new Dictionary<Guid, (string, List<VideoInformationModel>)>();
+        var dict = new Dictionary<Guid, (string, Group, List<VideoInformationModel>)>();
 
         foreach (var video in videos)
         {
@@ -61,11 +61,11 @@ public class GroupController : Controller
 
             if (!dict.ContainsKey(video.GroupId))
             {
-                dict[video.GroupId] = new(video.GroupName, new List<VideoInformationModel>() { videoDetails });
+                dict[video.GroupId] = new(video.GroupName, video.Group, new List<VideoInformationModel>() { videoDetails });
             }
             else
             {
-                dict[video.GroupId].Item2.Add(videoDetails);
+                dict[video.GroupId].Item3.Add(videoDetails);
             }
         }
 
@@ -73,7 +73,9 @@ public class GroupController : Controller
         {
             GroupId = k.Key,
             GroupName = k.Value.Item1,
-            Videos = k.Value.Item2
+            SeasonStart = k.Value.Item2.SeasonStart.ToDateTime(TimeOnly.MinValue),
+            SeasonEnd = k.Value.Item2.SeasonEnd.ToDateTime(TimeOnly.MaxValue),
+            Videos = k.Value.Item3
         });
 
         return map;

@@ -28,4 +28,6 @@ export interface Event extends IEventBase {
 export interface Group {
     id: GroupId
     name: string
+    seasonStart: Date
+    seasonEnd: Date
 }

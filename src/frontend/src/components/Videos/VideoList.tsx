@@ -4,18 +4,12 @@ import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 import { SharedScope } from '../../types/appTypes';
 import { BlobId } from "../../types/ApiModels/TypeIds";
+import {formatDateToPlDate} from "../../extensions/DateExtensions";
 
 export interface ListOfVideos {
     videos: VideoInformation[]
     sharedScope?: SharedScope
     selectedVideo?: BlobId
-}
-
-const formatDate = (date: Date) => {
-    // don't ask me
-    // todo: find out why I need to cast it to string
-    const d = Date.parse(date.toLocaleString())
-    return format(d, 'dd MMMM yyyy', { locale: pl })
 }
 
 const getIsSelectedIndicator = (videoInfo: VideoInformation, selected?: BlobId)=>
@@ -52,7 +46,7 @@ export function VideoList(props: ListOfVideos) {
         return (
             <tr key={r.id} onClick={() => goToVideo(r)} className={getIsSelectedIndicator(r, props.selectedVideo)}>
                 {getNameColumn(r.name, r.converted)}
-                <td>{formatDate(r.recordedDateTime)}</td>
+                <td>{formatDateToPlDate(r.recordedDateTime)}</td>
             </tr>
         )
     })

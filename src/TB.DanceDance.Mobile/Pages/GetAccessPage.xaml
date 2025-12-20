@@ -28,13 +28,16 @@
                             <DataTemplate x:DataType="models:AccessModel">
                                 <Border Padding="10" Margin="0,10,0,0">
                                     <VerticalStackLayout>
-                                        <Label Text="{Binding TypeAsFriendlyString}"/>
-                                    <HorizontalStackLayout>
-                                        <CheckBox IsEnabled="{Binding CanBeRequested}"
+                                        <HorizontalStackLayout Spacing="10">
+                                            <Label Text="{Binding TypeAsFriendlyString}"/>
+                                            <Label Text="{Binding Season}"/>
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout>
+                                            <CheckBox IsEnabled="{Binding CanBeRequested}"
                                                   IsChecked="{Binding IsRequesting, Mode=TwoWay}"
                                                   ></CheckBox>
-                                        <Label Padding="0,3,0,0" Text="{Binding Name}" FontSize="24"/>
-                                    </HorizontalStackLayout>
+                                            <Label Padding="0,3,0,0" Text="{Binding Name}" FontSize="24"/>
+                                        </HorizontalStackLayout>
                                         <Label Text="Oczekuje na zatwierdzenie"
                                                IsVisible="{Binding IsPending}"
                                                TextColor="{StaticResource Magenta}"

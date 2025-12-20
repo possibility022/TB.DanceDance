@@ -82,11 +82,15 @@ public class GroupDataBuilder
 {
     private Guid _id;
     private string _name;
+    private DateOnly _seasonStart;
+    private DateOnly _seasonEnd;
 
     public GroupDataBuilder()
     {
         _id = Guid.NewGuid();
         _name = TestDataBuilder.RandomName("Group");
+        _seasonStart = DateOnly.FromDateTime(new DateTime(2022, 9, 1));
+        _seasonEnd = DateOnly.FromDateTime(new DateTime(2023, 8, 31));
     }
 
     public GroupDataBuilder WithId(Guid id)
@@ -101,10 +105,19 @@ public class GroupDataBuilder
         return this;
     }
 
+    public GroupDataBuilder WithSeasonDates(DateOnly start, DateOnly end)
+    {
+        _seasonStart = start;
+        _seasonEnd = end;
+        return this;
+    }
+
     public Group Build() => new Group
     {
         Id = _id,
-        Name = _name
+        Name = _name,
+        SeasonStart = _seasonStart,
+        SeasonEnd = _seasonEnd,
     };
 
     public AssignedToGroup AddMember(User user, DateTime? whenJoined = null) => new AssignedToGroup
@@ -218,6 +231,7 @@ public class VideoDataBuilder
     private string _fileName;
     private string _sourceBlobId;
     private bool _converted;
+    private bool _published;
 
     private readonly List<SharedWith> _sharedWith = new();
 
@@ -232,6 +246,7 @@ public class VideoDataBuilder
         _fileName = $"{_name}.mp4";
         _sourceBlobId = $"src-{Guid.NewGuid():N}";
         _converted = false;
+        _published = true;
     }
 
     public VideoDataBuilder WithId(Guid id) { _id = id; return this; }
