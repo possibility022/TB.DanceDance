@@ -31,6 +31,8 @@ public class ContractMappers
         {
             Id = group.Id,
             Name = group.Name,
+            SeasonStart = group.SeasonStart.ToDateTime(TimeOnly.MinValue),
+            SeasonEnd = group.SeasonEnd.ToDateTime(TimeOnly.MaxValue),
         };
     }
 

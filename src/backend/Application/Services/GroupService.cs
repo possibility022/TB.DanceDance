@@ -30,7 +30,8 @@ public class GroupService : IGroupService
                 {
                     GroupId = danceGroup.Id,
                     GroupName = danceGroup.Name,
-                    Video = video
+                    Video = video,
+                    Group = danceGroup
                 };
 
         return q.ToArrayAsync(cancellationToken);
@@ -48,7 +49,8 @@ public class GroupService : IGroupService
                 {
                     GroupId = danceGroup.Id,
                     GroupName = danceGroup.Name,
-                    Video = video
+                    Video = video,
+                    Group = danceGroup
                 };
 
         return q.ToArrayAsync(cancellationToken);
