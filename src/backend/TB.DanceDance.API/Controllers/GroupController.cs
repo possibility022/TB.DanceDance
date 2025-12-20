@@ -75,7 +75,6 @@ public class GroupController : Controller
             GroupName = k.Value.Item1,
             SeasonStart = k.Value.Item2.SeasonStart.ToDateTime(TimeOnly.MinValue),
             SeasonEnd = k.Value.Item2.SeasonEnd.ToDateTime(TimeOnly.MaxValue),
-            SeasonClosed = k.Value.Item2.SeasonClosed,
             Videos = k.Value.Item3
         });
 

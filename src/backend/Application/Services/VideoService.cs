@@ -74,17 +74,6 @@ public class VideoService : IVideoService
     {
         var sas = videoUploaderService.GetUploadSasUri();
 
-        // Check if video is being added to a group with closed season
-        bool published = true;
-        if (!assignedToEvent)
-        {
-            var group = await dbContext.Groups.FirstOrDefaultAsync(g => g.Id == sharedWith, cancellationToken);
-            if (group != null && group.SeasonClosed)
-            {
-                published = false;
-            }
-        }
-
         var video = new Video()
         {
             FileName = fileName,
