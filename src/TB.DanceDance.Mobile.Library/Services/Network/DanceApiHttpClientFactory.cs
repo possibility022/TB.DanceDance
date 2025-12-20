@@ -47,7 +47,7 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
     public const string ApiMainUrl = "https://ddapi.tomb.my.id";
 #endif
 
-    public const string ApiBackupUrl = "https://wcsdance.azurewebsites.net";
+    public const string ApiBackupUrl = "https://localhost:7068";
     private const string KeysPath = "/.well-known/openid-configuration/jwks";
 
     private HttpClient ResolveClientForDanceApi()

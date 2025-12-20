@@ -20,6 +20,7 @@ public record AccessModel
     public bool IsRequesting { get; set; }
     public bool CanBeRequested { get; }
     public bool IsPending { get; set; }
+    public string Season { get; set; }
 
     public string TypeAsFriendlyString =>
         Type switch
@@ -147,7 +148,8 @@ public partial class GetAccessPageModel : ObservableObject
             Id = group.Id,
             DateTime = null,
             Name = group.Name,
-            Type = SharingWithType.Group
+            Type = SharingWithType.Group,
+            Season = $"{group.SeasonStart.Year} - {group.SeasonEnd.Year}",
         };
     }
 }
