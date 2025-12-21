@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.API.Contracts.Requests;
 
 namespace Application.Services;
 
@@ -70,9 +71,28 @@ public class VideoService : IVideoService
         };
     }
 
-    public async Task<UploadContext> GetSharingLink(string userId, string name, string fileName, bool assignedToEvent, Guid sharedWith, CancellationToken cancellationToken)
+    public async Task<UploadContext> GetSharingLink(string userId, string name, string fileName, SharingWithType sharingWithType, Guid? sharedWith, CancellationToken cancellationToken)
     {
         var sas = videoUploaderService.GetUploadSasUri();
+
+        Guid? eventId = null;
+        Guid? groupId = null;
+
+        // Determine EventId and GroupId based on SharingWithType
+        switch (sharingWithType)
+        {
+            case SharingWithType.Event:
+                eventId = sharedWith;
+                break;
+            case SharingWithType.Group:
+                groupId = sharedWith;
+                break;
+            case SharingWithType.Private:
+                // Both EventId and GroupId remain null for private videos
+                break;
+            default:
+                throw new ArgumentException($"Invalid SharingWithType: {sharingWithType}", nameof(sharingWithType));
+        }
 
         var video = new Video()
         {
@@ -89,8 +109,8 @@ public class VideoService : IVideoService
                 {
                     VideoId = Guid.Empty, // should be set by EF
                     UserId = userId,
-                    EventId = assignedToEvent ? sharedWith : null,
-                    GroupId = assignedToEvent ? null : sharedWith
+                    EventId = eventId,
+                    GroupId = groupId
                 }
             ],
             Converted = false

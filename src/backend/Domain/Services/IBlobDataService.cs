@@ -9,4 +9,5 @@ public interface IBlobDataService
     Task Upload(string blobId, Stream stream);
     SharedBlob GetUploadSas(string? blobId = null);
     Task<bool> BlobExistsAsync(string blobId);
+    Task<long> GetBlobSizeAsync(string blobId);
 }

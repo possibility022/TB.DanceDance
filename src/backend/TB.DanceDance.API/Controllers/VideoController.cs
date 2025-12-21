@@ -71,6 +71,14 @@ public class VideoController : Controller
         if (userSubjectId == null)
             return BadRequest();
 
+        // TODO: Implement storage quota enforcement for private videos at VIEW/STREAM time
+        // Check if this is a private video (SharedWith.EventId == null && SharedWith.GroupId == null)
+        // If private:
+        //   1. Calculate user's total private video ConvertedBlobSize
+        //   2. Compare against User.StorageQuotaBytes
+        //   3. If over quota, return 403 Forbidden with message about storage limit
+        // This allows users to upload videos even over quota, but they cannot view them until space is freed
+
         var hasAccess = await accessService.DoesUserHasAccessAsync(guid, userSubjectId, cancellationToken);
         if (!hasAccess)
             return new UnauthorizedResult();
@@ -124,44 +132,68 @@ public class VideoController : Controller
         string? user = null;
         var sharedWith = sharedVideoInformation?.SharedWith;
 
-        if (sharedVideoInformation == null || sharedWith == null)
+        if (sharedVideoInformation == null)
         {
-            ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "EntityId within SharedWith is empty.");
+            return BadRequest("SharedVideoInformation is required.");
+        }
+
+        // TODO: Storage quota is enforced at VIEW/STREAM time, not upload time
+        // Users can always upload videos regardless of quota status
+        // Quota enforcement happens when trying to view/stream the video
+        // This allows users to upload first, then manage storage by deleting old videos if needed
+
+        user = User.GetSubject();
+
+        // Handle different sharing types
+        if (sharedVideoInformation.SharingWithType == SharingWithType.Group)
+        {
+            if (sharedWith == null)
+            {
+                ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "SharedWith is required for Group sharing type.");
+                return BadRequest(ModelState);
+            }
+
+            var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value, cancellationToken);
+
+            if (!canUploadToGroup)
+            {
+                logger.LogWarning(
+                    "User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user,
+                    sharedWith);
+                return new UnauthorizedResult();
+            }
+        }
+        else if (sharedVideoInformation.SharingWithType == SharingWithType.Event)
+        {
+            if (sharedWith == null)
+            {
+                ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "SharedWith is required for Event sharing type.");
+                return BadRequest(ModelState);
+            }
+
+            var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value, cancellationToken);
+
+            if (!canUploadToEvent)
+            {
+                logger.LogWarning(
+                    "User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user,
+                    sharedWith);
+                return new UnauthorizedResult();
+            }
+        }
+        else if (sharedVideoInformation.SharingWithType == SharingWithType.Private)
+        {
+            // Private videos: no group/event access check needed
+            // SharedWith should be null for private videos
+            if (sharedWith != null)
+            {
+                ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "SharedWith must be null for Private sharing type.");
+                return BadRequest(ModelState);
+            }
         }
         else
         {
-            if (sharedVideoInformation.SharingWithType == SharingWithType.Group)
-            {
-                user = User.GetSubject();
-
-                var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value, cancellationToken);
-
-                if (!canUploadToGroup)
-                {
-                    logger.LogWarning(
-                        "User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user,
-                        sharedWith);
-                    return new UnauthorizedResult();
-                }
-            }
-            else if (sharedVideoInformation.SharingWithType == SharingWithType.Event)
-            {
-                user = User.GetSubject();
-
-                var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value, cancellationToken);
-
-                if (!canUploadToEvent)
-                {
-                    logger.LogWarning(
-                        "User {0} was trying to add video where he is not assigned. Association EntityId: {1}.", user,
-                        sharedWith);
-                    return new UnauthorizedResult();
-                }
-            }
-            else
-            {
-                return new BadRequestResult();
-            }
+            return new BadRequestResult();
         }
 
         if (!ModelState.IsValid)
@@ -173,8 +205,8 @@ public class VideoController : Controller
             user,
             sharedVideoInformation.NameOfVideo,
             sharedVideoInformation.FileName,
-            sharedVideoInformation.SharingWithType == SharingWithType.Event,
-            sharedVideoInformation.SharedWith.Value,
+            sharedVideoInformation.SharingWithType,
+            sharedVideoInformation.SharedWith,
             cancellationToken);
 
         return new UploadVideoInformationResponse()

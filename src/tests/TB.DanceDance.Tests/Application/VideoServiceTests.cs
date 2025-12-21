@@ -7,6 +7,7 @@ using Infrastructure.Data;
 using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Application;
@@ -127,7 +128,7 @@ public class VideoServiceTests : BaseTestClass
         var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas1"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
         uploaderService.GetUploadSasUri().Returns(shared);
 
-        var ctx = await videoService.GetSharingLink(user.Id, "VidName", "file.mp4", assignedToEvent: true, sharedWith: evt.Id, TestContext.Current.CancellationToken);
+        var ctx = await videoService.GetSharingLink(user.Id, "VidName", "file.mp4", SharingWithType.Event, sharedWith: evt.Id, TestContext.Current.CancellationToken);
 
         // Verify persisted
         SeedDbContext.ChangeTracker.Clear();
@@ -155,7 +156,7 @@ public class VideoServiceTests : BaseTestClass
         var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas2"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
         uploaderService.GetUploadSasUri().Returns(shared);
 
-        var ctx = await videoService.GetSharingLink(user.Id, "VidName", "file.mp4", assignedToEvent: false, sharedWith: group.Id, TestContext.Current.CancellationToken);
+        var ctx = await videoService.GetSharingLink(user.Id, "VidName", "file.mp4", SharingWithType.Group, sharedWith: group.Id, TestContext.Current.CancellationToken);
 
         SeedDbContext.ChangeTracker.Clear();
         var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
@@ -185,5 +186,59 @@ public class VideoServiceTests : BaseTestClass
         var read = await stream.ReadAsync(buffer, TestContext.Current.CancellationToken);
         Assert.Equal(4, read);
         Assert.Equal(new byte[] {1,2,3,4}, buffer);
+    }
+
+    [Fact]
+    public async Task GetSharingLink_CreatesVideo_AndShare_ForPrivateVideo()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        SeedDbContext.Add(user);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas-private"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
+        uploaderService.GetUploadSasUri().Returns(shared);
+
+        // Act
+        var ctx = await videoService.GetSharingLink(user.Id, "MyPrivateVideo", "private.mp4", SharingWithType.Private, sharedWith: null, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(ctx);
+        Assert.Equal(shared.Sas, ctx.Sas);
+        Assert.Equal(shared.BlobId, ctx.SourceBlobId);
+
+        // Verify video was persisted
+        SeedDbContext.ChangeTracker.Clear();
+        var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(shared.BlobId, saved.SourceBlobId);
+        Assert.Equal(user.Id, saved.UploadedBy);
+        Assert.Equal("MyPrivateVideo", saved.Name);
+        Assert.False(saved.Converted);
+
+        // Verify SharedWith entry: both EventId and GroupId should be null for private videos
+        var link = SeedDbContext.SharedWith.Single(sw => sw.VideoId == saved.Id);
+        Assert.Equal(user.Id, link.UserId);
+        Assert.Null(link.EventId);
+        Assert.Null(link.GroupId);
+
+        uploaderService.Received(1).GetUploadSasUri();
+    }
+
+    [Fact]
+    public async Task GetSharingLink_ThrowsArgumentException_ForInvalidSharingType()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        SeedDbContext.Add(user);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
+        uploaderService.GetUploadSasUri().Returns(shared);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            await videoService.GetSharingLink(user.Id, "Video", "file.mp4", SharingWithType.NotSpecified, sharedWith: null, TestContext.Current.CancellationToken);
+        });
     }
 }

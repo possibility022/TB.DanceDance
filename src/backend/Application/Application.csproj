@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

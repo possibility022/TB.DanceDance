@@ -71,6 +71,18 @@ public class VideoUploaderService : IVideoUploaderService
         if (!videoAlreadyUploaded)
             return null;
 
+        // Calculate and store blob sizes for storage quota tracking
+        try
+        {
+            video.SourceBlobSize = await videosToConvertBlobs.GetBlobSizeAsync(video.SourceBlobId);
+            video.ConvertedBlobSize = await publishedVideosBlobs.GetBlobSizeAsync(video.BlobId);
+        }
+        catch (Exception)
+        {
+            // If size calculation fails, leave as 0 and continue
+            // Sizes can be recalculated later if needed
+        }
+
         video.Converted = true;
         await danceDbContext.SaveChangesAsync(cancellationToken);
 

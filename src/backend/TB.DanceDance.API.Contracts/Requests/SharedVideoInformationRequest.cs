@@ -17,7 +17,10 @@ namespace TB.DanceDance.API.Contracts.Requests
         [Required]
         public DateTime RecordedTimeUtc { get; set; } = DateTime.MinValue;
 
-        [Required]
+        /// <summary>
+        /// The Group or Event ID to share with. Required when SharingWithType is Group or Event.
+        /// Must be null when SharingWithType is Private.
+        /// </summary>
         public Guid? SharedWith { get; set; }
 
         [Required]
@@ -34,6 +37,7 @@ namespace TB.DanceDance.API.Contracts.Requests
     {
         NotSpecified,
         Group,
-        Event
+        Event,
+        Private
     }
 }

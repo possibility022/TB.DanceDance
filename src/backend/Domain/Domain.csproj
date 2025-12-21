@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
