@@ -34,6 +34,11 @@ public class AccessService : IAccessService
     
     private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
     {
+        // TODO: Implement access check for private videos
+        // Private videos: SharedWith.EventId == null && SharedWith.GroupId == null && SharedWith.UserId == requestingUserId
+        // Need to optimize query to handle both private and shared videos efficiently
+        // Consider union approach: private videos query UNION group/event videos query
+
         return from video in dbContext.Videos
             join sharedWith in dbContext.SharedWith on video.Id equals sharedWith.VideoId
             join events in dbContext.Events.DefaultIfEmpty() on sharedWith.EventId equals events.Id into eventsGroup
@@ -52,6 +57,13 @@ public class AccessService : IAccessService
 
     public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId, CancellationToken cancellationToken)
     {
+        // TODO: Implement storage quota enforcement for private videos at VIEW/STREAM time
+        // For private videos (SharedWith.EventId == null && SharedWith.GroupId == null):
+        // 1. Calculate total ConvertedBlobSize for user's private videos
+        // 2. Compare against User.StorageQuotaBytes
+        // 3. If over quota, deny access (user can list but not view)
+        // This ensures users can upload but cannot view videos beyond their quota limit
+
         var query = GetBaseVideosForUserQuery(userId)
             .Where(v => v.BlobId == videoBlobId)
             .AnyAsync(cancellationToken);
@@ -60,9 +72,12 @@ public class AccessService : IAccessService
 
         return any;
     }
-    
+
     public async Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId, CancellationToken cancellationToken)
     {
+        // TODO: Implement storage quota enforcement for private videos at VIEW/STREAM time
+        // Same logic as DoesUserHasAccessAsync(videoBlobId) above
+
         var query = GetBaseVideosForUserQuery(userId)
             .Where(v => v.Id == videoId)
             .AnyAsync(cancellationToken);
