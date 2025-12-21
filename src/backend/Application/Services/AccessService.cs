@@ -31,6 +31,17 @@ public class AccessService : IAccessService
     {
         return dbContext.AssingedToEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId, cancellationToken);
     }
+
+    public async Task<IReadOnlyCollection<Video>> GetUserPrivateVideos(string userId, CancellationToken cancellationToken)
+    {
+        var privateVideos = dbContext.SharedWith
+            .Where(r => r.EventId == null && r.GroupId == null && r.UserId == userId)
+            .Join(dbContext.Videos, v => v.VideoId, v => v.Id, (c, v) => v)
+            .AsNoTracking();
+
+        var result = await privateVideos.ToArrayAsync(cancellationToken);
+        return result;
+    }
     
     private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
     {

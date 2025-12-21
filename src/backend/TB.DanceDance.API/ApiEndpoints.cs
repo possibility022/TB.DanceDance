@@ -8,7 +8,7 @@ public static class ApiEndpoints
     {
         private const string Base = $"{ApiBase}/videos";
 
-        public const string GetAll = $"{Base}";
+        public const string MyVideos = $"{Base}/my";
         public const string GetSingle = $"{Base}/{{guid}}";
         public const string GetStream = $"{Base}/{{guid}}/stream";
 

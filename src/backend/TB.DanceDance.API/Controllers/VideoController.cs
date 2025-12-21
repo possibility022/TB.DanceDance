@@ -30,6 +30,15 @@ public class VideoController : Controller
     private readonly ILogger<VideoController> logger;
 
 
+    [Route(ApiEndpoints.Video.MyVideos)]
+    public async Task<IActionResult> MyVideos(CancellationToken cancellationToken)
+    {
+        var videos = await accessService.GetUserPrivateVideos(User.GetSubject(), cancellationToken);
+        var apiModel = videos.Select(ContractMappers.MapToVideoInformation);
+        
+        return new OkObjectResult(apiModel);
+    }
+    
     [Route(ApiEndpoints.Video.GetSingle)]
     [HttpGet]
     public async Task<IActionResult> GetInformationAsync(string guid, CancellationToken cancellationToken)
