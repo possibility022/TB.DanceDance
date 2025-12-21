@@ -37,7 +37,7 @@ export function VideoList(props: ListOfVideos) {
         if (isConverted){
             return <td>{title}</td>
         } else {
-            return <td>{title} - <p className="has-text-warning">Oczekuje na konwersje.</p></td>
+            return <td>{title} <p className="has-text-warning">Oczekuje na konwersje.</p></td>
         }
     }
 

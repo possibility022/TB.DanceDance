@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { Button } from '../components/Button';
-import { CreateNewEvent } from '../components/Events/CreateNewEvent';
-import { EventsList } from '../components/Events/EventsList';
-import { Event, IEventBase } from '../types/ApiModels/EventsAndGroups';
+import {useEffect, useRef, useState} from 'react';
+import {Button} from '../components/Button';
+import {CreateNewEvent} from '../components/Events/CreateNewEvent';
+import {EventsList} from '../components/Events/EventsList';
+import {Event, IEventBase} from '../types/ApiModels/EventsAndGroups';
 import videoInfoService from '../services/VideoInfoService';
-import { UploadVideoModal } from '../components/Videos/UploadVideoModal';
+import {UploadVideoModal} from '../components/Videos/UploadVideoModal';
+import SharingWithType from "../types/ApiModels/SharingWithType";
 
 const EventsScreen = () => {
 
@@ -92,6 +93,7 @@ const EventsScreen = () => {
                 <div className="modal-background" onClick={closeUploadModal}></div>
                 <div className="modal-content">
                     <UploadVideoModal
+                        sharingWith={SharingWithType.Private}
                         event={selectedEvent}
                     ></UploadVideoModal>
                 </div>

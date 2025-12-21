@@ -110,6 +110,12 @@ export class VideoInfoService {
         return response.data;
     }
 
+    public async GetPrivateVideos(){
+        const response = await AppApiClient.get<Array<VideoInformation>>(`/api/videos/my`)
+        this.EnsureSuccessStatusCode(response)
+        return response.data
+    }
+
     public async RejectAccessRequest(request: RequestedAccess) {
         await this.SendAccessRequestAction(request, false)
     }
