@@ -14,7 +14,6 @@ namespace TB.DanceDance.API.Contracts.Responses
         public string GroupName { get; set; } = null!;
         public DateTime SeasonStart { get; set; }
         public DateTime SeasonEnd { get; set; }
-        public bool SeasonClosed { get; set; }
         public ICollection<VideoInformationModel> Videos { get; set; } = null!;
     }
 
@@ -26,6 +25,5 @@ namespace TB.DanceDance.API.Contracts.Responses
         public DateTime RecordedDateTime { get; set; }
         public TimeSpan? Duration { get; set; }
         public bool Converted { get; set; }
-        public bool Published { get; set; }
     }
 }
