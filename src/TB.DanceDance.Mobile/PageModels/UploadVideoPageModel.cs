@@ -31,7 +31,8 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     {
         NotSpecified,
         Event,
-        Group
+        Group,
+        Private
     }
 
     private UploadTo uploadTo = UploadTo.NotSpecified;
@@ -61,7 +62,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
 
     private void SetUploadButton()
     {
-        if (uploadTo == UploadTo.Event)
+        if (uploadTo == UploadTo.Event || uploadTo == UploadTo.Private)
         {
             // for event
             if (SelectedFiles.Count > 0)
@@ -105,6 +106,9 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                 {
                     await videoUploader.UploadVideoToGroup(file.FullPath, Groups[SelectedGroupIndex].Id,
                         CancellationToken.None);
+                } else if (uploadTo == UploadTo.Private)
+                {
+                    await videoUploader.UploadVideoToPrivate(file.FullPath, CancellationToken.None);
                 }
                 else
                 {
@@ -112,7 +116,8 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                 }
             }
             
-            await Shell.Current.CurrentPage.DisplayAlertAsync("Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
+            await Shell.Current.CurrentPage.DisplayAlertAsync(
+                "Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
                 "OK");
 
             
@@ -132,8 +137,14 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        var weHaveIt = query.TryGetValue("eventId", out object? eventIdAsObject);
-        if (weHaveIt && eventIdAsObject is Guid eventIdFromRoute)
+        var uploadingToEvent = query.TryGetValue("eventId", out object? eventIdAsObject);
+        var uploadingToPrivate = query.TryGetValue("isPrivate", out object? isPrivateFlag);
+
+        if (uploadingToPrivate && isPrivateFlag is bool flag && flag)
+        {
+            SetPrivateUploadStyle();
+        } 
+        else if (uploadingToEvent && eventIdAsObject is Guid eventIdFromRoute)
         {
             SetEventUploadStyle(eventIdFromRoute);
         }
@@ -155,6 +166,12 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         GroupSelectorAvailable = false;
         EventId = eventIdFromRoute;
         uploadTo = UploadTo.Event;
+    }
+
+    private void SetPrivateUploadStyle()
+    {
+        GroupSelectorAvailable = false;
+        uploadTo = UploadTo.Private;
     }
 
     private async Task<IEnumerable<FileResult>> ListVideoFiles()

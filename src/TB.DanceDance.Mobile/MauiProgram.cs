@@ -65,6 +65,7 @@ public static class MauiProgram
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
 
         builder.Services.AddSingleton<EventsPageModel>();
+        builder.Services.AddSingleton<MyVideosPageModel>();
         builder.Services.AddSingleton<GroupVideosPageModel>();
         builder.Services.AddSingleton<UploadManagerPageModel>();
 

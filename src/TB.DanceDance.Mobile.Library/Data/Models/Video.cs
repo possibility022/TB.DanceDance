@@ -19,7 +19,7 @@ public record Video
     public bool Converted { get; set; } = false;
 
 
-    public static List<Video> MapFromApiResponse(ICollection<GroupWithVideosResponse>? videosResponse)
+    public static List<Video> MapFromApiResponse(IReadOnlyCollection<GroupWithVideosResponse>? videosResponse)
     {
         if (videosResponse == null)
             return new List<Video>();
@@ -49,7 +49,7 @@ public record Video
         return list;
     }
 
-    public static List<Video> MapFromApiResponse(ICollection<VideoInformationResponse> videosForEvent)
+    public static List<Video> MapFromApiResponse(IReadOnlyCollection<VideoInformationResponse> videosForEvent)
     {
         var list = videosForEvent.Select(r => new Video()
         {

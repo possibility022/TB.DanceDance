@@ -26,6 +26,11 @@ public class NetworkStatusMonitor : IDisposable
     {
         if (access == NetworkAccess.Internet)
         {
+#if DEBUG
+            // CAN YOU IMAGINE, THAT ON EMULATOR and NOT THAT OLD API VERSIONS, YOU CANT HAVE INTERNET OVER WIFI?
+            Settings.UploadOnlyByWiFi = false;
+#endif
+
             if (Settings.UploadOnlyByWiFi && connectionProfiles.Contains(ConnectionProfile.WiFi))
             {
                 Serilog.Log.Information("Background service started");

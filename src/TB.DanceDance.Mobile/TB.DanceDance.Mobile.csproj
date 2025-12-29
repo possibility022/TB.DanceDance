@@ -131,6 +131,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Pages\MyVideosPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Pages\UploadVideoPage.xaml">
 	    <SubType>Designer</SubType>
 	  </MauiXaml>

@@ -7,4 +7,5 @@ public interface IVideoUploader
     Task Upload(VideosToUpload videoToUpload, CancellationToken token);
     Task UploadVideoToEvent(string fullPath, Guid value, CancellationToken none);
     Task UploadVideoToGroup(string fullPath, Guid id, CancellationToken none);
+    Task UploadVideoToPrivate(string fullPath, CancellationToken none);
 }

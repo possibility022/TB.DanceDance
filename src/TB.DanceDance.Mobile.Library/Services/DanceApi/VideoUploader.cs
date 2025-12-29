@@ -112,7 +112,7 @@ public class VideoUploader : IVideoUploader
         };
     }
 
-    private async Task AddToUploadList(string filePath, Guid groupOrEventId, SharingWithType sharingWith, CancellationToken token)
+    private async Task AddToUploadList(string filePath, Guid? groupOrEventId, SharingWithType sharingWith, CancellationToken token)
     {
         FileInfo fileInfo = new FileInfo(filePath);
 
@@ -143,4 +143,7 @@ public class VideoUploader : IVideoUploader
 
     public Task UploadVideoToEvent(string filePath, Guid eventId, CancellationToken token)
         => AddToUploadList(filePath, eventId, SharingWithType.Event, token);
+
+    public Task UploadVideoToPrivate(string fullPath, CancellationToken token)
+        => AddToUploadList(fullPath, null, SharingWithType.Private, token);
 }

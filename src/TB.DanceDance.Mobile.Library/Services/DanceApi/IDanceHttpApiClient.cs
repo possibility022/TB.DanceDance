@@ -9,17 +9,18 @@ public interface IDanceHttpApiClient
     Task RenameVideoAsync(Guid videoId, string newName);
     Task<UserEventsAndGroupsResponse> GetUserAccesses();
     Task RequestAccess(RequestAssigmentModelRequest accessRequest);
-    Task<ICollection<GroupWithVideosResponse>?> GetVideosFromGroups();
-    Task<ICollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId);
+    Task<IReadOnlyCollection<GroupWithVideosResponse>?> GetVideosFromGroups();
+    Task<IReadOnlyCollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId);
     Task<UploadVideoInformationResponse> RefreshUploadUrl(Guid videoId);
     Task<UploadVideoInformationResponse?> GetUploadInformation(
         string fileName,
         string nameOfVideo,
         SharingWithType sharingWith,
-        Guid sharedWithId,
+        Guid? sharedWithId,
         DateTime recordedTimeUtc
     );
     Task<Stream> GetStream(string videoBlobId);
     Uri GetVideoUri(string videoBlobId);
     Task CreateEvent(string eventName, DateTime eventDate);
+    Task<IReadOnlyCollection<VideoInformationResponse>> GetMyVideos();
 }

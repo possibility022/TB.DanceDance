@@ -46,6 +46,13 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task NavigateToMyVideos()
+    {
+        await Shell.Current.GoToAsync("//" + Routes.Private.MyVideos);
+    }
+
+
+    [RelayCommand]
     private async Task NavigateToGetAccess()
     {
         await Shell.Current.GoToAsync(Routes.GetAccess);
