@@ -14,12 +14,12 @@
         Title="Menu"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
-    
+
     <ShellContent
         Title="Status wysyłania plików"
         ContentTemplate="{DataTemplate pages:UploadManagerPage}"
         Route="{x:Static global:Routes+Upload.Manager}" />
-    
+
     <TabBar>
         <Tab Title="Wydarzenia"
              Icon="event.png">
@@ -29,6 +29,12 @@
              Icon="dance.png">
             <ShellContent ContentTemplate="{DataTemplate pages:GroupVideosPage}" Route="{x:Static global:Routes+Groups.AllVideos}" />
         </Tab>
+        
+        <Tab Title="Osobiste"
+             Icon="dance.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:MyVideosPage}" Route="{x:Static global:Routes+Private.MyVideos}" /> <!-- I have no idea why this does not work here: {x:Static global:Routes+MyVideos} -->
+        </Tab>
+
     </TabBar>
     
 </Shell>

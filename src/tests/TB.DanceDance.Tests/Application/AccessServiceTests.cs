@@ -415,4 +415,186 @@ public class AccessServiceTests : BaseTestClass
         var has = await accessService.DoesUserHasAccessAsync(video.Id, user.Id, TestContext.Current.CancellationToken);
         Assert.True(has);
     }
+
+    // P1: GetUserPrivateVideos returns only private videos for the user
+    [Fact]
+    public async Task GetUserPrivateVideos_ReturnsOnlyPrivateVideos_ForUser()
+    {
+        // Arrange
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+
+        // Create 2 private videos for this user
+        var privateVideo1 = new VideoDataBuilder().UploadedBy(user).WithName("Private1").Build();
+        var privateShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = privateVideo1.Id, UserId = user.Id, EventId = null, GroupId = null };
+
+        var privateVideo2 = new VideoDataBuilder().UploadedBy(user).WithName("Private2").Build();
+        var privateShare2 = new SharedWith { Id = Guid.NewGuid(), VideoId = privateVideo2.Id, UserId = user.Id, EventId = null, GroupId = null };
+
+        // Create a group video for this user (should not be returned)
+        var group = new GroupDataBuilder().Build();
+        var groupVideo = new VideoDataBuilder().UploadedBy(user).WithName("GroupVideo").Build();
+        var groupShare = new SharedWith { Id = Guid.NewGuid(), VideoId = groupVideo.Id, UserId = user.Id, EventId = null, GroupId = group.Id };
+
+        // Create an event video for this user (should not be returned)
+        var evtB = new EventDataBuilder();
+        var owner = evtB.BuildOwner();
+        var evt = evtB.Build();
+        var eventVideo = new VideoDataBuilder().UploadedBy(user).WithName("EventVideo").Build();
+        var eventShare = new SharedWith { Id = Guid.NewGuid(), VideoId = eventVideo.Id, UserId = user.Id, EventId = evt.Id, GroupId = null };
+
+        SeedDbContext.AddRange(user, privateVideo1, privateShare1, privateVideo2, privateShare2,
+                                group, groupVideo, groupShare, owner, evt, eventVideo, eventShare);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, v => v.Id == privateVideo1.Id);
+        Assert.Contains(result, v => v.Id == privateVideo2.Id);
+        Assert.DoesNotContain(result, v => v.Id == groupVideo.Id);
+        Assert.DoesNotContain(result, v => v.Id == eventVideo.Id);
+    }
+
+    // P2: GetUserPrivateVideos returns empty when user has no private videos
+    [Fact]
+    public async Task GetUserPrivateVideos_ReturnsEmpty_WhenUserHasNoPrivateVideos()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        SeedDbContext.Add(user);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    // P3: GetUserPrivateVideos does not return other users' private videos
+    [Fact]
+    public async Task GetUserPrivateVideos_DoesNotReturnOtherUsersPrivateVideos()
+    {
+        // Arrange
+        var user1 = new UserDataBuilder().Build();
+        var user2 = new UserDataBuilder().Build();
+
+        var user1Video = new VideoDataBuilder().UploadedBy(user1).WithName("User1Private").Build();
+        var user1Share = new SharedWith { Id = Guid.NewGuid(), VideoId = user1Video.Id, UserId = user1.Id, EventId = null, GroupId = null };
+
+        var user2Video = new VideoDataBuilder().UploadedBy(user2).WithName("User2Private").Build();
+        var user2Share = new SharedWith { Id = Guid.NewGuid(), VideoId = user2Video.Id, UserId = user2.Id, EventId = null, GroupId = null };
+
+        SeedDbContext.AddRange(user1, user2, user1Video, user1Share, user2Video, user2Share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideos(user1.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(user1Video.Id, result.First().Id);
+        Assert.DoesNotContain(result, v => v.Id == user2Video.Id);
+    }
+
+    // P4: GetUserPrivateVideos returns videos with correct blob sizes
+    [Fact]
+    public async Task GetUserPrivateVideos_ReturnsVideosWithBlobSizes()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder()
+            .UploadedBy(user)
+            .WithName("PrivateWithSizes")
+            .WithSourceBlobSize(1024)
+            .WithConvertedBlobSize(2048)
+            .Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = null, GroupId = null };
+
+        SeedDbContext.AddRange(user, video, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Single(result);
+        var returnedVideo = result.First();
+        Assert.Equal(1024, returnedVideo.SourceBlobSize);
+        Assert.Equal(2048, returnedVideo.ConvertedBlobSize);
+    }
+
+    // P5: GetUserPrivateVideos returns videos regardless of conversion status
+    [Fact]
+    public async Task GetUserPrivateVideos_ReturnsVideos_RegardlessOfConversionStatus()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+
+        var convertedVideo = new VideoDataBuilder().UploadedBy(user).WithName("Converted").Converted(true).Build();
+        var convertedShare = new SharedWith { Id = Guid.NewGuid(), VideoId = convertedVideo.Id, UserId = user.Id, EventId = null, GroupId = null };
+
+        var unconvertedVideo = new VideoDataBuilder().UploadedBy(user).WithName("NotConverted").Converted(false).Build();
+        var unconvertedShare = new SharedWith { Id = Guid.NewGuid(), VideoId = unconvertedVideo.Id, UserId = user.Id, EventId = null, GroupId = null };
+
+        SeedDbContext.AddRange(user, convertedVideo, convertedShare, unconvertedVideo, unconvertedShare);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, v => v.Id == convertedVideo.Id);
+        Assert.Contains(result, v => v.Id == unconvertedVideo.Id);
+    }
+
+    // P6: GetUserPrivateVideos works correctly when user has mix of private, group, and event videos
+    [Fact]
+    public async Task GetUserPrivateVideos_FiltersCorrectly_WithMixedVideoTypes()
+    {
+        // Arrange
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var evtB = new EventDataBuilder();
+        var owner = evtB.BuildOwner();
+        var evt = evtB.Build();
+
+        // 3 private videos
+        var private1 = new VideoDataBuilder().UploadedBy(user).Build();
+        var private2 = new VideoDataBuilder().UploadedBy(user).Build();
+        var private3 = new VideoDataBuilder().UploadedBy(user).Build();
+        var privateShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = private1.Id, UserId = user.Id, EventId = null, GroupId = null };
+        var privateShare2 = new SharedWith { Id = Guid.NewGuid(), VideoId = private2.Id, UserId = user.Id, EventId = null, GroupId = null };
+        var privateShare3 = new SharedWith { Id = Guid.NewGuid(), VideoId = private3.Id, UserId = user.Id, EventId = null, GroupId = null };
+
+        // 2 group videos
+        var group1 = new VideoDataBuilder().UploadedBy(user).Build();
+        var group2 = new VideoDataBuilder().UploadedBy(user).Build();
+        var groupShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = group1.Id, UserId = user.Id, EventId = null, GroupId = group.Id };
+        var groupShare2 = new SharedWith { Id = Guid.NewGuid(), VideoId = group2.Id, UserId = user.Id, EventId = null, GroupId = group.Id };
+
+        // 1 event video
+        var event1 = new VideoDataBuilder().UploadedBy(user).Build();
+        var eventShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = event1.Id, UserId = user.Id, EventId = evt.Id, GroupId = null };
+
+        SeedDbContext.AddRange(user, owner, evt, group,
+                                private1, private2, private3, privateShare1, privateShare2, privateShare3,
+                                group1, group2, groupShare1, groupShare2,
+                                event1, eventShare1);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, v => v.Id == private1.Id);
+        Assert.Contains(result, v => v.Id == private2.Id);
+        Assert.Contains(result, v => v.Id == private3.Id);
+    }
 }

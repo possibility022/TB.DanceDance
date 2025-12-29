@@ -26,4 +26,11 @@ public class VideoProvider
         var videos = Video.MapFromApiResponse(response);
         return videos;
     }
+
+    public async Task<IReadOnlyCollection<Video>> GetMyVideos()
+    {
+        var response = await apiClient.GetMyVideos();
+        var videos = Video.MapFromApiResponse(response);
+        return videos;
+    }
 }

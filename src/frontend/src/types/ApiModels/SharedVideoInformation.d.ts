@@ -4,6 +4,6 @@ export default interface ISharedVideoInformation{
     nameOfVideo: string
     fileName: string
     recordedTimeUtc: Date
-    sharedWith: string
+    sharedWith?: string
     sharingWithType: SharingWithType
 }

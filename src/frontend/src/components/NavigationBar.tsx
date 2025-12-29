@@ -46,6 +46,7 @@ export function NavigationBar() {
                             <Link className='navbar-item' to="videos">Nagrania</Link>
                             <div className="navbar-dropdown">
                                 <Link className='navbar-item' to="videos">Nagrania</Link>
+                                <Link className='navbar-item' to="videos/my">Prywatne Nagrania</Link>
                                 <Link className='navbar-item' to="videos/requestassignment">Uzyskaj Dostęp</Link>
                                 <Link className='navbar-item' to="videos/upload">Wyślij Nagranie</Link>
                             </div>

@@ -248,4 +248,75 @@ public class VideoUploaderTests : BaseTestClass
         var uri = uploaderService.GetVideoSas(Guid.NewGuid().ToString());
         Assert.True(uri.IsAbsoluteUri);
     }
+
+    [Fact]
+    public async Task UploadConvertedVideoAsync_CalculatesAndStoresBlobSizes()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        var sourceBlobId = Guid.NewGuid().ToString();
+        var convertedBlobId = Guid.NewGuid().ToString();
+        var v = new VideoDataBuilder()
+            .UploadedBy(user)
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(convertedBlobId)
+            .Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Upload source blob (1024 bytes)
+        var sourceData = new byte[1024];
+        Array.Fill(sourceData, (byte)1);
+        var toConvert = factory.GetBlobDataService(BlobContainer.VideosToConvert);
+        await toConvert.Upload(sourceBlobId, new MemoryStream(sourceData));
+
+        // Upload converted blob (2048 bytes)
+        var convertedData = new byte[2048];
+        Array.Fill(convertedData, (byte)2);
+        var published = factory.GetBlobDataService(BlobContainer.Videos);
+        await published.Upload(convertedBlobId, new MemoryStream(convertedData));
+
+        // Act
+        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        SeedDbContext.ChangeTracker.Clear();
+        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        Assert.True(updated.Converted);
+        Assert.Equal(1024, updated.SourceBlobSize);
+        Assert.Equal(2048, updated.ConvertedBlobSize);
+    }
+
+    [Fact]
+    public async Task UploadConvertedVideoAsync_ContinuesWithZeroSizes_WhenSizeCalculationFails()
+    {
+        // Arrange - create video with blobs that don't actually exist (size calculation will fail)
+        var user = new UserDataBuilder().Build();
+        var sourceBlobId = Guid.NewGuid().ToString();
+        var convertedBlobId = Guid.NewGuid().ToString();
+        var v = new VideoDataBuilder()
+            .UploadedBy(user)
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(convertedBlobId)
+            .Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Only upload the converted blob, but not the source blob - GetBlobSizeAsync will throw for source
+        var convertedData = new byte[512];
+        var published = factory.GetBlobDataService(BlobContainer.Videos);
+        await published.Upload(convertedBlobId, new MemoryStream(convertedData));
+
+        // Act
+        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+
+        // Assert - should still succeed and mark as converted, but sizes remain 0
+        Assert.NotNull(result);
+        SeedDbContext.ChangeTracker.Clear();
+        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        Assert.True(updated.Converted);
+        Assert.Equal(0, updated.SourceBlobSize);
+        Assert.Equal(0, updated.ConvertedBlobSize);
+    }
 }

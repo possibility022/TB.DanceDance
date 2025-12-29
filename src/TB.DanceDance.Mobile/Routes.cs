@@ -16,6 +16,12 @@
     
     public const string Player= "player";
     public const string GetAccess= "access";
+
+    public static class Private
+    {
+        private const string BASE = "private";
+        public const string MyVideos = $"{BASE}myVideos";
+    }
     
     public static class Upload
     {

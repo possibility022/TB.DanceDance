@@ -10,4 +10,5 @@ public interface IAccessService
     Task<bool> DoesUserHasAccessToEvent(Guid eventId, string userId, CancellationToken cancellationToken);
     Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId, CancellationToken cancellationToken);
     Task<bool> DoesUserHasAccessAsync(Guid videoId, string userId, CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<Video>> GetUserPrivateVideos(string userId, CancellationToken cancellationToken);
 }

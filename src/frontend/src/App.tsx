@@ -18,6 +18,7 @@ import EventsScreen from "./pages/EventsScreen"
 import { CookieModal } from "./components/CookieModal"
 import { CookiesProvider } from "react-cookie"
 import { AdministrateAccessRequestsScreen } from "./pages/AdministrateAccessRequestsScreen"
+import PrivateVideos from "./pages/PrivateVideos";
 
 function App() {
 
@@ -35,6 +36,7 @@ function App() {
 							</Route>
 							<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
 							<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
+							<Route path="videos/my" element={<PrivateRoute element={<PrivateVideos></PrivateVideos>} />} />
 							<Route path="callback" element={<Callback />} />
 							<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
 							<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />

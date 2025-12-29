@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels" 
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls" 
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters" 
+             xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models;assembly=TB.DanceDance.Mobile.Library" 
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="TB.DanceDance.Mobile.Pages.MyVideosPage"
+             x:Name="MyVideosPageView"
+             x:DataType="pageModels:MyVideosPageModel"
+             Title="MyVideosPage">
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Appearing"
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference MyVideosPageView}, x:DataType=pageModels:MyVideosPageModel}"
+            Command="{Binding AppearingCommand}">
+        </toolkit:EventToCommandBehavior>   
+    </ContentPage.Behaviors>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
+            <converters:DateTimeConverter x:Key="DateTimeConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <ContentPage.Content>
+        <Grid>
+            <StackLayout Margin="10">
+
+                <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefreshCommand}">
+                    <ScrollView>
+                        <StackLayout
+                        BindableLayout.ItemsSource="{Binding Videos}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:Video">
+                                    <Border Padding="10" Margin="0,10,0,0" IsEnabled="{Binding Converted}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition></ColumnDefinition>
+                                                <ColumnDefinition></ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <VerticalStackLayout>
+                                                <Label Text="{Binding Name}" FontSize="24">
+                                                    <Label.GestureRecognizers>
+                                                        <TapGestureRecognizer
+                                                        Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
+                                                        CommandParameter="{Binding .}" />
+                                                    </Label.GestureRecognizers>
+                                                </Label>
+                                                <Label
+                                                Text="{Binding When, Converter={StaticResource DateTimeConverter}}" />
+                                                <Label Text="Nagranie nie jest gotowe."
+                                                   IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
+                                                   TextColor="{StaticResource Magenta}">
+                                                </Label>
+                                            </VerticalStackLayout>
+
+                                            <controls:EditButton Grid.Column="1"
+                                                             Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
+                                                             CommandParameter="{Binding Id}"
+                                                             HorizontalOptions="End"
+                                                             VerticalOptions="Center" />
+
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </StackLayout>
+                    </ScrollView>
+                </RefreshView>
+            </StackLayout>
+            <VerticalStackLayout HorizontalOptions="End" VerticalOptions="End">
+                <controls:AddVideoButton Command="{Binding NavigateToUploadCommand}"/>
+            </VerticalStackLayout>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

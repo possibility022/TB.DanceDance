@@ -232,6 +232,8 @@ public class VideoDataBuilder
     private string _sourceBlobId;
     private bool _converted;
     private bool _published;
+    private long _sourceBlobSize;
+    private long _convertedBlobSize;
 
     private readonly List<SharedWith> _sharedWith = new();
 
@@ -247,6 +249,8 @@ public class VideoDataBuilder
         _sourceBlobId = $"src-{Guid.NewGuid():N}";
         _converted = false;
         _published = true;
+        _sourceBlobSize = 0;
+        _convertedBlobSize = 0;
     }
 
     public VideoDataBuilder WithId(Guid id) { _id = id; return this; }
@@ -261,6 +265,8 @@ public class VideoDataBuilder
     public VideoDataBuilder WithFileName(string file) { _fileName = file; return this; }
     public VideoDataBuilder WithSourceBlobId(string src) { _sourceBlobId = src; return this; }
     public VideoDataBuilder Converted(bool value = true) { _converted = value; return this; }
+    public VideoDataBuilder WithSourceBlobSize(long size) { _sourceBlobSize = size; return this; }
+    public VideoDataBuilder WithConvertedBlobSize(long size) { _convertedBlobSize = size; return this; }
 
     public Video Build() => new Video
     {
@@ -273,7 +279,9 @@ public class VideoDataBuilder
         Duration = _duration,
         FileName = _fileName,
         SourceBlobId = _sourceBlobId,
-        Converted = _converted
+        Converted = _converted,
+        SourceBlobSize = _sourceBlobSize,
+        ConvertedBlobSize = _convertedBlobSize
     };
 
     public VideoDataBuilder ShareWithUser(string userId)
@@ -284,6 +292,18 @@ public class VideoDataBuilder
 
     public VideoDataBuilder ShareWithUser(User user) => ShareWithUser(user.Id);
     public VideoDataBuilder ShareWithUser(UserDataBuilder userBuilder) => ShareWithUser(userBuilder.UserId);
+
+    /// <summary>
+    /// Creates a private video share entry (both EventId and GroupId are null)
+    /// </summary>
+    public VideoDataBuilder ShareAsPrivate(string userId)
+    {
+        _sharedWith.Add(new SharedWith { Id = Guid.NewGuid(), VideoId = _id, UserId = userId, EventId = null, GroupId = null });
+        return this;
+    }
+
+    public VideoDataBuilder ShareAsPrivate(User user) => ShareAsPrivate(user.Id);
+    public VideoDataBuilder ShareAsPrivate(UserDataBuilder userBuilder) => ShareAsPrivate(userBuilder.UserId);
 
     public VideoDataBuilder ShareWithGroup(Group group, string userId)
     {

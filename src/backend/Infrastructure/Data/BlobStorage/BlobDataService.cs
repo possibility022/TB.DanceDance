@@ -84,4 +84,11 @@ public class BlobDataService : IBlobDataService
         var response = await container.GetBlobClient(blobId).ExistsAsync();
         return response.Value;
     }
+
+    public async Task<long> GetBlobSizeAsync(string blobId)
+    {
+        var blobClient = container.GetBlobClient(blobId);
+        var properties = await blobClient.GetPropertiesAsync();
+        return properties.Value.ContentLength;
+    }
 }

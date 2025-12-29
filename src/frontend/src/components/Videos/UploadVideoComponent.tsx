@@ -13,7 +13,7 @@ export interface IUploadVideoComponentProps {
     validateOnSending: () => boolean
     getSendingDetails: () => {
         videoName?: string
-        assignedTo: string
+        assignedTo?: string
         sharingWithType: SharingWithType
         onComplete: (success: boolean) => void
     }

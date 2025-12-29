@@ -24,5 +24,16 @@ public class Video
 
     public bool Converted { get; set; } = false;
 
+    /// <summary>
+    /// Size of the source blob in bytes. 0 if not calculated yet.
+    /// </summary>
+    public long SourceBlobSize { get; set; } = 0;
+
+    /// <summary>
+    /// Size of the converted blob in bytes. 0 if not calculated yet.
+    /// Used for storage quota enforcement for private videos.
+    /// </summary>
+    public long ConvertedBlobSize { get; set; } = 0;
+
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
 }

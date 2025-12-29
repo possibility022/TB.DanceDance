@@ -46,24 +46,24 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<ICollection<GroupWithVideosResponse>?> GetVideosFromGroups()
+    public async Task<IReadOnlyCollection<GroupWithVideosResponse>?> GetVideosFromGroups()
     {
         var response = await httpClient.GetAsync("/api/groups/videos");
         response.EnsureSuccessStatusCode();
         
-        var content = await response.Content.ReadFromJsonAsync<ICollection<GroupWithVideosResponse>>();
+        var content = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<GroupWithVideosResponse>>();
 
         return content;
     }
 
-    public async Task<ICollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId)
+    public async Task<IReadOnlyCollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId)
     {
         try
         {
             var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadFromJsonAsync<ICollection<VideoInformationResponse>>();
+            var content = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<VideoInformationResponse>>();
             if (content == null)
                 return Array.Empty<VideoInformationResponse>();
 
@@ -89,7 +89,7 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         string fileName,
         string nameOfVideo,
         SharingWithType sharingWith,
-        Guid sharedWithId,
+        Guid? sharedWithId,
         DateTime recordedTimeUtc
         )
     {
@@ -138,5 +138,17 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         var res = await httpClient.PostAsJsonAsync($"/api/events", body);
 
         res.EnsureSuccessStatusCode();
+    }
+
+    public async Task<IReadOnlyCollection<VideoInformationResponse>> GetMyVideos()
+    {
+        var response = await httpClient.GetAsync("/api/videos/my", CancellationToken.None);
+        response.EnsureSuccessStatusCode();
+
+        var videos = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<VideoInformationResponse>>();
+        if (videos == null)
+            videos = Array.Empty<VideoInformationResponse>();
+
+        return videos;
     }
 }
