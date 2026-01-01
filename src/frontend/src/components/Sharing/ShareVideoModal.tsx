@@ -1,5 +1,5 @@
 ﻿import React, {useEffect, useState} from 'react';
-import axios, {AxiosResponse} from 'axios';
+import axios from 'axios';
 import VideoInformation from "../../types/ApiModels/VideoInformation";
 import sharingService from "../../services/SharingService";
 import SharedLinkResponse from "../../types/ApiModels/Sharing/SharedLinkResponse";
@@ -13,7 +13,7 @@ interface ShareVideoModalProps {
 
 function ShareVideoModal(props: ShareVideoModalProps) {
 
-    const [errorMessage, setErrorMessage] = useState('')
+    const [errorMessage, setErrorMessage] = useState<string>()
     const [isSharingInProgress, setIsSharingInProgress] = useState(false)
     const [sharedLink, setSharedLink] = useState<SharedLinkResponse | null>(null)
     const abortControllerRef = React.useRef<AbortController | null>(null)
@@ -26,6 +26,9 @@ function ShareVideoModal(props: ShareVideoModalProps) {
 
     function generateLink() {
         if (!props.videoInfo)
+            return
+
+        if (isSharingInProgress)
             return
 
         setIsSharingInProgress(true)
@@ -41,12 +44,18 @@ function ShareVideoModal(props: ShareVideoModalProps) {
                 if (error.name === 'CanceledError' || error.name === 'AbortError' || axios.isCancel?.(error)) {
                     return
                 }
-                setErrorMessage('Some error occurred')
+                setErrorMessage('Coś poszło nie tak. Spróbuj ponownie.')
                 console.error(error)
             })
             .finally(() => {
                 setIsSharingInProgress(false)
             })
+    }
+
+    function buttonClasses() {
+        if (isSharingInProgress)
+            return 'button is-primary is-loading'
+        else return 'button is-primary'
     }
 
     function renderContent(){
@@ -64,8 +73,9 @@ function ShareVideoModal(props: ShareVideoModalProps) {
                 Utworzony link pozwoli wyświetlić wybrane nagranie każdej osobie, która go posiada. Wygenerowany link będzie działał przez 7 dni.
                 Najlepiej udostępniać link tylko osobom, którym chcesz udostępnić nagranie.
             </p>
+                <p className="has-text-danger">{errorMessage}</p>
             <div className="buttons">
-                <button className="button is-primary" onClick={generateLink}>
+                <button className={buttonClasses()} onClick={generateLink}>
                     Udostępnij
                 </button>
                 <button className="button is-light" onClick={handleCancel}>
