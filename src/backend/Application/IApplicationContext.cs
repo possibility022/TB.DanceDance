@@ -15,6 +15,7 @@ public interface IApplicationContext
     DbSet<AssignedToGroup> AssingedToGroups { get; }
     DbSet<AssignedToEvent> AssingedToEvents { get; }
     DbSet<User> Users { get; }
+    DbSet<SharedLink> SharedLinks { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

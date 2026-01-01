@@ -16,7 +16,8 @@ public static class DependencyInjection
                 .AddScoped<IVideoService, VideoService>()
                 .AddScoped<IEventService, EventService>()
                 .AddScoped<IGroupService, GroupService>()
-                .AddScoped<IVideoUploaderService, VideoUploaderService>();
+                .AddScoped<IVideoUploaderService, VideoUploaderService>()
+                .AddScoped<ISharedLinkService, SharedLinkService>();
 
             return services;
         }
