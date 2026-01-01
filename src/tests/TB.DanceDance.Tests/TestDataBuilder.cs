@@ -323,3 +323,95 @@ public class VideoDataBuilder
 
     public IReadOnlyList<SharedWith> BuildShares() => _sharedWith.ToList();
 }
+
+public class SharedLinkDataBuilder
+{
+    private string _id;
+    private Guid _videoId;
+    private string _sharedBy;
+    private DateTimeOffset _createdAt;
+    private DateTimeOffset _expireAt;
+    private bool _isRevoked;
+
+    public SharedLinkDataBuilder()
+    {
+        _id = TestDataBuilder.RandomName("link").Substring(0, 8); // 8-char placeholder
+        _videoId = Guid.NewGuid();
+        _sharedBy = TestDataBuilder.RandomUserId();
+        _createdAt = DateTimeOffset.UtcNow;
+        _expireAt = DateTimeOffset.UtcNow.AddDays(7);
+        _isRevoked = false;
+    }
+
+    public SharedLinkDataBuilder WithId(string id)
+    {
+        _id = id;
+        return this;
+    }
+
+    public SharedLinkDataBuilder ForVideo(Guid videoId)
+    {
+        _videoId = videoId;
+        return this;
+    }
+
+    public SharedLinkDataBuilder ForVideo(Video video)
+    {
+        _videoId = video.Id;
+        return this;
+    }
+
+    public SharedLinkDataBuilder SharedBy(string userId)
+    {
+        _sharedBy = userId;
+        return this;
+    }
+
+    public SharedLinkDataBuilder SharedBy(User user)
+    {
+        _sharedBy = user.Id;
+        return this;
+    }
+
+    public SharedLinkDataBuilder SharedBy(UserDataBuilder userBuilder)
+    {
+        _sharedBy = userBuilder.UserId;
+        return this;
+    }
+
+    public SharedLinkDataBuilder CreatedAt(DateTimeOffset createdAt)
+    {
+        _createdAt = createdAt;
+        return this;
+    }
+
+    public SharedLinkDataBuilder ExpiresInDays(int days)
+    {
+        _expireAt = _createdAt.AddDays(days);
+        return this;
+    }
+
+    public SharedLinkDataBuilder ExpiresAt(DateTimeOffset expireAt)
+    {
+        _expireAt = expireAt;
+        return this;
+    }
+
+    public SharedLinkDataBuilder Revoked(bool isRevoked = true)
+    {
+        _isRevoked = isRevoked;
+        return this;
+    }
+
+    public string LinkId => _id;
+
+    public SharedLink Build() => new SharedLink
+    {
+        Id = _id,
+        VideoId = _videoId,
+        SharedBy = _sharedBy,
+        CreatedAt = _createdAt,
+        ExpireAt = _expireAt,
+        IsRevoked = _isRevoked
+    };
+}
