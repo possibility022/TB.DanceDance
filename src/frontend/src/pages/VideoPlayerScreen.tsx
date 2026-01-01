@@ -9,6 +9,7 @@ import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { SharedScope } from '../types/appTypes';
 import { VideoList } from '../components/Videos/VideoList';
 import {BlobId} from "../types/ApiModels/TypeIds";
+import VideoPlayerComponent from "../components/Videos/VideoPlayerComponent";
 
 
 
@@ -121,16 +122,7 @@ export function VideoPlayerScreen() {
                 </h4>
             </div>
 
-            <ReactPlayer
-                width='100%'
-                height='100%'
-                controls={true}
-                config={{ file: { attributes: { controlsList: 'nodownload' } } }}
-                onContextMenu={(e: Event) => e.preventDefault()}
-
-                url={url} />
-
-            <VideoList videos={videoList} sharedScope={sharedScope} selectedVideo={params.videoId as BlobId}></VideoList>
+            <VideoPlayerComponent videoId={params.videoId} sharedScope={sharedScope} videoList={videoList} url={url}/>
         </div>
     )
 

@@ -10,6 +10,7 @@ import SharingWithType from "../types/ApiModels/SharingWithType";
 function PrivateVideos() {
 
     const [videos, setVideos] = useState<VideoInformation[]>([])
+
     const uploadModalRef = useRef<HTMLDivElement>(null)
     const closeUploadModal = () => {
         uploadModalRef.current?.classList.remove('is-active')
@@ -43,12 +44,13 @@ function PrivateVideos() {
                 <h1>Prywatna biblioteka</h1>
                 <p>
                     To jest miejsce na Twoje osobiste nagrania, do których dostęp będziesz mieć tylko Ty.
-                    Jest to dobre miejsce na przechowanie filmów z np. z Twojego udziału w konkursach lub własnych treningów.
+                    Jest to dobre miejsce na przechowanie filmów z np. z Twojego udziału w konkursach lub własnych
+                    treningów.
                 </p>
 
                 <h2>Lista prywatnych nagrań</h2>
 
-                <VideoList videos={videos}></VideoList>
+                <VideoList videos={videos} enableShare={true}></VideoList>
             </div>
 
             <div className="modal" ref={uploadModalRef}>

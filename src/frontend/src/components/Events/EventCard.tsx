@@ -66,9 +66,11 @@ export function EventCard(props: IEventCardProps) {
             </header>
             <div className="card-content" hidden={contentIsHidden}>
                 {progressBar()}
-                <VideoList videos={videos} sharedScope={{
+                <VideoList videos={videos}
+                           enableShare={false}
+                           sharedScope={{
                     groupId: null,
-                    eventId: props.event.id
+                    eventId: props.event.id,
                 }}/>
             </div>
             <div hidden={contentIsHidden}>

@@ -87,7 +87,9 @@ export function VideoScreen() {
                 onClick={() => void navigate('/videos/upload')}>
                 Wyslij Nagranie
             </Button>
-            <VideoList videos={videos} sharedScope={{
+            <VideoList videos={videos}
+                       enableShare={false}
+                       sharedScope={{
                 eventId: null,
                 groupId: activeGroup
             }}/>
