@@ -219,7 +219,7 @@ $$
             VALUES (DEFAULT, 'tbdancedanceapi.convert', newRecordId);
 
             INSERT INTO "IdpServer.Config"."ClientGrantTypes" ("Id", "GrantType", "ClientId")
-            VALUES (DEFAULT, 'client_credentials', 2);
+            VALUES (DEFAULT, 'client_credentials', newRecordId);
         ELSE
             RAISE NOTICE 'Found client id tbdancedancefront. Skipping initialization.';
         END IF;
@@ -281,6 +281,66 @@ $$
             VALUES (DEFAULT, 'profile', newRecordId);
         ELSE
             RAISE NOTICE 'Found client id tbdancedanceandroidapp. Skipping initialization.';
+        END IF;
+    END
+$$;
+
+
+-- INSERT CLIENT FOR tbdancedancehttpclient
+DO
+$$
+    DECLARE
+        newRecordId INT;
+    BEGIN
+        IF
+            NOT EXISTS (SELECT 1 FROM "IdpServer.Config"."Clients" WHERE "ClientId" = 'tbdancedancehttpclient') THEN
+            RAISE NOTICE 'Inserting tbdancedancehttpclient client.';
+            INSERT INTO "IdpServer.Config"."Clients" ("Id", "Enabled", "ClientId", "ProtocolType",
+                                                      "RequireClientSecret",
+                                                      "ClientName", "Description", "ClientUri", "LogoUri",
+                                                      "RequireConsent",
+                                                      "AllowRememberConsent", "AlwaysIncludeUserClaimsInIdToken",
+                                                      "RequirePkce",
+                                                      "AllowPlainTextPkce", "RequireRequestObject",
+                                                      "AllowAccessTokensViaBrowser",
+                                                      "FrontChannelLogoutUri", "FrontChannelLogoutSessionRequired",
+                                                      "BackChannelLogoutUri", "BackChannelLogoutSessionRequired",
+                                                      "AllowOfflineAccess", "IdentityTokenLifetime",
+                                                      "AllowedIdentityTokenSigningAlgorithms", "AccessTokenLifetime",
+                                                      "AuthorizationCodeLifetime", "ConsentLifetime",
+                                                      "AbsoluteRefreshTokenLifetime", "SlidingRefreshTokenLifetime",
+                                                      "RefreshTokenUsage", "UpdateAccessTokenClaimsOnRefresh",
+                                                      "RefreshTokenExpiration", "AccessTokenType", "EnableLocalLogin",
+                                                      "IncludeJwtId", "AlwaysSendClientClaims", "ClientClaimsPrefix",
+                                                      "PairWiseSubjectSalt", "Created", "Updated", "LastAccessed",
+                                                      "UserSsoLifetime", "UserCodeType", "DeviceCodeLifetime",
+                                                      "NonEditable")
+            VALUES (DEFAULT, true, 'tbdancedancehttpclient', 'oidc', true, 'Converter Service', null, null, null, false,
+                    true,
+                    false, true,
+                    false, false, false, null, true, null, true, false, 300, null, 3600, 300, null, 2592000, 1296000, 1,
+                    false, 1,
+                    0, true, true, false, 'client_', null, '2023-06-18 19:57:12.504811 +00:00', null, null, null, null,
+                    300, false)
+            RETURNING "Id" into newRecordId;
+
+            INSERT INTO "IdpServer.Config"."ClientSecrets" ("Id", "ClientId", "Description", "Value", "Expiration",
+                                                            "Type",
+                                                            "Created")
+            VALUES (DEFAULT, newRecordId, null, '4Vw/t6S10MOhxfx2mqQ995AVeyiUnyU1hWmX8Gn0Xxw=', null, 'SharedSecret',
+                    '2023-06-17 22:55:39.655054 +00:00');
+
+            INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
+            VALUES (DEFAULT, 'tbdancedanceapi.read', newRecordId);
+            INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
+            VALUES (DEFAULT, 'openid', newRecordId);
+            INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
+            VALUES (DEFAULT, 'profile', newRecordId);
+
+            INSERT INTO "IdpServer.Config"."ClientGrantTypes" ("Id", "GrantType", "ClientId")
+            VALUES (DEFAULT, 'password', newRecordId);
+        ELSE
+            RAISE NOTICE 'Found client id tbdancedancehttpclient. Skipping initialization.';
         END IF;
     END
 $$;

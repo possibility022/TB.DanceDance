@@ -10,6 +10,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR "/src"
 COPY ["src/backend/Application", "Application/"]
 COPY ["src/backend/Domain", "Domain/"]
+COPY ["src/backend/TB.DanceDance.API.Contracts", "TB.DanceDance.API.Contracts/"]
 COPY ["src/backend/Infrastructure", "Infrastructure/"]
 
 WORKDIR "/src/Infrastructure"
