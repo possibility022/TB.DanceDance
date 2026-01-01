@@ -54,6 +54,17 @@ public static class ApiEndpoints
         public const string GetPublishSas = $"{Base}/videos/{{videoId}}/sas";
     }
 
+    public static class Share
+    {
+        private const string Base = $"{ApiBase}/share";
+
+        public const string Create = $"{ApiBase}/videos/{{videoId:guid}}/share";
+        public const string Revoke = $"{Base}/{{linkId}}";
+        public const string GetMy = $"{Base}/my";
+        public const string GetInfo = $"{Base}/{{linkId}}";
+        public const string GetStream = $"{Base}/{{linkId}}/stream";
+    }
+
     public static class Info
     {
         public const string AllEndpoints = "/.endpoints";

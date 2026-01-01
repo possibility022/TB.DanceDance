@@ -1,0 +1,43 @@
+﻿###
+POST https://localhost:7068/connect/token
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+Authorization: Basic dGJkYW5jZWRhbmNlaHR0cGNsaWVudDpzZWNyZXRmb3Jsb2NhbGh0dHBjbGllbnQ=
+
+grant_type=password&username=testemail@email.com&password=1234&scope=openid profile tbdancedanceapi.read
+
+> {% client.global.set("token", response.body.access_token); %}
+
+###
+@groupId = 7c30e3cc-e6d8-4cf7-8b64-eba68efa5366
+GET https://localhost:7068/api/groups/{{groupId}}/videos
+Authorization: Bearer {{token}}
+
+
+###
+@videoId = c4029eb1-23ad-417b-9a3b-1b2ad4751c0b
+POST https://localhost:7068/api/videos/{{videoId}}/share
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+"ExpirationDays": "7"
+}
+
+###
+GET https://localhost:7068/api/share/my
+Authorization: Bearer {{token}}
+
+
+###
+@shareLinkId = 34UEWTMW
+GET https://localhost:7068/api/share/{{shareLinkId}}
+
+
+###
+@shareLinkIdToDelete = eu8r4B0K
+DELETE https://localhost:7068/api/share/{{shareLinkIdToDelete}}
+Authorization: Bearer {{token}}
+
+###
+GET https://localhost:7068/api/share/{{shareLinkId}}/stream

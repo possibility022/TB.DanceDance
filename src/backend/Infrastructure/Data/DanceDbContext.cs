@@ -28,6 +28,7 @@ public class DanceDbContext : DbContext, IApplicationContext
     public DbSet<Event> Events { get; set; }
     public DbSet<AssignedToGroup> AssingedToGroups { get; set; }
     public DbSet<AssignedToEvent> AssingedToEvents { get; set; }
+    public DbSet<SharedLink> SharedLinks { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -107,6 +108,25 @@ public class DanceDbContext : DbContext, IApplicationContext
 
         modelBuilder.Entity<User>()
             .ToTable("Users", Schemas.Access);
+
+        modelBuilder.Entity<SharedLink>()
+            .ToTable("SharedLinks", Schemas.Access);
+        
+        modelBuilder.Entity<SharedLink>()
+            .HasOne<Video>(e => e.Video)
+            .WithMany()
+            .HasForeignKey(r => r.VideoId)
+            .IsRequired();
+        
+        modelBuilder.Entity<SharedLink>()
+            .HasOne<User>(e => e.SharedByUser)
+            .WithMany()
+            .HasForeignKey(r => r.SharedBy)
+            .IsRequired();
+        
+        modelBuilder.Entity<SharedLink>()
+            .HasIndex(r => r.Id)
+            .IsUnique();
 
         base.OnModelCreating(modelBuilder);
     }
