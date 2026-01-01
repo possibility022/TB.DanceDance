@@ -36,7 +36,7 @@ function ShareVideoModal(props: ShareVideoModalProps) {
         abortControllerRef.current = new AbortController()
 
         sharingService.shareVideo(props.videoInfo.id, undefined, abortControllerRef.current.signal)
-            .then(handleGenerateLink)
+            .then((res) => setSharedLink(res.data))
             .catch(error => {
                 if (error.name === 'CanceledError' || error.name === 'AbortError' || axios.isCancel?.(error)) {
                     return
@@ -47,10 +47,6 @@ function ShareVideoModal(props: ShareVideoModalProps) {
             .finally(() => {
                 setIsSharingInProgress(false)
             })
-    }
-
-    function handleGenerateLink(res: AxiosResponse<SharedLinkResponse>) {
-        setSharedLink(res.data)
     }
 
     function renderContent(){

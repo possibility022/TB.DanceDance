@@ -19,6 +19,7 @@ import { CookieModal } from "./components/CookieModal"
 import { CookiesProvider } from "react-cookie"
 import { AdministrateAccessRequestsScreen } from "./pages/AdministrateAccessRequestsScreen"
 import PrivateVideos from "./pages/PrivateVideos";
+import SharedLinkScreen from "./pages/SharedLinkScreen";
 
 function App() {
 
@@ -30,8 +31,8 @@ function App() {
 					<BrowserRouter>
 						<NavigationBar></NavigationBar>
 						<Routes>
-							<Route path="/" element={<Home />}>
-							</Route>
+							<Route path="/" element={<Home />}/>
+							<Route path="shared/:linkId" element={<SharedLinkScreen />}/>
 							<Route path="videos/" element={<PrivateRoute element={<VideoScreen></VideoScreen>} />}>
 							</Route>
 							<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
