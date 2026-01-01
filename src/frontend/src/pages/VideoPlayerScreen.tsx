@@ -130,7 +130,10 @@ export function VideoPlayerScreen() {
 
                 url={url} />
 
-            <VideoList videos={videoList} sharedScope={sharedScope} selectedVideo={params.videoId as BlobId}></VideoList>
+            <VideoList videos={videoList}
+                       sharedScope={sharedScope}
+                       enableShare={false}
+                       selectedVideo={params.videoId as BlobId}></VideoList>
         </div>
     )
 
