@@ -253,7 +253,7 @@ const Home = () => {
                     <div className="columns is-multiline">
                         <div className="column is-4">
                             <div className="box has-text-centered" style={{ height: '100%' }}>
-                                <span style={{ fontSize: '4rem' }}>📹</span>
+                                <span className="is-size-1">📹</span>
                                 <h2 className="title is-4 mt-3">Zajęcia grupowe</h2>
                                 <p>Dostęp do nagrań z twoich zajęć tanecznych. Przeglądaj materiały z kolejnych sesji treningowych.</p>
                             </div>
@@ -261,7 +261,7 @@ const Home = () => {
 
                         <div className="column is-4">
                             <div className="box has-text-centered" style={{ height: '100%' }}>
-                                <span style={{ fontSize: '4rem' }}>🎉</span>
+                                <span className="is-size-1">🎉</span>
                                 <h2 className="title is-4 mt-3">Wydarzenia</h2>
                                 <p>Nagrania z eventów tanecznych, warsztatów i pokazów. Wspomnienia z ważnych wydarzeń.</p>
                             </div>
@@ -269,7 +269,7 @@ const Home = () => {
 
                         <div className="column is-4">
                             <div className="box has-text-centered" style={{ height: '100%' }}>
-                                <span style={{ fontSize: '4rem' }}>🔒</span>
+                                <span className="is-size-1">🔒</span>
                                 <h2 className="title is-4 mt-3">Prywatne archiwum</h2>
                                 <p>Bezpieczne przechowywanie nagrań konkursowych i prywatnych treningów z możliwością dzielenia się linkami.</p>
                             </div>
