@@ -23,7 +23,7 @@ const LoginButton = (props: ILoginButtonProps) => {
 				.finally(() => {
 					buttonRef.current?.classList.remove('is-loading')
 				})
-		}}>Log In</button>
+		}}>Log In / Register</button>
 	)
 }
 

@@ -1,27 +1,15 @@
 import React, { useState } from "react"
 import { Link } from "react-router-dom"
-import { authService } from "../providers/AuthProvider";
-import appClient from "../services/AppClient";
-import { Button } from "./Button";
 import { LoginLogout } from "./LoginLogoutComponents/LoginLogout"
 import ConfigProvider from "../services/ConfigProvider";
 
 export function NavigationBar() {
-
-    const [registrationIsWaiting, setRegistrationIsWaiting] = useState(false)
 
     const onMenuClick = () => {
         const element = document.getElementById('navbarBasicExample');
         const burgetButton = document.getElementById('navbar-burger-button');
         element?.classList.toggle('is-active')
         burgetButton?.classList.toggle('is-active')
-    }
-
-    const registerAction = async () => {
-        setRegistrationIsWaiting(true)
-        await appClient.warmupRequest()
-        setRegistrationIsWaiting(false)
-        window.location.href = authService.getRegisterUri()
     }
 
     return (
@@ -66,15 +54,6 @@ export function NavigationBar() {
                             <a className='navbar-item is-size-7' href={ConfigProvider.getIdentityConfig().authority + '/policy/dancedanceapp'}>Polityka Prywatności</a>
                             <div className="buttons">
                                 <LoginLogout />
-                                <Button
-                                    isLoading={registrationIsWaiting}
-                                    onClick={() => {
-                                        registerAction()
-                                            .catch(e => console.error(e))
-                                            .finally(() => setRegistrationIsWaiting(false))
-                                    }}>
-                                    Register
-                                </Button>
                             </div>
                         </div>
                     </div>
