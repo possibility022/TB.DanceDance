@@ -281,11 +281,6 @@ const Home = () => {
                         <p className="subtitle is-5 mb-5">Zaloguj się aby uzyskać dostęp do nagrań swojej grupy</p>
                         <div className="buttons is-centered">
                             <LoginButton signinRedirect={() => authContext.signinRedirect()} />
-                            <Button onClick={() => {
-                                navigate('/videos/requestassignment')
-                            }}>
-                                Register
-                            </Button>
                         </div>
                     </div>
                 </section>
