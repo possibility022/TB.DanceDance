@@ -31,16 +31,9 @@ export function NavigationBar() {
 
                 <div id="navbarBasicExample" className="navbar-menu">
                     <div className="navbar-start">
-                        <Link className='navbar-item' to="events">Wydarzenia</Link>
-                        <div className="navbar-item has-dropdown is-hoverable">
-                            <Link className='navbar-item' to="videos">Nagrania</Link>
-                            <div className="navbar-dropdown">
-                                <Link className='navbar-item' to="videos">Nagrania</Link>
-                                <Link className='navbar-item' to="videos/my">Prywatne Nagrania</Link>
-                                <Link className='navbar-item' to="videos/requestassignment">Uzyskaj Dostęp</Link>
-                                <Link className='navbar-item' to="videos/upload">Wyślij Nagranie</Link>
-                            </div>
-                        </div>
+                        <Link className='navbar-item' to="events">Nagrania z Wydarzeń</Link>
+                        <Link className='navbar-item' to="videos">Nagrania z Zajęć Regularnych</Link>
+                        <Link className='navbar-item' to="videos/my">Prywatne Nagrania</Link>
                     </div>
 
                     <div className="navbar-end">
@@ -48,8 +41,15 @@ export function NavigationBar() {
                             <Link className='navbar-item is-size-7' to="videos">Administracja Dostępem</Link>
                             <div className="navbar-dropdown">
                                 <Link className='navbar-item' to="access/requestedaccesses">Zarządzanie Przypisaniem Grup i Dostępem do Wydarzeń</Link>
+                                <Link className='navbar-item' to="videos/requestassignment">Uzyskaj Dostęp</Link>
                             </div>
                         </div>
+
+                        <div className="navbar-item has-dropdown is-hoverable">
+                            <Link className='navbar-item is-size-7' to="videos/upload">Wyślij Nagranie</Link>
+                        </div>
+
+
                         <div className="navbar-item">
                             <a className='navbar-item is-size-7' href={ConfigProvider.getIdentityConfig().authority + '/policy/dancedanceapp'}>Polityka Prywatności</a>
                             <div className="buttons">
