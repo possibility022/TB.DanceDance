@@ -9,7 +9,7 @@ import { Logout } from "./components/AuthComponents/Logout"
 import { LogoutCallback } from "./components/AuthComponents/LogoutCallback"
 import { PrivateRoute } from "./components/AuthComponents/PrivateRoute"
 import { SilentRenew } from "./components/AuthComponents/SilentRenew"
-import { VideoScreen } from "./pages/VideosScreen"
+import { VideoFromRegularLessonsScreen } from "./pages/VideoFromRegularLessonsScreen"
 import { VideoPlayerScreen } from "./pages/VideoPlayerScreen"
 import { UploadVideo } from "./pages/UploadVideo"
 import { AuthContext, authService } from "./providers/AuthProvider"
@@ -18,7 +18,7 @@ import EventsScreen from "./pages/EventsScreen"
 import { CookieModal } from "./components/CookieModal"
 import { CookiesProvider } from "react-cookie"
 import { AdministrateAccessRequestsScreen } from "./pages/AdministrateAccessRequestsScreen"
-import PrivateVideos from "./pages/PrivateVideos";
+import PrivateVideosScreen from "./pages/PrivateVideosScreen";
 import SharedLinkScreen from "./pages/SharedLinkScreen";
 
 function App() {
@@ -33,11 +33,11 @@ function App() {
 						<Routes>
 							<Route path="/" element={<Home />}/>
 							<Route path="shared/:linkId" element={<SharedLinkScreen />}/>
-							<Route path="videos/" element={<PrivateRoute element={<VideoScreen></VideoScreen>} />}>
+							<Route path="videos/" element={<PrivateRoute element={<VideoFromRegularLessonsScreen></VideoFromRegularLessonsScreen>} />}>
 							</Route>
 							<Route path="videos/:videoId" element={<PrivateRoute element={<VideoPlayerScreen></VideoPlayerScreen>} />} />
 							<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
-							<Route path="videos/my" element={<PrivateRoute element={<PrivateVideos></PrivateVideos>} />} />
+							<Route path="videos/my" element={<PrivateRoute element={<PrivateVideosScreen></PrivateVideosScreen>} />} />
 							<Route path="callback" element={<Callback />} />
 							<Route path="/videos/requestassignment" element={<PrivateRoute element={<RequestAssignmentScreen></RequestAssignmentScreen>} />} />
 							<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />

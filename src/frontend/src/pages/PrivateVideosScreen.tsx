@@ -7,7 +7,7 @@ import {UploadVideoModal} from "../components/Videos/UploadVideoModal";
 import SharingWithType from "../types/ApiModels/SharingWithType";
 
 
-function PrivateVideos() {
+function PrivateVideosScreen() {
 
     const [videos, setVideos] = useState<VideoInformation[]>([])
 
@@ -68,4 +68,4 @@ function PrivateVideos() {
     );
 }
 
-export default PrivateVideos;
+export default PrivateVideosScreen;
