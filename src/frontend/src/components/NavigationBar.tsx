@@ -28,9 +28,11 @@ export function NavigationBar() {
         <React.Fragment>
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
+                    <Link to={'/'}>
                     <h1 className="title App-logo">
                         Dance Dance
                     </h1>
+                    </Link>
 
                     <a role="button" id='navbar-burger-button' className="navbar-burger" aria-label="menu" aria-expanded="false" onClick={onMenuClick} data-target="navbarBasicExample">
                         <span aria-hidden="true"></span>
