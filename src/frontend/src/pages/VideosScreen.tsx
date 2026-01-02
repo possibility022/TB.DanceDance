@@ -77,7 +77,7 @@ export function VideoScreen() {
 
 
     return (
-        <Fragment>
+        <div className='container mt-6'>
             <div className="tabs">
                 <ul>
                     {renderedList}
@@ -96,6 +96,6 @@ export function VideoScreen() {
 
             {loadingBar()}
             {askForVideos()}
-        </Fragment>)
+        </div>)
 
 }

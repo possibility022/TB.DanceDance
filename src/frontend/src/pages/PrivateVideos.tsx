@@ -27,7 +27,7 @@ function PrivateVideos() {
     }
 
     return (
-        <div className='container is-max-desktop'>
+        <div className='container mt-6'>
             <nav className="level">
                 <div className="level-left">
                     <div className="level-item">
