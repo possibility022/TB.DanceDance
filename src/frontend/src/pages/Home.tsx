@@ -174,6 +174,9 @@ const Home = () => {
                                                 Ostatnie: {formatDateToPlDate(getLatestPrivateVideoDate(privateVideos)!)}
                                             </p>
                                         )}
+                                        {!getLatestPrivateVideoDate(privateVideos) && (
+                                            <p className="is-size-7">Brak prywatnych nagran</p>
+                                        )}
                                         <p className="mt-3">
                                             Twoje konkursy i prywatne treningi
                                         </p>
