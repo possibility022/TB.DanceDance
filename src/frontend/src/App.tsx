@@ -39,7 +39,7 @@ function App() {
 							<Route path="videos/upload" element={<PrivateRoute element={<UploadVideo></UploadVideo>} />} />
 							<Route path="videos/my" element={<PrivateRoute element={<PrivateVideos></PrivateVideos>} />} />
 							<Route path="callback" element={<Callback />} />
-							<Route path="/videos/requestassignment" element={<RequestAssignmentScreen />} />
+							<Route path="/videos/requestassignment" element={<PrivateRoute element={<RequestAssignmentScreen></RequestAssignmentScreen>} />} />
 							<Route path="events" element={<PrivateRoute element={<EventsScreen></EventsScreen>} />} />
 							<Route path="/access/requestedaccesses" element={<PrivateRoute element={<AdministrateAccessRequestsScreen></AdministrateAccessRequestsScreen>} />} />
 							<Route path="logout" element={<Logout></Logout>} />
