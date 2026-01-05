@@ -115,7 +115,7 @@ public class ShareController : Controller
         return Ok(response);
     }
 
-    private string ResolveLinkUrl(string linkId) => $"{this.appOptions.Value.AppWebsiteOrigin}/share/{linkId}";
+    private string ResolveLinkUrl(string linkId) => $"{this.appOptions.Value.AppWebsiteOrigin}/shared/{linkId}";
 
     /// <summary>
     /// Gets video information by shared link ID. Anonymous access allowed.
