@@ -57,7 +57,7 @@ DB_EXISTS=$(psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -t
 #DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $DB_NAME | wc -l)
 
 # Create the database if it doesn't exist
-if [ $DB_EXISTS -eq 0 ]; then
+if [ "$DB_EXISTS" = "f" ]; then
   echo "Database $DB_NAME does not exist. Creating..."
   createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME
 else
@@ -69,7 +69,7 @@ DB_EXISTS=$(psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -t
 #DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $IDENT_DBNAME | wc -l)
 
 # Create the database if it doesn't exist
-if [ $DB_EXISTS -eq 0 ]; then
+if [ "$DB_EXISTS" = "f" ]; then
   echo "Database $IDENT_DBNAME does not exist. Creating..."
   createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $IDENT_DBNAME
 else
