@@ -77,11 +77,17 @@ public partial class MyVideosPageModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ShareVideo()
+    private async Task ShareVideo(Guid videoId)
     {
-        var res = await popupService.ShowPopupAsync<SharingPopupViewModel>(Shell.Current.CurrentPage);
-        //bool answer = DisplayPropmptAsync
-        //Debug.WriteLine("Answer: " + answer);
+
+        var video = Videos.First(r => r.Id == videoId);
+
+        Dictionary<string, object> queryParams = new() {
+            {SharingPopupViewModel.QueryAttribute_VideoId, videoId },
+            {SharingPopupViewModel.QueryAttribute_VideoName, video.Name },
+        };
+
+        var res = await popupService.ShowPopupAsync<SharingPopupViewModel>(Shell.Current, options: PopupOptions.Empty, shellParameters: queryParams);
     }
 
     [RelayCommand]
