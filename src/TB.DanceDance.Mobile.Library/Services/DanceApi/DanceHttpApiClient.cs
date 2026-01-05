@@ -159,7 +159,7 @@ public class DanceHttpApiClient : IDanceHttpApiClient
             ExpirationDays = 7
         };
 
-        var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/share", request);
+        var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/share", request, token);
 
         response.EnsureSuccessStatusCode();
         var responseContent = await response.Content.ReadFromJsonAsync<SharedLinkResponse>(token);

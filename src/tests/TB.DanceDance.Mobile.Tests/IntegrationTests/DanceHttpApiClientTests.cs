@@ -17,6 +17,7 @@ public class DanceHttpApiClientTests : IDisposable
     private readonly DanceHttpApiClient client;
     private readonly ITokenProviderService tokenProvider;
     private readonly ITokenProviderService secondaryTokenProvider;
+    private readonly JsonSerializerOptions serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     private class TestHttpClientFactory : IHttpClientFactory
     {
@@ -247,6 +248,94 @@ public class DanceHttpApiClientTests : IDisposable
         Assert.StartsWith(server.Url, uri.ToString());
         Assert.Contains($"/api/videos/{blobId}/stream", uri.AbsolutePath);
         Assert.Contains("token=tok123", uri.Query);
+    }
+    
+    [Fact]
+    public async Task GetMyVideos_Returns()
+    {
+        VideoInformationResponse[] payload = new[] { new VideoInformationResponse()
+        {
+            BlobId =  Guid.NewGuid().ToString(),
+            Converted = false,
+            Duration = TimeSpan.FromHours(1),
+            Id =  Guid.NewGuid(),
+            Name = "Some Name",
+            RecordedDateTime =  DateTime.UtcNow,
+        } };
+        
+        server.Given(Request.Create().WithPath("/api/videos/my").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
+                .WithBody(JsonSerializer.Serialize(payload)));
+
+        var res = await client.GetMyVideos();
+        
+        Assert.NotNull(res);
+        Assert.Equal(payload[0].BlobId, res.First().BlobId);
+        Assert.Equal(payload[0].Converted, res.First().Converted);
+        Assert.Equal(payload[0].Duration, res.First().Duration);
+        Assert.Equal(payload[0].Id, res.First().Id);
+        Assert.Equal(payload[0].RecordedDateTime, res.First().RecordedDateTime);
+    }
+    
+    [Fact]
+    public async Task GetSharingLinkAsync_PostsAndReturns()
+    {
+        CreateSharedLinkRequest requestPayload = new() { ExpirationDays = 7 };
+        SharedLinkResponse responsePayload = new SharedLinkResponse()
+        {
+            CreatedAt = DateTimeOffset.UtcNow,
+            ExpireAt = DateTimeOffset.UtcNow.AddHours(1),
+            IsRevoked = false,
+            LinkId = Guid.NewGuid().ToString(),
+            ShareUrl = "https://example.com/share",
+            VideoId = Guid.NewGuid(),
+            VideoName = Guid.NewGuid().ToString(),
+        };
+        
+        var videoId = Guid.NewGuid();
+        
+        server.Given(
+                Request
+                    .Create()
+                    .WithPath($"/api/videos/{videoId}/share")
+                    .UsingPost()
+                    .WithBodyAsJson(JsonSerializer.Serialize(requestPayload, serializerOptions)))
+            .RespondWith(
+                Response.Create()
+                    .WithStatusCode(200)
+                    .WithHeader("Content-Type", "application/json")
+                .WithBody(JsonSerializer.Serialize(responsePayload)));
+
+        var res = await client.GetSharingLinkAsync(videoId, TestContext.Current.CancellationToken);
+        
+        Assert.NotNull(res);
+        Assert.Equal(responsePayload.CreatedAt, res.CreatedAt);
+        Assert.Equal(responsePayload.ExpireAt, res.ExpireAt);
+        Assert.Equal(responsePayload.IsRevoked, res.IsRevoked);
+        Assert.Equal(responsePayload.LinkId, res.LinkId);
+        Assert.Equal(responsePayload.ShareUrl, res.ShareUrl);
+        Assert.Equal(responsePayload.VideoId, res.VideoId);
+        Assert.Equal(responsePayload.VideoName, res.VideoName);
+    }
+    
+    [Fact]
+    public async Task RevokeSharingLinkAsync_Deletes()
+    {
+        var linkId = Guid.NewGuid();
+        
+        server.Given(
+                Request
+                    .Create()
+                    .WithPath("/api/share/" + linkId)
+                    .UsingDelete())
+            .RespondWith(
+                Response.Create()
+                    .WithStatusCode(200)
+                );
+
+        await client.RevokeShareLinkAsync(linkId.ToString(), TestContext.Current.CancellationToken);
+        
+        // No assertion. If not 200, should throw
     }
 
     public void Dispose()
