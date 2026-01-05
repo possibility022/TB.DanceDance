@@ -7,6 +7,13 @@ echo "📅 Current Date & Time: $(date)"
 echo "🖥️ Hostname: $(hostname)"
 echo "================================="
 
+# Fail on error, undefined var or pipe failure
+set -euo pipefail
+
+# Trap to print a friendly message on error
+# trap 'rc=$?; echo "ERROR: command \"${BASH_COMMAND:-}\" failed with exit code $rc." >&2; exit $rc' ERR
+
+
 # Environment variables for PostgreSQL connection
 DB_HOST=${DB_HOST:-"host.docker.internal"}
 DB_PORT=${DB_PORT:-"5432"}
@@ -46,10 +53,11 @@ fi
 echo "Running further database operations..."
 
 # Check if the database exists
-DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $DB_NAME | wc -l)
+DB_EXISTS=$(psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -tAc "SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '$DB_NAME');")
+#DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $DB_NAME | wc -l)
 
 # Create the database if it doesn't exist
-if [ $DB_EXISTS -eq 0 ]; then
+if [ "$DB_EXISTS" = "f" ]; then
   echo "Database $DB_NAME does not exist. Creating..."
   createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $DB_NAME
 else
@@ -57,10 +65,11 @@ else
 fi
 
 # Check if the IDENT DB exists
-DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $IDENT_DBNAME | wc -l)
+DB_EXISTS=$(psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -tAc "SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '$IDENT_DBNAME');")
+#DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $IDENT_DBNAME | wc -l)
 
 # Create the database if it doesn't exist
-if [ $DB_EXISTS -eq 0 ]; then
+if [ "$DB_EXISTS" = "f" ]; then
   echo "Database $IDENT_DBNAME does not exist. Creating..."
   createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $IDENT_DBNAME
 else
@@ -68,15 +77,15 @@ else
 fi
 
 echo "Executing migration scripts."
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "persistedGrant-migrations.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "configuration-migrations.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identityStore-migrations.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "danceDb-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "persistedGrant-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "configuration-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identityStore-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "danceDb-migrations.sql"
 
 echo "Executing seed scripts."
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identity-data-seed.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "oauth-data-seed.sql"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "dance-data-seed.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identity-data-seed.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "oauth-data-seed.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "dance-data-seed.sql"
 
 dotnet BlobSeedProgram.dll
 

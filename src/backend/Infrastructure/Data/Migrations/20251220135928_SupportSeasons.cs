@@ -79,27 +79,6 @@ namespace Infrastructure.Data.Migrations
                                        ) subquery
                                   ORDER BY old_group_id, season_year;
 
-                                  -- DEBUG: Show what season groups will be created
-                                  SELECT
-                                      old_group_name as "Original Group",
-                                      season_year || '/' || (season_year + 1) as "Season",
-                                      season_start as "Season Start",
-                                      season_end as "Season End",
-                                      old_group_name || ' - Season ' || season_year || '/' || (season_year + 1) as "New Group Name"
-                                  FROM temp_season_groups
-                                  ORDER BY old_group_name, season_year;
-
-                                  -- DEBUG: Count of new groups per original group
-                                  SELECT
-                                      old_group_name as "Original Group",
-                                      COUNT(*) as "Number of Seasons"
-                                  FROM temp_season_groups
-                                  GROUP BY old_group_name
-                                  ORDER BY old_group_name;
-
-                                  -- DEBUG: Total count
-                                  SELECT COUNT(*) as "Total New Groups" FROM temp_season_groups;
-
                                   -- Step 3: Create new season-based groups
                                   INSERT INTO access."Groups" ("Id", "Name", "SeasonStart", "SeasonEnd")
                                   SELECT
@@ -159,16 +138,6 @@ namespace Infrastructure.Data.Migrations
                                   DELETE FROM access."GroupsAdmins" WHERE "GroupId" IN (SELECT old_group_id FROM temp_season_groups);
                                   DELETE FROM access."SharedWith" WHERE "GroupId" IN (SELECT old_group_id FROM temp_season_groups);
                                   DELETE FROM access."Groups" WHERE "Id" IN (SELECT old_group_id FROM temp_season_groups);
-
-                                  -- Final Summary
-                                  SELECT
-                                      old_group_name as "Original Group",
-                                      season_year || '/' || (season_year + 1) as "Season",
-                                      season_start as "Season Start",
-                                      season_end as "Season End",
-                                      (SELECT COUNT(*) FROM access."SharedWith" WHERE "GroupId" = new_group_id) as "Videos Assigned"
-                                  FROM temp_season_groups
-                                  ORDER BY old_group_name, season_year;
 
                                   -- Cleanup temp table when done
                                   -- DROP TABLE temp_season_groups;

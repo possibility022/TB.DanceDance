@@ -15,18 +15,20 @@ string connectionString =
 const string containerName = "videos";
 
 const string backupVideoUrl =
-    "https://file-examples.com/storage/fe3613964468fe0549ac73d/2017/04/file_example_MP4_640_3MG.mp4";
+    "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_5MB.mp4";
 
 var videos = new[]
 {
-    ("82b39019-d983-44ce-924a-f3fa2f651261", "https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"),
-    ("412fcbe4-9dcc-435c-901f-58c9d71d3972", "https://sample-videos.com/video321/mp4/480/big_buck_bunny_480p_1mb.mp4"),
-    ("fd040bc4-3d09-4b42-829f-b036a1875d53", "https://sample-videos.com/video321/mp4/240/big_buck_bunny_240p_1mb.mp4"),
-    ("abab3514-39f0-47d6-ba16-f8ec6b532db4", "https://sample-videos.com/video321/mp4/360/big_buck_bunny_360p_2mb.mp4"),
-    ("9ae02f12-e123-4548-931d-c5281b922bc5", "https://sample-videos.com/video321/mp4/480/big_buck_bunny_480p_2mb.mp4"),
-    ("f91bded0-8de3-4cfd-bd79-1f6dbe5de5e6", "https://sample-videos.com/video321/mp4/480/big_buck_bunny_480p_5mb.mp4"),
-    ("161ddf84-d0a9-488c-9f9a-948e79687fe7", "https://sample-videos.com/video321/mp4/240/big_buck_bunny_240p_2mb.mp4"),
-    ("0dda7622-cca4-4918-8aaa-30edd8d623b8", "https://sample-videos.com/video321/mp4/240/big_buck_bunny_240p_10mb.mp4")
+    "82b39019-d983-44ce-924a-f3fa2f651261",
+    "412fcbe4-9dcc-435c-901f-58c9d71d3972",
+    "fd040bc4-3d09-4b42-829f-b036a1875d53",
+    "abab3514-39f0-47d6-ba16-f8ec6b532db4",
+    "9ae02f12-e123-4548-931d-c5281b922bc5",
+    "f91bded0-8de3-4cfd-bd79-1f6dbe5de5e6",
+    "161ddf84-d0a9-488c-9f9a-948e79687fe7",
+    "0dda7622-cca4-4918-8aaa-30edd8d623b8",
+    "5C45FC7E-5697-495E-953A-637D1CEF0869",
+    "7C33E56E-6C66-433A-810B-F4863AEA9915",
 };
 
 BlobServiceClient blobClient = new(connectionString);
@@ -63,36 +65,30 @@ var videosContainer = blobClient.GetBlobContainerClient(containerName);
 videosContainer.CreateIfNotExists();
 
 using var httpClient = new HttpClient();
+using var videoContent = new MemoryStream();
+using var stream = await httpClient.GetStreamAsync(backupVideoUrl);
+await stream.CopyToAsync(videoContent);
+await videoContent.FlushAsync();
 
-var upload = async ((string id, string uri) blobAndUri) =>
+
+var upload = async (string id) =>
 {
-    var blob = videosContainer.GetBlobBaseClient(blobAndUri.id);
+    var blob = videosContainer.GetBlobBaseClient(id);
     if (blob.Exists())
     {
-        Console.WriteLine("{0} - Blob exists", blobAndUri.id);
+        Console.WriteLine("{0} - Blob exists", id);
         return;
     }
 
-    Stream stream;
+    videoContent.Position = 0;
+    Stream sourceStream = videoContent;
     
-    try
-    {
-        // ReSharper disable once AccessToDisposedClosure
-        stream = await httpClient.GetStreamAsync(blobAndUri.uri);
-    }
-    catch (Exception ex)
-    {
-        blobAndUri.uri = backupVideoUrl;
-        // ReSharper disable once AccessToDisposedClosure
-        stream = await httpClient.GetStreamAsync(blobAndUri.uri);
-    }
-    
-    videosContainer.UploadBlob(blobAndUri.id, stream);
-    Console.WriteLine("Uploaded: {0} - {1}", blobAndUri.uri, blobAndUri.id);
+    videosContainer.UploadBlob(id, sourceStream);
+    Console.WriteLine("Uploaded: {0}", id);
 };
 
 
-foreach ((string, string) video in videos)
+foreach (string video in videos)
 {
     await upload(video);
 }
