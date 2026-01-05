@@ -99,6 +99,7 @@
 		<MauiImage Update="Resources\Images\dance.png" />
 		<MauiImage Update="Resources\Images\edit.png" />
 		<MauiImage Update="Resources\Images\dots_vertical.png" />
+		<MauiImage Update="Resources\Images\share.svg" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
@@ -131,7 +132,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Pages\Controls\ShareButton.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Pages\MyVideosPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Popups\SharingPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\UploadVideoPage.xaml">
@@ -152,6 +159,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Pages\Controls\ShareButton.xaml.cs">
+	    <DependentUpon>ShareButton.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Pages\UploadVideoPage.xaml.cs">
 	    <DependentUpon>UploadVideoPage.xaml</DependentUpon>
 	    <SubType>Code</SubType>

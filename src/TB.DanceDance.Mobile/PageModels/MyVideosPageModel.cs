@@ -1,9 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
+using System.Diagnostics;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.Pages.Popups;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
@@ -13,12 +16,14 @@ public partial class MyVideosPageModel : ObservableObject
     [ObservableProperty] private bool isRefreshing;
     private readonly IDanceHttpApiClient apiClient;
     private readonly VideoProvider videoProvider;
+    private readonly IPopupService popupService;
     private bool videosLoaded = false;
 
-    public MyVideosPageModel(IDanceHttpApiClient apiClient, VideoProvider videoProvider)
+    public MyVideosPageModel(IDanceHttpApiClient apiClient, VideoProvider videoProvider, IPopupService popupService)
     {
         this.apiClient = apiClient;
         this.videoProvider = videoProvider;
+        this.popupService = popupService;
     }
 
     [RelayCommand]
@@ -69,6 +74,14 @@ public partial class MyVideosPageModel : ObservableObject
         {
             Log.Error(ex, "Could not rename video");
         }
+    }
+
+    [RelayCommand]
+    private async Task ShareVideo()
+    {
+        var res = await popupService.ShowPopupAsync<SharingPopupViewModel>(Shell.Current.CurrentPage);
+        //bool answer = DisplayPropmptAsync
+        //Debug.WriteLine("Answer: " + answer);
     }
 
     [RelayCommand]
