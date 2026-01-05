@@ -5,11 +5,11 @@
     VerticalOptions="Center"
     Padding="10"
              x:Class="TB.DanceDance.Mobile.Pages.Popups.SharingPopup">
-    <VerticalStackLayout>
-        <Label Text="What is your name?" />
-        <Entry Text="{Binding Name}" />
+    <VerticalStackLayout Spacing="10">
+        <Label FontSize="Medium" Text="Czy na pewno chcesz udostępnić to nagranie?"/>
+        <Label Text="Utworzony link pozwoli wyświetlić wybrane nagranie każdej osobie, która go posiada. Wygenerowany link będzie działał przez 7 dni. Najlepiej udostępniać link tylko osobom, którym chcesz udostępnić nagranie." />
 
-        <Button Text="Save" Command="{Binding SaveCommand}" />
-        <Button Text="Cancel" Command="{Binding CancelCommand}" />
+        <Button Text="Udostępnij" Command="{Binding ShareCommand}" />
+        <Button Text="Anuluj" Command="{Binding CancelCommand}" />
     </VerticalStackLayout>
 </ContentView>

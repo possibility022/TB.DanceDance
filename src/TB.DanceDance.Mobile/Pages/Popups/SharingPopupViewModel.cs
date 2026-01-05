@@ -15,14 +15,15 @@ public partial class SharingPopupViewModel : ObservableObject
         this.popupService = popupService;
     }
 
-    void OnCancel()
+    [RelayCommand]
+    void Cancel()
     {
+        Console.WriteLine("cancel");
     }
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
-    void OnSave()
+    [RelayCommand]
+    void Share()
     {
+        Console.WriteLine("Share");
     }
-
-    bool CanSave() => string.IsNullOrWhiteSpace(name) is false;
 }
