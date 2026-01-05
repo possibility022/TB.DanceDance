@@ -27,8 +27,8 @@ var videos = new[]
     "f91bded0-8de3-4cfd-bd79-1f6dbe5de5e6",
     "161ddf84-d0a9-488c-9f9a-948e79687fe7",
     "0dda7622-cca4-4918-8aaa-30edd8d623b8",
-    "6E0AE158-40B3-461E-80AC-74D3023175B7",
-    "AC14417C-F5EC-45AA-A91B-FA907862D3DC",
+    "5C45FC7E-5697-495E-953A-637D1CEF0869",
+    "7C33E56E-6C66-433A-810B-F4863AEA9915",
 };
 
 BlobServiceClient blobClient = new(connectionString);
