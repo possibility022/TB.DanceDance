@@ -11,7 +11,7 @@ import {formatDateToPlDate, formatDateToYearOnly} from "../extensions/DateExtens
 
 const videoService = new VideoInfoService()
 
-export function VideoScreen() {
+export function VideoFromRegularLessonsScreen() {
 
     const [groups, setGroups] = useState<Array<IGroupWithVideosResponse>>([])
     const [videos, setVideos] = useState<Array<VideoInformation>>([])
@@ -77,7 +77,7 @@ export function VideoScreen() {
 
 
     return (
-        <Fragment>
+        <div className='container mt-6'>
             <div className="tabs">
                 <ul>
                     {renderedList}
@@ -96,6 +96,6 @@ export function VideoScreen() {
 
             {loadingBar()}
             {askForVideos()}
-        </Fragment>)
+        </div>)
 
 }
