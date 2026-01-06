@@ -34,6 +34,8 @@ builder.Services.AddLogging(loggingBuilder =>
 
 // Add services to the container.
 
+builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
+
 builder.Services.RegisterApplicationServices();
 builder.Services.RegisterInfrastructureServices(builder.Configuration, builder.Environment.IsProduction());
 

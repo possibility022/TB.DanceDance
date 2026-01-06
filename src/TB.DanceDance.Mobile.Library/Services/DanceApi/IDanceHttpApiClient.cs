@@ -23,4 +23,6 @@ public interface IDanceHttpApiClient
     Uri GetVideoUri(string videoBlobId);
     Task CreateEvent(string eventName, DateTime eventDate);
     Task<IReadOnlyCollection<VideoInformationResponse>> GetMyVideos();
+    Task<SharedLinkResponse?> GetSharingLinkAsync(Guid videoId, CancellationToken token = default);
+    Task RevokeShareLinkAsync(string linkId, CancellationToken token = default);
 }

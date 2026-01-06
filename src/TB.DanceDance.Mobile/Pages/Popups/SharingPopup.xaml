@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 HorizontalOptions="Center"
+    VerticalOptions="Center"
+    Padding="10"
+             x:Class="TB.DanceDance.Mobile.Pages.Popups.SharingPopup">
+    <VerticalStackLayout Spacing="10">
+        
+        <Label FontSize="Medium" Text="Czy na pewno chcesz udostępnić to nagranie?"/>
+        <Label FontSize="Medium" Text="{Binding VideoName}"/>
+        <Label Text="Utworzony link pozwoli wyświetlić wybrane nagranie każdej osobie, która go posiada. Wygenerowany link będzie działał przez 7 dni. Najlepiej udostępniać link tylko osobom, którym chcesz udostępnić nagranie." />
+
+        <ActivityIndicator IsRunning="{Binding ShowLoader}"/>
+
+        <Button Text="{Binding PrimaryButtonText}" Command="{Binding ShareCommand}"/>
+        <Button Text="Anuluj" Command="{Binding CancelCommand}" />
+    </VerticalStackLayout>
+</ContentView>
