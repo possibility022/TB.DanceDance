@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Networking;
+using Serilog;
 
 namespace TB.DanceDance.Mobile.Library.Services.Network;
 
@@ -22,7 +23,7 @@ public class NetworkStatusMonitor : IDisposable
         Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
     }
     
-    private void ManageBackgroundService(NetworkAccess access, IEnumerable<ConnectionProfile> connectionProfiles)
+    public static void ManageBackgroundService(NetworkAccess access, IEnumerable<ConnectionProfile> connectionProfiles)
     {
         if (access == NetworkAccess.Internet)
         {
@@ -62,6 +63,8 @@ public class NetworkStatusMonitor : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
+        Log.Information("ReleaseUnmanagedResources " + nameof(NetworkStatusMonitor));
+
         Connectivity.ConnectivityChanged -= ConnectivityOnConnectivityChanged;
     }
 
