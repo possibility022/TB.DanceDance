@@ -2,6 +2,7 @@
 using Duende.IdentityModel.OidcClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
 using Serilog;
 using Serilog.Events;
 using System.Threading.Channels;
@@ -22,8 +23,19 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
+        
+
         builder
             .UseMauiApp<App>()
+            .ConfigureLifecycleEvents(events =>
+            {
+#if ANDROID
+    events.AddAndroid(android => android
+        .OnResume(e => ManageUploading())
+        .OnCreate((e,x) => ManageUploading()));
+#endif
+            })
             .UseMauiCommunityToolkitMediaElement()
             .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
@@ -120,5 +132,12 @@ public static class MauiProgram
 
 
         return builder.Build();
+    }
+
+    private static void ManageUploading()
+    {
+#if ANDROID
+        NetworkStatusMonitor.ManageBackgroundService(Connectivity.Current.NetworkAccess, Connectivity.Current.ConnectionProfiles);
+#endif
     }
 }
