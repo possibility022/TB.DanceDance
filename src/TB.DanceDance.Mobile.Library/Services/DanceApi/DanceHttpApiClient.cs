@@ -151,4 +151,25 @@ public class DanceHttpApiClient : IDanceHttpApiClient
 
         return videos;
     }
+
+    public async Task<SharedLinkResponse?> GetSharingLinkAsync(Guid videoId, CancellationToken token = default)
+    {
+        CreateSharedLinkRequest request = new()
+        {
+            ExpirationDays = 7
+        };
+
+        var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/share", request, token);
+
+        response.EnsureSuccessStatusCode();
+        var responseContent = await response.Content.ReadFromJsonAsync<SharedLinkResponse>(token);
+
+        return responseContent;
+    }
+
+    public async Task RevokeShareLinkAsync(string linkId, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.DeleteAsync("/api/share/" + linkId, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
 }

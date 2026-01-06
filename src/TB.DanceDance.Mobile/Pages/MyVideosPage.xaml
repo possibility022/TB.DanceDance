@@ -56,11 +56,16 @@
                                                 </Label>
                                             </VerticalStackLayout>
 
-                                            <controls:EditButton Grid.Column="1"
+                                            <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Spacing="15">
+                                                <controls:ShareButton
+                                                             Command="{Binding ShareVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
+                                                             CommandParameter="{Binding Id}"/>
+
+                                                <controls:EditButton
                                                              Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
-                                                             CommandParameter="{Binding Id}"
-                                                             HorizontalOptions="End"
-                                                             VerticalOptions="Center" />
+                                                             CommandParameter="{Binding Id}"/>
+
+                                            </HorizontalStackLayout>
 
                                         </Grid>
                                     </Border>

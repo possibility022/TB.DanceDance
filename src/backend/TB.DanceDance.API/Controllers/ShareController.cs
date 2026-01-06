@@ -2,6 +2,7 @@ using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
@@ -13,15 +14,18 @@ public class ShareController : Controller
 {
     private readonly ISharedLinkService sharedLinkService;
     private readonly IVideoService videoService;
+    private readonly IOptions<AppOptions> appOptions;
     private readonly ILogger<ShareController> logger;
 
     public ShareController(
         ISharedLinkService sharedLinkService,
         IVideoService videoService,
+        IOptions<AppOptions> appOptions,
         ILogger<ShareController> logger)
     {
         this.sharedLinkService = sharedLinkService;
         this.videoService = videoService;
+        this.appOptions = appOptions;
         this.logger = logger;
     }
 
@@ -53,7 +57,7 @@ public class ShareController : Controller
                 CreatedAt = link.CreatedAt,
                 ExpireAt = link.ExpireAt,
                 IsRevoked = link.IsRevoked,
-                ShareUrl = $"/share/{link.Id}"
+                ShareUrl = ResolveLinkUrl(link.Id)
             };
 
             return Ok(response);
@@ -105,11 +109,13 @@ public class ShareController : Controller
             CreatedAt = link.CreatedAt,
             ExpireAt = link.ExpireAt,
             IsRevoked = link.IsRevoked,
-            ShareUrl = $"/share/{link.Id}"
+            ShareUrl = ResolveLinkUrl(link.Id)
         });
 
         return Ok(response);
     }
+
+    private string ResolveLinkUrl(string linkId) => $"{this.appOptions.Value.AppWebsiteOrigin}/shared/{linkId}";
 
     /// <summary>
     /// Gets video information by shared link ID. Anonymous access allowed.

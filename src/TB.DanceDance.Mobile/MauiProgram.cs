@@ -13,6 +13,7 @@ using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.Library.Services.Network;
 using TB.DanceDance.Mobile.PageModels;
 using TB.DanceDance.Mobile.Pages;
+using TB.DanceDance.Mobile.Pages.Popups;
 using TB.DanceDance.Mobile.Services.Auth;
 
 namespace TB.DanceDance.Mobile;
@@ -114,6 +115,9 @@ public static class MauiProgram
         builder.Services.AddTransientWithShellRoute<GetAccessPage, GetAccessPageModel>(Routes.GetAccess);
         builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>(Routes.Player);
         builder.Services.AddTransientWithShellRoute<UploadVideoPage, UploadVideoPageModel>(Routes.Upload.Uploader);
+        
+        // Popups
+        builder.Services.AddTransientPopup<SharingPopup, SharingPopupViewModel>();
 
 
         builder.Services.AddDbContext<VideosDbContext>(options =>
