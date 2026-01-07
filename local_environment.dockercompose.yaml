@@ -51,6 +51,8 @@ services:
   frontendspa:
     image: ddfrontend:latest
     container_name: tbdancefrontend
+    depends_on:
+      - api
     build:
       dockerfile: Dockerfile
       context: src/frontend
@@ -71,7 +73,7 @@ services:
       - tb.dancedance.converter.clientSecret=other
       - tb.dancedance.converter.clientId=tbdancedanceconverter
       - tb.dancedance.converter.scope=tbdancedanceapi.convert
-      - tb.dancedance.converter.delayInMinutes=9
+      - tb.dancedance.converter.delayInMinutes=1
     
   initializator:
     image: initializator:latest

@@ -27,8 +27,8 @@ internal sealed class Deamon : BackgroundService
                 var converted = await ProcessNext(token);
                 if (!converted)
                 {
-                    var delay = ProgramConfig.Instance.DelayInMinutes;
-                    Log.Information("Waiting till next run. Delay in minutes: {0}", delay);
+                    var delay = ProgramConfig.Instance.DelayInMinutes * 1000 * 60;
+                    Log.Information("Waiting till next run. Delay in minutes: {0}", ProgramConfig.Instance.DelayInMinutes);
                     
                     await Task.Delay(delay, token);
                 }
@@ -39,7 +39,8 @@ internal sealed class Deamon : BackgroundService
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error in main execution path.");
+                Log.Error(ex, "Error in main execution path. Awaiting 10 seconds.");
+                await Task.Delay(10000, token);
             }
         }
     }
