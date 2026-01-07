@@ -16,7 +16,7 @@ internal class ProgramConfig
 
     public TokenProviderOptions TokenProviderOptions { get; private set; } = new TokenProviderOptions { ClientId = "", ClientSecret = "", Scope = "" };
 
-    public int HourOfExecution { get; internal set; } = 23;
+    public int DelayInMinutes { get; internal set; } = 5;
 
     private static bool TryGetEnvironmentVariable(string key, out string value)
     {
@@ -34,25 +34,20 @@ internal class ProgramConfig
         ConfigureApi(config);
         ConfigureAuth(config);
         ConfigureMediaFolder(config);
-        ConfigureExecutionHour(config);
+        ConfigureDelay(config);
 
         ProgramConfig.Instance = config;
     }
 
-    private static void ConfigureExecutionHour(ProgramConfig config)
+    private static void ConfigureDelay(ProgramConfig config)
     {
-        var executionHourSet = TryGetEnvironmentVariable("executionHour", out var value);
+        var executionHourSet = TryGetEnvironmentVariable("delayInMinutes", out var value);
         if (executionHourSet)
         {
             var parsed = int.TryParse(value, out var hour);
             if (parsed)
             {
-                if (hour < 0 || hour > 24)
-                {
-                    Log.Warning("Invalid execution hour. Given value: {0}", value);
-                    return;
-                }
-                config.HourOfExecution = hour;
+                config.DelayInMinutes = hour;
             }
             else
             {

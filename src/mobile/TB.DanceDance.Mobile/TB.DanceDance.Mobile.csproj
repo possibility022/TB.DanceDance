@@ -127,7 +127,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
+	  <ProjectReference Include="..\..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
 	  <ProjectReference Include="..\TB.DanceDance.Mobile.Library\TB.DanceDance.Mobile.Library.csproj" />
 	</ItemGroup>
 

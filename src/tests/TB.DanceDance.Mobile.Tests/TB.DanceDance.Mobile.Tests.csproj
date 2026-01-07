@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\TB.DanceDance.Mobile\TB.DanceDance.Mobile.csproj" />
+      <ProjectReference Include="..\..\mobile\TB.DanceDance.Mobile.Library\TB.DanceDance.Mobile.Library.csproj" />
       <ProjectReference Include="..\TB.DanceDance.Tests\TB.DanceDance.Tests.csproj" />
     </ItemGroup>
 

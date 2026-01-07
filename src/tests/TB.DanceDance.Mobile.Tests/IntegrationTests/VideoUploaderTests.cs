@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Maui.Devices;
 using NSubstitute;
 using System.Threading.Channels;
 using TB.DanceDance.API.Contracts.Models;

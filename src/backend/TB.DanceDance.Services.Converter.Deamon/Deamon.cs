@@ -27,8 +27,8 @@ internal sealed class Deamon : BackgroundService
                 var converted = await ProcessNext(token);
                 if (!converted)
                 {
-                    var delay = GetDelayTillnextExecution();
-                    Log.Information("Waiting till next run. Delay: {0}", delay.ToString(@"hh\:mm"));
+                    var delay = ProgramConfig.Instance.DelayInMinutes * 1000 * 60;
+                    Log.Information("Waiting till next run. Delay in minutes: {0}", ProgramConfig.Instance.DelayInMinutes);
                     
                     await Task.Delay(delay, token);
                 }
@@ -39,20 +39,10 @@ internal sealed class Deamon : BackgroundService
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error in main execution path.");
+                Log.Error(ex, "Error in main execution path. Awaiting 10 seconds.");
+                await Task.Delay(10000, token);
             }
         }
-    }
-
-    private TimeSpan GetDelayTillnextExecution()
-    {
-        var nextStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, ProgramConfig.Instance.HourOfExecution, 0, 0);
-        if (DateTime.Now.AddMinutes(1) > nextStart)
-            nextStart = nextStart.AddDays(1);
-
-        var delay = nextStart - DateTime.Now;
-
-        return delay;
     }
 
     private async Task<bool> ProcessNext(CancellationToken token)
