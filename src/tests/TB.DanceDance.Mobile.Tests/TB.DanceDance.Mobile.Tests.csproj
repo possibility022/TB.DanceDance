@@ -30,7 +30,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\TB.DanceDance.Mobile\TB.DanceDance.Mobile.csproj" />
       <ProjectReference Include="..\TB.DanceDance.Tests\TB.DanceDance.Tests.csproj" />
     </ItemGroup>
 
