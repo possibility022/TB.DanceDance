@@ -71,7 +71,7 @@ services:
       - tb.dancedance.converter.clientSecret=other
       - tb.dancedance.converter.clientId=tbdancedanceconverter
       - tb.dancedance.converter.scope=tbdancedanceapi.convert
-      - tb.dancedance.converter.executionHour=9
+      - tb.dancedance.converter.delayInMinutes=9
     
   initializator:
     image: initializator:latest
