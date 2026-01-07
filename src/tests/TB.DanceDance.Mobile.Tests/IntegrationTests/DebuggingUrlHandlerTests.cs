@@ -1,4 +1,5 @@
-﻿using TB.DanceDance.Mobile.Library.Services.Network;
+﻿using Microsoft.Maui.Devices;
+using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
