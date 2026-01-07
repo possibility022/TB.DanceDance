@@ -56,7 +56,23 @@ services:
       context: src/frontend
     ports:
       - "3000:80"
-  
+        
+  converter:
+    image: ddconverter:latest
+    container_name: tbdanceconverter
+    depends_on:
+      - api
+    build:
+      dockerfile: TB.DanceDance.Services.Converter.Deamon/Dockerfile
+      context: src/backend
+    environment:
+      - tb.dancedance.converter.oAuthOrigin=http://api:8080/ 
+      - tb.dancedance.converter.apiOrigin=http://api:8080/
+      - tb.dancedance.converter.clientSecret=other
+      - tb.dancedance.converter.clientId=tbdancedanceconverter
+      - tb.dancedance.converter.scope=tbdancedanceapi.convert
+      - tb.dancedance.converter.executionHour=9
+    
   initializator:
     image: initializator:latest
     container_name: tbdanceInitializer
