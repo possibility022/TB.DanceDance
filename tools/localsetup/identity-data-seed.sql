@@ -208,7 +208,7 @@ $$
             INSERT INTO "IdpServer.Config"."ClientSecrets" ("Id", "ClientId", "Description", "Value", "Expiration",
                                                             "Type",
                                                             "Created")
-            VALUES (DEFAULT, newRecordId, null, '2SmKENGwc1g33EvYXaxkGw887yekfl1TpU8vP1svz/o=', null, 'SharedSecret',
+            VALUES (DEFAULT, newRecordId, 'sha256 of value "other"', '2SmKENGwc1g33EvYXaxkGw887yekfl1TpU8vP1svz/o=', null, 'SharedSecret',
                     '2023-06-17 22:55:39.655054 +00:00');
 
             INSERT INTO "IdpServer.Config"."ClientScopes" ("Id", "Scope", "ClientId")
