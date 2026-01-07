@@ -1,35 +1,38 @@
 # How to run
 
-## Host database and blob storage with docker
+Everything except the mobile app is dockerized and can be started with a single command.
 
-A docker compose file is prepared to run database, storage and also prepare test data.
+## Start the environment
+
 Run:
-```
+```powershell
 docker compose -f .\local_environment.dockercompose.yaml up
 ```
-Check logs of Initializer container: `docker logs tbdanceInitializer`.
-When you can see "Data initialized" you can start using application on your local host.
-Initializer is seeding database and blob storage.
 
-## Build and Run
+This will start:
+- Database (PostgreSQL)
+- Blob Storage (Azurite)
+- API
+- Frontend (SPA)
+- Converter service
+- Initializer (seeds data)
 
-Build and run API
-```
-cd .\TB.DanceDance.API
-dotnet run
-```
+### Check Initialization
+Check logs of the Initializer container to ensure data is ready:
+`docker logs tbdanceInitializer`
 
-On 2nd terminal - build and run frontend
-```
-cd .\tb.dancedance.frontend
-npm install
-npm run start
+When you see "Data initialized", the application is ready to use.
 
-```
+## Try to login
 
-# Try to login
+Once the environment is up, you can access the frontend at `http://localhost:3000`.
 
-Application should be ready to use.
 Test credentials:
-- Login: testemail@email.com
-- Password: 1234
+- **Login:** testemail@email.com
+- **Password:** 1234
+
+## Mobile App
+
+The mobile app is not included in the docker-compose environment. To run it, you need to open the solution in an IDE (like Rider or Visual Studio) and run the `TB.DanceDance.Mobile` project targeting your desired platform (Android, iOS, etc.).
+
+Ensure the docker environment is running so the mobile app can connect to the API.
