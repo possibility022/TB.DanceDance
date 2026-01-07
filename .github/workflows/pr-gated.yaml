@@ -56,14 +56,14 @@ jobs:
           
       - name: Install Workflows
         run: dotnet workload install maui
-        working-directory: ./src/TB.DanceDance.Mobile
+        working-directory: ./src/mobile/TB.DanceDance.Mobile
 
       - name: Restore mobile dependencies (Android)
         run: dotnet restore
-        working-directory: ./src/TB.DanceDance.Mobile
+        working-directory: ./src/mobile/TB.DanceDance.Mobile
 
       - name: Build MAUI Android
-        run: dotnet build ./src/TB.DanceDance.Mobile/ -c Release -f ${{ env.DOTNET_ANDROID_VERSION }} --no-restore
+        run: dotnet build ./src/mobile/TB.DanceDance.Mobile/ -c Release -f ${{ env.DOTNET_ANDROID_VERSION }} --no-restore
 
       - run: npm install -g azurite
       - shell: bash
