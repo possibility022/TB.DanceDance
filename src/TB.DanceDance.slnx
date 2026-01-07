@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="backend/Application/Application.csproj" />
+  <Project Path="backend/Domain/Domain.csproj" />
+  <Project Path="backend/Infrastructure/Infrastructure.csproj" />
+  <Project Path="backend/TB.DanceDance.API.Contracts/TB.DanceDance.API.Contracts.csproj" />
+  <Project Path="backend/TB.DanceDance.API/TB.DanceDance.API.csproj" />
+  <Project Path="backend/TB.DanceDance.Services.Converter.Deamon/TB.DanceDance.Services.Converter.Deamon.csproj" />
+  <Project Path="TB.DanceDance.Mobile.Library/TB.DanceDance.Mobile.Library.csproj" />
+  <Project Path="TB.DanceDance.Mobile/TB.DanceDance.Mobile.csproj" />
+  <Project Path="tests/TB.DanceDance.Mobile.Tests/TB.DanceDance.Mobile.Tests.csproj" />
+  <Project Path="tests/TB.DanceDance.Tests/TB.DanceDance.Tests.csproj" />
+</Solution>
