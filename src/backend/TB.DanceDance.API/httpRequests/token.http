@@ -1,0 +1,9 @@
+﻿###
+POST https://localhost:7068/connect/token
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+Authorization: Basic dGJkYW5jZWRhbmNlaHR0cGNsaWVudDpzZWNyZXRmb3Jsb2NhbGh0dHBjbGllbnQ=
+
+grant_type=password&username=testemail@email.com&password=1234&scope=openid profile tbdancedanceapi.read
+
+> {% client.global.set("token", response.body.access_token); %}

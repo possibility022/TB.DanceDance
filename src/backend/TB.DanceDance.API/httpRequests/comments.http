@@ -1,0 +1,159 @@
+﻿### REMEMBER TO CALL GET TOKEN FROM token.http
+
+### Variables
+@videoId = c4029eb1-23ad-417b-9a3b-1b2ad4751c0b
+
+### STEP 1: Create a shared link with comment settings
+POST https://localhost:7068/api/videos/{{videoId}}/share
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ExpirationDays": 7,
+  "AllowComments": true,
+  "AllowAnonymousComments": true
+}
+
+> {% client.global.set("shareLinkId", response.body.linkId); %}
+
+### STEP 2: Get video info by shared link (check comment settings)
+GET https://localhost:7068/api/share/{{shareLinkId}}
+
+### STEP 3: Create comment (authenticated user)
+# @name createComment
+POST https://localhost:7068/api/share/{{shareLinkId}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Content": "This is a test comment from authenticated user!"
+}
+
+> {% client.global.set("commentId", response.body.id); %}
+
+### STEP 4: Create comment (anonymous user)
+POST https://localhost:7068/api/share/{{shareLinkId}}/comments
+Content-Type: application/json
+
+{
+  "Content": "This is an anonymous comment - no auth token!"
+}
+
+> {% client.global.set("anonymousCommentId", response.body.id); %}
+
+### STEP 5: Get all comments (authenticated user)
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments
+Authorization: Bearer {{token}}
+
+### STEP 6: Get all comments (anonymous user)
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments
+
+### STEP 7: Update comment (only author can update)
+@commentId = e0437e2c-fe70-4893-9916-9ae037fadf29
+PUT https://localhost:7068/api/comments/{{commentId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Content": "This comment has been updated!"
+}
+
+### STEP 8: Hide comment (only video owner)
+POST https://localhost:7068/api/comments/{{commentId}}/hide
+Authorization: Bearer {{token}}
+
+### STEP 9: Unhide comment (only video owner)
+POST https://localhost:7068/api/comments/{{commentId}}/unhide
+Authorization: Bearer {{token}}
+
+### STEP 10: Report comment (anyone can report)
+POST https://localhost:7068/api/comments/{{commentId}}/report
+Content-Type: application/json
+
+{
+  "Reason": "Inappropriate content or spam"
+}
+
+### STEP 11: Report comment (authenticated user can also report)
+POST https://localhost:7068/api/comments/{{commentId}}/report
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Reason": "This comment violates community guidelines"
+}
+
+
+### STEP 12: Delete comment (author or video owner)
+DELETE https://localhost:7068/api/comments/{{commentId}}
+Authorization: Bearer {{token}}
+
+### STEP 13: Update video comment visibility (only video owner)
+PUT https://localhost:7068/api/videos/{{videoId}}/comment-settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "CommentVisibility": 2
+}
+
+### STEP 14: Create shared link with comments disabled
+### CommentVisibility values:
+### 0 = AuthenticatedOnly (only logged-in users)
+### 1 = OwnerOnly (only video owner can see)
+### 2 = Public (anyone with link can see)
+POST https://localhost:7068/api/videos/{{videoId}}/share
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ExpirationDays": 7,
+  "AllowComments": false,
+  "AllowAnonymousComments": false
+}
+> {% client.global.set("shareLinkIdCommentsDisabled", response.body.linkId); %}
+
+
+### STEP 15: Try to create comment on link with comments disabled (should fail)
+POST https://localhost:7068/api/share/{{shareLinkIdCommentsDisabled}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Content": "This should fail because comments are disabled"
+}
+
+
+### STEP 16: Create link allowing comments but NOT anonymous
+POST https://localhost:7068/api/videos/{{videoId}}/share
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "ExpirationDays": 7,
+  "AllowComments": true,
+  "AllowAnonymousComments": false
+}
+> {% client.global.set("shareLinkIdCommentsOnlyForLoggedIn", response.body.linkId); %}
+
+
+### STEP 17: Try anonymous comment when not allowed (should fail)
+POST https://localhost:7068/api/share/{{shareLinkIdCommentsOnlyForLoggedIn}}/comments
+Content-Type: application/json
+
+{
+  "Content": "This should fail - anonymous not allowed"
+}
+
+### STEP 18: Long comment test (max 2000 characters)
+POST https://localhost:7068/api/share/{{shareLinkId}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Content": "This is a test of a longer comment. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+}
+
+### STEP 19: Get my shared links (should include comment settings)
+GET https://localhost:7068/api/share/my
+Authorization: Bearer {{token}}
