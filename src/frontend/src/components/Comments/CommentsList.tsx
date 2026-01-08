@@ -6,11 +6,13 @@ function CommentsList() {
 
     const commentsContext = useContext(CommentsContext)
 
+    if (!commentsContext) {
+        return <p>Error: Comments context not available</p>
+    }
+
     if (commentsContext.comments.length === 0 && commentsContext.commentsAvailable) {
         return <button className="button is-primary" onClick={commentsContext.loadCommentsAsync}>Wczytaj komentarze</button>
     }
-
-    console.log(commentsContext.commentsAvailable)
 
     if (commentsContext.comments.length === 0) {
         return <p>Brak komentarzy</p>
