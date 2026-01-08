@@ -241,4 +241,84 @@ public class VideoServiceTests : BaseTestClass
             await videoService.GetSharingLink(user.Id, "Video", "file.mp4", SharingWithType.NotSpecified, sharedWith: null, TestContext.Current.CancellationToken);
         });
     }
+
+    #region UpdateCommentVisibilityAsync Tests
+
+    [Fact]
+    public async Task UpdateCommentVisibility_VideoOwner_UpdatesSuccessfully()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder()
+            .UploadedBy(owner)
+            .WithCommentVisibility(CommentVisibility.Public)
+            .Build();
+
+        SeedDbContext.AddRange(owner, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+
+        // Act
+        var result = await videoService.UpdateCommentVisibilityAsync(
+            video.Id,
+            owner.Id,
+            CommentVisibility.OwnerOnly,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.True(result);
+        SeedDbContext.ChangeTracker.Clear();
+        var updated = await SeedDbContext.Videos.FindAsync([video.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(CommentVisibility.OwnerOnly, updated!.CommentVisibility);
+    }
+
+    [Fact]
+    public async Task UpdateCommentVisibility_NotVideoOwner_ReturnsFalse()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var otherUser = new UserDataBuilder().WithId("other-user-id").Build();
+        var video = new VideoDataBuilder()
+            .UploadedBy(owner)
+            .WithCommentVisibility(CommentVisibility.Public)
+            .Build();
+
+        SeedDbContext.AddRange(owner, otherUser, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+
+        // Act
+        var result = await videoService.UpdateCommentVisibilityAsync(
+            video.Id,
+            otherUser.Id,
+            CommentVisibility.OwnerOnly,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.False(result);
+        SeedDbContext.ChangeTracker.Clear();
+        var unchanged = await SeedDbContext.Videos.FindAsync([video.Id], TestContext.Current.CancellationToken);
+        Assert.Equal(CommentVisibility.Public, unchanged!.CommentVisibility);
+    }
+
+    [Fact]
+    public async Task UpdateCommentVisibility_NonExistentVideo_ReturnsFalse()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        SeedDbContext.Add(user);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await videoService.UpdateCommentVisibilityAsync(
+            Guid.NewGuid(),
+            user.Id,
+            CommentVisibility.OwnerOnly,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    #endregion
 }

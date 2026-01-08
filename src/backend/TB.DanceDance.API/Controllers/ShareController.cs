@@ -47,6 +47,8 @@ public class ShareController : Controller
                 videoId,
                 userId,
                 request.ExpirationDays,
+                request.AllowComments,
+                request.AllowAnonymousComments,
                 cancellationToken);
 
             var response = new SharedLinkResponse
@@ -57,7 +59,9 @@ public class ShareController : Controller
                 CreatedAt = link.CreatedAt,
                 ExpireAt = link.ExpireAt,
                 IsRevoked = link.IsRevoked,
-                ShareUrl = ResolveLinkUrl(link.Id)
+                ShareUrl = ResolveLinkUrl(link.Id),
+                AllowComments = link.AllowComments,
+                AllowAnonymousComments = link.AllowAnonymousComments
             };
 
             return Ok(response);
@@ -109,7 +113,9 @@ public class ShareController : Controller
             CreatedAt = link.CreatedAt,
             ExpireAt = link.ExpireAt,
             IsRevoked = link.IsRevoked,
-            ShareUrl = ResolveLinkUrl(link.Id)
+            ShareUrl = ResolveLinkUrl(link.Id),
+            AllowComments = link.AllowComments,
+            AllowAnonymousComments = link.AllowAnonymousComments
         });
 
         return Ok(response);
@@ -127,22 +133,33 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        var video = await sharedLinkService.GetVideoBySharedLinkAsync(linkId, cancellationToken);
+        // Get the shared link with video
+        var link = await GetSharedLinkWithVideo(linkId, cancellationToken);
 
-        if (video == null)
+        if (link == null || link.Video == null)
         {
             return NotFound(new { error = "Shared link not found, expired, or revoked." });
         }
+
+        var video = link.Video;
 
         var response = new SharedVideoInfoResponse
         {
             VideoId = video.Id,
             Name = video.Name,
             Duration = video.Duration,
-            RecordedDateTime = video.RecordedDateTime
+            RecordedDateTime = video.RecordedDateTime,
+            CommentVisibility = (int)video.CommentVisibility,
+            AllowCommentsOnThisLink = link.AllowComments,
+            AllowAnonymousCommentsOnThisLink = link.AllowAnonymousComments
         };
 
         return Ok(response);
+    }
+
+    private async Task<Domain.Entities.SharedLink?> GetSharedLinkWithVideo(string linkId, CancellationToken cancellationToken)
+    {
+        return await sharedLinkService.GetSharedLinkAsync(linkId, cancellationToken);
     }
 
     /// <summary>

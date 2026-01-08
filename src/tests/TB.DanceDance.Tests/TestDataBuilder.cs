@@ -234,6 +234,7 @@ public class VideoDataBuilder
     private bool _published;
     private long _sourceBlobSize;
     private long _convertedBlobSize;
+    private CommentVisibility _commentVisibility;
 
     private readonly List<SharedWith> _sharedWith = new();
 
@@ -251,6 +252,7 @@ public class VideoDataBuilder
         _published = true;
         _sourceBlobSize = 0;
         _convertedBlobSize = 0;
+        _commentVisibility = CommentVisibility.Public;
     }
 
     public VideoDataBuilder WithId(Guid id) { _id = id; return this; }
@@ -267,6 +269,7 @@ public class VideoDataBuilder
     public VideoDataBuilder Converted(bool value = true) { _converted = value; return this; }
     public VideoDataBuilder WithSourceBlobSize(long size) { _sourceBlobSize = size; return this; }
     public VideoDataBuilder WithConvertedBlobSize(long size) { _convertedBlobSize = size; return this; }
+    public VideoDataBuilder WithCommentVisibility(CommentVisibility visibility) { _commentVisibility = visibility; return this; }
 
     public Video Build() => new Video
     {
@@ -281,7 +284,8 @@ public class VideoDataBuilder
         SourceBlobId = _sourceBlobId,
         Converted = _converted,
         SourceBlobSize = _sourceBlobSize,
-        ConvertedBlobSize = _convertedBlobSize
+        ConvertedBlobSize = _convertedBlobSize,
+        CommentVisibility = _commentVisibility
     };
 
     public VideoDataBuilder ShareWithUser(string userId)
@@ -332,6 +336,8 @@ public class SharedLinkDataBuilder
     private DateTimeOffset _createdAt;
     private DateTimeOffset _expireAt;
     private bool _isRevoked;
+    private bool _allowComments;
+    private bool _allowAnonymousComments;
 
     public SharedLinkDataBuilder()
     {
@@ -341,6 +347,8 @@ public class SharedLinkDataBuilder
         _createdAt = DateTimeOffset.UtcNow;
         _expireAt = DateTimeOffset.UtcNow.AddDays(7);
         _isRevoked = false;
+        _allowComments = true;
+        _allowAnonymousComments = false;
     }
 
     public SharedLinkDataBuilder WithId(string id)
@@ -403,6 +411,19 @@ public class SharedLinkDataBuilder
         return this;
     }
 
+    public SharedLinkDataBuilder AllowComments(bool allowComments = true)
+    {
+        _allowComments = allowComments;
+        return this;
+    }
+
+    public SharedLinkDataBuilder AllowAnonymousComments(bool allowAnonymous = true)
+    {
+        _allowAnonymousComments = allowAnonymous;
+        _allowComments = true; // Must allow comments to allow anonymous comments
+        return this;
+    }
+
     public string LinkId => _id;
 
     public SharedLink Build() => new SharedLink
@@ -412,6 +433,140 @@ public class SharedLinkDataBuilder
         SharedBy = _sharedBy,
         CreatedAt = _createdAt,
         ExpireAt = _expireAt,
-        IsRevoked = _isRevoked
+        IsRevoked = _isRevoked,
+        AllowComments = _allowComments,
+        AllowAnonymousComments = _allowAnonymousComments
+    };
+}
+
+public class CommentDataBuilder
+{
+    private Guid _id;
+    private Guid _videoId;
+    private string? _userId;
+    private string? _sharedLinkId;
+    private string _content;
+    private DateTimeOffset _createdAt;
+    private DateTimeOffset? _updatedAt;
+    private bool _isHidden;
+    private bool _isReported;
+    private string? _reportedReason;
+
+    public CommentDataBuilder()
+    {
+        _id = Guid.NewGuid();
+        _videoId = Guid.NewGuid();
+        _userId = null; // Can be null for anonymous
+        _sharedLinkId = null;
+        _content = TestDataBuilder.RandomName("Comment content");
+        _createdAt = DateTimeOffset.UtcNow;
+        _updatedAt = null;
+        _isHidden = false;
+        _isReported = false;
+        _reportedReason = null;
+    }
+
+    public CommentDataBuilder WithId(Guid id)
+    {
+        _id = id;
+        return this;
+    }
+
+    public CommentDataBuilder ForVideo(Guid videoId)
+    {
+        _videoId = videoId;
+        return this;
+    }
+
+    public CommentDataBuilder ForVideo(Video video)
+    {
+        _videoId = video.Id;
+        return this;
+    }
+
+    public CommentDataBuilder ByUser(string userId)
+    {
+        _userId = userId;
+        _sharedLinkId = null; // Authenticated comments don't have linkId
+        return this;
+    }
+
+    public CommentDataBuilder ByUser(User user)
+    {
+        _userId = user.Id;
+        _sharedLinkId = null;
+        return this;
+    }
+
+    public CommentDataBuilder ByUser(UserDataBuilder userBuilder)
+    {
+        _userId = userBuilder.UserId;
+        _sharedLinkId = null;
+        return this;
+    }
+
+    public CommentDataBuilder ByAnonymous(string sharedLinkId)
+    {
+        _userId = null;
+        _sharedLinkId = sharedLinkId;
+        return this;
+    }
+
+    public CommentDataBuilder ByAnonymous(SharedLink link)
+    {
+        _userId = null;
+        _sharedLinkId = link.Id;
+        return this;
+    }
+
+    public CommentDataBuilder WithContent(string content)
+    {
+        _content = content;
+        return this;
+    }
+
+    public CommentDataBuilder CreatedAt(DateTimeOffset createdAt)
+    {
+        _createdAt = createdAt;
+        return this;
+    }
+
+    public CommentDataBuilder UpdatedAt(DateTimeOffset? updatedAt)
+    {
+        _updatedAt = updatedAt;
+        return this;
+    }
+
+    public CommentDataBuilder Hidden(bool isHidden = true)
+    {
+        _isHidden = isHidden;
+        return this;
+    }
+
+    public CommentDataBuilder Reported(bool isReported = true)
+    {
+        _isReported = isReported;
+        return this;
+    }
+
+    public CommentDataBuilder WithReportReason(string reason)
+    {
+        _reportedReason = reason;
+        _isReported = true;
+        return this;
+    }
+
+    public Comment Build() => new Comment
+    {
+        Id = _id,
+        VideoId = _videoId,
+        UserId = _userId,
+        SharedLinkId = _sharedLinkId,
+        Content = _content,
+        CreatedAt = _createdAt,
+        UpdatedAt = _updatedAt,
+        IsHidden = _isHidden,
+        IsReported = _isReported,
+        ReportedReason = _reportedReason
     };
 }
