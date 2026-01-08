@@ -47,7 +47,7 @@ public class CommentServiceTests : BaseTestClass
         Assert.NotNull(comment);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Equal(user.Id, comment.UserId);
-        Assert.Equal(link.Id, comment.SharedLinkId);
+        Assert.Null(comment.SharedLinkId); // Authenticated users don't store linkId
         Assert.Equal("This is a test comment", comment.Content);
         Assert.False(comment.IsHidden);
         Assert.False(comment.IsReported);
@@ -81,6 +81,33 @@ public class CommentServiceTests : BaseTestClass
         Assert.Null(comment.UserId); // Anonymous
         Assert.Equal(link.Id, comment.SharedLinkId); // Link tracked for anonymous
         Assert.Equal("Anonymous comment", comment.Content);
+    }
+
+    [Fact]
+    public async Task CreateCommentAsync_AuthenticatedUser_DoesNotStoreLinkId()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var link = new SharedLinkDataBuilder()
+            .ForVideo(video)
+            .SharedBy(user)
+            .AllowComments()
+            .Build();
+
+        SeedDbContext.AddRange(user, video, link);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var comment = await commentService.CreateCommentAsync(
+            user.Id,
+            link.Id,
+            "Authenticated comment",
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Null(comment.SharedLinkId);
+        Assert.Equal(user.Id, comment.UserId);
     }
 
     [Fact]
@@ -689,6 +716,36 @@ public class CommentServiceTests : BaseTestClass
 
         // Assert
         Assert.Empty(comments);
+    }
+
+    [Fact]
+    public async Task GetComments_IncludesUserDetails_ForAuthenticatedComments()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().WithFirstName("John").WithLastName("Doe").Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var link = new SharedLinkDataBuilder()
+            .ForVideo(video)
+            .SharedBy(owner)
+            .AllowComments()
+            .Build();
+
+        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Build();
+
+        SeedDbContext.AddRange(owner, video, link, comment);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var comments = await commentService.GetCommentsForVideoAsync(
+            owner.Id,
+            link.Id,
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        var returnedComment = comments.First();
+        Assert.NotNull(returnedComment.User);
+        Assert.Equal("John", returnedComment.User!.FirstName);
+        Assert.Equal("Doe", returnedComment.User.LastName);
     }
 
     [Fact]

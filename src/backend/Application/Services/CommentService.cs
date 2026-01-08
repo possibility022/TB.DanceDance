@@ -73,7 +73,7 @@ public class CommentService : ICommentService
             Id = Guid.NewGuid(),
             VideoId = videoId,
             UserId = userId, // null for anonymous, populated for authenticated
-            SharedLinkId = linkId,
+            SharedLinkId = userId == null ? linkId : null, // Only track link for anonymous comments //todo
             Content = content,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = null,
@@ -113,6 +113,8 @@ public class CommentService : ICommentService
         if (isVideoOwner)
         {
             var ownerComments = await dbContext.Comments
+                .Include(c => c.User)//todo
+                .Include(c => c.SharedLink)//todo
                 .Where(c => c.VideoId == videoId)
                 .OrderBy(c => c.CreatedAt)
                 .ToListAsync(cancellationToken);
