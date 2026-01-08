@@ -11,5 +11,7 @@ namespace TB.DanceDance.API.Contracts.Responses
         public DateTimeOffset ExpireAt { get; set; }
         public bool IsRevoked { get; set; }
         public string ShareUrl { get; set; }
+        public bool AllowComments { get; set; }
+        public bool AllowAnonymousComments { get; set; }
     }
 }

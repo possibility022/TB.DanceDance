@@ -15,6 +15,7 @@ public class DanceDbContext : DbContext, IApplicationContext
     {
         public const string Access = "access";
         public const string Video = "video";
+        public const string Comments = "comments";
     }
 
     public DbSet<GroupAdmin> GroupsAdmins { get; set; }
@@ -29,6 +30,7 @@ public class DanceDbContext : DbContext, IApplicationContext
     public DbSet<AssignedToGroup> AssingedToGroups { get; set; }
     public DbSet<AssignedToEvent> AssingedToEvents { get; set; }
     public DbSet<SharedLink> SharedLinks { get; set; }
+    public DbSet<Comment> Comments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -127,6 +129,33 @@ public class DanceDbContext : DbContext, IApplicationContext
         modelBuilder.Entity<SharedLink>()
             .HasIndex(r => r.Id)
             .IsUnique();
+
+        // Comment configuration
+        modelBuilder.Entity<Comment>()
+            .ToTable("Comments", Schemas.Comments);
+
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Video)
+            .WithMany()
+            .HasForeignKey(c => c.VideoId)
+            .IsRequired();
+
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .IsRequired(false);
+
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.SharedLink)
+            .WithMany()
+            .HasForeignKey(c => c.SharedLinkId)
+            .IsRequired(false);
+
+        modelBuilder.Entity<Comment>()
+            .Property(c => c.Content)
+            .HasMaxLength(2000)
+            .IsRequired();
 
         base.OnModelCreating(modelBuilder);
     }

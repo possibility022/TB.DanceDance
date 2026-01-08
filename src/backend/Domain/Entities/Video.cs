@@ -35,5 +35,10 @@ public class Video
     /// </summary>
     public long ConvertedBlobSize { get; set; } = 0;
 
+    /// <summary>
+    /// Controls who can see comments on this video.
+    /// </summary>
+    public CommentVisibility CommentVisibility { get; set; } = CommentVisibility.OwnerOnly;
+
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
 }

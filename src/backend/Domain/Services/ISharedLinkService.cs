@@ -10,10 +10,12 @@ public interface ISharedLinkService
     /// <param name="videoId">The ID of the video to share</param>
     /// <param name="userId">The ID of the user creating the share link</param>
     /// <param name="expirationDays">Number of days until link expires (1-365, default 7)</param>
+    /// <param name="allowComments">Whether commenting is allowed through this link</param>
+    /// <param name="allowAnonymousComments">Whether anonymous commenting is allowed through this link</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The created SharedLink</returns>
     /// <exception cref="ArgumentException">If expiration days is out of range or video not found or user unauthorized</exception>
-    Task<SharedLink> CreateSharedLinkAsync(Guid videoId, string userId, int expirationDays, CancellationToken cancellationToken);
+    Task<SharedLink> CreateSharedLinkAsync(Guid videoId, string userId, int expirationDays, bool allowComments, bool allowAnonymousComments, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets a video by its shared link ID. Returns null if link doesn't exist, is expired, or is revoked.
@@ -39,4 +41,12 @@ public interface ISharedLinkService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of shared links with video details</returns>
     Task<IReadOnlyCollection<SharedLink>> GetUserSharedLinksAsync(string userId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets a shared link by its ID with video details. Returns null if link doesn't exist, is expired, or is revoked.
+    /// </summary>
+    /// <param name="linkId">The short link ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The shared link if valid and active, null otherwise</returns>
+    Task<SharedLink?> GetSharedLinkAsync(string linkId, CancellationToken cancellationToken);
 }
