@@ -22,6 +22,8 @@ public class SharedLinkService : ISharedLinkService
         Guid videoId,
         string userId,
         int expirationDays,
+        bool allowComments,
+        bool allowAnonymousComments,
         CancellationToken cancellationToken)
     {
         // Validate expiration days
@@ -74,7 +76,9 @@ public class SharedLinkService : ISharedLinkService
             SharedBy = userId,
             CreatedAt = now,
             ExpireAt = now.AddDays(expirationDays),
-            IsRevoked = false
+            IsRevoked = false,
+            AllowComments = allowComments,
+            AllowAnonymousComments = allowAnonymousComments
         };
 
         dbContext.SharedLinks.Add(sharedLink);
@@ -139,6 +143,26 @@ public class SharedLinkService : ISharedLinkService
             .ToListAsync(cancellationToken);
 
         return links.AsReadOnly();
+    }
+
+    public async Task<SharedLink?> GetSharedLinkAsync(string linkId, CancellationToken cancellationToken)
+    {
+        var link = await dbContext.SharedLinks
+            .Include(l => l.Video)
+            .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
+
+        if (link == null)
+        {
+            return null;
+        }
+
+        // Validate link is not expired and not revoked
+        if (link.ExpireAt <= DateTimeOffset.UtcNow || link.IsRevoked)
+        {
+            return null;
+        }
+
+        return link;
     }
 
     private string GenerateUniqueLinkId()

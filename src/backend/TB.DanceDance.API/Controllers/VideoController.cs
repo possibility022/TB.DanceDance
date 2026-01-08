@@ -223,4 +223,30 @@ public class VideoController : Controller
             Sas = sharedBlob.Sas.ToString(), VideoId = sharedBlob.VideoId, ExpireAt = sharedBlob.ExpireAt
         };
     }
+
+    /// <summary>
+    /// Updates the comment visibility setting for a video. Only the video owner can update this.
+    /// </summary>
+    [HttpPut]
+    [Route(ApiEndpoints.Video.UpdateCommentSettings)]
+    public async Task<IActionResult> UpdateCommentSettings(
+        [FromRoute] Guid videoId,
+        [FromBody] UpdateVideoCommentSettingsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = User.GetSubject();
+
+        var result = await videoService.UpdateCommentVisibilityAsync(
+            videoId,
+            userId,
+            (Domain.Entities.CommentVisibility)request.CommentVisibility,
+            cancellationToken);
+
+        if (!result)
+        {
+            return NotFound(new { error = "Video not found or you are not authorized to update its settings." });
+        }
+
+        return Ok();
+    }
 }

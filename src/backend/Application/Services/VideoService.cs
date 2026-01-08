@@ -127,4 +127,29 @@ public class VideoService : IVideoService
             ExpireAt = sas.ExpiresAt
         };
     }
+
+    public async Task<bool> UpdateCommentVisibilityAsync(
+        Guid videoId,
+        string userId,
+        CommentVisibility commentVisibility,
+        CancellationToken cancellationToken)
+    {
+        var video = await dbContext.Videos
+            .FirstOrDefaultAsync(v => v.Id == videoId, cancellationToken);
+
+        if (video == null)
+        {
+            return false;
+        }
+
+        // Only the video owner can update comment visibility
+        if (video.UploadedBy != userId)
+        {
+            return false;
+        }
+
+        video.CommentVisibility = commentVisibility;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

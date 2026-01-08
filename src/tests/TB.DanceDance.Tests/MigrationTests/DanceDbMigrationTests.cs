@@ -19,13 +19,13 @@ public class DanceDbMigrationTests : IAsyncLifetime
         await dbFixture.InitializeAsync();
     }
 
-    [Fact, TestPriority(1)]
+    [Fact, TestPriority(2)]
     public async Task UpMigrationsCanRun()
     {
         await dbFixture.DbContextFactory().Database.MigrateAsync(TestContext.Current.CancellationToken);
     }
     
-    [Fact, TestPriority(2)]
+    [Fact, TestPriority(1)]
     public async Task DownMigrationsCanRun()
     {
         await dbFixture.DbContextFactory().Database.MigrateAsync("20230617222723_Initial", TestContext.Current.CancellationToken);

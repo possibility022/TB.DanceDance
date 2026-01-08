@@ -33,7 +33,7 @@ public class SharedLinkServiceTests : BaseTestClass
 
         // Act
         var link = await sharedLinkService.CreateSharedLinkAsync(
-            video.Id, owner.Id, 7, TestContext.Current.CancellationToken);
+            video.Id, owner.Id, 7, true, false, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(link);
@@ -44,11 +44,15 @@ public class SharedLinkServiceTests : BaseTestClass
         Assert.False(link.IsRevoked);
         Assert.True(link.ExpireAt > link.CreatedAt);
         Assert.Equal(7, (link.ExpireAt - link.CreatedAt).Days);
+        Assert.True(link.AllowComments);
+        Assert.False(link.AllowAnonymousComments);
 
         // Verify persisted
         var saved = await SeedDbContext.Set<SharedLink>().FindAsync([link.Id], TestContext.Current.CancellationToken);
         Assert.NotNull(saved);
         Assert.Equal(link.Id, saved!.Id);
+        Assert.True(saved.AllowComments);
+        Assert.False(saved.AllowAnonymousComments);
     }
 
     [Fact]
@@ -80,7 +84,7 @@ public class SharedLinkServiceTests : BaseTestClass
 
         // Act
         var link = await sharedLinkService.CreateSharedLinkAsync(
-            video.Id, otherUser.Id, 30, TestContext.Current.CancellationToken);
+            video.Id, otherUser.Id, 30, true, false, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(link);
@@ -103,7 +107,7 @@ public class SharedLinkServiceTests : BaseTestClass
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
             await sharedLinkService.CreateSharedLinkAsync(
-                video.Id, unauthorized.Id, 7, TestContext.Current.CancellationToken);
+                video.Id, unauthorized.Id, 7, true, false, TestContext.Current.CancellationToken);
         });
     }
 
@@ -119,7 +123,7 @@ public class SharedLinkServiceTests : BaseTestClass
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
             await sharedLinkService.CreateSharedLinkAsync(
-                Guid.NewGuid(), user.Id, 7, TestContext.Current.CancellationToken);
+                Guid.NewGuid(), user.Id, 7, true, false, TestContext.Current.CancellationToken);
         });
     }
 
@@ -137,7 +141,7 @@ public class SharedLinkServiceTests : BaseTestClass
 
         // Act
         var link = await sharedLinkService.CreateSharedLinkAsync(
-            video.Id, owner.Id, days, TestContext.Current.CancellationToken);
+            video.Id, owner.Id, days, true, false, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(link);
@@ -161,7 +165,7 @@ public class SharedLinkServiceTests : BaseTestClass
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
             await sharedLinkService.CreateSharedLinkAsync(
-                video.Id, owner.Id, days, TestContext.Current.CancellationToken);
+                video.Id, owner.Id, days, true, false, TestContext.Current.CancellationToken);
         });
     }
 
@@ -509,4 +513,67 @@ public class SharedLinkServiceTests : BaseTestClass
         Assert.Equal("Detailed Video", returnedLink.Video.Name);
         Assert.Equal(TimeSpan.FromMinutes(5), returnedLink.Video.Duration);
     }
+
+    #region Comment Settings Tests
+
+    [Fact]
+    public async Task CreateSharedLink_WithCommentSettings_StoresCorrectly()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        SeedDbContext.AddRange(owner, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var link = await sharedLinkService.CreateSharedLinkAsync(
+            video.Id, owner.Id, 7, allowComments: false, allowAnonymousComments: true, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(link);
+        Assert.False(link.AllowComments);
+        Assert.True(link.AllowAnonymousComments);
+
+        // Verify persisted with comment settings
+        SeedDbContext.ChangeTracker.Clear();
+        var saved = await SeedDbContext.Set<SharedLink>().FindAsync([link.Id], TestContext.Current.CancellationToken);
+        Assert.NotNull(saved);
+        Assert.False(saved!.AllowComments);
+        Assert.True(saved.AllowAnonymousComments);
+    }
+
+    [Fact]
+    public async Task GetSharedLinkAsync_IncludesCommentSettings()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder()
+            .UploadedBy(owner)
+            .WithName("Video with Comments")
+            .WithCommentVisibility(CommentVisibility.AuthenticatedOnly)
+            .Build();
+        var link = new SharedLinkDataBuilder()
+            .ForVideo(video)
+            .SharedBy(owner)
+            .ExpiresInDays(7)
+            .AllowComments(true)
+            .AllowAnonymousComments(false)
+            .Build();
+        SeedDbContext.AddRange(owner, video, link);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await sharedLinkService.GetSharedLinkAsync(link.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(link.Id, result!.Id);
+        Assert.True(result.AllowComments);
+        Assert.False(result.AllowAnonymousComments);
+        Assert.NotNull(result.Video);
+        Assert.Equal(video.Id, result.Video.Id);
+        Assert.Equal(CommentVisibility.AuthenticatedOnly, result.Video.CommentVisibility);
+    }
+
+    #endregion
 }
