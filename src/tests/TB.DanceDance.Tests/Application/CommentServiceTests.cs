@@ -47,7 +47,7 @@ public class CommentServiceTests : BaseTestClass
         Assert.NotNull(comment);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Equal(user.Id, comment.UserId);
-        Assert.Null(comment.SharedLinkId); // Authenticated users don't store linkId
+        Assert.Equal(link.Id, comment.SharedLinkId);
         Assert.Equal("This is a test comment", comment.Content);
         Assert.False(comment.IsHidden);
         Assert.False(comment.IsReported);
@@ -106,7 +106,7 @@ public class CommentServiceTests : BaseTestClass
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Null(comment.SharedLinkId);
+        Assert.Equal(link.Id, comment.SharedLinkId);
         Assert.Equal(user.Id, comment.UserId);
     }
 
