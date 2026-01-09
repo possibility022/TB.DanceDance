@@ -9,6 +9,7 @@ import { IGroupWithVideosResponse } from "../types/ApiModels/GroupsWithVideosRes
 import { ApproveAccessRequest, RequestedAccess, RequestedAccessesResponse } from "../types/ApiModels/RequestedAccessesResponse";
 import { AxiosResponse } from "axios";
 import { EventId, GroupId, VideoId } from "../types/ApiModels/TypeIds";
+import {UpdateVideoCommentSettingsRequest} from "../types/ApiModels/UpdateVideoCommentSettingsRequest";
 
 
 export class VideoInfoService {
@@ -137,6 +138,14 @@ export class VideoInfoService {
     EnsureSuccessStatusCode(response: AxiosResponse) {
         if (response.status > 299 || response.status < 200)
             throw new Error('Request not accepted.')
+    }
+
+    async ChangeCommentsVisibility(videoId: VideoId, number: number) {
+        const requestBody: UpdateVideoCommentSettingsRequest = {
+            commentVisibility: number
+        }
+        const response = await AppApiClient.put(`/api/videos/${videoId}/comment-settings`, requestBody)
+        return response.status > 200 && response.status < 299
     }
 }
 

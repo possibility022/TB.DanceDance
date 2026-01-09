@@ -15,6 +15,12 @@ export default function ViewSharedLink(props: ViewShareLinkProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleCopyOnlyLink = async () => {
+        await navigator.clipboard.writeText(props.link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    }
+
     return (
         <div className="content">
             <p>
@@ -28,6 +34,9 @@ export default function ViewSharedLink(props: ViewShareLinkProps) {
             <div className="buttons">
                 <button className="button is-primary" onClick={handleCopy}>
                     Kopiuj
+                </button>
+                <button className="button is-secondary" onClick={handleCopyOnlyLink}>
+                    Kopiuj tylko link
                 </button>
             </div>
 

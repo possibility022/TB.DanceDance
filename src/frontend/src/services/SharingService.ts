@@ -8,7 +8,9 @@ import AppApiClient from "./HttpApiClient";
 class SharingService {
     shareVideo(videoId: string, expirationDays?: number, signal?: AbortSignal){
         const body: CreateSharedLinkRequest = {
-            ExpirationDays: expirationDays ?? 7
+            ExpirationDays: expirationDays ?? 7,
+            AllowAnonymousComments: true,
+            AllowComments: false,
         }
 
         const config: AxiosRequestConfig = {
