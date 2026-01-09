@@ -45,25 +45,41 @@ public class AccessService : IAccessService
     
     private IQueryable<Video> GetBaseVideosForUserQuery(string userId)
     {
-        // TODO: Implement access check for private videos
-        // Private videos: SharedWith.EventId == null && SharedWith.GroupId == null && SharedWith.UserId == requestingUserId
-        // Need to optimize query to handle both private and shared videos efficiently
-        // Consider union approach: private videos query UNION group/event videos query
+        var sharedByEvents = 
+            from eventsAccess in dbContext.AssingedToEvents
+            where eventsAccess.UserId == userId
+            join SharedWith in dbContext.SharedWith
+                on eventsAccess.EventId equals SharedWith.EventId into sharedWithEvents
+            from sharedWith in sharedWithEvents
+            join videos in dbContext.Videos
+                on sharedWith.VideoId equals videos.Id
+            select videos;
+        
+        var sharedByGroups = 
+            from groupAccess in dbContext.AssingedToGroups
+            where groupAccess.UserId == userId
+            join SharedWith in dbContext.SharedWith
+                on groupAccess.GroupId equals SharedWith.GroupId into sharedWithGroups
+            from sharedWith in sharedWithGroups
+            join videos in dbContext.Videos
+                on sharedWith.VideoId equals videos.Id
+            select videos;
+        
+        var accessibleAsPrivate = 
+            from privateVideos in dbContext.SharedWith
+            where privateVideos.UserId == userId && privateVideos.EventId == null && privateVideos.GroupId == null
+            join videos in dbContext.Videos
+                on privateVideos.VideoId equals videos.Id
+            select videos;
 
-        return from video in dbContext.Videos
-            join sharedWith in dbContext.SharedWith on video.Id equals sharedWith.VideoId
-            join events in dbContext.Events.DefaultIfEmpty() on sharedWith.EventId equals events.Id into eventsGroup
-            from events in eventsGroup.DefaultIfEmpty()
-            join groups in dbContext.Groups.DefaultIfEmpty() on sharedWith.GroupId equals groups.Id into groupsGroup
-            from groups in groupsGroup.DefaultIfEmpty()
-            join eventsAssignments in dbContext.AssingedToEvents.DefaultIfEmpty() on events.Id equals eventsAssignments.EventId into eventsAssignmentsGroup
-            from eventsAssignments in eventsAssignmentsGroup.DefaultIfEmpty()
-            join groupsAssignments in dbContext.AssingedToGroups.DefaultIfEmpty() on groups.Id equals groupsAssignments.GroupId into groupsAssignmentsGroup
-            from groupsAssignments in groupsAssignmentsGroup.DefaultIfEmpty()
-            where
-                sharedWith.UserId == userId || eventsAssignments.UserId == userId || groupsAssignments.UserId == userId && groupsAssignments.WhenJoined < video.RecordedDateTime
-            orderby video.RecordedDateTime descending
-            select video;
+        var v = dbContext.SharedWith.ToArray();
+        
+        var accessibleVideos = sharedByEvents
+            .Union(sharedByGroups)
+            .Union(accessibleAsPrivate)
+            .Distinct();
+
+        return accessibleVideos;
     }
 
     public async Task<bool> DoesUserHasAccessAsync(string videoBlobId, string userId, CancellationToken cancellationToken)

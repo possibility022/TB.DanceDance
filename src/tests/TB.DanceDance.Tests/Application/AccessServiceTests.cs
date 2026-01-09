@@ -597,4 +597,24 @@ public class AccessServiceTests : BaseTestClass
         Assert.Contains(result, v => v.Id == private2.Id);
         Assert.Contains(result, v => v.Id == private3.Id);
     }
+    
+    // P7 When user has private video, method should tell that user has access to it.
+    [Fact]
+    public async Task DoesUserHasAccessAsync_ReturnsTrueForPrivateVideo()
+    {
+        // Arrange
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+
+        // Create private video for this user
+        var privateVideo1 = new VideoDataBuilder().UploadedBy(user).WithName("Private1").Build();
+        var privateShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = privateVideo1.Id, UserId = user.Id, EventId = null, GroupId = null };
+        
+        SeedDbContext.AddRange(user, privateVideo1, privateShare1);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var results = await accessService.DoesUserHasAccessAsync(privateVideo1.BlobId!, user.Id, TestContext.Current.CancellationToken);
+        
+        Assert.True(results);
+    }
 }

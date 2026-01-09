@@ -7,11 +7,13 @@ namespace Application.Services;
 public class CommentService : ICommentService
 {
     private readonly IApplicationContext dbContext;
+    private readonly IAccessService accessService;
     private const int MaxCommentLength = 2000;
 
-    public CommentService(IApplicationContext dbContext)
+    public CommentService(IApplicationContext dbContext, IAccessService accessService)
     {
         this.dbContext = dbContext;
+        this.accessService = accessService;
     }
 
     public async Task<Comment> CreateCommentAsync(
@@ -154,6 +156,30 @@ public class CommentService : ICommentService
             .ToListAsync(cancellationToken);
 
         return comments.AsReadOnly();
+    }
+
+    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, Guid videoBlobId, CancellationToken cancellationToken)
+    {
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoBlobId.ToString(), userId, cancellationToken);
+        if (!hasAccess)
+            throw new UnauthorizedAccessException("No access to the video.");
+
+        var hiddenComments = dbContext.Comments
+            .Include(c => c.User)
+            .Where(c => c.VideoId == videoBlobId && c.IsHidden)
+            .Where(c => c.Video.UploadedBy == userId);
+
+        var comments = dbContext.Comments
+            .Include(c => c.User)
+            .Where(c => c.VideoId == videoBlobId && !c.IsHidden)
+            .OrderBy(c => c.CreatedAt);
+
+        var allComments = await hiddenComments
+            .Union(comments)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return allComments.AsReadOnly();
     }
 
     public async Task<bool> UpdateCommentAsync(
