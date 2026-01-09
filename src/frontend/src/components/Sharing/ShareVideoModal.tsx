@@ -39,8 +39,10 @@ function ShareVideoModal(props: IShareVideoModalProps) {
             .then(() => {
                 setCurrentVisibilityOptions(Number.parseInt(selectedCommentsVisibility))
             })
-            .catch(error => {setErrorMessage('Coś poszło nie tak.')})
-        .finally(() => setUpdatingVisibilityInProgress(false))
+            .catch(error => {
+                setErrorMessage('Coś poszło nie tak.')
+            })
+            .finally(() => setUpdatingVisibilityInProgress(false))
     }
 
     function generateLink() {
@@ -57,7 +59,7 @@ function ShareVideoModal(props: IShareVideoModalProps) {
         }
         abortControllerRef.current = new AbortController()
 
-        sharingService.shareVideo(props.videoInfo.id, undefined, abortControllerRef.current.signal)
+        sharingService.shareVideo(props.videoInfo.id, allowComments, allowCommentsAnonymous, undefined, abortControllerRef.current.signal)
             .then((res) => setSharedLink(res.data))
             .catch(error => {
                 if (error.name === 'CanceledError' || error.name === 'AbortError' || axios.isCancel?.(error)) {
@@ -84,7 +86,7 @@ function ShareVideoModal(props: IShareVideoModalProps) {
         return 'button is-warning'
     }
 
-    function renderListOfSharingOptions(){
+    function renderListOfSharingOptions() {
         return Object.entries(CommentsVisibilityOptions).map(([key, value]) => (
             <option key={key} value={key}>
                 {value}
@@ -111,18 +113,24 @@ function ShareVideoModal(props: IShareVideoModalProps) {
                 <div className="field">
                     <div className="control">
                         <label className="checkbox">
-                            <input type="checkbox" name="allowComments" checked={allowComments}
+                            <input type="checkbox" checked={allowComments}
+                                   className="m-1"
                                    onChange={(e) => setAllowComments(e.target.checked)}/>
                             Zezwól na komentarze
                         </label>
                     </div>
                 </div>
-                <label className="checkbox">
-                    <input type="checkbox" name="allowCommentsAnonymous"
-                           checked={allowCommentsAnonymous && allowComments} disabled={!allowComments}
-                           onChange={(e) => setAllowCommentsAnonymous(e.target.checked)}/>
-                    Zezwól na komentarze także osobom niezalogowanym
-                </label>
+                <div className="field">
+                    <div className="control">
+                        <label className="checkbox">
+                            <input type="checkbox"
+                                   className="m-1"
+                                   checked={allowCommentsAnonymous && allowComments} disabled={!allowComments}
+                                   onChange={(e) => setAllowCommentsAnonymous(e.target.checked)}/>
+                            Zezwól na komentarze także osobom niezalogowanym
+                        </label>
+                    </div>
+                </div>
 
                 <p className="has-text-warning">Obecne ustawienia widoczności komentarczy dla wybranego nagrania:</p>
 

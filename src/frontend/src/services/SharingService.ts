@@ -6,11 +6,11 @@ import SharedVideoInfoResponse from "../types/ApiModels/Sharing/SharedVideoInfoR
 import AppApiClient from "./HttpApiClient";
 
 class SharingService {
-    shareVideo(videoId: string, expirationDays?: number, signal?: AbortSignal){
+    shareVideo(videoId: string, allowComments: boolean, allowAnonymousComments: boolean, expirationDays?: number, signal?: AbortSignal){
         const body: CreateSharedLinkRequest = {
             ExpirationDays: expirationDays ?? 7,
-            AllowAnonymousComments: true,
-            AllowComments: false,
+            AllowAnonymousComments: allowAnonymousComments,
+            AllowComments: allowComments,
         }
 
         const config: AxiosRequestConfig = {
