@@ -28,16 +28,6 @@ public class Comment
     public string Content { get; set; } = null!;
 
     /// <summary>
-    /// True when posted as anonymouse
-    /// </summary>
-    public bool PostedAsAnonymous { get; set; }
-
-    /// <summary>
-    /// Anonymous name if posted as anonymouse
-    /// </summary>
-    public string? AnonymouseName { get; set; }
-    
-    /// <summary>
     /// When the comment was created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }

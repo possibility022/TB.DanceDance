@@ -75,11 +75,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AnonymouseName")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -92,9 +87,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsReported")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("PostedAsAnonymous")
                         .HasColumnType("boolean");
 
                     b.Property<string>("ReportedReason")
