@@ -164,7 +164,7 @@ public class DanceDbContext : DbContext, IApplicationContext
         
         modelBuilder.Entity<Comment>()
             .Property(c => c.ShaOfAnonymouseId)
-            .HasMaxLength(256)
+            .HasMaxLength(32)
             .IsRequired(false);
 
         base.OnModelCreating(modelBuilder);
