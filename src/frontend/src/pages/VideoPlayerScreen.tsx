@@ -122,7 +122,7 @@ export function VideoPlayerScreen() {
             </div>
 
             <VideoPlayerComponent videoId={params.videoId} sharedScope={sharedScope} videoList={videoList} url={url}/>
-            {params.videoId && <CommentsComponent allowAdding={false} videoId={params.videoId}/>}
+            {videoInfo && <CommentsComponent allowAdding={false} videoId={videoInfo.id}/>}
         </div>
     )
 

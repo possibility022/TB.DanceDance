@@ -158,20 +158,20 @@ public class CommentService : ICommentService
         return comments.AsReadOnly();
     }
 
-    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, Guid videoBlobId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, Guid videoId, CancellationToken cancellationToken)
     {
-        var hasAccess = await accessService.DoesUserHasAccessAsync(videoBlobId.ToString(), userId, cancellationToken);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, userId, cancellationToken);
         if (!hasAccess)
             throw new UnauthorizedAccessException("No access to the video.");
 
         var hiddenComments = dbContext.Comments
             .Include(c => c.User)
-            .Where(c => c.VideoId == videoBlobId && c.IsHidden)
+            .Where(c => c.VideoId == videoId && c.IsHidden)
             .Where(c => c.Video.UploadedBy == userId);
 
         var comments = dbContext.Comments
             .Include(c => c.User)
-            .Where(c => c.VideoId == videoBlobId && !c.IsHidden)
+            .Where(c => c.VideoId == videoId && !c.IsHidden)
             .OrderBy(c => c.CreatedAt);
 
         var allComments = await hiddenComments

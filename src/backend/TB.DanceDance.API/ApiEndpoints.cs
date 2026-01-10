@@ -70,6 +70,7 @@ public static class ApiEndpoints
     {
         private const string Base = $"{ApiBase}/comments";
 
+        public const string GetCommentsForVideo = $"{Base}/video/{{videoId:guid}}";
         public const string Create = $"{ApiBase}/share/{{linkId}}/comments";
         public const string GetByLink = $"{ApiBase}/share/{{linkId}}/comments";
         public const string Update = $"{Base}/{{commentId:guid}}";

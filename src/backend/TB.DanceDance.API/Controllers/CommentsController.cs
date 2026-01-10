@@ -203,6 +203,29 @@ public class CommentsController : Controller
             return BadRequest(new { error = ex.Message });
         }
     }
+    
+    [HttpGet]
+    [Route(ApiEndpoints.Comments.GetCommentsForVideo)]
+    public async Task<IActionResult> GetCommentsForVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
+    {
+        var userId = User.GetSubject();
+
+        try
+        {
+            var comments = await commentService.GetCommentsForVideoAsync(userId, videoId, cancellationToken);
+            return Ok(comments.Select(c => MapToResponse(c, userId)));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Failed to get comments for video {VideoId}. User unauthorized", videoId);
+            return Unauthorized();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogWarning(ex, "Failed to get comments for video {VideoId}", videoId);
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 
     private CommentResponse MapToResponse(Comment comment, string? currentUserId)
     {

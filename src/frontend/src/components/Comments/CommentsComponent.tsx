@@ -3,11 +3,10 @@ import commentsService from "../../services/CommentsService";
 import {CommentResponse} from "../../types/ApiModels/Comments/CommentResponse";
 import {CommentsContext} from "./CommentsContext";
 import CommentsList from "./CommentsList";
-import {BlobId} from "../../types/ApiModels/TypeIds";
 import AddComment from "./AddComment";
 
 interface ICommentsComponentProps {
-    videoId: BlobId
+    videoId: string
     allowAdding: boolean
     linkId?: string
 }

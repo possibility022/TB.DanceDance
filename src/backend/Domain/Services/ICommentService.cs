@@ -35,6 +35,20 @@ public interface ICommentService
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves a collection of comments for a specific video.
+    /// </summary>
+    /// <param name="userId">The ID of the user requesting the comments</param>
+    /// <param name="videoId">The unique identifier of the video blob</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A read-only collection of comments for the specified video</returns>
+    /// <exception cref="ArgumentException">If the video does not exist or validation fails</exception>
+    /// <exception cref="UnauthorizedAccessException">If the user is not authorized to access the video's comments</exception>
+    Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
+        string userId,
+        Guid videoId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Updates a comment. Only the authenticated comment author can update their own comments.
     /// </summary>
     /// <param name="commentId">The comment ID</param>
