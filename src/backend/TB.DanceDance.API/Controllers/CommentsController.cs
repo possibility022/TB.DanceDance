@@ -34,7 +34,6 @@ public class CommentsController : Controller
     {
         // Get userId if user is authenticated, null if anonymous
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
-        request.Sanitize();
 
         try
         {
@@ -95,8 +94,6 @@ public class CommentsController : Controller
         CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
-
-        request.Sanitize();
 
         try
         {
