@@ -11,8 +11,6 @@ function AddComment(props: IAddCommentsProps) {
     const minLength = 3
     const maxNameLength = 20
     const minNameLength = 3
-    const namePattern = /^[a-zA-Z0-9!@#$%^&*(){}[\] ]{3,20}$/
-    const commentPattern = /^[a-zA-Z0-9!@#$%^&*(){}[\]\n ]{3,2000}$/
 
     const [errorMessage, setErrorMessage] = useState<string | undefined>()
     const [content, setContent] = useState('')
@@ -30,25 +28,16 @@ function AddComment(props: IAddCommentsProps) {
             return
         }
 
-        if (content.match(commentPattern) === null) {
-            setErrorMessage('Komentarz zawiera niedozwolone znaki')
-            return
-        }
-
         if (!authContext.isAuthenticated()) {
-            if (nameForAnonymouse && nameForAnonymouse.length < minNameLength) {
+            if (!nameForAnonymouse || nameForAnonymouse.length < minNameLength) {
                 setErrorMessage('Podpis jest za krótki')
                 return;
             }
 
-            if (nameForAnonymouse && nameForAnonymouse.length > maxNameLength) {
+            if (nameForAnonymouse.length > maxNameLength) {
                 setErrorMessage('Podpis jest za długi')
                 return
             }
-        }
-
-        if (content.match(namePattern) === null) {
-            setErrorMessage('Podpis zawiera niedozwolone znaki')
         }
 
         setErrorMessage(undefined)
