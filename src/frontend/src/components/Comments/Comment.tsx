@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import {formatDateToPlDate} from "../../extensions/DateExtensions";
 
 interface ICommentProps {
     author: string;
@@ -7,11 +8,6 @@ interface ICommentProps {
 }
 
 function Comment({ author, content, lastUpdateDate }: ICommentProps) {
-    const formattedDate = lastUpdateDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
 
     return (
         <article className="comment block">
@@ -21,7 +17,7 @@ function Comment({ author, content, lastUpdateDate }: ICommentProps) {
                         <strong>{author}</strong>
                         <br />
                         <p>{content}</p>
-                        <small className="has-text-grey">{formattedDate}</small>
+                        <small className="has-text-grey">{formatDateToPlDate(lastUpdateDate)}</small>
                     </div>
                 </div>
             </div>

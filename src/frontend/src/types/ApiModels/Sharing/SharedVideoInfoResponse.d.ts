@@ -5,6 +5,6 @@ export default interface SharedVideoInfoResponse {
     name: string
     duration: TimeSpan
     recordedDateTime: DateTime
-    AllowCommentsOnThisLink: boolean
-    AllowAnonymousCommentsOnThisLink: boolean
+    allowCommentsOnThisLink: boolean
+    allowAnonymousCommentsOnThisLink: boolean
 }

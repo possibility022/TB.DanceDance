@@ -1,4 +1,3 @@
-import ReactPlayer from 'react-player';
 import { useState, useContext, useEffect } from 'react'
 import { useLocation, useParams } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthProvider';
@@ -7,9 +6,9 @@ import VideoInformation from '../types/ApiModels/VideoInformation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { SharedScope } from '../types/appTypes';
-import { VideoList } from '../components/Videos/VideoList';
 import {BlobId} from "../types/ApiModels/TypeIds";
 import VideoPlayerComponent from "../components/Videos/VideoPlayerComponent";
+import CommentsComponent from "../components/Comments/CommentsComponent";
 
 
 
@@ -123,6 +122,7 @@ export function VideoPlayerScreen() {
             </div>
 
             <VideoPlayerComponent videoId={params.videoId} sharedScope={sharedScope} videoList={videoList} url={url}/>
+            {params.videoId && <CommentsComponent allowAdding={false} videoId={params.videoId}/>}
         </div>
     )
 

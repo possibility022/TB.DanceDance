@@ -31,3 +31,21 @@
     transform: rotate(360deg);
   }
 }
+.comment:hover {
+    border-color: hsl(28deg, 86%, 61%)
+}
+
+.comment {
+    background-color: var(--bulma-scheme-main);
+    border-color: var(--bulma-border);
+    border-radius: var(--bulma-radius-small);
+    border-style: solid;
+    box-shadow: 0 .25em .5em 0 hsla(var(--h),var(--s),var(--l),var(0.05));
+    color: var(--bulma-text-weak);
+    display: flex;
+    flex-direction: column;
+    gap: .5em;
+    padding: 1.125em 1.5em 1.5em;
+    transition-duration: var(--bulma-duration);
+    transition-property: border-color, box-shadow, transform;
+}

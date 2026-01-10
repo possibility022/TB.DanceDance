@@ -2,8 +2,7 @@
 import React from "react";
 
 export interface ICommentsContext {
-    comments: CommentResponse[]
-    commentsAvailable: boolean
+    comments?: CommentResponse[]
     commentsLoading: boolean
     addCommentAsync: (comment: string) => Promise<void>
     deleteCommentAsync: (commentId: string) => Promise<void>
