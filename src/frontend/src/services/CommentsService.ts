@@ -13,10 +13,10 @@ class CommentsService {
         return response.data
     }
 
-    async addCommentAsync(linkId: string, comment: CreateCommentRequest) {
+    async addCommentAsync(linkId: string, comment: string, authorName?: string) {
         const request: CreateCommentRequest = {
-            content: comment.content,
-            //nameForAnonymouse: ''
+            content: comment,
+            authorName: authorName
         }
         await httpApiClient.post(`/api/share/${linkId}/comments`, request)
     }

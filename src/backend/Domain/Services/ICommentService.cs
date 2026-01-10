@@ -11,6 +11,7 @@ public interface ICommentService
     /// <param name="userId">The ID of the authenticated user creating the comment (null for anonymous)</param>
     /// <param name="linkId">The shared link ID through which the comment is being created</param>
     /// <param name="content">The comment content</param>
+    /// <param name="authorName">The name of the author if posting as anonymous (null for authenticated users)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The created Comment</returns>
     /// <exception cref="ArgumentException">If link doesn't exist, doesn't allow comments, or other validation fails</exception>
@@ -18,6 +19,7 @@ public interface ICommentService
         string? userId,
         string linkId,
         string content,
+        string? authorName,
         CancellationToken cancellationToken);
 
     /// <summary>

@@ -2,7 +2,7 @@
 import {AuthContext} from "../../providers/AuthProvider";
 
 interface IAddCommentsProps {
-    onAddClick(content: string, author: string): void
+    onAddClick(content: string, authorName?: string): void
 }
 
 function AddComment(props: IAddCommentsProps) {
@@ -16,7 +16,7 @@ function AddComment(props: IAddCommentsProps) {
 
     const [errorMessage, setErrorMessage] = useState<string | undefined>()
     const [content, setContent] = useState('')
-    const [nameForAnonymouse, setNameForAnonymouse] = useState('')
+    const [nameForAnonymouse, setNameForAnonymouse] = useState<string>()
     const authContext = useContext(AuthContext)
 
     function onAdd() {
@@ -35,19 +35,14 @@ function AddComment(props: IAddCommentsProps) {
             return
         }
 
-        if (nameForAnonymouse.length > maxNameLength) {
-            setErrorMessage('Podpis jest za długi')
-            return
-        }
-
-        if (authContext.isAuthenticated()) {
-            if (nameForAnonymouse.length < minNameLength) {
+        if (!authContext.isAuthenticated()) {
+            if (nameForAnonymouse && nameForAnonymouse.length < minNameLength) {
                 setErrorMessage('Podpis jest za krótki')
                 return;
             }
 
-            if (nameForAnonymouse.length < minNameLength) {
-                setErrorMessage('Podpis jest za krótki')
+            if (nameForAnonymouse && nameForAnonymouse.length > maxNameLength) {
+                setErrorMessage('Podpis jest za długi')
                 return
             }
         }

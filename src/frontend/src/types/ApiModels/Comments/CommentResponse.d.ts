@@ -8,6 +8,7 @@
         createdAt: Date
         updatedAt?: Date | null
         isHidden?: boolean | null
+        postedAsAnonymous?: boolean
         isReported?: boolean | null
         reportedReason?: string | null
         isOwn: boolean

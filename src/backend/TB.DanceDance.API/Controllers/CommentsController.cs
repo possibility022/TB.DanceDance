@@ -41,6 +41,7 @@ public class CommentsController : Controller
                 userId,
                 linkId,
                 request.Content,
+                request.AuthorName,
                 cancellationToken);
 
             var response = MapToResponse(comment, userId);
@@ -231,16 +232,23 @@ public class CommentsController : Controller
     {
         var isVideoOwner = comment.Video?.UploadedBy == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
+        
+        string? authorName;
+        if (comment.PostedAsAnonymous)
+            authorName = comment.AnonymouseName;
+        else
+            authorName = comment.User != null ? $"{comment.User.FirstName} {comment.User.LastName}" : null;
 
         return new CommentResponse
         {
             Id = comment.Id,
             VideoId = comment.VideoId,
-            AuthorName = comment.User != null ? $"{comment.User.FirstName} {comment.User.LastName}" : null,
+            AuthorName = authorName,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             IsHidden = comment.IsHidden,
+            PostedAsAnonymous = comment.PostedAsAnonymous,
             // Only populate moderation fields for video owner
             IsReported = isVideoOwner ? comment.IsReported : null,
             ReportedReason = isVideoOwner ? comment.ReportedReason : null,

@@ -10,5 +10,11 @@ namespace TB.DanceDance.API.Contracts.Requests
         [Required]
         [MaxLength(2000)]
         public string Content { get; set; } = null!;
+        
+        /// <summary>
+        /// Author if posting as anonymous.
+        /// </summary>
+        [MaxLength(20)]
+        public string? AuthorName { get; set; }
     }
 }

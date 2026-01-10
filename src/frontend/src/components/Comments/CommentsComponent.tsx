@@ -40,12 +40,10 @@ function CommentsComponent(props: ICommentsComponentProps) {
         }
     }
 
-    const addCommentAsync = async (comment: string) => {
+    const addCommentAsync = async (comment: string, authorName?: string) => {
         try{
             setCommentsLoading(true)
-            await commentsService.addCommentAsync(props.linkId!, {
-                content: comment
-            })
+            await commentsService.addCommentAsync(props.linkId!, comment, authorName)
 
             await loadCommentsAsync()
         } finally {
@@ -66,7 +64,10 @@ function CommentsComponent(props: ICommentsComponentProps) {
                 deleteCommentAsync,
                 loadCommentsAsync
             }}>
-            {props.allowAdding && <AddComment onAddClick={addCommentAsync}/>}
+            {
+                props.allowAdding && <AddComment
+                onAddClick={(comment, authorName) => addCommentAsync(comment, authorName)}/>
+            }
             <div className="mt-5">
                 <CommentsList/>
             </div>

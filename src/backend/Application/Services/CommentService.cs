@@ -20,6 +20,7 @@ public class CommentService : ICommentService
         string? userId,
         string linkId,
         string content,
+        string? authorName,
         CancellationToken cancellationToken)
     {
         // Validate content
@@ -34,6 +35,9 @@ public class CommentService : ICommentService
                 $"Comment content cannot exceed {MaxCommentLength} characters.",
                 nameof(content));
         }
+        
+        if (string.IsNullOrWhiteSpace(authorName) && string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("Either userId or authorName must be provided for comments.", nameof(authorName));
 
         // Get the shared link with video info
         var link = await dbContext.SharedLinks
@@ -77,6 +81,8 @@ public class CommentService : ICommentService
             UserId = userId, // null for anonymous, populated for authenticated
             SharedLinkId = linkId,
             Content = content,
+            AnonymouseName = authorName,
+            PostedAsAnonymous = userId is null, 
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = null,
             IsHidden = false,
