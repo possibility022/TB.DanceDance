@@ -156,6 +156,11 @@ public class DanceDbContext : DbContext, IApplicationContext
             .Property(c => c.Content)
             .HasMaxLength(2000)
             .IsRequired();
+        
+        modelBuilder.Entity<Comment>()
+            .Property(c => c.AnonymouseName)
+            .HasMaxLength(20)
+            .IsRequired(false);
 
         base.OnModelCreating(modelBuilder);
     }
