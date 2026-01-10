@@ -2,6 +2,7 @@
 
 ### Variables
 @videoId = c4029eb1-23ad-417b-9a3b-1b2ad4751c0b
+@anonymouseId = 128973918akjdhak
 
 ### STEP 1: Create a shared link with comment settings
 POST https://localhost:7068/api/videos/{{videoId}}/share
@@ -36,7 +37,9 @@ POST https://localhost:7068/api/share/{{shareLinkId}}/comments
 Content-Type: application/json
 
 {
-  "Content": "This is an anonymous comment - no auth token!"
+  "content": "This is an anonymous comment - no auth token!",
+  "authorName": "Bolek",
+  "anonymouseId": "{{anonymouseId}}"
 }
 
 > {% client.global.set("anonymousCommentId", response.body.id); %}
@@ -46,10 +49,10 @@ GET https://localhost:7068/api/share/{{shareLinkId}}/comments
 Authorization: Bearer {{token}}
 
 ### STEP 6: Get all comments (anonymous user)
-GET https://localhost:7068/api/share/{{shareLinkId}}/comments
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments?anonymouseId={{anonymouseId}}
 
 ### STEP 7: Update comment (only author can update)
-@commentId = e0437e2c-fe70-4893-9916-9ae037fadf29
+@commentId = 13e07339-329f-4e45-8330-c0be8b8116c4
 PUT https://localhost:7068/api/comments/{{commentId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -87,6 +90,9 @@ Content-Type: application/json
 ### STEP 12: Delete comment (author or video owner)
 DELETE https://localhost:7068/api/comments/{{commentId}}
 Authorization: Bearer {{token}}
+
+### STEP 12.1: Delete comment (by anonymouse id)
+DELETE https://localhost:7068/api/comments/{{commentId}}?anonymouseId={{anonymouseId}}
 
 ### STEP 13: Update video comment visibility (only video owner)
 PUT https://localhost:7068/api/videos/{{videoId}}/comment-settings

@@ -1,6 +1,8 @@
 using Domain.Entities;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Application.Services;
 
@@ -15,12 +17,38 @@ public class CommentService : ICommentService
         this.dbContext = dbContext;
         this.accessService = accessService;
     }
+    
+    
+    private IQueryable<Comment> QueryAllComments(Guid videoId) =>
+        dbContext.Comments
+            .Include(c => c.User)
+            .Where(c => c.VideoId == videoId)
+            .OrderBy(c => c.CreatedAt);
+
+    private IQueryable<Comment> QueryCommentsByUser(string userId, Guid videoId) =>
+        dbContext.Comments
+            .Include(c => c.User)
+            .Where(c => c.VideoId == videoId && c.IsHidden)
+            .Where(c => c.Video.UploadedBy == userId);
+    
+    private IQueryable<Comment> QueryCommentsByAnonymouseId(byte[] hashedAnonymouseId, Guid videoId) =>
+        dbContext.Comments
+            .Include(c => c.User)
+            .Where(c => c.VideoId == videoId)
+            .Where(c => c.ShaOfAnonymouseId == hashedAnonymouseId);
+    
+    private IQueryable<Comment> QueryAllNotHiddenComments(Guid videoId) =>
+        dbContext.Comments
+            .Include(c => c.User)
+            .Where(c => c.VideoId == videoId && !c.IsHidden)
+            .OrderBy(c => c.CreatedAt);
 
     public async Task<Comment> CreateCommentAsync(
         string? userId,
         string linkId,
         string content,
         string? authorName,
+        string? anonymouseId,
         CancellationToken cancellationToken)
     {
         // Validate content
@@ -72,6 +100,11 @@ public class CommentService : ICommentService
                 "Anonymous comments are not allowed through this shared link. Please log in to comment.",
                 nameof(userId));
         }
+        
+        // When posted as an authorized user, do not store anonymouse id
+        byte[]? hashOfAnonymouseId = null;
+        if (string.IsNullOrEmpty(userId) && !string.IsNullOrWhiteSpace(anonymouseId))
+            hashOfAnonymouseId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
 
         // Create the comment
         var comment = new Comment
@@ -82,6 +115,7 @@ public class CommentService : ICommentService
             SharedLinkId = linkId,
             Content = content,
             AnonymouseName = authorName,
+            ShaOfAnonymouseId = hashOfAnonymouseId,
             PostedAsAnonymous = userId is null, 
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = null,
@@ -98,6 +132,7 @@ public class CommentService : ICommentService
 
     public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
         string? userId,
+        string? anonymouseId,
         string linkId,
         CancellationToken cancellationToken)
     {
@@ -120,33 +155,36 @@ public class CommentService : ICommentService
         // Video owner always sees all comments (including hidden ones)
         if (isVideoOwner)
         {
-            var ownerComments = await dbContext.Comments
-                .Include(c => c.User)
-                .Include(c => c.SharedLink)
-                .Where(c => c.VideoId == videoId)
-                .OrderBy(c => c.CreatedAt)
+            var ownerComments = await QueryAllComments(videoId)
                 .ToListAsync(cancellationToken);
 
             return ownerComments.AsReadOnly();
         }
+
+        IQueryable<Comment> commentsQuery = dbContext.Comments
+            .Include(r => r.User)
+            .Where(_ => false);
 
         // Apply visibility rules based on video's CommentVisibility setting
         switch (video.CommentVisibility)
         {
             case CommentVisibility.OwnerOnly:
                 // Only owner can see comments (and we already handled that case above)
-                return Array.Empty<Comment>();
-
             case CommentVisibility.AuthenticatedOnly:
-                // Only authenticated users can see comments
-                if (userId == null)
+                // Query comments made by given user. Users can always see their comments.
+                if (!string.IsNullOrWhiteSpace(userId))
+                    commentsQuery = commentsQuery.Union(QueryCommentsByUser(userId, videoId));
+                
+                // Query comments posted as anonymouse with given id.
+                if (!string.IsNullOrWhiteSpace(anonymouseId))
                 {
-                    return Array.Empty<Comment>();
+                    var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+                    commentsQuery = commentsQuery.Union(QueryCommentsByAnonymouseId(hashedId, videoId));
                 }
                 break;
 
             case CommentVisibility.Public:
-                // Everyone can see comments (including anonymous users)
+                commentsQuery = QueryAllNotHiddenComments(videoId);
                 break;
 
             default:
@@ -154,10 +192,7 @@ public class CommentService : ICommentService
         }
 
         // Get non-hidden comments
-        var comments = await dbContext.Comments
-            .Include(c => c.User)
-            .Include(c => c.SharedLink)
-            .Where(c => c.VideoId == videoId && !c.IsHidden)
+        var comments = await commentsQuery
             .OrderBy(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -170,15 +205,8 @@ public class CommentService : ICommentService
         if (!hasAccess)
             throw new UnauthorizedAccessException("No access to the video.");
 
-        var hiddenComments = dbContext.Comments
-            .Include(c => c.User)
-            .Where(c => c.VideoId == videoId && c.IsHidden)
-            .Where(c => c.Video.UploadedBy == userId);
-
-        var comments = dbContext.Comments
-            .Include(c => c.User)
-            .Where(c => c.VideoId == videoId && !c.IsHidden)
-            .OrderBy(c => c.CreatedAt);
+        var hiddenComments = QueryCommentsByUser(userId, videoId);
+        var comments = QueryAllNotHiddenComments(videoId);
 
         var allComments = await hiddenComments
             .Union(comments)
@@ -190,7 +218,8 @@ public class CommentService : ICommentService
 
     public async Task<bool> UpdateCommentAsync(
         Guid commentId,
-        string userId,
+        string? userId,
+        string? anonymouseId,
         string content,
         CancellationToken cancellationToken)
     {
@@ -199,6 +228,9 @@ public class CommentService : ICommentService
         {
             throw new ArgumentException("Comment content cannot be empty.", nameof(content));
         }
+        
+        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(anonymouseId))
+            throw new ArgumentException("Either userId or anonymouseId must be provided.", nameof(userId));
 
         if (content.Length > MaxCommentLength)
         {
@@ -214,25 +246,46 @@ public class CommentService : ICommentService
         {
             return false;
         }
+        
+        bool shaMatches = CheckAnonymouseIdMatch(anonymouseId, comment);
 
-        // Only authenticated comment authors can update their own comments
-        if (comment.UserId != userId)
+        // Authenticated comment authors can update their own comments
+        // or anonymous users that provided the same anonymouse id
+        if (comment.UserId == userId || shaMatches)
         {
-            return false;
+            comment.Content = content;
+            comment.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
+        
+        return false;
+    }
 
-        comment.Content = content;
-        comment.UpdatedAt = DateTimeOffset.UtcNow;
+    private static bool CheckAnonymouseIdMatch(string? anonymouseId, Comment comment)
+    {
+        byte[]? anonymouseIdBytes = null;
+        if (!string.IsNullOrWhiteSpace(anonymouseId))
+            anonymouseIdBytes = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
 
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return true;
+        var shaMatches = anonymouseIdBytes is not null
+                         && comment.ShaOfAnonymouseId is not null
+                         && anonymouseIdBytes.Length > 0
+                         && comment.ShaOfAnonymouseId.Length > 0
+                         && anonymouseIdBytes.SequenceCompareTo(comment.ShaOfAnonymouseId) == 0;
+        return shaMatches;
     }
 
     public async Task<bool> DeleteCommentAsync(
         Guid commentId,
-        string userId,
+        string? userId,
+        string? anonymouseId,
         CancellationToken cancellationToken)
     {
+        
+        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(anonymouseId))
+            throw new ArgumentException("Either userId or anonymouseId must be provided.", nameof(userId));
+        
         var comment = await dbContext.Comments
             .Include(c => c.Video)
             .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
@@ -243,10 +296,11 @@ public class CommentService : ICommentService
         }
 
         // Check if user can delete: either the comment author or the video owner
-        var isAuthor = comment.UserId == userId;
+        var isAuthor = !string.IsNullOrEmpty(userId) && comment.UserId == userId;
         var isVideoOwner = comment.Video.UploadedBy == userId;
-
-        if (!isAuthor && !isVideoOwner)
+        bool shaMatches = CheckAnonymouseIdMatch(anonymouseId, comment);
+        
+        if (!isAuthor && !isVideoOwner && !shaMatches)
         {
             return false;
         }

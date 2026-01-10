@@ -41,7 +41,8 @@ public class CommentsController : Controller
                 userId,
                 linkId,
                 request.Content,
-                request.AuthorName,
+                request.AuthorName, 
+                request.AnonymouseId,
                 cancellationToken);
 
             var response = MapToResponse(comment, userId);
@@ -62,6 +63,7 @@ public class CommentsController : Controller
     [Route(ApiEndpoints.Comments.GetByLink)]
     public async Task<ActionResult<IEnumerable<CommentResponse>>> GetCommentsByLink(
         [FromRoute] string linkId,
+        [FromQuery] string? anonymouseId,
         CancellationToken cancellationToken)
     {
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
@@ -70,6 +72,7 @@ public class CommentsController : Controller
         {
             var comments = await commentService.GetCommentsForVideoAsync(
                 userId,
+                anonymouseId,
                 linkId,
                 cancellationToken);
 
@@ -97,7 +100,11 @@ public class CommentsController : Controller
 
         try
         {
-            var result = await commentService.UpdateCommentAsync(commentId, userId, request.Content, cancellationToken);
+            var result = await commentService.UpdateCommentAsync(commentId,
+                userId,
+                request.AnonymouseId,
+                request.Content,
+                cancellationToken);
 
             if (!result)
             {
@@ -116,21 +123,32 @@ public class CommentsController : Controller
     /// <summary>
     /// Deletes a comment. Can be deleted by the author or video owner.
     /// </summary>
-    [HttpDelete]
+    [AllowAnonymous]
     [Route(ApiEndpoints.Comments.Delete)]
     public async Task<IActionResult> DeleteComment(
         [FromRoute] Guid commentId,
+        [FromQuery] string? anonymouseId,
         CancellationToken cancellationToken)
     {
-        var userId = User.GetSubject();
+        var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
 
-        var result = await commentService.DeleteCommentAsync(commentId, userId, cancellationToken);
-
-        if (!result)
+        try
         {
-            return NotFound(new { error = "Comment not found or you are not authorized to delete it." });
+            var result = await commentService.DeleteCommentAsync(commentId,
+                userId,
+                anonymouseId,
+                cancellationToken);
+            
+            if (!result)
+            {
+                return NotFound(new { error = "Comment not found or you are not authorized to delete it." });
+            }
         }
-
+        catch (ArgumentException e)
+        {
+            return BadRequest(new { error = e.Message });
+        }
+        
         return Ok();
     }
 
