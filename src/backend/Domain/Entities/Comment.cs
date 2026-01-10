@@ -16,13 +16,6 @@ public class Comment
     /// The authenticated user who created this comment. Null for anonymous comments.
     /// </summary>
     public string? UserId { get; set; }
-    
-    /// <summary>
-    /// True when posted as anonymouse
-    /// </summary>
-    public bool PostedAsAnonymous { get; set; }
-
-    public string? AnonymouseName { get; set; }
 
     /// <summary>
     /// The shared link used to create this comment (for anonymous comments). Null for authenticated comments.
