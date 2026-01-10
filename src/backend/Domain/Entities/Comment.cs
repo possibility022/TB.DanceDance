@@ -26,7 +26,23 @@ public class Comment
     /// The comment content.
     /// </summary>
     public string Content { get; set; } = null!;
+    
+    /// <summary>
+    /// True when posted as anonymouse
+    /// </summary>
+    public bool PostedAsAnonymous { get; set; }
 
+    /// <summary>
+    /// Anonymous name if posted as anonymouse
+    /// </summary>
+    public string? AnonymouseName { get; set; }
+    
+    /// <summary>
+    /// This is a hashed ID generated on frontend used to allow edit comments posted anonymously.
+    /// It is used to identify the comment owner when the comment was posted by/as anonymouse user.
+    /// </summary>
+    public byte[]? ShaOfAnonymouseId { get; set; }
+    
     /// <summary>
     /// When the comment was created.
     /// </summary>
