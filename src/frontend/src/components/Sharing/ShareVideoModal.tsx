@@ -35,9 +35,11 @@ function ShareVideoModal(props: IShareVideoModalProps) {
             return
 
         setUpdatingVisibilityInProgress(true)
-        videoInfoService.ChangeCommentsVisibility(props.videoInfo.id, Number.parseInt(selectedCommentsVisibility))
+        const visibility = Number.parseInt(selectedCommentsVisibility)
+        videoInfoService.ChangeCommentsVisibility(props.videoInfo.id, visibility)
             .then(() => {
                 setCurrentVisibilityOptions(Number.parseInt(selectedCommentsVisibility))
+                props.videoInfo.commentVisibility = visibility
             })
             .catch(error => {
                 setErrorMessage('Coś poszło nie tak.')
