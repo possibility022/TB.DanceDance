@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import { authService } from '../providers/AuthProvider';
 import { TokenProvider } from './AuthService';
 import ConfigProvider from "./ConfigProvider";

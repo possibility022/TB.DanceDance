@@ -40,10 +40,21 @@ function CommentsComponent(props: ICommentsComponentProps) {
         }
     }
 
-    const addCommentAsync = async (comment: string, authorName?: string) => {
+    const addCommentAsync = async (comment: string) => {
         try{
             setCommentsLoading(true)
-            await commentsService.addCommentAsync(props.linkId!, comment, authorName)
+            await commentsService.addCommentAsync(props.linkId!, comment)
+
+            await loadCommentsAsync()
+        } finally {
+            setCommentsLoading(false)
+        }
+    }
+
+    const addCommentAsAnonymouseAsync = async (comment: string, authorName: string) => {
+        try{
+            setCommentsLoading(true)
+            await commentsService.addCommentAsAnonymouseAsync(props.linkId!, comment, authorName)
 
             await loadCommentsAsync()
         } finally {
@@ -61,12 +72,15 @@ function CommentsComponent(props: ICommentsComponentProps) {
                 comments,
                 commentsLoading,
                 addCommentAsync,
+                addCommentAsAnonymouseAsync,
                 deleteCommentAsync,
                 loadCommentsAsync
             }}>
             {
                 props.allowAdding && <AddComment
-                onAddClick={(comment, authorName) => addCommentAsync(comment, authorName)}/>
+                onAddCommentClick={addCommentAsync}
+                onAddAsAnonymouseClick={addCommentAsAnonymouseAsync}
+                />
             }
             <div className="mt-5">
                 <CommentsList/>

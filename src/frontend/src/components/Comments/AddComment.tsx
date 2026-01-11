@@ -2,7 +2,8 @@
 import {AuthContext} from "../../providers/AuthProvider";
 
 interface IAddCommentsProps {
-    onAddClick(content: string, authorName?: string): void
+    onAddCommentClick(content: string): void
+    onAddAsAnonymouseClick(content: string, authorName?: string): void
 }
 
 function AddComment(props: IAddCommentsProps) {
@@ -28,7 +29,9 @@ function AddComment(props: IAddCommentsProps) {
             return
         }
 
-        if (!authContext.isAuthenticated()) {
+        const isAuthenticated = authContext.isAuthenticated()
+
+        if (!isAuthenticated) {
             if (!nameForAnonymouse || nameForAnonymouse.length < minNameLength) {
                 setErrorMessage('Podpis jest za krótki')
                 return;
@@ -42,7 +45,12 @@ function AddComment(props: IAddCommentsProps) {
 
         setErrorMessage(undefined)
 
-        props.onAddClick(content, nameForAnonymouse)
+        if (isAuthenticated) {
+            props.onAddCommentClick(content)
+        } else {
+            props.onAddAsAnonymouseClick(content, nameForAnonymouse)
+        }
+
         setContent('')
     }
 
