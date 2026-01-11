@@ -16,7 +16,7 @@ public class CommentServiceTests : BaseTestClass
 
     protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
     {
-        commentService = new CommentService(runtimeDbContext);
+        commentService = new CommentService(runtimeDbContext, null);
         return ValueTask.CompletedTask;
     }
 
@@ -41,6 +41,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "This is a test comment",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -73,6 +75,8 @@ public class CommentServiceTests : BaseTestClass
             null, // Anonymous
             link.Id,
             "Anonymous comment",
+            "Author",
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -103,6 +107,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "Authenticated comment",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -132,6 +138,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -158,6 +166,8 @@ public class CommentServiceTests : BaseTestClass
                 null, // Anonymous
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -185,6 +195,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -212,6 +224,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -231,6 +245,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 "notexist",
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -257,6 +273,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "", // Empty content
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -283,6 +301,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 new string('a', 2001), // 2001 chars, max is 2000
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -309,6 +329,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "Test",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         var after = DateTimeOffset.UtcNow;
@@ -338,6 +360,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "Persisted comment",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -368,7 +392,8 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, 
+            null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -402,7 +427,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, // Anonymous
+            null, null, // Anonymous
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -436,7 +461,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id,
+            viewer.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -468,7 +493,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, // Anonymous
+            null, null, // Anonymous
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -501,7 +526,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id,
+            viewer.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -533,7 +558,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, // Anonymous
+            null, null, // Anonymous
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -565,7 +590,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id, // Not owner
+            viewer.Id, null, // Not owner
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -597,7 +622,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -626,13 +651,13 @@ public class CommentServiceTests : BaseTestClass
 
         // Act - Viewer
         var viewerComments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id,
+            viewer.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Act - Owner
         var ownerComments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -659,7 +684,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -685,7 +710,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -710,7 +735,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -737,7 +762,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -784,7 +809,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -813,7 +838,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             comment.Id,
-            user.Id,
+            user.Id, 
+            null,
             "Updated content",
             TestContext.Current.CancellationToken);
 
@@ -844,7 +870,7 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             comment.Id,
-            otherUser.Id, // Not the author
+            otherUser.Id, null, // Not the author
             "Hacked content",
             TestContext.Current.CancellationToken);
 
@@ -873,7 +899,7 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             anonymousComment.Id,
-            owner.Id, // Can't update anonymous comment
+            owner.Id, null, // Can't update anonymous comment
             "Try to update",
             TestContext.Current.CancellationToken);
 
@@ -892,7 +918,7 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             Guid.NewGuid(),
-            user.Id,
+            user.Id, null,
             "Content",
             TestContext.Current.CancellationToken);
 
@@ -916,7 +942,7 @@ public class CommentServiceTests : BaseTestClass
         {
             await commentService.UpdateCommentAsync(
                 comment.Id,
-                user.Id,
+                user.Id, null,
                 "", // Empty
                 TestContext.Current.CancellationToken);
         });
@@ -940,7 +966,7 @@ public class CommentServiceTests : BaseTestClass
         // Act
         await commentService.UpdateCommentAsync(
             comment.Id,
-            user.Id,
+            user.Id, null,
             "Updated",
             TestContext.Current.CancellationToken);
 
@@ -967,6 +993,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             comment.Id,
             author.Id,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -993,6 +1020,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             comment.Id,
             owner.Id, // Video owner, not commenter
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -1020,6 +1048,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             comment.Id,
             unauthorized.Id, // Not author or video owner
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -1043,6 +1072,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             Guid.NewGuid(),
             user.Id,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -1063,7 +1093,7 @@ public class CommentServiceTests : BaseTestClass
         var commentId = comment.Id;
 
         // Act
-        await commentService.DeleteCommentAsync(commentId, user.Id, TestContext.Current.CancellationToken);
+        await commentService.DeleteCommentAsync(commentId, user.Id, null, TestContext.Current.CancellationToken);
 
         // Assert
         SeedDbContext.ChangeTracker.Clear();

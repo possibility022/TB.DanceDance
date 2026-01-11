@@ -181,6 +181,8 @@ public class CommentService : ICommentService
                     var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
                     commentsQuery = commentsQuery.Union(QueryCommentsByAnonymouseId(hashedId, videoId));
                 }
+
+                commentsQuery = commentsQuery.Union(QueryAllNotHiddenComments(videoId));
                 break;
 
             case CommentVisibility.Public:
@@ -257,6 +259,7 @@ public class CommentService : ICommentService
             comment.UpdatedAt = DateTimeOffset.UtcNow;
 
             await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
         }
         
         return false;
