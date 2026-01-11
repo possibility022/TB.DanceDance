@@ -14,6 +14,7 @@ public class CommentsController : Controller
 {
     private readonly ICommentService commentService;
     private readonly ILogger<CommentsController> logger;
+    public const string AnonymouseHeaderId = "AnonymousId";
 
     public CommentsController(ICommentService commentService, ILogger<CommentsController> logger)
     {
@@ -67,7 +68,8 @@ public class CommentsController : Controller
         CancellationToken cancellationToken)
     {
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
-
+        anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
+        
         try
         {
             var comments = await commentService.GetCommentsForVideoAsync(
@@ -119,6 +121,15 @@ public class CommentsController : Controller
             return BadRequest(new { error = ex.Message });
         }
     }
+    
+    private string? ResolveAnonymouseId(string? anonymouseIdFromQuery, HttpRequest request)
+    {
+        if (!string.IsNullOrEmpty(anonymouseIdFromQuery))
+            return anonymouseIdFromQuery;
+        
+        string? anonymouseIdFromHeader = request.Headers[AnonymouseHeaderId].FirstOrDefault();
+        return  anonymouseIdFromHeader;
+    }
 
     /// <summary>
     /// Deletes a comment. Can be deleted by the author or video owner.
@@ -131,6 +142,8 @@ public class CommentsController : Controller
         CancellationToken cancellationToken)
     {
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
+
+        anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
 
         try
         {
