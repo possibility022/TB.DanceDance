@@ -241,10 +241,13 @@ public class CommentsController : Controller
     public async Task<IActionResult> GetCommentsForVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
-
+        string? anonymouseId = null;
+            
         try
         {
-            var comments = await commentService.GetCommentsForVideoAsync(userId, videoId, cancellationToken);
+            anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
+            
+            var comments = await commentService.GetCommentsForVideoAsync(userId, anonymouseId, videoId, cancellationToken);
             return Ok(comments.Select(c => MapToResponse(c, userId)));
         }
         catch (UnauthorizedAccessException ex)

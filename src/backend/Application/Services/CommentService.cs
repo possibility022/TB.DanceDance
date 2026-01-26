@@ -1,6 +1,8 @@
+using Application.Extensions;
 using Domain.Entities;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -28,7 +30,7 @@ public class CommentService : ICommentService
     private IQueryable<Comment> QueryCommentsByUser(string userId, Guid videoId) =>
         dbContext.Comments
             .Include(c => c.User)
-            .Where(c => c.VideoId == videoId && c.IsHidden)
+            .Where(c => c.VideoId == videoId && !c.IsHidden)
             .Where(c => c.Video.UploadedBy == userId);
     
     private IQueryable<Comment> QueryCommentsByAnonymouseId(byte[] hashedAnonymouseId, Guid videoId) =>
@@ -39,7 +41,6 @@ public class CommentService : ICommentService
     
     private IQueryable<Comment> QueryAllNotHiddenComments(Guid videoId) =>
         dbContext.Comments
-            .Include(c => c.User)
             .Where(c => c.VideoId == videoId && !c.IsHidden)
             .OrderBy(c => c.CreatedAt);
 
@@ -145,13 +146,16 @@ public class CommentService : ICommentService
         {
             return Array.Empty<Comment>();
         }
+        
+        return await QueryCommentsBase(userId, anonymouseId, link.Video, cancellationToken);
+    }
 
-        var videoId = link.VideoId;
-        var video = link.Video;
-
+    private async Task<IReadOnlyCollection<Comment>> QueryCommentsBase(string? userId, string? anonymouseId, Video video, CancellationToken cancellationToken)
+    {
         // Check if user is the video owner
         var isVideoOwner = userId != null && video.UploadedBy == userId;
-
+        var videoId = video.Id;
+        
         // Video owner always sees all comments (including hidden ones)
         if (isVideoOwner)
         {
@@ -208,21 +212,15 @@ public class CommentService : ICommentService
         return comments.AsReadOnly();
     }
 
-    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, Guid videoId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, string? anonymouseId, Guid videoId, CancellationToken cancellationToken)
     {
         var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, userId, cancellationToken);
         if (!hasAccess)
             throw new UnauthorizedAccessException("No access to the video.");
 
-        var hiddenComments = QueryCommentsByUser(userId, videoId);
-        var comments = QueryAllNotHiddenComments(videoId);
-
-        var allComments = await hiddenComments
-            .Union(comments)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        return allComments.AsReadOnly();
+        var video = await dbContext.Videos.FirstAsync(v => v.Id == videoId, cancellationToken);
+        
+        return await QueryCommentsBase(userId, anonymouseId, video, cancellationToken);
     }
 
     public async Task<bool> UpdateCommentAsync(

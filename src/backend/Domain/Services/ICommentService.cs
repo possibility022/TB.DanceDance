@@ -29,7 +29,7 @@ public interface ICommentService
     /// The video ID is resolved from the shared link.
     /// </summary>
     /// <param name="userId">The ID of the user viewing comments (null for anonymous)</param>
-    /// <param name="anonymouseId"></param>
+    /// <param name="anonymouseId">Anonymous user ID (null for non-anonymous users)</param>
     /// <param name="linkId">The shared link being used to access the video</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of visible comments</returns>
@@ -43,12 +43,14 @@ public interface ICommentService
     /// </summary>
     /// <param name="userId">The ID of the user requesting the comments</param>
     /// <param name="videoId">The unique identifier of the video blob</param>
+    /// <param name="anonymouseId">Anonymouse id to provide to get comments posted as anonymouse user.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A read-only collection of comments for the specified video</returns>
     /// <exception cref="ArgumentException">If the video does not exist or validation fails</exception>
     /// <exception cref="UnauthorizedAccessException">If the user is not authorized to access the video's comments</exception>
     Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
         string userId,
+        string? anonymouseId,
         Guid videoId,
         CancellationToken cancellationToken);
 
