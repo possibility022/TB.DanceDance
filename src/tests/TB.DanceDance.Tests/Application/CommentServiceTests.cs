@@ -47,6 +47,9 @@ public class CommentServiceTests : BaseTestClass
 
         // Assert
         Assert.NotNull(comment);
+        Assert.Null(comment.ShaOfAnonymouseId);
+        Assert.False(comment.PostedAsAnonymous);
+        Assert.Null(comment.AnonymouseName);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Equal(user.Id, comment.UserId);
         Assert.Equal(link.Id, comment.SharedLinkId);
@@ -76,11 +79,16 @@ public class CommentServiceTests : BaseTestClass
             link.Id,
             "Anonymous comment",
             "Author",
-            null,
+            "ajdkajwhkdakjgksjdawdgakwdkasjgkejjke",
             TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(comment);
+        Assert.NotNull(comment.ShaOfAnonymouseId);
+        Assert.NotEmpty(comment.ShaOfAnonymouseId);
+        Assert.NotNull(comment.AnonymouseName);
+        Assert.NotEmpty(comment.AnonymouseName);
+        Assert.True(comment.PostedAsAnonymous);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Null(comment.UserId); // Anonymous
         Assert.Equal(link.Id, comment.SharedLinkId); // Link tracked for anonymous
@@ -392,7 +400,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id, 
+            owner.Id,
             null,
             link.Id,
             TestContext.Current.CancellationToken);
@@ -419,10 +427,10 @@ public class CommentServiceTests : BaseTestClass
             .AllowAnonymousComments()
             .Build();
 
-        var comment1 = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Visible").Build();
-        var comment2 = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Hidden").Hidden().Build();
+        var visible = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Visible").Build();
+        var hidden = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Hidden").Hidden().Build();
 
-        SeedDbContext.AddRange(owner, video, link, comment1, comment2);
+        SeedDbContext.AddRange(owner, video, link, visible, hidden);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
@@ -433,7 +441,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Assert
         Assert.Single(comments); // Only non-hidden
-        Assert.Equal("Visible", comments.First().Content);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
@@ -471,7 +479,7 @@ public class CommentServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetComments_AuthenticatedOnly_Anonymous_SeesNothing()
+    public async Task GetComments_AuthenticatedOnly_Anonymous_SeesOnlyHisOwn()
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
@@ -486,19 +494,32 @@ public class CommentServiceTests : BaseTestClass
             .AllowAnonymousComments()
             .Build();
 
-        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Invisible to anon").Build();
+        var visible = new CommentDataBuilder()
+            .ForVideo(video)
+            .WithAnonymouseId("1234567890")
+            .WithAnonymouseName("Anonymous User")
+            .WithContent("Invisible to anon")
+            .Build();
 
-        SeedDbContext.AddRange(owner, video, link, comment);
+        var notVisible = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(owner)
+            .WithContent("Invisible to anon")
+            .Build();
+
+        SeedDbContext.AddRange(owner, video, link, notVisible, visible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, null, // Anonymous
+            null, // Anonymous
+            "1234567890",
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Empty(comments);
+        Assert.Single(comments);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
@@ -536,7 +557,7 @@ public class CommentServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetComments_OwnerOnly_Anonymous_SeesNothing()
+    public async Task GetComments_OwnerOnly_Anonymous_SeesOnlyHisOwn()
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
@@ -551,23 +572,36 @@ public class CommentServiceTests : BaseTestClass
             .AllowAnonymousComments()
             .Build();
 
-        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Owner only").Build();
+        var comment = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(owner)
+            .WithContent("Owner only")
+            .Build();
 
-        SeedDbContext.AddRange(owner, video, link, comment);
+        var visible = new CommentDataBuilder()
+            .ForVideo(video)
+            .WithAnonymouseId("dahkwjdha")
+            .WithAnonymouseName("Anonymous User")
+            .WithContent("Invisible to anon")
+            .Build();
+
+        SeedDbContext.AddRange(owner, video, link, comment, visible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, null, // Anonymous
+            null,
+            "dahkwjdha", // Anonymous
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Empty(comments);
+        Assert.Single(comments);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
-    public async Task GetComments_OwnerOnly_Authenticated_SeesNothing()
+    public async Task GetComments_OwnerOnly_Authenticated_SeesOnlyHisOwn()
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
@@ -583,19 +617,31 @@ public class CommentServiceTests : BaseTestClass
             .AllowComments()
             .Build();
 
-        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Owner only").Build();
+        var comment = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(owner)
+            .WithContent("Owner only")
+            .Build();
 
-        SeedDbContext.AddRange(owner, viewer, video, link, comment);
+        var visible = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(viewer)
+            .WithContent("Invisible to anon")
+            .Build();
+
+        SeedDbContext.AddRange(owner, viewer, video, link, comment, visible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id, null, // Not owner
+            viewer.Id, // Not owner
+            null,
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Empty(comments);
+        Assert.Single(comments);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
@@ -838,7 +884,7 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             comment.Id,
-            user.Id, 
+            user.Id,
             null,
             "Updated content",
             TestContext.Current.CancellationToken);

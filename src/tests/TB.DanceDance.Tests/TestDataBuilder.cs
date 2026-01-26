@@ -1,4 +1,6 @@
 ﻿using Domain.Entities;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace TB.DanceDance.Tests;
 
@@ -451,6 +453,8 @@ public class CommentDataBuilder
     private bool _isHidden;
     private bool _isReported;
     private string? _reportedReason;
+    private string? _anonymouseId;
+    private string? _anonymouseName;
 
     public CommentDataBuilder()
     {
@@ -464,6 +468,18 @@ public class CommentDataBuilder
         _isHidden = false;
         _isReported = false;
         _reportedReason = null;
+    }
+
+    public CommentDataBuilder WithAnonymouseId(string anonymouseId)
+    {
+        _anonymouseId = anonymouseId;
+        return this;
+    }
+
+    public CommentDataBuilder WithAnonymouseName(string anonymouseName)
+    {
+        _anonymouseName = anonymouseName;
+        return this;
     }
 
     public CommentDataBuilder WithId(Guid id)
@@ -556,17 +572,26 @@ public class CommentDataBuilder
         return this;
     }
 
-    public Comment Build() => new Comment
+    public Comment Build()
     {
-        Id = _id,
-        VideoId = _videoId,
-        UserId = _userId,
-        SharedLinkId = _sharedLinkId,
-        Content = _content,
-        CreatedAt = _createdAt,
-        UpdatedAt = _updatedAt,
-        IsHidden = _isHidden,
-        IsReported = _isReported,
-        ReportedReason = _reportedReason
-    };
+        byte[]? anonymouseIdSha = null;
+        if (_anonymouseId != null)
+            anonymouseIdSha = SHA256.HashData(Encoding.UTF8.GetBytes(_anonymouseId));
+        
+        return new Comment
+        {
+            Id = _id,
+            VideoId = _videoId,
+            UserId = _userId,
+            SharedLinkId = _sharedLinkId,
+            Content = _content,
+            CreatedAt = _createdAt,
+            UpdatedAt = _updatedAt,
+            IsHidden = _isHidden,
+            IsReported = _isReported,
+            AnonymouseName = _anonymouseName,
+            ShaOfAnonymouseId = anonymouseIdSha,
+            ReportedReason = _reportedReason
+        };
+    }
 }

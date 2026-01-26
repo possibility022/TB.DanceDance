@@ -161,32 +161,38 @@ public class CommentService : ICommentService
             return ownerComments.AsReadOnly();
         }
 
-        IQueryable<Comment> commentsQuery = dbContext.Comments
-            .Include(r => r.User)
-            .Where(_ => false);
+        Expression<Func<Comment, bool>> predicate = c => false;
+        IQueryable<Comment>? baseQuery = null;
 
+        if (anonymouseId is not null)
+        {
+            var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+            predicate = predicate.Or(c => c.ShaOfAnonymouseId == hashedId);
+        }
+
+        if (userId is not null)
+        {
+            predicate = predicate.Or(c => c.UserId == userId);
+        }
+        
         // Apply visibility rules based on video's CommentVisibility setting
         switch (video.CommentVisibility)
         {
             case CommentVisibility.OwnerOnly:
                 // Only owner can see comments (and we already handled that case above)
+                baseQuery = dbContext.Comments.Where(predicate);
+                break;
+            
             case CommentVisibility.AuthenticatedOnly:
-                // Query comments made by given user. Users can always see their comments.
-                if (!string.IsNullOrWhiteSpace(userId))
-                    commentsQuery = commentsQuery.Union(QueryCommentsByUser(userId, videoId));
-                
-                // Query comments posted as anonymouse with given id.
-                if (!string.IsNullOrWhiteSpace(anonymouseId))
+                if (userId is not null)
                 {
-                    var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
-                    commentsQuery = commentsQuery.Union(QueryCommentsByAnonymouseId(hashedId, videoId));
+                    predicate = predicate.Or(c => c.IsHidden == false);
                 }
-
-                commentsQuery = commentsQuery.Union(QueryAllNotHiddenComments(videoId));
+                baseQuery = dbContext.Comments.Where(predicate);
                 break;
 
             case CommentVisibility.Public:
-                commentsQuery = QueryAllNotHiddenComments(videoId);
+                baseQuery = QueryAllNotHiddenComments(videoId);
                 break;
 
             default:
@@ -194,7 +200,8 @@ public class CommentService : ICommentService
         }
 
         // Get non-hidden comments
-        var comments = await commentsQuery
+        var comments = await baseQuery!
+            .Where(c => c.VideoId == videoId)
             .OrderBy(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
 
