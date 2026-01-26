@@ -26,23 +26,7 @@ public class CommentService : ICommentService
             .Include(c => c.User)
             .Where(c => c.VideoId == videoId)
             .OrderBy(c => c.CreatedAt);
-
-    private IQueryable<Comment> QueryCommentsByUser(string userId, Guid videoId) =>
-        dbContext.Comments
-            .Include(c => c.User)
-            .Where(c => c.VideoId == videoId && !c.IsHidden)
-            .Where(c => c.Video.UploadedBy == userId);
     
-    private IQueryable<Comment> QueryCommentsByAnonymouseId(byte[] hashedAnonymouseId, Guid videoId) =>
-        dbContext.Comments
-            .Include(c => c.User)
-            .Where(c => c.VideoId == videoId)
-            .Where(c => c.ShaOfAnonymouseId == hashedAnonymouseId);
-    
-    private IQueryable<Comment> QueryAllNotHiddenComments(Guid videoId) =>
-        dbContext.Comments
-            .Where(c => c.VideoId == videoId && !c.IsHidden)
-            .OrderBy(c => c.CreatedAt);
 
     public async Task<Comment> CreateCommentAsync(
         string? userId,
@@ -184,6 +168,8 @@ public class CommentService : ICommentService
         {
             case CommentVisibility.OwnerOnly:
                 // Only owner can see comments (and we already handled that case above)
+                // Here we are adding only those comments that were posted by given user.
+                // Authenticated or with specific anonymouse id.
                 baseQuery = dbContext.Comments.Where(predicate);
                 break;
             
@@ -196,7 +182,8 @@ public class CommentService : ICommentService
                 break;
 
             case CommentVisibility.Public:
-                baseQuery = QueryAllNotHiddenComments(videoId);
+                predicate = c => !c.IsHidden; // query all not hidden comments
+                baseQuery = dbContext.Comments.Where(predicate);
                 break;
 
             default:
