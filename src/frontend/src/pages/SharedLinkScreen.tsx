@@ -4,6 +4,7 @@ import sharingService from "../services/SharingService";
 import SharedVideoInfoResponse from "../types/ApiModels/Sharing/SharedVideoInfoResponse";
 import VideoPlayerComponent from "../components/Videos/VideoPlayerComponent";
 import CommentsComponent from "../components/Comments/CommentsComponent";
+import {authService} from "../providers/AuthProvider";
 
 function SharedLinkScreen() {
 
@@ -11,6 +12,7 @@ function SharedLinkScreen() {
     const [videoInfo, setVideoInfo] = useState<SharedVideoInfoResponse>()
     const [url, setUrl] = useState<string>()
     const [error, setError] = useState<string>()
+    const [allowAdding, setAllowAdding] = useState(false)
 
     useEffect(() => {
         const linkIdParam = params.linkId as string
@@ -24,6 +26,15 @@ function SharedLinkScreen() {
             .then(res => {
                 setVideoInfo(res.data)
                 setUrl(sharingService.getVideUrlByLinkId(linkIdParam))
+
+                if (!res.data.allowCommentsOnThisLink)
+                    return
+
+                if (authService.isAuthenticated()) {
+                    setAllowAdding(res.data.allowCommentsOnThisLink)
+                } else {
+                    setAllowAdding(res.data.allowAnonymousCommentsOnThisLink)
+                }
             })
             .catch(error => {
                 if (error.response?.status === 404) {
@@ -44,7 +55,7 @@ function SharedLinkScreen() {
 
         return <div>
             <VideoPlayerComponent videoId={undefined} sharedScope={undefined} videoList={[]} url={url}/>
-            <CommentsComponent videoId={videoInfo!.videoId} allowAdding={videoInfo.allowCommentsOnThisLink} linkId={params.linkId as string}/>
+            <CommentsComponent videoId={videoInfo!.videoId} allowAdding={allowAdding} linkId={params.linkId as string}/>
         </div>
     }
 
