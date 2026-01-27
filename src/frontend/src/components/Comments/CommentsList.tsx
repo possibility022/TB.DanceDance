@@ -21,6 +21,9 @@ function CommentsList() {
                 <Comment key={index}
                          author={comment.isAnonymous ? 'Anonymous' : comment.authorName!}
                          content={comment.content}
+                         canDelete={comment.isOwn || comment.canModerate}
+                         canHide={comment.canModerate}
+                         canEdit={comment.isOwn}
                          lastUpdateDate={comment.updatedAt ?? comment.createdAt}/>
             ))}
         </div>
