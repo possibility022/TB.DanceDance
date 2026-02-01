@@ -21,7 +21,7 @@ function CommentsComponent(props: ICommentsComponentProps) {
             .catch(console.error)
     }, []);
 
-    const loadCommentsAsync = async () => {
+    async function loadCommentsAsync() {
         try {
             setCommentsLoading(true)
 
@@ -40,7 +40,7 @@ function CommentsComponent(props: ICommentsComponentProps) {
         }
     }
 
-    const addCommentAsync = async (comment: string) => {
+    async function addCommentAsync(comment: string) {
         try{
             setCommentsLoading(true)
             await commentsService.addCommentAsync(props.linkId!, comment)
@@ -51,7 +51,7 @@ function CommentsComponent(props: ICommentsComponentProps) {
         }
     }
 
-    const addCommentAsAnonymouseAsync = async (comment: string, authorName: string) => {
+    async function addCommentAsAnonymouseAsync(comment: string, authorName: string) {
         try{
             setCommentsLoading(true)
             await commentsService.addCommentAsAnonymouseAsync(props.linkId!, comment, authorName)
@@ -62,8 +62,35 @@ function CommentsComponent(props: ICommentsComponentProps) {
         }
     }
 
-    const deleteCommentAsync = async (commentId: string) => {
-        // Implement delete comment logic
+    async function editCommentAsync(commentId: string, newContent: string) {
+        await commentsService.editCommentAsync(commentId, newContent)
+    }
+
+    async function deleteCommentAsync(commentId: string) {
+        try {
+            setCommentsLoading(true)
+            await commentsService.deleteCommentAsync(commentId)
+            await loadCommentsAsync()
+        } finally {
+            setCommentsLoading(false)
+        }
+    }
+
+    async function hideCommentAsync(commentId: string, hide: boolean) {
+        try {
+            setCommentsLoading(true)
+            if (hide)
+                await commentsService.hideCommentAsync(commentId)
+            else
+                await commentsService.unHideCommentAsync(commentId)
+            await loadCommentsAsync()
+        } finally {
+            setCommentsLoading(false)
+        }
+    }
+
+    function reportCommentAsync(commentId: string) : Promise<void> {
+        return Promise.resolve()
     }
 
     return (
@@ -73,8 +100,11 @@ function CommentsComponent(props: ICommentsComponentProps) {
                 commentsLoading,
                 addCommentAsync,
                 addCommentAsAnonymouseAsync,
+                loadCommentsAsync,
+                hideCommentAsync,
+                editCommentAsync,
+                reportCommentAsync,
                 deleteCommentAsync,
-                loadCommentsAsync
             }}>
             {
                 props.allowAdding && <AddComment

@@ -1,7 +1,6 @@
 ﻿import React, {useContext} from 'react';
 import Comment from "./Comment";
 import {CommentsContext} from "./CommentsContext";
-import AddComment from "./AddComment";
 
 function CommentsList() {
 
@@ -19,12 +18,11 @@ function CommentsList() {
         <div>
             {commentsContext.comments!.map((comment, index) => (
                 <Comment key={index}
-                         author={comment.isAnonymous ? 'Anonymous' : comment.authorName!}
-                         content={comment.content}
-                         canDelete={comment.isOwn || comment.canModerate}
-                         canHide={comment.canModerate}
-                         canEdit={comment.isOwn}
-                         lastUpdateDate={comment.updatedAt ?? comment.createdAt}/>
+                         onReportAsync={(why) => commentsContext.reportCommentAsync(comment.id, why)}
+                         onDeleteAsync={() => commentsContext.deleteCommentAsync(comment.id)}
+                         onEditAsync={(newContent) => commentsContext.editCommentAsync(comment.id, newContent)}
+                         onHideSwitchAsync={(hide) => commentsContext.hideCommentAsync(comment.id, hide)}
+                         comment={comment}/>
             ))}
         </div>
     );

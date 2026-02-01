@@ -42,6 +42,22 @@ class CommentsService {
 
         await httpApiClient.post(`/api/share/${linkId}/comments`, request)
     }
+
+    async editCommentAsync(commentId: string, newContent: string) {
+        await httpApiClient.put(`/api/comments/${commentId}`, { content: newContent })
+    }
+
+    async deleteCommentAsync(commentId: string) {
+        await httpApiClient.delete(`/api/comments/${commentId}`)
+    }
+
+    async hideCommentAsync(commentId: string) {
+        await httpApiClient.put(`/api/comments/${commentId}/hide`)
+    }
+
+    async unHideCommentAsync(commentId: string) {
+        await httpApiClient.put(`/api/comments/${commentId}/unhide`)
+    }
 }
 
 const commentsService = new CommentsService();

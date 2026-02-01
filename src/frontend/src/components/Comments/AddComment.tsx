@@ -4,6 +4,8 @@ import {AuthContext} from "../../providers/AuthProvider";
 interface IAddCommentsProps {
     onAddCommentClick(content: string): void
     onAddAsAnonymouseClick(content: string, authorName?: string): void
+    onCancel?: () => void
+    initialContent?: string
 }
 
 function AddComment(props: IAddCommentsProps) {
@@ -13,8 +15,9 @@ function AddComment(props: IAddCommentsProps) {
     const maxNameLength = 20
     const minNameLength = 3
 
+    const buttonText = (props.onCancel && props.initialContent ? 'Edytuj' : 'Dodaj')
     const [errorMessage, setErrorMessage] = useState<string | undefined>()
-    const [content, setContent] = useState('')
+    const [content, setContent] = useState(props.initialContent ?? '')
     const [nameForAnonymouse, setNameForAnonymouse] = useState<string>()
     const authContext = useContext(AuthContext)
 
@@ -84,7 +87,8 @@ function AddComment(props: IAddCommentsProps) {
             {renderNameComponentWhenAnonymouse()}
             <div className="field">
                 <div className="control">
-                    <button className="button is-primary" onClick={onAdd}>Dodaj komentarz</button>
+                    <button className="button is-primary" onClick={onAdd}>{buttonText}</button>
+                    {props.onCancel && <button className="button is-link ml-1" onClick={props.onCancel}>Anuluj</button>}
                 </div>
             </div>
             {errorMessage && <p className="has-text-danger">{errorMessage}</p>}

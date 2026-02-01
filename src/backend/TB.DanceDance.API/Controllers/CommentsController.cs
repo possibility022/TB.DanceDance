@@ -3,6 +3,8 @@ using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
@@ -45,8 +47,8 @@ public class CommentsController : Controller
                 request.AuthorName, 
                 request.AnonymouseId,
                 cancellationToken);
-
-            var response = MapToResponse(comment, userId);
+            
+            var response = MapToResponse(comment, userId, null);
             return Ok(response);
         }
         catch (ArgumentException ex)
@@ -78,7 +80,11 @@ public class CommentsController : Controller
                 linkId,
                 cancellationToken);
 
-            var response = comments.Select(c => MapToResponse(c, userId));
+            byte[]? shaOfAnonymouseId = null;
+            if (anonymouseId != null)
+                shaOfAnonymouseId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+
+            var response = comments.Select(c => MapToResponse(c, userId, shaOfAnonymouseId));
             return Ok(response);
         }
         catch (ArgumentException ex)
@@ -168,7 +174,7 @@ public class CommentsController : Controller
     /// <summary>
     /// Hides a comment. Only the video owner can hide comments.
     /// </summary>
-    [HttpPost]
+    [HttpPut]
     [Route(ApiEndpoints.Comments.Hide)]
     public async Task<IActionResult> HideComment(
         [FromRoute] Guid commentId,
@@ -189,7 +195,7 @@ public class CommentsController : Controller
     /// <summary>
     /// Unhides a comment. Only the video owner can unhide comments.
     /// </summary>
-    [HttpPost]
+    [HttpPut]
     [Route(ApiEndpoints.Comments.Unhide)]
     public async Task<IActionResult> UnhideComment(
         [FromRoute] Guid commentId,
@@ -248,7 +254,12 @@ public class CommentsController : Controller
             anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
             
             var comments = await commentService.GetCommentsForVideoAsync(userId, anonymouseId, videoId, cancellationToken);
-            return Ok(comments.Select(c => MapToResponse(c, userId)));
+            
+            byte[]? shaOfAnonymouseId = null;
+            if (anonymouseId != null)
+                shaOfAnonymouseId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+            
+            return Ok(comments.Select(c => MapToResponse(c, userId, shaOfAnonymouseId)));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -262,10 +273,11 @@ public class CommentsController : Controller
         }
     }
 
-    private CommentResponse MapToResponse(Comment comment, string? currentUserId)
+    private CommentResponse MapToResponse(Comment comment, string? currentUserId, byte[]? anonymouseId)
     {
         var isVideoOwner = comment.Video?.UploadedBy == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
+        var isAnonymouseAuthor = comment.ShaOfAnonymouseId?.SequenceEqual(anonymouseId) ?? false;
         
         string? authorName;
         if (comment.PostedAsAnonymous)
@@ -286,7 +298,7 @@ public class CommentsController : Controller
             // Only populate moderation fields for video owner
             IsReported = isVideoOwner ? comment.IsReported : null,
             ReportedReason = isVideoOwner ? comment.ReportedReason : null,
-            IsOwn = isAuthor,
+            IsOwn = isAuthor || isAnonymouseAuthor,
             CanModerate = isVideoOwner
         };
     }
