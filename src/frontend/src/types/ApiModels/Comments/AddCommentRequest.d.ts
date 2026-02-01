@@ -1,7 +1,7 @@
 ﻿type CreateCommentRequest = {
     content: string
     authorName?: string
-    anonymouseId?: string
+    anonymousId?: string
 }
 
 export default CreateCommentRequest

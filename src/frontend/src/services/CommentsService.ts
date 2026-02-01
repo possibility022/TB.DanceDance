@@ -37,7 +37,7 @@ class CommentsService {
         const request: CreateCommentRequest = {
             content: comment,
             authorName: authorName,
-            anonymouseId: appStorage.getAnonymousId()
+            anonymousId: appStorage.getAnonymousId()
         }
 
         await httpApiClient.post(`/api/share/${linkId}/comments`, request)
