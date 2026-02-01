@@ -98,13 +98,14 @@ public class CommentsController : Controller
     /// Updates a comment. Only the authenticated comment author can update.
     /// </summary>
     [HttpPut]
+    [AllowAnonymous]
     [Route(ApiEndpoints.Comments.Update)]
     public async Task<IActionResult> UpdateComment(
         [FromRoute] Guid commentId,
         [FromBody] UpdateCommentRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = User.GetSubject();
+        var userId = User.TryGetSubject();
 
         try
         {
