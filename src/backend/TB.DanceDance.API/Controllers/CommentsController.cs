@@ -36,7 +36,7 @@ public class CommentsController : Controller
         CancellationToken cancellationToken)
     {
         // Get userId if user is authenticated, null if anonymous
-        var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
+        var userId = User.TryGetSubject();
 
         try
         {
@@ -71,7 +71,7 @@ public class CommentsController : Controller
         [FromQuery] string? anonymousId,
         CancellationToken cancellationToken)
     {
-        var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
+        var userId = User.TryGetSubject();
         anonymousId = ResolveAnonymousId(anonymousId, Request);
         
         try
