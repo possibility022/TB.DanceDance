@@ -158,12 +158,12 @@ public class DanceDbContext : DbContext, IApplicationContext
             .IsRequired();
         
         modelBuilder.Entity<Comment>()
-            .Property(c => c.AnonymouseName)
+            .Property(c => c.AnonymousName)
             .HasMaxLength(20)
             .IsRequired(false);
         
         modelBuilder.Entity<Comment>()
-            .Property(c => c.ShaOfAnonymouseId)
+            .Property(c => c.ShaOfAnonymousId)
             .HasMaxLength(32)
             .IsRequired(false);
 

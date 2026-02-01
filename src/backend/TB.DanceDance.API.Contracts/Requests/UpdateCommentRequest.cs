@@ -12,9 +12,9 @@ namespace TB.DanceDance.API.Contracts.Requests
         public string Content { get; set; } = null!;
 
         /// <summary>
-        /// Anonymouse id that is stored on the client side. Allows updating comments posted anonymously.
+        /// Anonymous id that is stored on the client side. Allows updating comments posted anonymously.
         /// </summary>
         [MaxLength(1000)]
-        public string? AnonymouseId { get; set; } = null!;
+        public string? AnonymousId { get; set; } = null!;
     }
 }

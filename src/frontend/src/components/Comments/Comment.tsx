@@ -41,7 +41,7 @@ function Comment(props: ICommentProps) {
             return <AddComment onAddCommentClick={onEdit}
                                initialContent={props.comment.content}
                                onCancel={() => setInEditMode(false)}
-                               onAddAsAnonymouseClick={onEdit}/>
+                               onAddAsAnonymousClick={onEdit}/>
         } else {
             return <p>{props.comment.content}</p>
         }

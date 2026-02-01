@@ -6,7 +6,7 @@ import {AxiosRequestConfig} from "axios";
 
 class CommentsService {
 
-    private getConfigWithAnonymouseHeader(): AxiosRequestConfig<any> {
+    private getConfigWithAnonymousHeader(): AxiosRequestConfig<any> {
         return {
             headers: {
                 "AnonymousId": appStorage.getAnonymousId()
@@ -17,7 +17,7 @@ class CommentsService {
     async getCommentsByLink(linkId: string) {
         const response = await httpApiClient.get<CommentResponse[]>(
             `/api/share/${linkId}/comments`,
-            this.getConfigWithAnonymouseHeader())
+            this.getConfigWithAnonymousHeader())
         return response.data
     }
 
@@ -33,7 +33,7 @@ class CommentsService {
         await httpApiClient.post(`/api/share/${linkId}/comments`, request)
     }
 
-    async addCommentAsAnonymouseAsync(linkId: string, comment: string, authorName: string) {
+    async addCommentAsAnonymousAsync(linkId: string, comment: string, authorName: string) {
         const request: CreateCommentRequest = {
             content: comment,
             authorName: authorName,

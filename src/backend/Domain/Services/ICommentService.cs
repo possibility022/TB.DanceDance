@@ -43,7 +43,7 @@ public interface ICommentService
     /// </summary>
     /// <param name="userId">The ID of the user requesting the comments</param>
     /// <param name="videoId">The unique identifier of the video blob</param>
-    /// <param name="anonymouseId">Anonymouse id to provide to get comments posted as anonymouse user.</param>
+    /// <param name="anonymouseId">Anonymous id to provide to get comments posted as anonymouse user.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A read-only collection of comments for the specified video</returns>
     /// <exception cref="ArgumentException">If the video does not exist or validation fails</exception>
@@ -74,7 +74,7 @@ public interface ICommentService
     /// </summary>
     /// <param name="commentId">The comment ID</param>
     /// <param name="userId">The ID of the user deleting the comment</param>
-    /// <param name="anonymouseId">Anonymouse id that is stored on the client side. Allows deleting comments posted anonymously</param>
+    /// <param name="anonymouseId">Anonymous id that is stored on the client side. Allows deleting comments posted anonymously</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if deleted successfully, false if not found or unauthorized</returns>
     Task<bool> DeleteCommentAsync(

@@ -470,13 +470,13 @@ public class CommentDataBuilder
         _reportedReason = null;
     }
 
-    public CommentDataBuilder WithAnonymouseId(string anonymouseId)
+    public CommentDataBuilder WithAnonymousId(string anonymouseId)
     {
         _anonymouseId = anonymouseId;
         return this;
     }
 
-    public CommentDataBuilder WithAnonymouseName(string anonymouseName)
+    public CommentDataBuilder WithAnonymousName(string anonymouseName)
     {
         _anonymouseName = anonymouseName;
         return this;
@@ -589,8 +589,8 @@ public class CommentDataBuilder
             UpdatedAt = _updatedAt,
             IsHidden = _isHidden,
             IsReported = _isReported,
-            AnonymouseName = _anonymouseName,
-            ShaOfAnonymouseId = anonymouseIdSha,
+            AnonymousName = _anonymouseName,
+            ShaOfAnonymousId = anonymouseIdSha,
             ReportedReason = _reportedReason
         };
     }

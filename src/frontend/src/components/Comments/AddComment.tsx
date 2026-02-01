@@ -3,7 +3,7 @@ import {AuthContext} from "../../providers/AuthProvider";
 
 interface IAddCommentsProps {
     onAddCommentClick(content: string): void
-    onAddAsAnonymouseClick(content: string, authorName?: string): void
+    onAddAsAnonymousClick(content: string, authorName?: string): void
     onCancel?: () => void
     initialContent?: string
 }
@@ -18,7 +18,7 @@ function AddComment(props: IAddCommentsProps) {
     const buttonText = (props.onCancel && props.initialContent ? 'Edytuj' : 'Dodaj')
     const [errorMessage, setErrorMessage] = useState<string | undefined>()
     const [content, setContent] = useState(props.initialContent ?? '')
-    const [nameForAnonymouse, setNameForAnonymouse] = useState<string>()
+    const [nameForAnonymous, setNameForAnonymous] = useState<string>()
     const authContext = useContext(AuthContext)
 
     function onAdd() {
@@ -35,12 +35,12 @@ function AddComment(props: IAddCommentsProps) {
         const isAuthenticated = authContext.isAuthenticated()
 
         if (!isAuthenticated) {
-            if (!nameForAnonymouse || nameForAnonymouse.length < minNameLength) {
+            if (!nameForAnonymous || nameForAnonymous.length < minNameLength) {
                 setErrorMessage('Podpis jest za krótki')
                 return;
             }
 
-            if (nameForAnonymouse.length > maxNameLength) {
+            if (nameForAnonymous.length > maxNameLength) {
                 setErrorMessage('Podpis jest za długi')
                 return
             }
@@ -51,20 +51,20 @@ function AddComment(props: IAddCommentsProps) {
         if (isAuthenticated) {
             props.onAddCommentClick(content)
         } else {
-            props.onAddAsAnonymouseClick(content, nameForAnonymouse)
+            props.onAddAsAnonymousClick(content, nameForAnonymous)
         }
 
         setContent('')
     }
 
-    function renderNameComponentWhenAnonymouse() {
+    function renderNameComponentWhenAnonymous() {
         if (!authContext.isAuthenticated()) {
             return <>
                 <div className="field">
                     <div className="control">
                         <input type="text"
                                className="input"
-                               onChange={(e) => setNameForAnonymouse(e.target.value)}
+                               onChange={(e) => setNameForAnonymous(e.target.value)}
                                placeholder="Podpisz się"/>
                     </div>
                 </div>
@@ -84,7 +84,7 @@ function AddComment(props: IAddCommentsProps) {
                               placeholder="Ale fajnie tańczysz!"/>
                 </div>
             </div>
-            {renderNameComponentWhenAnonymouse()}
+            {renderNameComponentWhenAnonymous()}
             <div className="field">
                 <div className="control">
                     <button className="button is-primary" onClick={onAdd}>{buttonText}</button>

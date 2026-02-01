@@ -18,6 +18,6 @@ namespace TB.DanceDance.API.Contracts.Requests
         public string? AuthorName { get; set; }
         
         [MaxLength(30)]
-        public string? AnonymouseId { get; set; }
+        public string? AnonymousId { get; set; }
     }
 }

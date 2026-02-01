@@ -87,9 +87,9 @@ public class CommentService : ICommentService
         }
         
         // When posted as an authorized user, do not store anonymouse id
-        byte[]? hashOfAnonymouseId = null;
+        byte[]? hashOfAnonymousId = null;
         if (string.IsNullOrEmpty(userId) && !string.IsNullOrWhiteSpace(anonymouseId))
-            hashOfAnonymouseId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+            hashOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
 
         // Create the comment
         var comment = new Comment
@@ -99,8 +99,8 @@ public class CommentService : ICommentService
             UserId = userId, // null for anonymous, populated for authenticated
             SharedLinkId = linkId,
             Content = content,
-            AnonymouseName = authorName,
-            ShaOfAnonymouseId = hashOfAnonymouseId,
+            AnonymousName = authorName,
+            ShaOfAnonymousId = hashOfAnonymousId,
             PostedAsAnonymous = userId is null, 
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = null,
@@ -155,7 +155,7 @@ public class CommentService : ICommentService
         if (anonymouseId is not null)
         {
             var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
-            predicate = predicate.Or(c => c.ShaOfAnonymouseId == hashedId);
+            predicate = predicate.Or(c => c.ShaOfAnonymousId == hashedId);
         }
 
         if (userId is not null)
@@ -241,7 +241,7 @@ public class CommentService : ICommentService
             return false;
         }
         
-        bool shaMatches = CheckAnonymouseIdMatch(anonymouseId, comment);
+        bool shaMatches = CheckAnonymousIdMatch(anonymouseId, comment);
 
         // Authenticated comment authors can update their own comments
         // or anonymous users that provided the same anonymouse id
@@ -257,17 +257,17 @@ public class CommentService : ICommentService
         return false;
     }
 
-    private static bool CheckAnonymouseIdMatch(string? anonymouseId, Comment comment)
+    private static bool CheckAnonymousIdMatch(string? anonymouseId, Comment comment)
     {
         byte[]? anonymouseIdBytes = null;
         if (!string.IsNullOrWhiteSpace(anonymouseId))
             anonymouseIdBytes = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
 
         var shaMatches = anonymouseIdBytes is not null
-                         && comment.ShaOfAnonymouseId is not null
+                         && comment.ShaOfAnonymousId is not null
                          && anonymouseIdBytes.Length > 0
-                         && comment.ShaOfAnonymouseId.Length > 0
-                         && anonymouseIdBytes.SequenceCompareTo(comment.ShaOfAnonymouseId) == 0;
+                         && comment.ShaOfAnonymousId.Length > 0
+                         && anonymouseIdBytes.SequenceCompareTo(comment.ShaOfAnonymousId) == 0;
         return shaMatches;
     }
 
@@ -293,7 +293,7 @@ public class CommentService : ICommentService
         // Check if user can delete: either the comment author or the video owner
         var isAuthor = !string.IsNullOrEmpty(userId) && comment.UserId == userId;
         var isVideoOwner = comment.Video.UploadedBy == userId;
-        bool shaMatches = CheckAnonymouseIdMatch(anonymouseId, comment);
+        bool shaMatches = CheckAnonymousIdMatch(anonymouseId, comment);
         
         if (!isAuthor && !isVideoOwner && !shaMatches)
         {

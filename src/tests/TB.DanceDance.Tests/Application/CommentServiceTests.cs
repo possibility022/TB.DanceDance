@@ -47,9 +47,9 @@ public class CommentServiceTests : BaseTestClass
 
         // Assert
         Assert.NotNull(comment);
-        Assert.Null(comment.ShaOfAnonymouseId);
+        Assert.Null(comment.ShaOfAnonymousId);
         Assert.False(comment.PostedAsAnonymous);
-        Assert.Null(comment.AnonymouseName);
+        Assert.Null(comment.AnonymousName);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Equal(user.Id, comment.UserId);
         Assert.Equal(link.Id, comment.SharedLinkId);
@@ -84,10 +84,10 @@ public class CommentServiceTests : BaseTestClass
 
         // Assert
         Assert.NotNull(comment);
-        Assert.NotNull(comment.ShaOfAnonymouseId);
-        Assert.NotEmpty(comment.ShaOfAnonymouseId);
-        Assert.NotNull(comment.AnonymouseName);
-        Assert.NotEmpty(comment.AnonymouseName);
+        Assert.NotNull(comment.ShaOfAnonymousId);
+        Assert.NotEmpty(comment.ShaOfAnonymousId);
+        Assert.NotNull(comment.AnonymousName);
+        Assert.NotEmpty(comment.AnonymousName);
         Assert.True(comment.PostedAsAnonymous);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Null(comment.UserId); // Anonymous
@@ -496,8 +496,8 @@ public class CommentServiceTests : BaseTestClass
 
         var visible = new CommentDataBuilder()
             .ForVideo(video)
-            .WithAnonymouseId("1234567890")
-            .WithAnonymouseName("Anonymous User")
+            .WithAnonymousId("1234567890")
+            .WithAnonymousName("Anonymous User")
             .WithContent("Invisible to anon")
             .Build();
 
@@ -580,8 +580,8 @@ public class CommentServiceTests : BaseTestClass
 
         var visible = new CommentDataBuilder()
             .ForVideo(video)
-            .WithAnonymouseId("dahkwjdha")
-            .WithAnonymouseName("Anonymous User")
+            .WithAnonymousId("dahkwjdha")
+            .WithAnonymousName("Anonymous User")
             .WithContent("Invisible to anon")
             .Build();
 

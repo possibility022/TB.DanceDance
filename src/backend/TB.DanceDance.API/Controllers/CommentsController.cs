@@ -16,7 +16,7 @@ public class CommentsController : Controller
 {
     private readonly ICommentService commentService;
     private readonly ILogger<CommentsController> logger;
-    public const string AnonymouseHeaderId = "AnonymousId";
+    public const string AnonymousHeaderId = "AnonymousId";
 
     public CommentsController(ICommentService commentService, ILogger<CommentsController> logger)
     {
@@ -45,7 +45,7 @@ public class CommentsController : Controller
                 linkId,
                 request.Content,
                 request.AuthorName, 
-                request.AnonymouseId,
+                request.AnonymousId,
                 cancellationToken);
             
             var response = MapToResponse(comment, userId, null);
@@ -70,7 +70,7 @@ public class CommentsController : Controller
         CancellationToken cancellationToken)
     {
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
-        anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
+        anonymouseId = ResolveAnonymousId(anonymouseId, Request);
         
         try
         {
@@ -80,11 +80,11 @@ public class CommentsController : Controller
                 linkId,
                 cancellationToken);
 
-            byte[]? shaOfAnonymouseId = null;
+            byte[]? shaOfAnonymousId = null;
             if (anonymouseId != null)
-                shaOfAnonymouseId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+                shaOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
 
-            var response = comments.Select(c => MapToResponse(c, userId, shaOfAnonymouseId));
+            var response = comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId));
             return Ok(response);
         }
         catch (ArgumentException ex)
@@ -110,7 +110,7 @@ public class CommentsController : Controller
         {
             var result = await commentService.UpdateCommentAsync(commentId,
                 userId,
-                request.AnonymouseId,
+                request.AnonymousId,
                 request.Content,
                 cancellationToken);
 
@@ -128,12 +128,12 @@ public class CommentsController : Controller
         }
     }
     
-    private string? ResolveAnonymouseId(string? anonymouseIdFromQuery, HttpRequest request)
+    private string? ResolveAnonymousId(string? anonymouseIdFromQuery, HttpRequest request)
     {
         if (!string.IsNullOrEmpty(anonymouseIdFromQuery))
             return anonymouseIdFromQuery;
         
-        string? anonymouseIdFromHeader = request.Headers[AnonymouseHeaderId].FirstOrDefault();
+        string? anonymouseIdFromHeader = request.Headers[AnonymousHeaderId].FirstOrDefault();
         return  anonymouseIdFromHeader;
     }
 
@@ -149,7 +149,7 @@ public class CommentsController : Controller
     {
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
 
-        anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
+        anonymouseId = ResolveAnonymousId(anonymouseId, Request);
 
         try
         {
@@ -251,15 +251,15 @@ public class CommentsController : Controller
             
         try
         {
-            anonymouseId = ResolveAnonymouseId(anonymouseId, Request);
+            anonymouseId = ResolveAnonymousId(anonymouseId, Request);
             
             var comments = await commentService.GetCommentsForVideoAsync(userId, anonymouseId, videoId, cancellationToken);
             
-            byte[]? shaOfAnonymouseId = null;
+            byte[]? shaOfAnonymousId = null;
             if (anonymouseId != null)
-                shaOfAnonymouseId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+                shaOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
             
-            return Ok(comments.Select(c => MapToResponse(c, userId, shaOfAnonymouseId)));
+            return Ok(comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId)));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -277,11 +277,11 @@ public class CommentsController : Controller
     {
         var isVideoOwner = comment.Video?.UploadedBy == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
-        var isAnonymouseAuthor = comment.ShaOfAnonymouseId?.SequenceEqual(anonymouseId) ?? false;
+        var isAnonymousAuthor = comment.ShaOfAnonymousId?.SequenceEqual(anonymouseId) ?? false;
         
         string? authorName;
         if (comment.PostedAsAnonymous)
-            authorName = comment.AnonymouseName;
+            authorName = comment.AnonymousName;
         else
             authorName = comment.User != null ? $"{comment.User.FirstName} {comment.User.LastName}" : null;
 
@@ -298,7 +298,7 @@ public class CommentsController : Controller
             // Only populate moderation fields for video owner
             IsReported = isVideoOwner ? comment.IsReported : null,
             ReportedReason = isVideoOwner ? comment.ReportedReason : null,
-            IsOwn = isAuthor || isAnonymouseAuthor,
+            IsOwn = isAuthor || isAnonymousAuthor,
             CanModerate = isVideoOwner
         };
     }
