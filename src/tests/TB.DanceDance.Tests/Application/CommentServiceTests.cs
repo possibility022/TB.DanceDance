@@ -16,7 +16,7 @@ public class CommentServiceTests : BaseTestClass
 
     protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
     {
-        commentService = new CommentService(runtimeDbContext);
+        commentService = new CommentService(runtimeDbContext, null);
         return ValueTask.CompletedTask;
     }
 
@@ -41,10 +41,15 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "This is a test comment",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(comment);
+        Assert.Null(comment.ShaOfAnonymousId);
+        Assert.False(comment.PostedAsAnonymous);
+        Assert.Null(comment.AnonymousName);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Equal(user.Id, comment.UserId);
         Assert.Equal(link.Id, comment.SharedLinkId);
@@ -73,10 +78,17 @@ public class CommentServiceTests : BaseTestClass
             null, // Anonymous
             link.Id,
             "Anonymous comment",
+            "Author",
+            "ajdkajwhkdakjgksjdawdgakwdkasjgkejjke",
             TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(comment);
+        Assert.NotNull(comment.ShaOfAnonymousId);
+        Assert.NotEmpty(comment.ShaOfAnonymousId);
+        Assert.NotNull(comment.AnonymousName);
+        Assert.NotEmpty(comment.AnonymousName);
+        Assert.True(comment.PostedAsAnonymous);
         Assert.Equal(video.Id, comment.VideoId);
         Assert.Null(comment.UserId); // Anonymous
         Assert.Equal(link.Id, comment.SharedLinkId); // Link tracked for anonymous
@@ -103,6 +115,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "Authenticated comment",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -132,6 +146,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -158,6 +174,8 @@ public class CommentServiceTests : BaseTestClass
                 null, // Anonymous
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -185,6 +203,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -212,6 +232,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -231,6 +253,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 "notexist",
                 "Should fail",
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -257,6 +281,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 "", // Empty content
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -283,6 +309,8 @@ public class CommentServiceTests : BaseTestClass
                 user.Id,
                 link.Id,
                 new string('a', 2001), // 2001 chars, max is 2000
+                null,
+                null,
                 TestContext.Current.CancellationToken);
         });
     }
@@ -309,6 +337,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "Test",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         var after = DateTimeOffset.UtcNow;
@@ -338,6 +368,8 @@ public class CommentServiceTests : BaseTestClass
             user.Id,
             link.Id,
             "Persisted comment",
+            null,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -369,6 +401,7 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
             owner.Id,
+            null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -394,21 +427,21 @@ public class CommentServiceTests : BaseTestClass
             .AllowAnonymousComments()
             .Build();
 
-        var comment1 = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Visible").Build();
-        var comment2 = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Hidden").Hidden().Build();
+        var visible = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Visible").Build();
+        var hidden = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Hidden").Hidden().Build();
 
-        SeedDbContext.AddRange(owner, video, link, comment1, comment2);
+        SeedDbContext.AddRange(owner, video, link, visible, hidden);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, // Anonymous
+            null, null, // Anonymous
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments); // Only non-hidden
-        Assert.Equal("Visible", comments.First().Content);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
@@ -436,7 +469,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id,
+            viewer.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -446,7 +479,7 @@ public class CommentServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetComments_AuthenticatedOnly_Anonymous_SeesNothing()
+    public async Task GetComments_AuthenticatedOnly_Anonymous_SeesOnlyHisOwn()
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
@@ -461,19 +494,32 @@ public class CommentServiceTests : BaseTestClass
             .AllowAnonymousComments()
             .Build();
 
-        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Invisible to anon").Build();
+        var visible = new CommentDataBuilder()
+            .ForVideo(video)
+            .WithAnonymousId("1234567890")
+            .WithAnonymousName("Anonymous User")
+            .WithContent("Invisible to anon")
+            .Build();
 
-        SeedDbContext.AddRange(owner, video, link, comment);
+        var notVisible = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(owner)
+            .WithContent("Invisible to anon")
+            .Build();
+
+        SeedDbContext.AddRange(owner, video, link, notVisible, visible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
             null, // Anonymous
+            "1234567890",
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Empty(comments);
+        Assert.Single(comments);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
@@ -501,7 +547,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id,
+            viewer.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -511,7 +557,7 @@ public class CommentServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetComments_OwnerOnly_Anonymous_SeesNothing()
+    public async Task GetComments_OwnerOnly_Anonymous_SeesOnlyHisOwn()
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
@@ -526,23 +572,36 @@ public class CommentServiceTests : BaseTestClass
             .AllowAnonymousComments()
             .Build();
 
-        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Owner only").Build();
+        var comment = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(owner)
+            .WithContent("Owner only")
+            .Build();
 
-        SeedDbContext.AddRange(owner, video, link, comment);
+        var visible = new CommentDataBuilder()
+            .ForVideo(video)
+            .WithAnonymousId("dahkwjdha")
+            .WithAnonymousName("Anonymous User")
+            .WithContent("Invisible to anon")
+            .Build();
+
+        SeedDbContext.AddRange(owner, video, link, comment, visible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            null, // Anonymous
+            null,
+            "dahkwjdha", // Anonymous
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Empty(comments);
+        Assert.Single(comments);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
-    public async Task GetComments_OwnerOnly_Authenticated_SeesNothing()
+    public async Task GetComments_OwnerOnly_Authenticated_SeesOnlyHisOwn()
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
@@ -558,19 +617,31 @@ public class CommentServiceTests : BaseTestClass
             .AllowComments()
             .Build();
 
-        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Owner only").Build();
+        var comment = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(owner)
+            .WithContent("Owner only")
+            .Build();
 
-        SeedDbContext.AddRange(owner, viewer, video, link, comment);
+        var visible = new CommentDataBuilder()
+            .ForVideo(video)
+            .ByUser(viewer)
+            .WithContent("Invisible to anon")
+            .Build();
+
+        SeedDbContext.AddRange(owner, viewer, video, link, comment, visible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
             viewer.Id, // Not owner
+            null,
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Empty(comments);
+        Assert.Single(comments);
+        Assert.Equal(visible.Id, comments.First().Id);
     }
 
     [Fact]
@@ -597,7 +668,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -626,13 +697,13 @@ public class CommentServiceTests : BaseTestClass
 
         // Act - Viewer
         var viewerComments = await commentService.GetCommentsForVideoAsync(
-            viewer.Id,
+            viewer.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
         // Act - Owner
         var ownerComments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -659,7 +730,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -685,7 +756,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -710,7 +781,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -737,7 +808,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -784,7 +855,7 @@ public class CommentServiceTests : BaseTestClass
 
         // Act
         var comments = await commentService.GetCommentsForVideoAsync(
-            owner.Id,
+            owner.Id, null,
             link.Id,
             TestContext.Current.CancellationToken);
 
@@ -814,6 +885,8 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.UpdateCommentAsync(
             comment.Id,
             user.Id,
+            null,
+            null,
             "Updated content",
             TestContext.Current.CancellationToken);
 
@@ -844,7 +917,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             comment.Id,
-            otherUser.Id, // Not the author
+            otherUser.Id,
+            null, null, // Not the author
             "Hacked content",
             TestContext.Current.CancellationToken);
 
@@ -873,7 +947,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             anonymousComment.Id,
-            owner.Id, // Can't update anonymous comment
+            owner.Id,
+            null, null, // Can't update anonymous comment
             "Try to update",
             TestContext.Current.CancellationToken);
 
@@ -893,6 +968,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.UpdateCommentAsync(
             Guid.NewGuid(),
             user.Id,
+            null, null,
             "Content",
             TestContext.Current.CancellationToken);
 
@@ -917,6 +993,7 @@ public class CommentServiceTests : BaseTestClass
             await commentService.UpdateCommentAsync(
                 comment.Id,
                 user.Id,
+                null, null,
                 "", // Empty
                 TestContext.Current.CancellationToken);
         });
@@ -941,6 +1018,7 @@ public class CommentServiceTests : BaseTestClass
         await commentService.UpdateCommentAsync(
             comment.Id,
             user.Id,
+            null, null,
             "Updated",
             TestContext.Current.CancellationToken);
 
@@ -967,6 +1045,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             comment.Id,
             author.Id,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -993,6 +1072,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             comment.Id,
             owner.Id, // Video owner, not commenter
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -1020,6 +1100,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             comment.Id,
             unauthorized.Id, // Not author or video owner
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -1043,6 +1124,7 @@ public class CommentServiceTests : BaseTestClass
         var result = await commentService.DeleteCommentAsync(
             Guid.NewGuid(),
             user.Id,
+            null,
             TestContext.Current.CancellationToken);
 
         // Assert
@@ -1063,7 +1145,7 @@ public class CommentServiceTests : BaseTestClass
         var commentId = comment.Id;
 
         // Act
-        await commentService.DeleteCommentAsync(commentId, user.Id, TestContext.Current.CancellationToken);
+        await commentService.DeleteCommentAsync(commentId, user.Id, null, TestContext.Current.CancellationToken);
 
         // Assert
         SeedDbContext.ChangeTracker.Clear();

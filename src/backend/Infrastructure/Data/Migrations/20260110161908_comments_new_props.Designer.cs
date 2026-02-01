@@ -3,17 +3,20 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace TB.DanceDance.Data.PostgreSQL.Migrations
+namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    partial class DanceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260110161908_comments_new_props")]
+    partial class comments_new_props
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,7 +78,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AnonymousName")
+                    b.Property<string>("AnonymouseName")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -99,7 +102,7 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<string>("ReportedReason")
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("ShaOfAnonymousId")
+                    b.Property<byte[]>("ShaOfAnonymouseId")
                         .HasMaxLength(32)
                         .HasColumnType("bytea");
 

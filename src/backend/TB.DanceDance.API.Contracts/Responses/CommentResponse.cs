@@ -15,9 +15,14 @@ namespace TB.DanceDance.API.Contracts.Responses
         public Guid VideoId { get; set; }
 
         /// <summary>
-        /// The name of the user who created the comment. Null for anonymous comments.
+        /// The name of the user who created the comment.
         /// </summary>
         public string? AuthorName { get; set; }
+        
+        /// <summary>
+        /// Indicates if comment was added as anonymouse.
+        /// </summary>
+        public bool PostedAsAnonymous { get; set; }
 
         /// <summary>
         /// The comment content.

@@ -7,4 +7,5 @@ export default interface VideoInformation {
     blobId: BlobId
     duration: TimeRanges
     converted: boolean
+    commentVisibility: number
 }

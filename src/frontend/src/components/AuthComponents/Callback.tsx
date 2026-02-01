@@ -25,15 +25,19 @@ export const Callback = () => {
     const [errorMessage, setErrorMessage] = useState('')
 
     useEffect(() => {
-        setTimeout(() => {
-            if (authContext.isAuthenticated())
-            {
-                void navigate('/')
+        const timeoutId = setTimeout(() => {
+            if (authContext.isAuthenticated()) {
+                navigate('/');
             } else {
-                setErrorMessage('Smuteczek :(. Z jakiegoś powodu nie udało się zalogować. Spróbuj jeszcze raz.')
+                setErrorMessage(
+                    'Smuteczek :(. Z jakiegoś powodu nie udało się zalogować. Spróbuj jeszcze raz.'
+                );
             }
-        }, 3000)
-    })
+        }, 3000);
+
+        return () => clearTimeout(timeoutId);
+    }, [authContext, navigate]);
+
 
     // dont look at that :| I don't know how to do it in proper way at this moment
     return (<div>

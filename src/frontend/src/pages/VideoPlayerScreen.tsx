@@ -1,16 +1,14 @@
-import ReactPlayer from 'react-player';
-import { useState, useContext, useEffect } from 'react'
-import { useLocation, useParams } from 'react-router-dom';
-import { AuthContext } from '../providers/AuthProvider';
+import {useState, useContext, useEffect} from 'react'
+import {useLocation, useParams} from 'react-router-dom';
+import {AuthContext} from '../providers/AuthProvider';
 import videoInfoService from '../services/VideoInfoService';
 import VideoInformation from '../types/ApiModels/VideoInformation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCancel, faCheck, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { SharedScope } from '../types/appTypes';
-import { VideoList } from '../components/Videos/VideoList';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faCancel, faCheck, faEdit} from '@fortawesome/free-solid-svg-icons';
+import {SharedScope} from '../types/appTypes';
 import {BlobId} from "../types/ApiModels/TypeIds";
 import VideoPlayerComponent from "../components/Videos/VideoPlayerComponent";
-
+import CommentsComponent from "../components/Comments/CommentsComponent";
 
 
 export function VideoPlayerScreen() {
@@ -26,7 +24,7 @@ export function VideoPlayerScreen() {
     const [videoNameToSet, setVideoNameToSet] = useState('')
     const [videoList, setVideoList] = useState<VideoInformation[]>([])
     const [sharedScope, setSharedScope] = useState<SharedScope>()
-    
+
     const useEffectAsyncBody = async () => {
         const videoId = params.videoId as BlobId
 
@@ -45,7 +43,7 @@ export function VideoPlayerScreen() {
             } else if (passedSharedScope.eventId) {
                 videos = await videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
             }
-            
+
             setVideoList(videos)
         }
 
@@ -64,10 +62,10 @@ export function VideoPlayerScreen() {
     }
 
     useEffect(() => {
-        
+
         useEffectAsyncBody()
             .catch(e => console.log(e))
-        
+
         return () => {
             // todo, cleanup
         }
@@ -100,32 +98,33 @@ export function VideoPlayerScreen() {
 
 
     return (
-        <div className='container'>
-            <div hidden={editIsHidden}>
-                <input className="input" type="text" placeholder="Korki podstawowe"
-                    value={videoNameToSet}
-                    onChange={(e) => setVideoNameToSet(e.target.value)}
-                />
-                <span className="icon m-1" onClick={onRenameConfirm}>
-                    <FontAwesomeIcon icon={faCheck} />
+        <div className='container mt-3'>
+            <div className="mb-3">
+                <div hidden={editIsHidden}>
+                    <input className="input" type="text" placeholder="Korki podstawowe"
+                           value={videoNameToSet}
+                           onChange={(e) => setVideoNameToSet(e.target.value)}
+                    />
+                    <span className="icon ml-3" onClick={onRenameConfirm}>
+                    <FontAwesomeIcon icon={faCheck}/>
                 </span>
-                <span className="icon m-1" onClick={onRenameCancel}>
-                    <FontAwesomeIcon icon={faCancel} />
+                    <span className="icon ml-3" onClick={onRenameCancel}>
+                    <FontAwesomeIcon icon={faCancel}/>
                 </span>
-            </div>
+                </div>
 
-            <div hidden={!editIsHidden}>
-                <h4 className="title is-5">{videoInfo?.name}
-                    <span className="icon m-1" onClick={onEditClick}>
-                        <FontAwesomeIcon icon={faEdit} />
+                <div hidden={!editIsHidden}>
+                    <h4 className="title is-5">{videoInfo?.name}
+                        <span className="icon ml-3" onClick={onEditClick}>
+                        <FontAwesomeIcon icon={faEdit}/>
                     </span>
-                </h4>
+                    </h4>
+                </div>
             </div>
-
             <VideoPlayerComponent videoId={params.videoId} sharedScope={sharedScope} videoList={videoList} url={url}/>
+            {videoInfo && <CommentsComponent allowAdding={false} videoId={videoInfo.id}/>}
         </div>
     )
-
 
 
 }
