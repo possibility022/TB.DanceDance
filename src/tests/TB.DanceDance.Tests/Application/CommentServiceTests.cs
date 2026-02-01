@@ -886,6 +886,7 @@ public class CommentServiceTests : BaseTestClass
             comment.Id,
             user.Id,
             null,
+            null,
             "Updated content",
             TestContext.Current.CancellationToken);
 
@@ -916,7 +917,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             comment.Id,
-            otherUser.Id, null, // Not the author
+            otherUser.Id,
+            null, null, // Not the author
             "Hacked content",
             TestContext.Current.CancellationToken);
 
@@ -945,7 +947,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             anonymousComment.Id,
-            owner.Id, null, // Can't update anonymous comment
+            owner.Id,
+            null, null, // Can't update anonymous comment
             "Try to update",
             TestContext.Current.CancellationToken);
 
@@ -964,7 +967,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         var result = await commentService.UpdateCommentAsync(
             Guid.NewGuid(),
-            user.Id, null,
+            user.Id,
+            null, null,
             "Content",
             TestContext.Current.CancellationToken);
 
@@ -988,7 +992,8 @@ public class CommentServiceTests : BaseTestClass
         {
             await commentService.UpdateCommentAsync(
                 comment.Id,
-                user.Id, null,
+                user.Id,
+                null, null,
                 "", // Empty
                 TestContext.Current.CancellationToken);
         });
@@ -1012,7 +1017,8 @@ public class CommentServiceTests : BaseTestClass
         // Act
         await commentService.UpdateCommentAsync(
             comment.Id,
-            user.Id, null,
+            user.Id,
+            null, null,
             "Updated",
             TestContext.Current.CancellationToken);
 

@@ -43,8 +43,12 @@ class CommentsService {
         await httpApiClient.post(`/api/share/${linkId}/comments`, request)
     }
 
-    async editCommentAsync(commentId: string, newContent: string) {
-        await httpApiClient.put(`/api/comments/${commentId}`, { content: newContent })
+    async editCommentAsync(commentId: string, newContent: string, authorName?: string) {
+        await httpApiClient.put(`/api/comments/${commentId}`, {
+            content: newContent,
+            anonymousId: appStorage.getAnonymousId(),
+            authorName: authorName
+        })
     }
 
     async deleteCommentAsync(commentId: string) {

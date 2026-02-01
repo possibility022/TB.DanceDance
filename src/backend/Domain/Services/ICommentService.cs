@@ -60,12 +60,14 @@ public interface ICommentService
     /// <param name="commentId">The comment ID</param>
     /// <param name="userId">The ID of the user updating the comment</param>
     /// <param name="anonymouseId"></param>
+    /// <param name="authorName">The name of the author if posting as anonymous (null for authenticated users)</param>
     /// <param name="content">The new comment content</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if updated successfully, false if not found or unauthorized</returns>
     Task<bool> UpdateCommentAsync(Guid commentId,
         string? userId,
         string? anonymouseId,
+        string? authorName,
         string content,
         CancellationToken cancellationToken);
 

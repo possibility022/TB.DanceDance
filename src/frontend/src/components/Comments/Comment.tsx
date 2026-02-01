@@ -10,7 +10,7 @@ interface ICommentProps {
     canReport?: boolean
     onDeleteAsync: () => Promise<void>
     onHideSwitchAsync: (hide: boolean) => Promise<void>
-    onEditAsync: (newContent: string) => Promise<void>
+    onEditAsync: (newContent: string, authorName?: string) => Promise<void>
     onReportAsync: (reason: string) => Promise<void>
 }
 
@@ -30,20 +30,32 @@ function Comment(props: ICommentProps) {
         setInEditMode(true)
     }
 
+    const [content, setContent] = useState(props.comment.content)
+    const [authorName, setAuthorName] = useState(props.comment.authorName)
+
     function renderComment() {
 
-        const onEdit = (newContent: string) => {
-            props.onEditAsync(newContent)
+        const onEdit = (newContent: string, authorName?: string) => {
+            props.onEditAsync(newContent, authorName)
+                .then(() => {
+                    props.comment.content = newContent
+                    setContent(newContent)
+                    if (authorName) {
+                        setAuthorName(authorName)
+                        props.comment.authorName = authorName
+                    }
+                })
             setInEditMode(false)
         }
 
         if (inEditMode) {
             return <AddComment onAddCommentClick={onEdit}
-                               initialContent={props.comment.content}
+                               initialContent={content}
+                               initialAuthorName={authorName}
                                onCancel={() => setInEditMode(false)}
                                onAddAsAnonymousClick={onEdit}/>
         } else {
-            return <p>{props.comment.content}</p>
+            return <p>{content}</p>
         }
     }
 
@@ -63,7 +75,7 @@ function Comment(props: ICommentProps) {
     return (
         <article className="message">
             <div className="message-header">
-                <strong>{props.comment.isAnonymous ? 'Anonymous' : props.comment.authorName!}</strong>
+                <strong>{props.comment.authorName}</strong>
                 <div>
                     {props.canReport && <button className="ml-4"
                                                 onClick={() => openReportModal()}><FontAwesomeIcon

@@ -8,7 +8,7 @@ export interface ICommentsContext {
     addCommentAsAnonymousAsync: (comment: string, authorName: string) => Promise<void>
     loadCommentsAsync(): Promise<void>
     hideCommentAsync(commentId: string, hide: boolean): Promise<void>
-    editCommentAsync(commentId: string, newContent: string): Promise<void>
+    editCommentAsync(commentId: string, newContent: string, authorName?: string): Promise<void>
     reportCommentAsync(commentId: string, why: string): Promise<void>
     deleteCommentAsync(commentId: string): Promise<void>
 }

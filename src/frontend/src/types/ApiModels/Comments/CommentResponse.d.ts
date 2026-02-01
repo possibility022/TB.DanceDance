@@ -3,7 +3,6 @@
         id: uuid
         videoId: uuid
         authorName?: string
-        isAnonymous: boolean
         content: string
         createdAt: Date
         updatedAt?: Date | null

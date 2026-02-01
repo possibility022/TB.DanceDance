@@ -214,6 +214,7 @@ public class CommentService : ICommentService
         Guid commentId,
         string? userId,
         string? anonymouseId,
+        string? authorName,
         string content,
         CancellationToken cancellationToken)
     {
@@ -249,7 +250,9 @@ public class CommentService : ICommentService
         {
             comment.Content = content;
             comment.UpdatedAt = DateTimeOffset.UtcNow;
-
+            if (shaMatches && !string.IsNullOrWhiteSpace(authorName))
+                comment.AnonymousName = authorName;
+            
             await dbContext.SaveChangesAsync(cancellationToken);
             return true;
         }

@@ -20,7 +20,7 @@ function CommentsList() {
                 <Comment key={index}
                          onReportAsync={(why) => commentsContext.reportCommentAsync(comment.id, why)}
                          onDeleteAsync={() => commentsContext.deleteCommentAsync(comment.id)}
-                         onEditAsync={(newContent) => commentsContext.editCommentAsync(comment.id, newContent)}
+                         onEditAsync={(newContent, authorName) => commentsContext.editCommentAsync(comment.id, newContent, authorName)}
                          onHideSwitchAsync={(hide) => commentsContext.hideCommentAsync(comment.id, hide)}
                          comment={comment}/>
             ))}

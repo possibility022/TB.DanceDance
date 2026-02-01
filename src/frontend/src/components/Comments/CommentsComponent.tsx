@@ -62,8 +62,8 @@ function CommentsComponent(props: ICommentsComponentProps) {
         }
     }
 
-    async function editCommentAsync(commentId: string, newContent: string) {
-        await commentsService.editCommentAsync(commentId, newContent)
+    async function editCommentAsync(commentId: string, newContent: string, authorName?: string) {
+        await commentsService.editCommentAsync(commentId, newContent, authorName)
     }
 
     async function deleteCommentAsync(commentId: string) {

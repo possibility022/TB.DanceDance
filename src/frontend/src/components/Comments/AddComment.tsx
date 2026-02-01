@@ -6,6 +6,7 @@ interface IAddCommentsProps {
     onAddAsAnonymousClick(content: string, authorName?: string): void
     onCancel?: () => void
     initialContent?: string
+    initialAuthorName?: string
 }
 
 function AddComment(props: IAddCommentsProps) {
@@ -18,7 +19,7 @@ function AddComment(props: IAddCommentsProps) {
     const buttonText = (props.onCancel && props.initialContent ? 'Edytuj' : 'Dodaj')
     const [errorMessage, setErrorMessage] = useState<string | undefined>()
     const [content, setContent] = useState(props.initialContent ?? '')
-    const [nameForAnonymous, setNameForAnonymous] = useState<string>()
+    const [nameForAnonymous, setNameForAnonymous] = useState<string>(props.initialAuthorName ?? '')
     const authContext = useContext(AuthContext)
 
     function onAdd() {

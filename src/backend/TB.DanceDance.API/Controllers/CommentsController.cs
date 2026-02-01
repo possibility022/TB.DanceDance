@@ -107,11 +107,15 @@ public class CommentsController : Controller
     {
         var userId = User.TryGetSubject();
 
+        if (userId is not null)
+            request.AnonymousId = null;
+
         try
         {
             var result = await commentService.UpdateCommentAsync(commentId,
                 userId,
                 request.AnonymousId,
+                request.AuthorName,
                 request.Content,
                 cancellationToken);
 
@@ -148,7 +152,7 @@ public class CommentsController : Controller
         [FromQuery] string? anonymouseId,
         CancellationToken cancellationToken)
     {
-        var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
+        var userId = User.TryGetSubject();
 
         anonymouseId = ResolveAnonymousId(anonymouseId, Request);
 
