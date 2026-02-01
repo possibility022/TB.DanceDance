@@ -52,7 +52,11 @@ class CommentsService {
     }
 
     async deleteCommentAsync(commentId: string) {
-        await httpApiClient.delete(`/api/comments/${commentId}`)
+        await httpApiClient.delete(`/api/comments/${commentId}`, {
+            headers:{
+                "AnonymousId": appStorage.getAnonymousId()
+            }
+        })
     }
 
     async hideCommentAsync(commentId: string) {

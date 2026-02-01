@@ -58,6 +58,8 @@ public class CommentsController : Controller
         }
     }
 
+    private byte[]? ComputeSha256(string? anonymousId) => anonymousId == null ? null : SHA256.HashData(Encoding.UTF8.GetBytes(anonymousId));
+    
     /// <summary>
     /// Gets comments for a video accessed through a shared link. Anonymous access allowed.
     /// </summary>
@@ -66,23 +68,21 @@ public class CommentsController : Controller
     [Route(ApiEndpoints.Comments.GetByLink)]
     public async Task<ActionResult<IEnumerable<CommentResponse>>> GetCommentsByLink(
         [FromRoute] string linkId,
-        [FromQuery] string? anonymouseId,
+        [FromQuery] string? anonymousId,
         CancellationToken cancellationToken)
     {
         var userId = User.Identity?.IsAuthenticated == true ? User.GetSubject() : null;
-        anonymouseId = ResolveAnonymousId(anonymouseId, Request);
+        anonymousId = ResolveAnonymousId(anonymousId, Request);
         
         try
         {
             var comments = await commentService.GetCommentsForVideoAsync(
                 userId,
-                anonymouseId,
+                anonymousId,
                 linkId,
                 cancellationToken);
 
-            byte[]? shaOfAnonymousId = null;
-            if (anonymouseId != null)
-                shaOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+            byte[]? shaOfAnonymousId = ComputeSha256(anonymousId);
 
             var response = comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId));
             return Ok(response);
@@ -133,13 +133,13 @@ public class CommentsController : Controller
         }
     }
     
-    private string? ResolveAnonymousId(string? anonymouseIdFromQuery, HttpRequest request)
+    private string? ResolveAnonymousId(string? anonymousIdFromQuery, HttpRequest request)
     {
-        if (!string.IsNullOrEmpty(anonymouseIdFromQuery))
-            return anonymouseIdFromQuery;
+        if (!string.IsNullOrEmpty(anonymousIdFromQuery))
+            return anonymousIdFromQuery;
         
-        string? anonymouseIdFromHeader = request.Headers[AnonymousHeaderId].FirstOrDefault();
-        return  anonymouseIdFromHeader;
+        string? anonymousIdFromHeader = request.Headers[AnonymousHeaderId].FirstOrDefault();
+        return  anonymousIdFromHeader;
     }
 
     /// <summary>
@@ -147,20 +147,21 @@ public class CommentsController : Controller
     /// </summary>
     [AllowAnonymous]
     [Route(ApiEndpoints.Comments.Delete)]
+    [HttpDelete]
     public async Task<IActionResult> DeleteComment(
         [FromRoute] Guid commentId,
-        [FromQuery] string? anonymouseId,
+        [FromQuery] string? anonymousId,
         CancellationToken cancellationToken)
     {
         var userId = User.TryGetSubject();
 
-        anonymouseId = ResolveAnonymousId(anonymouseId, Request);
+        anonymousId = ResolveAnonymousId(anonymousId, Request);
 
         try
         {
             var result = await commentService.DeleteCommentAsync(commentId,
                 userId,
-                anonymouseId,
+                anonymousId,
                 cancellationToken);
             
             if (!result)
@@ -252,17 +253,14 @@ public class CommentsController : Controller
     public async Task<IActionResult> GetCommentsForVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
-        string? anonymouseId = null;
             
         try
         {
-            anonymouseId = ResolveAnonymousId(anonymouseId, Request);
+            var anonymousId = ResolveAnonymousId(null, Request);
             
-            var comments = await commentService.GetCommentsForVideoAsync(userId, anonymouseId, videoId, cancellationToken);
+            var comments = await commentService.GetCommentsForVideoAsync(userId, anonymousId, videoId, cancellationToken);
             
-            byte[]? shaOfAnonymousId = null;
-            if (anonymouseId != null)
-                shaOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+            byte[]? shaOfAnonymousId = ComputeSha256(anonymousId);
             
             return Ok(comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId)));
         }
@@ -278,11 +276,11 @@ public class CommentsController : Controller
         }
     }
 
-    private CommentResponse MapToResponse(Comment comment, string? currentUserId, byte[]? anonymouseId)
+    private CommentResponse MapToResponse(Comment comment, string? currentUserId, byte[]? anonymousId)
     {
         var isVideoOwner = comment.Video?.UploadedBy == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
-        var isAnonymousAuthor = comment.ShaOfAnonymousId?.SequenceEqual(anonymouseId) ?? false;
+        var isAnonymousAuthor = comment.ShaOfAnonymousId?.SequenceEqual(anonymousId) ?? false;
         
         string? authorName;
         if (comment.PostedAsAnonymous)

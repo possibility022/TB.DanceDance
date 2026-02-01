@@ -33,7 +33,7 @@ public class CommentService : ICommentService
         string linkId,
         string content,
         string? authorName,
-        string? anonymouseId,
+        string? anonymousId,
         CancellationToken cancellationToken)
     {
         // Validate content
@@ -86,10 +86,10 @@ public class CommentService : ICommentService
                 nameof(userId));
         }
         
-        // When posted as an authorized user, do not store anonymouse id
+        // When posted as an authorized user, do not store anonymous id
         byte[]? hashOfAnonymousId = null;
-        if (string.IsNullOrEmpty(userId) && !string.IsNullOrWhiteSpace(anonymouseId))
-            hashOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+        if (string.IsNullOrEmpty(userId) && !string.IsNullOrWhiteSpace(anonymousId))
+            hashOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymousId));
 
         // Create the comment
         var comment = new Comment
@@ -117,7 +117,7 @@ public class CommentService : ICommentService
 
     public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
         string? userId,
-        string? anonymouseId,
+        string? anonymousId,
         string linkId,
         CancellationToken cancellationToken)
     {
@@ -131,10 +131,10 @@ public class CommentService : ICommentService
             return Array.Empty<Comment>();
         }
         
-        return await QueryCommentsBase(userId, anonymouseId, link.Video, cancellationToken);
+        return await QueryCommentsBase(userId, anonymousId, link.Video, cancellationToken);
     }
 
-    private async Task<IReadOnlyCollection<Comment>> QueryCommentsBase(string? userId, string? anonymouseId, Video video, CancellationToken cancellationToken)
+    private async Task<IReadOnlyCollection<Comment>> QueryCommentsBase(string? userId, string? anonymousId, Video video, CancellationToken cancellationToken)
     {
         // Check if user is the video owner
         var isVideoOwner = userId != null && video.UploadedBy == userId;
@@ -152,9 +152,9 @@ public class CommentService : ICommentService
         Expression<Func<Comment, bool>> predicate = c => false;
         IQueryable<Comment>? baseQuery = null;
 
-        if (anonymouseId is not null)
+        if (anonymousId is not null)
         {
-            var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+            var hashedId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymousId));
             predicate = predicate.Or(c => c.ShaOfAnonymousId == hashedId);
         }
 
@@ -169,7 +169,7 @@ public class CommentService : ICommentService
             case CommentVisibility.OwnerOnly:
                 // Only owner can see comments (and we already handled that case above)
                 // Here we are adding only those comments that were posted by given user.
-                // Authenticated or with specific anonymouse id.
+                // Authenticated or with specific anonymous id.
                 baseQuery = dbContext.Comments.Where(predicate);
                 break;
             
@@ -199,7 +199,7 @@ public class CommentService : ICommentService
         return comments.AsReadOnly();
     }
 
-    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, string? anonymouseId, Guid videoId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, string? anonymousId, Guid videoId, CancellationToken cancellationToken)
     {
         var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, userId, cancellationToken);
         if (!hasAccess)
@@ -207,13 +207,13 @@ public class CommentService : ICommentService
 
         var video = await dbContext.Videos.FirstAsync(v => v.Id == videoId, cancellationToken);
         
-        return await QueryCommentsBase(userId, anonymouseId, video, cancellationToken);
+        return await QueryCommentsBase(userId, anonymousId, video, cancellationToken);
     }
 
     public async Task<bool> UpdateCommentAsync(
         Guid commentId,
         string? userId,
-        string? anonymouseId,
+        string? anonymousId,
         string? authorName,
         string content,
         CancellationToken cancellationToken)
@@ -224,8 +224,8 @@ public class CommentService : ICommentService
             throw new ArgumentException("Comment content cannot be empty.", nameof(content));
         }
         
-        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(anonymouseId))
-            throw new ArgumentException("Either userId or anonymouseId must be provided.", nameof(userId));
+        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(anonymousId))
+            throw new ArgumentException("Either userId or anonymousId must be provided.", nameof(userId));
 
         if (content.Length > MaxCommentLength)
         {
@@ -242,10 +242,10 @@ public class CommentService : ICommentService
             return false;
         }
         
-        bool shaMatches = CheckAnonymousIdMatch(anonymouseId, comment);
+        bool shaMatches = CheckAnonymousIdMatch(anonymousId, comment);
 
         // Authenticated comment authors can update their own comments
-        // or anonymous users that provided the same anonymouse id
+        // or anonymous users that provided the same anonymous id
         if (comment.UserId == userId || shaMatches)
         {
             comment.Content = content;
@@ -260,29 +260,29 @@ public class CommentService : ICommentService
         return false;
     }
 
-    private static bool CheckAnonymousIdMatch(string? anonymouseId, Comment comment)
+    private static bool CheckAnonymousIdMatch(string? anonymousId, Comment comment)
     {
-        byte[]? anonymouseIdBytes = null;
-        if (!string.IsNullOrWhiteSpace(anonymouseId))
-            anonymouseIdBytes = SHA256.HashData(Encoding.UTF8.GetBytes(anonymouseId));
+        byte[]? anonymousIdBytes = null;
+        if (!string.IsNullOrWhiteSpace(anonymousId))
+            anonymousIdBytes = SHA256.HashData(Encoding.UTF8.GetBytes(anonymousId));
 
-        var shaMatches = anonymouseIdBytes is not null
+        var shaMatches = anonymousIdBytes is not null
                          && comment.ShaOfAnonymousId is not null
-                         && anonymouseIdBytes.Length > 0
+                         && anonymousIdBytes.Length > 0
                          && comment.ShaOfAnonymousId.Length > 0
-                         && anonymouseIdBytes.SequenceCompareTo(comment.ShaOfAnonymousId) == 0;
+                         && anonymousIdBytes.SequenceCompareTo(comment.ShaOfAnonymousId) == 0;
         return shaMatches;
     }
 
     public async Task<bool> DeleteCommentAsync(
         Guid commentId,
         string? userId,
-        string? anonymouseId,
+        string? anonymousId,
         CancellationToken cancellationToken)
     {
         
-        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(anonymouseId))
-            throw new ArgumentException("Either userId or anonymouseId must be provided.", nameof(userId));
+        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(anonymousId))
+            throw new ArgumentException("Either userId or anonymousId must be provided.", nameof(userId));
         
         var comment = await dbContext.Comments
             .Include(c => c.Video)
@@ -296,7 +296,7 @@ public class CommentService : ICommentService
         // Check if user can delete: either the comment author or the video owner
         var isAuthor = !string.IsNullOrEmpty(userId) && comment.UserId == userId;
         var isVideoOwner = comment.Video.UploadedBy == userId;
-        bool shaMatches = CheckAnonymousIdMatch(anonymouseId, comment);
+        bool shaMatches = CheckAnonymousIdMatch(anonymousId, comment);
         
         if (!isAuthor && !isVideoOwner && !shaMatches)
         {

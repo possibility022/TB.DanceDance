@@ -17,7 +17,7 @@ function CommentsList() {
     return (
         <div>
             {commentsContext.comments!.map((comment, index) => (
-                <Comment key={index}
+                <Comment key={comment.id}
                          onReportAsync={(why) => commentsContext.reportCommentAsync(comment.id, why)}
                          onDeleteAsync={() => commentsContext.deleteCommentAsync(comment.id)}
                          onEditAsync={(newContent, authorName) => commentsContext.editCommentAsync(comment.id, newContent, authorName)}

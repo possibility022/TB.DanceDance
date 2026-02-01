@@ -22,10 +22,6 @@ function Comment(props: ICommentProps) {
 
     const [inEditMode, setInEditMode] = useState(false)
 
-    function openReportModal() {
-        props.onReportAsync('')
-    }
-
     function enableEditing() {
         setInEditMode(true)
     }
@@ -77,9 +73,6 @@ function Comment(props: ICommentProps) {
             <div className="message-header">
                 <strong>{props.comment.authorName}</strong>
                 <div>
-                    {props.canReport && <button className="ml-4"
-                                                onClick={() => openReportModal()}><FontAwesomeIcon
-                        icon={faFontAwesomeFlag}/></button>}
                     {renderHideTag()}
                     {canEdit(props.comment) &&
                         <button className="ml-4" onClick={enableEditing}><FontAwesomeIcon

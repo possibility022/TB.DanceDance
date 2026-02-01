@@ -12,7 +12,7 @@ public interface ICommentService
     /// <param name="linkId">The shared link ID through which the comment is being created</param>
     /// <param name="content">The comment content</param>
     /// <param name="authorName">The name of the author if posting as anonymous (null for authenticated users)</param>
-    /// <param name="anonymouseId">Anonymous user ID, used to identify the comment owner when comment was posted by/as anonymouse user</param>
+    /// <param name="anonymousId">Anonymous user ID, used to identify the comment owner when comment was posted by/as anonymous user</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The created Comment</returns>
     /// <exception cref="ArgumentException">If link doesn't exist, doesn't allow comments, or other validation fails</exception>
@@ -20,7 +20,7 @@ public interface ICommentService
         string linkId,
         string content,
         string? authorName,
-        string? anonymouseId,
+        string? anonymousId,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -29,12 +29,12 @@ public interface ICommentService
     /// The video ID is resolved from the shared link.
     /// </summary>
     /// <param name="userId">The ID of the user viewing comments (null for anonymous)</param>
-    /// <param name="anonymouseId">Anonymous user ID (null for non-anonymous users)</param>
+    /// <param name="anonymousId">Anonymous user ID (null for non-anonymous users)</param>
     /// <param name="linkId">The shared link being used to access the video</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of visible comments</returns>
     Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string? userId,
-        string? anonymouseId,
+        string? anonymousId,
         string linkId,
         CancellationToken cancellationToken);
 
@@ -43,14 +43,14 @@ public interface ICommentService
     /// </summary>
     /// <param name="userId">The ID of the user requesting the comments</param>
     /// <param name="videoId">The unique identifier of the video blob</param>
-    /// <param name="anonymouseId">Anonymous id to provide to get comments posted as anonymouse user.</param>
+    /// <param name="anonymousId">Anonymous id to provide to get comments posted as anonymous user.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A read-only collection of comments for the specified video</returns>
     /// <exception cref="ArgumentException">If the video does not exist or validation fails</exception>
     /// <exception cref="UnauthorizedAccessException">If the user is not authorized to access the video's comments</exception>
     Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
         string userId,
-        string? anonymouseId,
+        string? anonymousId,
         Guid videoId,
         CancellationToken cancellationToken);
 
@@ -59,14 +59,14 @@ public interface ICommentService
     /// </summary>
     /// <param name="commentId">The comment ID</param>
     /// <param name="userId">The ID of the user updating the comment</param>
-    /// <param name="anonymouseId"></param>
+    /// <param name="anonymousId"></param>
     /// <param name="authorName">The name of the author if posting as anonymous (null for authenticated users)</param>
     /// <param name="content">The new comment content</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if updated successfully, false if not found or unauthorized</returns>
     Task<bool> UpdateCommentAsync(Guid commentId,
         string? userId,
-        string? anonymouseId,
+        string? anonymousId,
         string? authorName,
         string content,
         CancellationToken cancellationToken);
@@ -76,13 +76,13 @@ public interface ICommentService
     /// </summary>
     /// <param name="commentId">The comment ID</param>
     /// <param name="userId">The ID of the user deleting the comment</param>
-    /// <param name="anonymouseId">Anonymous id that is stored on the client side. Allows deleting comments posted anonymously</param>
+    /// <param name="anonymousId">Anonymous id that is stored on the client side. Allows deleting comments posted anonymously</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if deleted successfully, false if not found or unauthorized</returns>
     Task<bool> DeleteCommentAsync(
         Guid commentId,
         string? userId,
-        string? anonymouseId,
+        string? anonymousId,
         CancellationToken cancellationToken);
 
     /// <summary>
