@@ -64,6 +64,7 @@ function AddComment(props: IAddCommentsProps) {
                 <div className="field">
                     <div className="control">
                         <input type="text"
+                               value={nameForAnonymous}
                                className="input"
                                onChange={(e) => setNameForAnonymous(e.target.value)}
                                placeholder="Podpisz się"/>
