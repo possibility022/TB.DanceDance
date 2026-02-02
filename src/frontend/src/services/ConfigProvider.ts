@@ -41,7 +41,7 @@ export default class ConfigProvider {
         if (lastFail){
             try {
                 const lastFailAsInt = parseInt(lastFail)
-                if (lastFailAsInt + 1000* 1000* 60> Date.now())
+                if (lastFailAsInt + 1000 * 60 * 60 > Date.now())
                 {
                     return true
                 } else {

@@ -16,6 +16,7 @@ export interface IAuthService extends TokenProvider {
 
 interface OidcStorage {
     access_token: string
+    id_token?: string
 }
 
 export interface TokenProvider {
@@ -28,14 +29,12 @@ export class AuthService implements IAuthService, TokenProvider {
     userManager: UserManager
 
     constructor() {
-
-        // todo
         const identityConfig = ConfigProvider.getIdentityConfig()
 
         this.userManager = new UserManager(
             {
                 ...identityConfig,
-                userStore: new WebStorageStateStore({ store: window.sessionStorage })
+                userStore: new WebStorageStateStore({ store: window.localStorage })
             }
         )
 
@@ -74,25 +73,28 @@ export class AuthService implements IAuthService, TokenProvider {
     private getAccessTokenInternal = async (refreshTokenIfExpired: boolean): Promise<string | null> => {
         const token = this.getTokenFromStorage()
         if (token) {
-            const o = this.parseJwt(token)
-            const expireAt = o?.exp as number
-            const expire = new Date(expireAt * 1000)
+            try {
+                const o = this.parseJwt(token)
+                const expireAt = o?.exp as number
+                const expire = new Date(expireAt * 1000)
 
-            if (expire < new Date() && refreshTokenIfExpired) {
-                await this.signinSilent()
-                return this.getTokenFromStorage()
+                if (expire < new Date() && refreshTokenIfExpired) {
+                    await this.signinSilent()
+                    return this.getTokenFromStorage()
+                }
+
+                return token
+            } catch (error) {
+                console.error("Failed to parse access token", error);
+                return null;
             }
-
-            return token
         }
         else
             return null
     }
 
     signinRedirectCallback = async () => {
-        await this.userManager.signinRedirectCallback().then(() => {
-            ""; //why this way? todo: check
-        });
+        await this.userManager.signinRedirectCallback();
     };
 
 
@@ -105,9 +107,17 @@ export class AuthService implements IAuthService, TokenProvider {
     };
 
     parseJwt = (token: string) => {
-        const base64Url = token.split(".")[1];
-        const base64 = base64Url.replace("-", "+").replace("_", "/");
-        return JSON.parse(window.atob(base64));
+        try {
+            const base64Url = token.split(".")[1];
+            if (!base64Url) {
+                throw new Error("Invalid token format");
+            }
+            const base64 = base64Url.replaceAll("-", "+").replaceAll("_", "/");
+            return JSON.parse(window.atob(base64));
+        } catch (error) {
+            console.error("Failed to parse JWT token", error);
+            throw error;
+        }
     };
 
 
@@ -141,12 +151,11 @@ export class AuthService implements IAuthService, TokenProvider {
         const authEndpoint = metadataOidc.authorization_endpoint;
         const clientId = identityConfig.client_id
 
-        const item = sessionStorage.getItem(`oidc.user:${authEndpoint}:${clientId}`)
+        const item = localStorage.getItem(`oidc.user:${authEndpoint}:${clientId}`)
         if (item === null)
             return null
 
-        const oidcStorage = JSON.parse(item) as OidcStorage
-        return oidcStorage
+        return JSON.parse(item) as OidcStorage
     }
 
     getRegisterUri = () => {
@@ -175,7 +184,8 @@ export class AuthService implements IAuthService, TokenProvider {
     };
 
     logout = async () => {
-        const idToken = localStorage.getItem("id_token")
+        const oidcStorage = this.getOidcStorage()
+        const idToken = oidcStorage?.id_token
         const requestArgs = {
             id_token_hint: idToken ?? undefined
         }
