@@ -2,7 +2,6 @@ import React, {useContext, useEffect, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginButton from '../components/LoginLogoutComponents/LoginButton';
 import { AuthContext } from '../providers/AuthProvider';
-import ConfigProvider from "../services/ConfigProvider";
 import videoInfoService from '../services/VideoInfoService';
 import VideoInformation from '../types/ApiModels/VideoInformation';
 import { Event } from '../types/ApiModels/EventsAndGroups';
@@ -23,20 +22,6 @@ const Home = () => {
     const [recentVideos, setRecentVideos] = useState<VideoInformation[]>([])
 
     const envVariables = JSON.stringify(process.env)
-
-    useEffect(() => {
-        if (ConfigProvider.failoverServerShouldBeUsed())
-            return
-
-        ConfigProvider.validatePrimaryHostIsAvailable()
-            .then(res => {
-                if (!res)
-                {
-                    ConfigProvider.useFailoverHost()
-                    window.location.reload();
-                }
-            })
-    })
 
     useEffect(() => {
         if (authContext.isAuthenticated()) {
