@@ -110,7 +110,8 @@ export class AuthService implements IAuthService, TokenProvider {
         try {
             const base64Url = token.split(".")[1];
             if (!base64Url) {
-                throw new Error("Invalid token format");
+                console.error("Invalid token format")
+                return
             }
             const base64 = base64Url.replaceAll("-", "+").replaceAll("_", "/");
             return JSON.parse(window.atob(base64));
