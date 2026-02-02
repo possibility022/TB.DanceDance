@@ -17,13 +17,23 @@ export default class ConfigProvider {
         return metadataOidc
     }
 
-
     private static resolveHost(){
         let autUrl = process.env.REACT_APP_AUTH_URL
         if (!autUrl)
             autUrl = REACT_APP_AUTH_URL_TO_REPLACE
 
         return autUrl
+    }
+
+    public static resolveApiHost(){
+        let baseUrl = process.env.REACT_APP_API_BASE_URL
+
+        if (!baseUrl)
+        {
+            baseUrl = 'https://localhost:7068'
+        }
+
+        return baseUrl
     }
 
     private static replaceValues<T>(input: T) {
