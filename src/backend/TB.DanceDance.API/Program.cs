@@ -3,7 +3,6 @@ using Domain.Exceptions;
 using IdentityServer4;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
-using Serilog;
 using TB.DanceDance.API;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,18 +20,10 @@ if (builder.Environment.IsProduction())
     builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
 }
 
-var loggerConfiguration = new LoggerConfiguration();
-loggerConfiguration.ReadFrom.Configuration(builder.Configuration);
-Log.Logger = loggerConfiguration.CreateLogger();
-
-builder.Services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder.ClearProviders();
-    loggingBuilder.AddSerilog(Log.Logger);
-});
-
-
-// Add services to the container.
+OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder.Services, builder.Configuration, builder.Environment, builder.Logging);
+#if DEBUG
+OtelConfiguration.ConfigureLogging(builder.Services, builder.Configuration);
+#endif
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
 
@@ -50,7 +41,7 @@ builder.Services.AddCors(setup =>
         }
         else
         {
-            var config = CorsConfigProvider.GetFromEnvironmentVariable(builder.Configuration);
+            var config = CorsConfigProvider.GetFromConfiguration(builder.Configuration);
             c.WithOrigins(config);
         }
 
