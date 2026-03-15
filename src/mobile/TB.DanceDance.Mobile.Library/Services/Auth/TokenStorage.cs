@@ -39,7 +39,7 @@ public class TokenStorage
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Error during saving token into secure storage.");
+            //Serilog.Log.Error(e, "Error during saving token into secure storage.");
         }
     }
 
@@ -56,7 +56,7 @@ public class TokenStorage
         }
         catch (Exception e)
         {
-            Serilog.Log.Error(e, "Error during loading refresh token from secure storage.");
+            //Serilog.Log.Error(e, "Error during loading refresh token from secure storage.");
         }
 
         return Token?.RefreshToken;

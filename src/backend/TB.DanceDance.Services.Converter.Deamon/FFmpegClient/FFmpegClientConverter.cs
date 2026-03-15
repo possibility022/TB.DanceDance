@@ -1,9 +1,16 @@
 ﻿using FFMpegCore;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 internal class FFmpegClientConverter : IFFmpegClientConverter
 {
+    private readonly ILogger log;
+
+    public FFmpegClientConverter(ILogger log)
+    {
+        this.log = log;
+    }
+    
     public async Task ConvertAsync(string input, string output)
     {
         var args = FFMpegArguments
@@ -16,10 +23,10 @@ internal class FFmpegClientConverter : IFFmpegClientConverter
             .NotifyOnError((m) =>
             {
                 if (m != null && !m.StartsWith("frame="))
-                    Log.Error(m);
+                    log.LogError(m);
             })
-            .NotifyOnProgress(d => Log.Verbose("Progress: {0}", d))
-            .NotifyOnOutput(m => Log.Information(m));
+            .NotifyOnProgress(d => log.LogTrace("Progress: {0}", d))
+            .NotifyOnOutput(m => log.LogInformation(m));
 
         await args.ProcessAsynchronously();
     }
@@ -44,7 +51,7 @@ internal class FFmpegClientConverter : IFFmpegClientConverter
                 return (creationTime.Value, res.Duration);
         }
 
-        Log.Warning("Default creation date.");
+        log.LogWarning("Default creation date.");
         return (DateTime.Now, res.Duration);
     }
 

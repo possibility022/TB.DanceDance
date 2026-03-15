@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
@@ -7,11 +7,13 @@ internal sealed class Deamon : BackgroundService
 {
     private readonly IDanceDanceApiClient client;
     private readonly IFFmpegClientConverter converter;
+    private readonly ILogger<Deamon> logger;
 
-    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter)
+    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter, ILogger<Deamon> logger)
     {
         this.client = client;
         this.converter = converter;
+        this.logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
@@ -28,18 +30,18 @@ internal sealed class Deamon : BackgroundService
                 if (!converted)
                 {
                     var delay = ProgramConfig.Instance.DelayInMinutes * 1000 * 60;
-                    Log.Information("Waiting till next run. Delay in minutes: {0}", ProgramConfig.Instance.DelayInMinutes);
+                    logger.LogInformation("Waiting till next run. Delay in minutes: {0}", ProgramConfig.Instance.DelayInMinutes);
                     
                     await Task.Delay(delay, token);
                 }
             }
             catch(TaskCanceledException ex)
             {
-                Log.Information(ex, "Task cancelled.");
+                logger.LogInformation(ex, "Task cancelled.");
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error in main execution path. Awaiting 10 seconds.");
+                logger.LogError(ex, "Error in main execution path. Awaiting 10 seconds.");
                 await Task.Delay(10000, token);
             }
         }
@@ -47,16 +49,16 @@ internal sealed class Deamon : BackgroundService
 
     private async Task<bool> ProcessNext(CancellationToken token)
     {
-        Log.Information("Getting next video.");
+        logger.LogInformation("Getting next video.");
         var nextVideoToConvert = await client.GetNextVideoToConvertAsync(token);
 
         if (nextVideoToConvert == null)
         {
-            Log.Information("Nothing to convert.");
+            logger.LogInformation("Nothing to convert.");
             return false;
         }
 
-        Log.Information("Video to convert {0}", nextVideoToConvert.Id);
+        logger.LogInformation("Video to convert {0}", nextVideoToConvert.Id);
 
         var guid = nextVideoToConvert.Id;
         var inputVideo = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.source.{nextVideoToConvert.FileName}");
@@ -64,13 +66,13 @@ internal sealed class Deamon : BackgroundService
 
         using (var file = File.Open(inputVideo, FileMode.Create))
         {
-            Log.Information("Getting video content into {0}.", inputVideo);
+            logger.LogInformation("Getting video content into {0}.", inputVideo);
             await client.GetVideoToConvertAsync(file, new Uri(nextVideoToConvert.Sas), token);
         }
 
-        Log.Information("Getting video information.");
+        logger.LogInformation("Getting video information.");
         var info = await converter.GetInfoAsync(inputVideo);
-        Log.Information("Updating video informations.");
+        logger.LogInformation("Updating video informations.");
         await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
@@ -79,17 +81,17 @@ internal sealed class Deamon : BackgroundService
             VideoId = nextVideoToConvert.Id
         }, token);
 
-        Log.Information("Converting video.");
+        logger.LogInformation("Converting video.");
         await converter.ConvertAsync(inputVideo, convertedFilePath);
         
         // Ensure the stream is disposed before deleting the file on Windows
         using (var convertedVideo = File.OpenRead(convertedFilePath))
         {
-            Log.Information("Sending content");
+            logger.LogInformation("Sending content");
             await client.UploadContent(nextVideoToConvert.Id, convertedVideo, token);
         }
 
-        Log.Information("Publishing video.");
+        logger.LogInformation("Publishing video.");
         await client.PublishTransformedVideo(nextVideoToConvert.Id, token);
 
         if (File.Exists(inputVideo))

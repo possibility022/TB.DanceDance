@@ -1,5 +1,5 @@
 ﻿using FFMpegCore;
-using Serilog;
+//using Serilog;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
@@ -51,7 +51,7 @@ internal class ProgramConfig
             }
             else
             {
-                Log.Warning("Execution hour could not be parsed. Given value: {0}", value);
+                ////log.LogWarning("Execution hour could not be parsed. Given value: {0}", value);
             }
         }
     }
@@ -64,7 +64,7 @@ internal class ProgramConfig
         {
             config.WorkDir = workdir;
         }
-        Log.Information("Workdir set to: {0}", config.WorkDir);
+        //log.LogInformation("Workdir set to: {0}", config.WorkDir);
     }
 
     private static void ConfigureAuth(ProgramConfig config)
@@ -98,17 +98,17 @@ internal class ProgramConfig
             config.OAuthOrigin = lines[3];
 
         }
-        if (string.IsNullOrEmpty(config.TokenProviderOptions.Scope))
-            Log.Error("Scope is not set");
-
-        if (string.IsNullOrEmpty(config.TokenProviderOptions.ClientId))
-            Log.Error("ClientId is not set");
-
-        if (string.IsNullOrEmpty(config.TokenProviderOptions.ClientSecret))
-            Log.Error("ClientSecret is not set");
-
-        if (string.IsNullOrEmpty(config.OAuthOrigin))
-            Log.Error("OAuthOrigin is not set");
+        // if (string.IsNullOrEmpty(config.TokenProviderOptions.Scope))
+        //     //log.LogError("Scope is not set");
+        //
+        // if (string.IsNullOrEmpty(config.TokenProviderOptions.ClientId))
+        //     //log.LogError("ClientId is not set");
+        //
+        // if (string.IsNullOrEmpty(config.TokenProviderOptions.ClientSecret))
+        //     //log.LogError("ClientSecret is not set");
+        //
+        // if (string.IsNullOrEmpty(config.OAuthOrigin))
+            //log.LogError("OAuthOrigin is not set");
     }
 
     private static void ConfigureApi(ProgramConfig config)
@@ -124,8 +124,8 @@ internal class ProgramConfig
                 config.ApiOrigin = lines[0].Trim();
         }
 
-        if (string.IsNullOrEmpty(config.ApiOrigin))
-            Log.Error("Api Origin is not set");
+        //if (string.IsNullOrEmpty(config.ApiOrigin))
+            //log.LogError("Api Origin is not set");
     }
 
     private static void ConfigureFfmpeg()
@@ -152,9 +152,9 @@ internal class ProgramConfig
 
     private static void ConfigureLogging()
     {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .WriteTo.File($"danceDanceConverter.log.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
+        //log.LogLogger = new LoggerConfiguration()
+            // .WriteTo.Console()
+            // .WriteTo.File($"danceDanceConverter.//log.Logtxt", rollingInterval: RollingInterval.Day)
+            // .CreateLogger();
     }
 }

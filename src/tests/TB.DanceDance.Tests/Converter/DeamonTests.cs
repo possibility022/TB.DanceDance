@@ -20,7 +20,7 @@ public class DeamonTests
         Directory.CreateDirectory(tempDir);
         ProgramConfig.Instance.WorkDir = tempDir;
 
-        deamon = new Deamon(api, ffmpeg);
+        deamon = new Deamon(api, ffmpeg, Microsoft.Extensions.Logging.Abstractions.NullLogger<Deamon>.Instance);
     }
 
     [Fact]
