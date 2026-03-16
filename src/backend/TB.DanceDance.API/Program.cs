@@ -20,10 +20,7 @@ if (builder.Environment.IsProduction())
     builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
 }
 
-OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder.Services, builder.Configuration, builder.Environment, builder.Logging);
-#if DEBUG
-OtelConfiguration.ConfigureLogging(builder.Services, builder.Configuration);
-#endif
+OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder.Services, builder.Environment, builder.Logging);
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
 
