@@ -18,9 +18,11 @@ public class DeamonTests
         // Setup temporary work directory
         tempDir = Path.Combine(Path.GetTempPath(), "dd-tests-" + Guid.NewGuid());
         Directory.CreateDirectory(tempDir);
-        ProgramConfig.Instance.WorkDir = tempDir;
 
-        deamon = new Deamon(api, ffmpeg);
+        deamon = new Deamon(api, ffmpeg, new ProgramConfig()
+        {
+            WorkDir = tempDir
+        });
     }
 
     [Fact]
