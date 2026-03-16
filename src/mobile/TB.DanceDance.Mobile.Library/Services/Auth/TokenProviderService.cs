@@ -1,6 +1,6 @@
 ﻿using Duende.IdentityModel.OidcClient;
 using Duende.IdentityModel.OidcClient.Results;
-//using Serilog;
+using Serilog;
 
 namespace TB.DanceDance.Mobile.Library.Services.Auth;
 
@@ -48,7 +48,7 @@ public class TokenProviderService : ITokenProviderService
         }
         catch (Exception ex)
         {
-            //Log.Error(ex, "Could not get token silently");
+            Log.Error(ex, "Could not get token silently");
         }
 
         var response = await oidcClient.LoginAsync();
