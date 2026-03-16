@@ -3,6 +3,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
 
 namespace TB.DanceDance.API;
 
@@ -24,7 +25,9 @@ public static class OtelConfiguration
     }
     
     public static void ConfigureOpenTelemetryAndLogging(
-        IServiceCollection services, IHostEnvironment environment
+        IServiceCollection services
+        , IConfiguration configuration
+        , IHostEnvironment environment
         , ILoggingBuilder logging
         )
     {
@@ -44,12 +47,12 @@ public static class OtelConfiguration
             ;
         
         logging.ClearProviders();
-        logging.AddConsole();
-        logging.AddOpenTelemetry(opt =>
-        {
-            var builder = ResourceBuilder.CreateDefault();
-            ConfigureDefaultResources(builder, environment.EnvironmentName);
-            opt.SetResourceBuilder(builder);
-        });
+
+        var loggerConfiguration = new Serilog.LoggerConfiguration();
+        loggerConfiguration.ReadFrom.Configuration(configuration);
+        var logger = loggerConfiguration.CreateLogger();
+        Log.Logger = logger;
+
+        logging.AddSerilog(logger);
     }
 }
