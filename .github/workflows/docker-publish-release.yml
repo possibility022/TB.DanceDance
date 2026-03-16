@@ -3,6 +3,7 @@ on:
   release:
     types:
       - released
+      - prereleased
 
 env:
   apiDockerHubRepo: possibility022/tbdancedanceapi
