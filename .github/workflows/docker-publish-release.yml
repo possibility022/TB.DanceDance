@@ -33,7 +33,7 @@ jobs:
           images: |
             ${{ env.apiDockerHubRepo }}
           tags: |
-            type=ref,event=pr,prefix=alpha-pr-
+            type=ref,event=pr,prefix=alpha-pr-,suffix=-{{sha}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
@@ -68,7 +68,7 @@ jobs:
           images: |
             ${{ env.converterDockerHubRepo }}
           tags: |
-            type=ref,event=pr,prefix=alpha-pr-
+            type=ref,event=pr,prefix=alpha-pr-,suffix=-{{sha}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
 
