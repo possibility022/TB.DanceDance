@@ -20,7 +20,12 @@ if (builder.Environment.IsProduction())
     builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
 }
 
-OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder.Services, builder.Configuration, builder.Environment, builder.Logging);
+if (builder.Environment.IsEnvironment("QA"))
+{
+    builder.Configuration.AddJsonFile("appsettings.QA.json", optional: true);
+}
+
+OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
 

@@ -35,6 +35,9 @@ if (builder.Environment.IsDevelopment())
 if (builder.Environment.IsProduction())
     builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
 
+if (builder.Environment.IsEnvironment("QA"))
+    builder.Configuration.AddJsonFile("appsettings.QA.json", optional: true);
+
 builder.Configuration.AddEnvironmentVariables(prefix: "tb_dancedance_converter_");
 
 var config = new ProgramConfig();

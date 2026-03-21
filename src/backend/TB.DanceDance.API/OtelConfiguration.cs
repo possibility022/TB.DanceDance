@@ -25,14 +25,11 @@ public static class OtelConfiguration
     }
     
     public static void ConfigureOpenTelemetryAndLogging(
-        IServiceCollection services
-        , IConfiguration configuration
-        , IHostEnvironment environment
-        , ILoggingBuilder logging
+        WebApplicationBuilder builder
         )
     {
-        services.AddOpenTelemetry()
-            .ConfigureResource(resource => ConfigureDefaultResources(resource, environment.EnvironmentName))
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => ConfigureDefaultResources(resource, builder.Environment.EnvironmentName))
             .UseOtlpExporter()
             .WithTracing(tracing => tracing
                 .AddAspNetCoreInstrumentation()
@@ -46,13 +43,13 @@ public static class OtelConfiguration
                 .AddNpgsqlInstrumentation())
             ;
         
-        logging.ClearProviders();
+        builder.Logging.ClearProviders();
 
         var loggerConfiguration = new Serilog.LoggerConfiguration();
-        loggerConfiguration.ReadFrom.Configuration(configuration);
+        loggerConfiguration.ReadFrom.Configuration(builder.Configuration);
         var logger = loggerConfiguration.CreateLogger();
         Log.Logger = logger;
 
-        logging.AddSerilog(logger);
+        builder.Logging.AddSerilog(logger);
     }
 }
