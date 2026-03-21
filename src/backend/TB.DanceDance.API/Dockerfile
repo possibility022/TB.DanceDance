@@ -25,7 +25,7 @@ RUN dotnet publish "./TB.DanceDance.API.csproj" -c $BUILD_CONFIGURATION -o /app/
 FROM base AS final
 WORKDIR /app
 # This one is required for development-auto-generated-cert
-RUN mkdir /app/ && chown -R $APP_UID:$APP_UID /app/
+RUN chown -R $APP_UID:$APP_UID /app/
 RUN mkdir -p /home/app/.aspnet/DataProtection-Keys \
     && chown -R $APP_UID:$APP_UID /home/app/.aspnet
 
