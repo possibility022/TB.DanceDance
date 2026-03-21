@@ -17,6 +17,21 @@ namespace Infrastructure;
 
 public static class DependencyInjection
 {
+    private static X509Certificate2? LoadCertIfPresent(IConfiguration configuration)
+    {
+        var cert = configuration.GetSection("TB").GetSection("DanceDance")["IdpCert"];
+        var password = configuration.GetSection("TB").GetSection("DanceDance")["IdpCertPassword"];
+
+        if (string.IsNullOrEmpty(cert) || string.IsNullOrEmpty(password))
+            return null;
+            
+        var certBytes = Convert.FromBase64String(cert);
+        var signedCert = X509CertificateLoader.LoadPkcs12(certBytes, password,
+            X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+
+        return signedCert;
+    }
+    
     extension(IServiceCollection services)
     {
         public IServiceCollection RegisterInfrastructureServices(IConfiguration configuration,
@@ -79,16 +94,9 @@ public static class DependencyInjection
 
             if (productionPolicies)
             {
-                var cert = configuration.GetSection("TB").GetSection("DanceDance")["IdpCert"];
-                if (cert == null)
-                    throw new Exception("Cert is not available in configuration.");
-
-                var password = configuration.GetSection("TB").GetSection("DanceDance")["IdpCertPassword"];
-
-
-                var certBytes = Convert.FromBase64String(cert);
-                var signedCert = X509CertificateLoader.LoadPkcs12(certBytes, password,
-                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+                var signedCert = LoadCertIfPresent(configuration);
+                if (signedCert is null)
+                    throw new AppException("Cert is not available in configuration. It is required for production setup.");
 
                 identityBuilder
                     .AddAspNetIdentity<User>()
@@ -96,13 +104,20 @@ public static class DependencyInjection
                                                    throw new AppException("Identity connection string is null."))
                     .AddSigningCredential(signedCert)
                     .AddProfileService<TbProfileService>();
-
             }
             else
             {
+                var signedCert = LoadCertIfPresent(configuration);
+                
                 identityBuilder
-                    .AddAspNetIdentity<User>()
-                    .AddDeveloperSigningCredential()
+                    .AddAspNetIdentity<User>();
+
+                if (signedCert is null)
+                    identityBuilder.AddDeveloperSigningCredential();
+                else
+                    identityBuilder.AddSigningCredential(signedCert);
+                    
+                identityBuilder
                     .RegisterIdentityServerStorage(configuration.GetConnectionString("PostgreDbIdentityStore") ??
                                                    throw new AppException("Identity connection string is null."))
                     // for debugging
