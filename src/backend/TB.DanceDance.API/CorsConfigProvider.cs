@@ -15,7 +15,7 @@
             ];
         }
 
-        public static string[] GetFromEnvironmentVariable(IConfiguration configuration)
+        public static string[] GetFromConfiguration(IConfiguration configuration)
         {
             var config = new CorsConfigSection();
 

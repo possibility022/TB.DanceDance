@@ -7,17 +7,19 @@ internal sealed class Deamon : BackgroundService
 {
     private readonly IDanceDanceApiClient client;
     private readonly IFFmpegClientConverter converter;
+    private readonly ProgramConfig programConfig;
 
-    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter)
+    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter, ProgramConfig programConfig)
     {
         this.client = client;
         this.converter = converter;
+        this.programConfig = programConfig;
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        if (!Directory.Exists(ProgramConfig.Instance.WorkDir))
-            Directory.CreateDirectory(ProgramConfig.Instance.WorkDir);
+        if (!Directory.Exists(programConfig.WorkDir))
+            Directory.CreateDirectory(programConfig.WorkDir);
 
 
         while (!token.IsCancellationRequested)
@@ -27,8 +29,8 @@ internal sealed class Deamon : BackgroundService
                 var converted = await ProcessNext(token);
                 if (!converted)
                 {
-                    var delay = ProgramConfig.Instance.DelayInMinutes * 1000 * 60;
-                    Log.Information("Waiting till next run. Delay in minutes: {0}", ProgramConfig.Instance.DelayInMinutes);
+                    var delay = programConfig.DelayInMinutes * 1000 * 60;
+                    Log.Information("Waiting till next run. Delay in minutes: {0}", programConfig.DelayInMinutes);
                     
                     await Task.Delay(delay, token);
                 }
@@ -59,8 +61,8 @@ internal sealed class Deamon : BackgroundService
         Log.Information("Video to convert {0}", nextVideoToConvert.Id);
 
         var guid = nextVideoToConvert.Id;
-        var inputVideo = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.source.{nextVideoToConvert.FileName}");
-        var convertedFilePath = Path.Combine(ProgramConfig.Instance.WorkDir, $"{guid}.converted.webm");
+        var inputVideo = Path.Combine(programConfig.WorkDir, $"{guid}.source.{nextVideoToConvert.FileName}");
+        var convertedFilePath = Path.Combine(programConfig.WorkDir, $"{guid}.converted.webm");
 
         using (var file = File.Open(inputVideo, FileMode.Create))
         {

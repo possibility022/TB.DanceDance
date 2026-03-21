@@ -3,6 +3,10 @@ on:
   release:
     types:
       - released
+      - prereleased
+  pull_request:
+    branches:
+      - master
 
 env:
   apiDockerHubRepo: possibility022/tbdancedanceapi
@@ -28,6 +32,10 @@ jobs:
         with:
           images: |
             ${{ env.apiDockerHubRepo }}
+          tags: |
+            type=ref,event=pr,prefix=alpha-pr-,suffix=-{{sha}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push Docker images
         id: push
@@ -38,8 +46,8 @@ jobs:
           file: src/backend/TB.DanceDance.API/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  
-  
+
+
   build-and-push-converter-docker-image:
     name: Build and Push Converter Docker Image
     runs-on: ubuntu-latest
@@ -59,6 +67,10 @@ jobs:
         with:
           images: |
             ${{ env.converterDockerHubRepo }}
+          tags: |
+            type=ref,event=pr,prefix=alpha-pr-,suffix=-{{sha}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push Docker images
         id: push
@@ -69,5 +81,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
-        
