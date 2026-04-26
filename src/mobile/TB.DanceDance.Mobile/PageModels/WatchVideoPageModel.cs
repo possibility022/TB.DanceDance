@@ -34,12 +34,16 @@ public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
             if (File.Exists(path))
                 File.Delete(path);
         }
-        
+
 #else
         try
         {
-            var uri = apiClient.GetVideoUri(videoBlobId);
-            var mediaSource = MediaSource.FromUri(uri.ToString());
+            var (uri, token) = apiClient.GetVideoUri(videoBlobId);
+            var headers = new Dictionary<string, string>
+            {
+                ["Authorization"] = "Bearer " + token
+            };
+            var mediaSource = MediaSource.FromUri(uri, headers);
             if (mediaSource != null)
                 Media = mediaSource;
         }

@@ -20,7 +20,7 @@ public interface IDanceHttpApiClient
         DateTime recordedTimeUtc
     );
     Task<Stream> GetStream(string videoBlobId);
-    Uri GetVideoUri(string videoBlobId);
+    (Uri uri, string authToken) GetVideoUri(string videoBlobId);
     Task CreateEvent(string eventName, DateTime eventDate);
     Task<IReadOnlyCollection<VideoInformationResponse>> GetMyVideos();
     Task<SharedLinkResponse?> GetSharingLinkAsync(Guid videoId, CancellationToken token = default);

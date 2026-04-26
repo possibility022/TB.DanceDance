@@ -36,7 +36,7 @@ public static class MauiProgram
         .OnCreate((e,x) => ManageUploading()));
 #endif
             })
-            .UseMauiCommunityToolkitMediaElement()
+            .UseMauiCommunityToolkitMediaElement(false)
             .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {

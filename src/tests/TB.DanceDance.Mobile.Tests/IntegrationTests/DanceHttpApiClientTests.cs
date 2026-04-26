@@ -244,10 +244,10 @@ public class DanceHttpApiClientTests : IDisposable
             .Returns("tok123");
         
         var blobId = "xyz";
-        var uri = client.GetVideoUri(blobId);
+        (var uri, var token) = client.GetVideoUri(blobId);
         Assert.StartsWith(server.Url, uri.ToString());
         Assert.Contains($"/api/videos/{blobId}/stream", uri.AbsolutePath);
-        Assert.Contains("token=tok123", uri.Query);
+        Assert.Equal("tok123", token);
     }
     
     [Fact]
