@@ -116,20 +116,20 @@ public class DanceHttpApiClient : IDanceHttpApiClient
 
         return await responseMessage.Content.ReadAsStreamAsync();
     }
-    
-    public Uri GetVideoUri(string videoBlobId)
+
+    public (Uri uri, string authToken) GetVideoUri(string videoBlobId)
     {
         var token = primaryTokenProviderService.GetValidAccessTokenNoFetch();
         if (token == null)
             token = secondaryTokenProviderService.GetValidAccessTokenNoFetch();
-        
+
+
         var builder = new UriBuilder(httpClient.BaseAddress!)
         {
-            Path = $"/api/videos/{videoBlobId}/stream", 
-            Query = $"?token={token}"
+            Path = $"/api/videos/{videoBlobId}/stream"
         };
 
-        return builder.Uri;
+        return (builder.Uri, token!);
     }
 
     public async Task CreateEvent(string eventName, DateTime eventDate)
