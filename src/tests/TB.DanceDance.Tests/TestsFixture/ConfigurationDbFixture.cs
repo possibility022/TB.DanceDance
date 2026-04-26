@@ -8,8 +8,7 @@ public class ConfigurationDbFixture : IAsyncLifetime
 {
     private const string PostgresImage = "postgres";
 
-    private readonly PostgreSqlContainer container = new PostgreSqlBuilder()
-        .WithImage(PostgresImage)
+    private readonly PostgreSqlContainer container = new PostgreSqlBuilder(PostgresImage)
         .Build();
     
     public ConfigurationDbContext DbContextFactory()

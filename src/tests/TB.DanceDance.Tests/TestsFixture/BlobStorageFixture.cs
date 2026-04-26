@@ -17,8 +17,7 @@ public class BlobStorageFixture : IAsyncLifetime
     public BlobStorageFixture()
     {
         if (!IsStartedManually())
-            container = new AzuriteBuilder()
-                .WithImage(AzuriteImage)
+            container = new AzuriteBuilder(AzuriteImage)
                 .Build();
     }
     
