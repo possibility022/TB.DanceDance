@@ -41,7 +41,6 @@ services:
       - postgresDance:/var/lib/postgresql
   azuriteStorage:
     image: mcr.microsoft.com/azure-storage/azurite
-    command: "azurite -l /data --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck"
     volumes:
       - azuriteStorageDance:/data
     ports:
