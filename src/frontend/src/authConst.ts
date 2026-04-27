@@ -42,7 +42,7 @@ export const METADATA_OIDC: MetadataOidc = {
     authorization_endpoint: REACT_APP_AUTH_URL_TO_REPLACE,
     token_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/token",
     userinfo_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/userinfo",
-    end_session_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/endsession",
+    end_session_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/logout",
     check_session_iframe: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/checksession",
     revocation_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/revocation",
     introspection_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/introspect"

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
@@ -45,6 +46,19 @@ builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<IdentityStoreContext>()
     .AddDefaultTokenProviders();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.Configure<IdentityOptions>(options =>
+    {
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequiredLength = 3;
+        options.Password.RequiredUniqueChars = 1;
+    });
+}
+
 var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
 var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 var googleEnabled = !string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret);
@@ -88,6 +102,7 @@ if (googleEnabled)
 openIddictBuilder.AddServer(options =>
     {
         options.SetAuthorizationEndpointUris("connect/authorize")
+            .SetEndSessionEndpointUris("connect/logout")
             .SetTokenEndpointUris("connect/token");
 
         options.RegisterScopes(
@@ -111,6 +126,7 @@ openIddictBuilder.AddServer(options =>
 
         options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
+            .EnableEndSessionEndpointPassthrough()
             .EnableTokenEndpointPassthrough();
     });
 
@@ -137,6 +153,127 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("policy/dancedanceapp", () => Results.Text("Privacy policy page is not implemented yet."));
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("dev/login", (HttpContext context) =>
+    {
+        var returnUrl = GetValidatedReturnUrl(context, context.Request.Query["returnUrl"].ToString());
+        var error = context.Request.Query["error"].ToString();
+        var message = context.Request.Query["message"].ToString();
+
+        return Results.Content(BuildDevLoginHtml(returnUrl, error, message), "text/html");
+    });
+
+    app.MapPost("dev/login", async (HttpContext context, UserManager<User> userManager) =>
+    {
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.BadRequest("Expected form body.");
+        }
+
+        var form = await context.Request.ReadFormAsync();
+        var login = form["login"].ToString().Trim();
+        var password = form["password"].ToString();
+        var returnUrl = GetValidatedReturnUrl(context, form["returnUrl"].ToString());
+
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+        {
+            return Results.Redirect($"/dev/login?returnUrl={Uri.EscapeDataString(returnUrl)}&error={Uri.EscapeDataString("Login and password are required.")}");
+        }
+
+        var user = await userManager.FindByNameAsync(login);
+        if (user is null && login.Contains('@'))
+        {
+            user = await userManager.FindByEmailAsync(login);
+        }
+
+        if (user is null || !await userManager.CheckPasswordAsync(user, password))
+        {
+            return Results.Redirect($"/dev/login?returnUrl={Uri.EscapeDataString(returnUrl)}&error={Uri.EscapeDataString("Invalid login or password.")}");
+        }
+
+        var userClaims = await userManager.GetClaimsAsync(user);
+        var displayName = userClaims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value ??
+                          user.UserName ??
+                          user.Email ??
+                          user.Id;
+        var email = userClaims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email)?.Value ?? user.Email;
+
+        var identity = new ClaimsIdentity(
+            authenticationType: CookieAuthenticationDefaults.AuthenticationScheme,
+            nameType: ClaimTypes.Name,
+            roleType: ClaimTypes.Role);
+
+        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
+        identity.AddClaim(new Claim(Claims.Subject, user.Id));
+        identity.AddClaim(new Claim(ClaimTypes.Name, displayName));
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            identity.AddClaim(new Claim(ClaimTypes.Email, email));
+        }
+
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = returnUrl
+        };
+
+        return Results.SignIn(
+            new ClaimsPrincipal(identity),
+            properties,
+            CookieAuthenticationDefaults.AuthenticationScheme);
+    });
+
+    app.MapGet("dev/users/new", (HttpContext context) =>
+    {
+        var error = context.Request.Query["error"].ToString();
+        var message = context.Request.Query["message"].ToString();
+
+        return Results.Content(BuildDevCreateUserHtml(error, message), "text/html");
+    });
+
+    app.MapPost("dev/users/new", async (HttpContext context, UserManager<User> userManager) =>
+    {
+        if (!context.Request.HasFormContentType)
+        {
+            return Results.BadRequest("Expected form body.");
+        }
+
+        var form = await context.Request.ReadFormAsync();
+        var login = form["login"].ToString().Trim();
+        var email = form["email"].ToString().Trim();
+        var password = form["password"].ToString();
+
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+        {
+            return Results.Redirect($"/dev/users/new?error={Uri.EscapeDataString("Login and password are required.")}");
+        }
+
+        var user = new User
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            UserName = login,
+            Email = string.IsNullOrWhiteSpace(email) ? null : email
+        };
+
+        var result = await userManager.CreateAsync(user, password);
+        if (!result.Succeeded)
+        {
+            var details = string.Join(" | ", result.Errors.Select(error => error.Description));
+            return Results.Redirect($"/dev/users/new?error={Uri.EscapeDataString(details)}");
+        }
+
+        return Results.Redirect($"/dev/users/new?message={Uri.EscapeDataString($"User '{login}' created.")}");
+    });
+
+    app.MapGet("dev/logout", () => Results.Content(BuildDevLogoutHtml(), "text/html"));
+    app.MapPost("dev/logout", async (HttpContext context) =>
+    {
+        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return Results.Redirect($"/dev/login?message={Uri.EscapeDataString("Logged out.")}");
+    });
+}
 
 app.MapMethods("callback/login/google", [HttpMethods.Get, HttpMethods.Post], async (HttpContext context, UserManager<User> userManager) =>
 {
@@ -236,17 +373,23 @@ app.MapMethods("connect/authorize", [HttpMethods.Get, HttpMethods.Post], async (
     var principal = (await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme))?.Principal;
     if (principal is not { Identity.IsAuthenticated: true })
     {
+        if (app.Environment.IsDevelopment())
+        {
+            var devReturnUrl = context.Request.GetEncodedUrl();
+            return Results.Redirect($"/dev/login?returnUrl={Uri.EscapeDataString(devReturnUrl)}");
+        }
+
         if (!googleEnabled)
         {
             return Results.BadRequest("Google provider is not configured. Set Authentication:Google:ClientId and ClientSecret.");
         }
 
-        var returnUrl = context.Request.GetEncodedUrl();
+        var googleReturnUrl = context.Request.GetEncodedUrl();
         var properties = new AuthenticationProperties
         {
-            RedirectUri = returnUrl
+            RedirectUri = googleReturnUrl
         };
-        properties.Items["return_url"] = returnUrl;
+        properties.Items["return_url"] = googleReturnUrl;
 
         return Results.Challenge(properties, [Providers.Google]);
     }
@@ -302,6 +445,18 @@ app.MapMethods("connect/authorize", [HttpMethods.Get, HttpMethods.Post], async (
     identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
 
     return Results.SignIn(new ClaimsPrincipal(identity), properties: null, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+});
+
+app.MapMethods("connect/logout", [HttpMethods.Get, HttpMethods.Post], async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+    return Results.SignOut(
+        properties: new AuthenticationProperties
+        {
+            RedirectUri = "/"
+        },
+        authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
 });
 
 app.MapPost("connect/token", async (HttpContext context, IOpenIddictScopeManager scopeManager) =>
@@ -379,6 +534,124 @@ static void AddClaimIfMissing(IEnumerable<Claim> existingClaims, IList<Claim> ne
     {
         newClaims.Add(new Claim(type, value));
     }
+}
+
+static string GetValidatedReturnUrl(HttpContext context, string? returnUrl)
+{
+    if (string.IsNullOrWhiteSpace(returnUrl))
+    {
+        return "/";
+    }
+
+    if (Uri.TryCreate(returnUrl, UriKind.Relative, out var relativeUri) && !relativeUri.IsAbsoluteUri)
+    {
+        if (returnUrl.StartsWith('/'))
+        {
+            return returnUrl;
+        }
+
+        return "/";
+    }
+
+    if (!Uri.TryCreate(returnUrl, UriKind.Absolute, out var absoluteUri))
+    {
+        return "/";
+    }
+
+    var requestHost = context.Request.Host;
+    var sameHost = string.Equals(absoluteUri.Host, requestHost.Host, StringComparison.OrdinalIgnoreCase);
+    var samePort = absoluteUri.Port == (requestHost.Port ?? (context.Request.IsHttps ? 443 : 80));
+    var sameScheme = string.Equals(absoluteUri.Scheme, context.Request.Scheme, StringComparison.OrdinalIgnoreCase);
+
+    return sameHost && samePort && sameScheme
+        ? absoluteUri.ToString()
+        : "/";
+}
+
+static string BuildDevLoginHtml(string returnUrl, string? error, string? message)
+{
+    var errorHtml = string.IsNullOrWhiteSpace(error)
+        ? string.Empty
+        : $"<p>{WebUtility.HtmlEncode(error)}</p>";
+
+    var messageHtml = string.IsNullOrWhiteSpace(message)
+        ? string.Empty
+        : $"<p>{WebUtility.HtmlEncode(message)}</p>";
+
+    var encodedReturnUrl = WebUtility.HtmlEncode(returnUrl);
+
+    return $$"""
+<!doctype html>
+<html>
+<body>
+<h1>Dev Login</h1>
+{{errorHtml}}
+{{messageHtml}}
+<form method="post" action="/dev/login">
+  <input type="hidden" name="returnUrl" value="{{encodedReturnUrl}}" />
+  <label>Login</label>
+  <input name="login" autocomplete="username" />
+  <br />
+  <label>Password</label>
+  <input type="password" name="password" autocomplete="current-password" />
+  <br />
+  <button type="submit">Log in</button>
+</form>
+<p><a href="/dev/users/new">Create test user</a></p>
+<p><a href="/dev/logout">Logout</a></p>
+</body>
+</html>
+""";
+}
+
+static string BuildDevCreateUserHtml(string? error, string? message)
+{
+    var errorHtml = string.IsNullOrWhiteSpace(error)
+        ? string.Empty
+        : $"<p>{WebUtility.HtmlEncode(error)}</p>";
+
+    var messageHtml = string.IsNullOrWhiteSpace(message)
+        ? string.Empty
+        : $"<p>{WebUtility.HtmlEncode(message)}</p>";
+
+    return $$"""
+<!doctype html>
+<html>
+<body>
+<h1>Create Dev User</h1>
+{{errorHtml}}
+{{messageHtml}}
+<form method="post" action="/dev/users/new">
+  <label>Login</label>
+  <input name="login" autocomplete="username" />
+  <br />
+  <label>Email (optional)</label>
+  <input name="email" autocomplete="email" />
+  <br />
+  <label>Password</label>
+  <input type="password" name="password" autocomplete="new-password" />
+  <br />
+  <button type="submit">Create user</button>
+</form>
+<p><a href="/dev/login">Back to login</a></p>
+</body>
+</html>
+""";
+}
+
+static string BuildDevLogoutHtml()
+{
+    return """
+<!doctype html>
+<html>
+<body>
+<h1>Dev Logout</h1>
+<form method="post" action="/dev/logout">
+  <button type="submit">Logout</button>
+</form>
+</body>
+</html>
+""";
 }
 
 static async Task EnsureScopesAndApplications(IServiceProvider services)
