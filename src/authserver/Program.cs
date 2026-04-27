@@ -209,12 +209,23 @@ app.MapMethods("callback/login/google", [HttpMethods.Get, HttpMethods.Post], asy
         identity.AddClaim(new Claim(ClaimTypes.Email, email));
     }
 
-    var properties = new AuthenticationProperties
+    var redirectUri = result.Properties?.RedirectUri;
+    if (string.IsNullOrWhiteSpace(redirectUri) &&
+        result.Properties?.Items.TryGetValue("return_url", out var returnUrl) == true)
     {
-        RedirectUri = result.Properties?.RedirectUri
-    };
+        redirectUri = returnUrl;
+    }
 
-    return Results.SignIn(new ClaimsPrincipal(identity), properties);
+    var properties = new AuthenticationProperties();
+    if (!string.IsNullOrWhiteSpace(redirectUri))
+    {
+        properties.RedirectUri = redirectUri;
+    }
+
+    return Results.SignIn(
+        new ClaimsPrincipal(identity),
+        properties,
+        CookieAuthenticationDefaults.AuthenticationScheme);
 });
 
 app.MapMethods("connect/authorize", [HttpMethods.Get, HttpMethods.Post], async (
@@ -222,7 +233,7 @@ app.MapMethods("connect/authorize", [HttpMethods.Get, HttpMethods.Post], async (
     UserManager<User> userManager,
     IOpenIddictScopeManager scopeManager) =>
 {
-    var principal = (await context.AuthenticateAsync())?.Principal;
+    var principal = (await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme))?.Principal;
     if (principal is not { Identity.IsAuthenticated: true })
     {
         if (!googleEnabled)
@@ -230,10 +241,12 @@ app.MapMethods("connect/authorize", [HttpMethods.Get, HttpMethods.Post], async (
             return Results.BadRequest("Google provider is not configured. Set Authentication:Google:ClientId and ClientSecret.");
         }
 
+        var returnUrl = context.Request.GetEncodedUrl();
         var properties = new AuthenticationProperties
         {
-            RedirectUri = context.Request.GetEncodedUrl()
+            RedirectUri = returnUrl
         };
+        properties.Items["return_url"] = returnUrl;
 
         return Results.Challenge(properties, [Providers.Google]);
     }
