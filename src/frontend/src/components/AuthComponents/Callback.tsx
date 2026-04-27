@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../providers/AuthProvider";
 
+let callbackHandled = false; // module-level guard to prevent double execution in StrictMode
+
 export const Callback = () => {
 
     const navigate = useNavigate()
@@ -10,16 +12,19 @@ export const Callback = () => {
     const [isProcessing, setIsProcessing] = useState(true)
 
     useEffect(() => {
-        authContext.signinRedirectCallback()
-            .then(() => {
+        if (callbackHandled) return;
+        callbackHandled = true;
+
+        (async () => {
+            try {
+                await authContext.signinRedirectCallback()
                 setIsProcessing(false)
                 if (authContext.isAuthenticated()) {
                     navigate('/');
                 }
-            })
-            .catch((e) => {
+            } catch (e: any) {
                 setIsProcessing(false)
-                if (e['error'] === 'login_required') {
+                if (e?.error === 'login_required') {
                     authContext.signinRedirect()
                         .catch(console.error)
                 } else {
@@ -28,7 +33,9 @@ export const Callback = () => {
                         'Smuteczek :(. Z jakiegoś powodu nie udało się zalogować. Spróbuj jeszcze raz.'
                     );
                 }
-            });
+            }
+        })();
+
     }, [authContext, navigate]);
 
     useEffect(() => {
