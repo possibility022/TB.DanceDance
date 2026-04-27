@@ -6,7 +6,6 @@ namespace TB.DanceDance.Mobile.Library.Services.Auth;
 public class TokenStorage
 {
     public const string PrimaryStorageKey = "PrimaryTokenStorage";
-    public const string SecondaryStorageKey = "SecondaryTokenStorage";
     
     public SecurityToken? Token { get; private set; }
     private readonly string cacheKey;

@@ -10,17 +10,13 @@ namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 public class DanceHttpApiClient : IDanceHttpApiClient
 {
     private readonly ITokenProviderService primaryTokenProviderService;
-    private readonly ITokenProviderService secondaryTokenProviderService;
     private readonly HttpClient httpClient;
 
     public DanceHttpApiClient(IHttpClientFactory httpClientFactory,
         
-        [FromKeyedServices(TokenStorage.PrimaryStorageKey)]ITokenProviderService primaryTokenProviderService,
-        [FromKeyedServices(TokenStorage.SecondaryStorageKey)]ITokenProviderService secondaryTokenProviderService
-        )
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)]ITokenProviderService primaryTokenProviderService)
     {
         this.primaryTokenProviderService = primaryTokenProviderService;
-        this.secondaryTokenProviderService = secondaryTokenProviderService;
         this.httpClient = httpClientFactory.CreateClient(nameof(DanceHttpApiClient));
     }
 
@@ -120,9 +116,6 @@ public class DanceHttpApiClient : IDanceHttpApiClient
     public (Uri uri, string authToken) GetVideoUri(string videoBlobId)
     {
         var token = primaryTokenProviderService.GetValidAccessTokenNoFetch();
-        if (token == null)
-            token = secondaryTokenProviderService.GetValidAccessTokenNoFetch();
-
 
         var builder = new UriBuilder(httpClient.BaseAddress!)
         {

@@ -37,18 +37,18 @@ public class UploadWorkerTests
         return (worker, db, uploader, api, platform, channel);
     }
 
-    [Fact]
+    [Fact(Timeout = 1000)]
     public async Task Work_NoVideos_Completes_And_Notifies()
     {
         var (worker, db, uploader, api, platform, channel) = CreateSut();
 
-        await worker.Work(CancellationToken.None);
+        await worker.Work(TestContext.Current.CancellationToken);
 
         await uploader.DidNotReceiveWithAnyArgs().Upload(null!, TestContext.Current.CancellationToken);
         platform.Received(1).UploadCompleteNotification();
     }
 
-    [Fact]
+    [Fact(Timeout = 10000)]
     public async Task Work_UploadsAllPending_Videos_MarkUploaded_And_Saves()
     {
         var (worker, db, uploader, api, platform, channel) = CreateSut();
@@ -77,7 +77,7 @@ public class UploadWorkerTests
         db.VideosToUpload.AddRange(v1, v2);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        await worker.Work(CancellationToken.None);
+        await worker.Work(TestContext.Current.CancellationToken);
 
         await uploader.Received(2).Upload(Arg.Any<VideosToUpload>(), Arg.Any<CancellationToken>());
         var rows = await db.VideosToUpload.AsNoTracking()
@@ -90,7 +90,7 @@ public class UploadWorkerTests
         File.Delete(v2.FullFileName);
     }
 
-    [Fact]
+    [Fact(Timeout = 1000)]
     public async Task Work_ExpiredSas_Refreshes_And_UpdatesValues()
     {
         var (worker, db, uploader, api, platform, channel) = CreateSut();
@@ -114,7 +114,7 @@ public class UploadWorkerTests
         };
         api.RefreshUploadUrl(id).Returns(Task.FromResult(refreshed));
 
-        await worker.Work(CancellationToken.None);
+        await worker.Work(TestContext.Current.CancellationToken);
 
         await api.Received(1).RefreshUploadUrl(id);
         var updated = await db.VideosToUpload.FirstAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -125,7 +125,7 @@ public class UploadWorkerTests
         File.Delete(v.FullFileName);
     }
 
-    [Fact]
+    [Fact(Timeout = 1000)]
     public async Task Work_On403_RefreshesSas_Then_UploadsSuccessfully()
     {
         var (worker, db, uploader, api, platform, channel) = CreateSut();
@@ -154,7 +154,7 @@ public class UploadWorkerTests
         };
         api.RefreshUploadUrl(id).Returns(Task.FromResult(refreshed));
 
-        await worker.Work(CancellationToken.None);
+        await worker.Work(TestContext.Current.CancellationToken);
 
         await api.Received(1).RefreshUploadUrl(id);
         var row = await db.VideosToUpload.FirstAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -163,7 +163,7 @@ public class UploadWorkerTests
         File.Delete(v.FullFileName);
     }
 
-    [Fact]
+    [Fact(Timeout = 1000)]
     public async Task MonitorProgress_ForwardsToPlatformNotification()
     {
         var (worker, db, uploader, api, platform, channel) = CreateSut();
@@ -172,7 +172,7 @@ public class UploadWorkerTests
             new UploadProgressEvent { FileName = "vid.mp4", FileSize = 100, SendBytes = 50 },
             TestContext.Current.CancellationToken);
 
-        await worker.Work(CancellationToken.None);
+        await worker.Work(TestContext.Current.CancellationToken);
 
         platform.Received().UploadProgressNotification("vid.mp4", 50, 100);
     }
