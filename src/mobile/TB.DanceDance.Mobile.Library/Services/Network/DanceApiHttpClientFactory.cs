@@ -39,8 +39,10 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
 
 #if DEBUG
     public const string ApiMainUrl = "https://localhost:7068";
+    public const string AuthMainUrl = "https://localhost:7259";
 #else
     public const string ApiMainUrl = "https://ddapi.tomb.my.id";
+    public const string AuthMainUrl = "https://ddapi.tomb.my.id";
 #endif
 
     private HttpClient ResolveClientForDanceApi()

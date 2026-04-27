@@ -33,6 +33,7 @@ public class AuthSettingsFactory
         {
             Browser = browserFactory.CreateBrowser(),
             Scope = "openid tbdancedanceapi.read offline_access profile",
+            LoadProfile = false,
             BackchannelHandler = handler,
         };
         
@@ -42,7 +43,11 @@ public class AuthSettingsFactory
     private OidcClientOptions GetClientOptionsForAndroid(HttpMessageHandler handler, string authority)
     {
         var options = GetBasicOptions(handler);
-        options.Authority = networkAddressResolver.Resolve(authority);
+        // Keep authority aligned with issuer returned by the auth server metadata (localhost).
+        // Network translation to 10.0.2.2 is handled by HTTP/browser layers for Android emulator.
+        options.Authority = authority;
+        var resolvedAuthority = networkAddressResolver.Resolve(authority);
+        options.Policy.Discovery.AdditionalEndpointBaseAddresses.Add(resolvedAuthority);
         options.ClientId = AndroidClientId;
         options.RedirectUri = AndroidRedirectUri;
         return options;

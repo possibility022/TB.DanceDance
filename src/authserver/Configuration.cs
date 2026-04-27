@@ -109,6 +109,43 @@ public static class Configuration
             converterClientDescriptor.AddScopePermissions("tbdancedanceapi.convert");
 
             await UpsertApplication(applicationManager, converterClientDescriptor);
+
+            var androidClientDescriptor = new OpenIddictApplicationDescriptor
+            {
+                ClientId = "tbdancedanceandroidapp",
+                ClientType = ClientTypes.Public,
+                DisplayName = "TB DanceDance Android App",
+                RedirectUris =
+                {
+                    new Uri("tbdancedanceandroidapp://")
+                },
+                PostLogoutRedirectUris =
+                {
+                    new Uri("tbdancedanceandroidapp://")
+                },
+                Permissions =
+                {
+                    Permissions.Endpoints.Authorization,
+                    Permissions.Endpoints.EndSession,
+                    Permissions.Endpoints.Token,
+                    Permissions.GrantTypes.AuthorizationCode,
+                    Permissions.GrantTypes.RefreshToken,
+                    Permissions.ResponseTypes.Code
+                },
+                Requirements =
+                {
+                    Requirements.Features.ProofKeyForCodeExchange
+                }
+            };
+
+            androidClientDescriptor.AddScopePermissions(
+                Scopes.OpenId,
+                Scopes.Profile,
+                Scopes.Email,
+                Scopes.OfflineAccess,
+                "tbdancedanceapi.read");
+
+            await UpsertApplication(applicationManager, androidClientDescriptor);
         }
 
         static async Task UpsertScope(IOpenIddictScopeManager scopeManager, OpenIddictScopeDescriptor descriptor)

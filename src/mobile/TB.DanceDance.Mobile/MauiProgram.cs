@@ -82,11 +82,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<GroupVideosPageModel>();
         builder.Services.AddSingleton<UploadManagerPageModel>();
 
-        var browserFactory = new BrowserFactory();
-        browserFactory.SetFactory(() => new MauiAuthenticationBrowser());
-
         var networkAddressResolver = new NetworkAddressResolver(DeviceInfo.Platform);
         builder.Services.AddSingleton(networkAddressResolver);
+
+        var browserFactory = new BrowserFactory();
+        browserFactory.SetFactory(() => new MauiAuthenticationBrowser(networkAddressResolver));
 
         builder.Services.AddSingleton<IBrowserFactory>(browserFactory);
 
@@ -95,7 +95,7 @@ public static class MauiProgram
 
         var handler = DanceApiHttpClientFactory.CreateBaseHttpMessageHandlerChain(networkAddressResolver);
 
-        var primaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.ApiMainUrl);
+        var primaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.AuthMainUrl);
 
         var primaryTokenStorage = new TokenStorage(TokenStorage.PrimaryStorageKey);
 
