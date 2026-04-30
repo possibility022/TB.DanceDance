@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Identity;
+namespace TB.Auth.Web.Identity;
 
 public class IdentityStoreContext : IdentityDbContext<User, Role, string>
 {

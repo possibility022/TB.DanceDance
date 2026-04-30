@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TB.Auth.Web;
 using TB.Auth.Web.Endpoints;
+using TB.Auth.Web.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 

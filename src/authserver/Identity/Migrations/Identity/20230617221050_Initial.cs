@@ -3,7 +3,7 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Infrastructure.Identity.Migrations.Identity;
+namespace TB.Auth.Web.Identity.Migrations.Identity;
 
 /// <inheritdoc />
 public partial class Initial : Migration

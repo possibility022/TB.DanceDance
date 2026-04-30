@@ -1,3 +1,5 @@
+using TB.Auth.Web.Identity;
+
 namespace TB.Auth.Web.Endpoints.Handlers;
 
 using System.Security.Claims;

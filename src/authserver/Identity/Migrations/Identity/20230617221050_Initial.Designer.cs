@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Infrastructure.Identity.Migrations.Identity;
+namespace TB.Auth.Web.Identity.Migrations.Identity;
 
 [DbContext(typeof(IdentityStoreContext))]
 [Migration("20230617221050_Initial")]

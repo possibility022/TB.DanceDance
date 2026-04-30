@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Infrastructure.Identity;
+namespace TB.Auth.Web.Identity;
 
 public class DesignTimeContextFactory :
     IDesignTimeDbContextFactory<IdentityStoreContext>,

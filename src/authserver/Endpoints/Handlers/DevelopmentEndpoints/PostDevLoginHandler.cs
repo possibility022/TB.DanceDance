@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
 using System.Security.Claims;
+using TB.Auth.Web.Identity;
 
 namespace TB.Auth.Web.Endpoints.Handlers.DevelopmentEndpoints;
 
