@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application;
+using Application.Services;
 using Domain;
 using Domain.Exceptions;
 using Domain.Services;
@@ -19,6 +20,7 @@ public static class DependencyInjection
             services.AddSingleton<IBlobDataServiceFactory>(r =>
                 new BlobDataServiceFactory(configuration.GetConnectionString("Blob") ?? throw new AppException(
                     "Blob connection string is null.")));
+            services.AddScoped<IApplicationContext>(provider => provider.GetRequiredService<DanceDbContext>());
 
             services.AddDbContext<DanceDbContext>(options =>
             {
