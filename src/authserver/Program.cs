@@ -19,10 +19,8 @@ if (authOptions.AllowedCorsOrigins.Length == 0)
     ];
 }
 
-var identityConnectionString = builder.Configuration.GetConnectionString("PostgreDbIdentityStore")
-                               ?? throw new InvalidOperationException("Connection string 'PostgreDbIdentityStore' is required.");
-var authStoreConnectionString = builder.Configuration.GetConnectionString("PostgreDbAuthStore")
-                                ?? throw new InvalidOperationException("Connection string 'PostgreDbAuthStore' is required.");
+var identityConnectionString = builder.Configuration.GetConnectionString("AuthDbConnectionString")
+                                ?? throw new InvalidOperationException("Connection string 'AuthDbConnectionString' is required.");
 
 builder.Services.AddDbContext<IdentityStoreContext>(options =>
 {
@@ -31,7 +29,7 @@ builder.Services.AddDbContext<IdentityStoreContext>(options =>
 
 builder.Services.AddDbContext<AuthStoreContext>(options =>
 {
-    options.UseNpgsql(authStoreConnectionString);
+    options.UseNpgsql(identityConnectionString);
     options.UseOpenIddict();
 });
 
@@ -124,14 +122,7 @@ app.MapEndpoints(googleEnabled);
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    var identityContext = scope.ServiceProvider.GetRequiredService<IdentityStoreContext>();
-    await identityContext.Database.MigrateAsync();
-
-    var authStoreContext = scope.ServiceProvider.GetRequiredService<AuthStoreContext>();
-    await authStoreContext.Database.EnsureCreatedAsync();
-
     await scope.ServiceProvider.InitializeDevDataAsync();
-
 }
 
 await app.RunAsync();
