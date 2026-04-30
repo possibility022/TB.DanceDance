@@ -1,9 +1,9 @@
-#nullable disable
-
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Infrastructure.Identity.Migrations.Identity;
+#nullable disable
+
+namespace TB.DanceDance.Identity.Data.Migrations.Identity.IdentityStore;
 
 /// <inheritdoc />
 public partial class Initial : Migration
