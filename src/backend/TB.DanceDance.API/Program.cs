@@ -1,6 +1,5 @@
 using Application;
 using Domain.Exceptions;
-using IdentityServer4;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,7 +31,7 @@ OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
 
 builder.Services.RegisterApplicationServices();
-builder.Services.RegisterInfrastructureServices(builder.Configuration, builder.Environment.IsProduction());
+builder.Services.RegisterInfrastructureServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddCors(setup =>

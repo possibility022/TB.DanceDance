@@ -10,24 +10,5 @@ public static class DanceDanceResources
             public const string WriteScope = "tbdancedanceapi.write";
             public const string WriteConvert = "tbdancedanceapi.convert";
         }
-
-        public static class Claims
-        {
-            public const string Groups = "wcsgroups";
-        }
-
-        public const string IdentityResource = "westcoastswing";
-
-    }
-
-    public class WcsDanceGroups : IdentityServer4.Models.IdentityResource
-    {
-        public WcsDanceGroups()
-        {
-            Description = "Information related to West Coast Swing";
-            Name = WestCoastSwing.IdentityResource;
-            Required = true;
-            UserClaims.Add(WestCoastSwing.Claims.Groups);
-        }
     }
 }

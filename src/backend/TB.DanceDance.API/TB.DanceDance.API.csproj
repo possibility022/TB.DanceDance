@@ -43,4 +43,29 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\Account\AccessDenied.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Account\LoggedOut.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Account\Login.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Account\Logout.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Account\Register.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Consent\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Device\Success.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Device\UserCodeCapture.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Device\UserCodeConfirmation.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Diagnostics\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Grants\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Home\DanceDanceAppPolicy.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Home\Index.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Shared\Error.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Shared\Redirect.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Shared\_Nav.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Shared\_ScopeListItem.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\Shared\_ValidationSummary.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\_ViewImports.cshtml" />
+    <_ContentIncludedByDefault Remove="Views\_ViewStart.cshtml" />
+    <_ContentIncludedByDefault Remove="keys\is-signing-key-327CD7A1F738E3DD34C68342CD8AC5FD.json" />
+  </ItemGroup>
+
 </Project>

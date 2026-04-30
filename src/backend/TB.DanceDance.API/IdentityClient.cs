@@ -1,53 +1,40 @@
-﻿using Domain.Exceptions;
-using Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
-using System.IdentityModel.Tokens.Jwt;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Claims;
-
-namespace TB.DanceDance.API;
+﻿namespace TB.DanceDance.API;
 
 public class IdentityClient : IIdentityClient
 {
-    private readonly UserManager<User> userManager;
-
-    public IdentityClient(UserManager<User> userManager)
-    {
-        this.userManager = userManager;
-    }
-
     public async Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token)
     {
-        var handler = new JwtSecurityTokenHandler();
-        var jsonToken = handler.ReadToken(accessToken);
-        var tokenS = jsonToken as JwtSecurityToken;
-        var sub = tokenS.Claims.FirstOrDefault(r => r.Type == "sub")?.Value;
-
-        if (sub == null)
-        {
-            throw new AppException("sub claim not found in a token");
-        }
-
-        var user = await userManager.FindByIdAsync(sub);
-
-        if (user == null)
-        {
-            throw new AppException($"user for sub {sub} not found");
-        }
-
-        var claims = await userManager.GetClaimsAsync(user);
-
-        var firstName = claims.First(r => r.Type == ClaimTypes.GivenName).Value;
-        var surname = claims.First(r => r.Type == ClaimTypes.Surname).Value;
-        var email = claims.First(r => r.Type == ClaimTypes.Email).Value;
-
-        return new Domain.Entities.User()
-        {
-            Id = sub,
-            FirstName = firstName,
-            Email = email,
-            LastName = surname
-        };
+        // var handler = new JwtSecurityTokenHandler();
+        // var jsonToken = handler.ReadToken(accessToken);
+        // var tokenS = jsonToken as JwtSecurityToken;
+        // var sub = tokenS.Claims.FirstOrDefault(r => r.Type == "sub")?.Value;
+        //
+        // if (sub == null)
+        // {
+        //     throw new AppException("sub claim not found in a token");
+        // }
+        //
+        // var user = await userManager.FindByIdAsync(sub);
+        //
+        // if (user == null)
+        // {
+        //     throw new AppException($"user for sub {sub} not found");
+        // }
+        //
+        // var claims = await userManager.GetClaimsAsync(user);
+        //
+        // var firstName = claims.First(r => r.Type == ClaimTypes.GivenName).Value;
+        // var surname = claims.First(r => r.Type == ClaimTypes.Surname).Value;
+        // var email = claims.First(r => r.Type == ClaimTypes.Email).Value;
+        //
+        // return new Domain.Entities.User()
+        // {
+        //     Id = sub,
+        //     FirstName = firstName,
+        //     Email = email,
+        //     LastName = surname
+        // };
+        throw new NotImplementedException();
     }
 }
 

@@ -1,5 +1,4 @@
 ﻿using Domain.Services;
-using IdentityServer4.Validation;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,18 +13,15 @@ namespace TB.DanceDance.API.Controllers;
 public class VideoController : Controller
 {
     public VideoController(IVideoService videoService,
-        ITokenValidator tokenValidator,
         IAccessService accessService,
         ILogger<VideoController> logger)
     {
         this.videoService = videoService;
-        this.tokenValidator = tokenValidator;
         this.accessService = accessService;
         this.logger = logger;
     }
 
     private readonly IVideoService videoService;
-    private readonly ITokenValidator tokenValidator;
     private readonly IAccessService accessService;
     private readonly ILogger<VideoController> logger;
 
@@ -67,6 +63,7 @@ public class VideoController : Controller
             token = tokenFromHeader.FirstOrDefault()?.Substring("Bearer ".Length);
         }
 
+        
         var validationRes = await tokenValidator.ValidateAccessTokenAsync(token);
         if (validationRes == null)
             // Idk when this can happen
