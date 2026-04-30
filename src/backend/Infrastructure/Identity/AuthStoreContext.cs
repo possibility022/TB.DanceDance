@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace TB.Auth.Web;
+namespace Infrastructure.Identity;
 
 public class AuthStoreContext : DbContext
 {
