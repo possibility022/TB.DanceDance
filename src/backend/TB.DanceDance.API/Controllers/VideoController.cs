@@ -1,7 +1,5 @@
 ﻿using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts.Models;
@@ -55,33 +53,11 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetStream)]
     [HttpGet]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetStreamAsync(string guid, CancellationToken cancellationToken)
     {
-        // TODO: send tokens in headers from clients. Query token is kept for backward compatibility.
-        if (string.IsNullOrWhiteSpace(token) && Request.Headers.TryGetValue("Authorization", out var tokenFromHeader))
-        {
-            var rawHeader = tokenFromHeader.FirstOrDefault();
-            const string bearerPrefix = "Bearer ";
-            if (!string.IsNullOrWhiteSpace(rawHeader) &&
-                rawHeader.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                token = rawHeader[bearerPrefix.Length..].Trim();
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(token))
+        var userSubjectId = User.TryGetSubject();
+        if (string.IsNullOrWhiteSpace(userSubjectId))
             return Unauthorized();
-
-        Request.Headers.Authorization = $"Bearer {token}";
-        var authResult = await HttpContext.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
-        if (!authResult.Succeeded || authResult.Principal is null)
-            return Unauthorized();
-
-        var userSubjectId = authResult.Principal.FindFirst("sub")?.Value;
-
-        if (userSubjectId == null)
-            return BadRequest();
 
         // TODO: Implement storage quota enforcement for private videos at VIEW/STREAM time
         // Check if this is a private video (SharedWith.EventId == null && SharedWith.GroupId == null)

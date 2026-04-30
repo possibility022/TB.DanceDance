@@ -69,6 +69,36 @@ builder.Services
         options.Audience = audience;
         options.RequireHttpsMetadata = requireHttpsMetadata;
         options.MapInboundClaims = false;
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (!string.IsNullOrWhiteSpace(context.Token))
+                    return Task.CompletedTask;
+
+                if (context.Request.Headers.ContainsKey("Authorization"))
+                    return Task.CompletedTask;
+
+                var path = context.Request.Path.Value;
+                if (string.IsNullOrWhiteSpace(path) ||
+                    !path.StartsWith("/api/videos/", StringComparison.OrdinalIgnoreCase) ||
+                    !path.EndsWith("/stream", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Task.CompletedTask;
+                }
+
+                var rawToken = context.Request.Query["token"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(rawToken))
+                    return Task.CompletedTask;
+
+                const string bearerPrefix = "Bearer ";
+                context.Token = rawToken.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase)
+                    ? rawToken[bearerPrefix.Length..].Trim()
+                    : rawToken.Trim();
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -134,5 +164,4 @@ static bool HasScope(ClaimsPrincipal user, string expectedScope)
         .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         .Any(scope => string.Equals(scope, expectedScope, StringComparison.Ordinal));
 }
-
 
