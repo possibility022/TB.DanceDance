@@ -1,5 +1,7 @@
 ﻿using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts.Models;
@@ -56,23 +58,27 @@ public class VideoController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token, CancellationToken cancellationToken)
     {
-        // todo create better authentication. Send send tokens in headers
-
-        if (string.IsNullOrEmpty(token) && Request.Headers.TryGetValue("Authorization", out var tokenFromHeader))
+        // TODO: send tokens in headers from clients. Query token is kept for backward compatibility.
+        if (string.IsNullOrWhiteSpace(token) && Request.Headers.TryGetValue("Authorization", out var tokenFromHeader))
         {
-            token = tokenFromHeader.FirstOrDefault()?.Substring("Bearer ".Length);
+            var rawHeader = tokenFromHeader.FirstOrDefault();
+            const string bearerPrefix = "Bearer ";
+            if (!string.IsNullOrWhiteSpace(rawHeader) &&
+                rawHeader.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                token = rawHeader[bearerPrefix.Length..].Trim();
+            }
         }
 
-        
-        var validationRes = await tokenValidator.ValidateAccessTokenAsync(token);
-        if (validationRes == null)
-            // Idk when this can happen
-            throw new Exception("Results of validation are null.");
-
-        if (validationRes.IsError)
+        if (string.IsNullOrWhiteSpace(token))
             return Unauthorized();
 
-        var userSubjectId = validationRes.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+        Request.Headers.Authorization = $"Bearer {token}";
+        var authResult = await HttpContext.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+        if (!authResult.Succeeded || authResult.Principal is null)
+            return Unauthorized();
+
+        var userSubjectId = authResult.Principal.FindFirst("sub")?.Value;
 
         if (userSubjectId == null)
             return BadRequest();
