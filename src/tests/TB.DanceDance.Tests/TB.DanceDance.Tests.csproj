@@ -30,6 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\authserver\TB.Auth.Web.csproj" />
       <ProjectReference Include="..\..\backend\Application\Application.csproj" />
       <ProjectReference Include="..\..\backend\Domain\Domain.csproj" />
       <ProjectReference Include="..\..\backend\Infrastructure\Infrastructure.csproj" />

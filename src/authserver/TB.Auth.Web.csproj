@@ -8,11 +8,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="OpenIddict.AspNetCore" Version="7.5.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="7.5.0" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.5.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\backend\Infrastructure\Infrastructure.csproj" />
+      <Folder Include="Identity\IdentityResources\" />
+      <Folder Include="Identity\Migrations\AuthStore\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

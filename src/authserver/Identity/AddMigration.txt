@@ -1,0 +1,2 @@
+dotnet ef migrations add $MigrationName -c IdentityStoreContext -o Identity/Migrations/Identity
+dotnet ef migrations add $MigrationName -c ConfigurationDbContext -o Identity/Migrations/AuthStore

@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Infrastructure.Identity.Migrations.Openiddict
+namespace TB.Auth.Web.Identity.Migrations.AuthStore
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class AuthInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

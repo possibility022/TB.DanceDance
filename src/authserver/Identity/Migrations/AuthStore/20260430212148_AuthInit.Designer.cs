@@ -3,17 +3,20 @@ using System;
 using Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Infrastructure.Identity.Migrations.Openiddict
+namespace TB.Auth.Web.Identity.Migrations.AuthStore
 {
     [DbContext(typeof(AuthStoreContext))]
-    partial class AuthStoreContextModelSnapshot : ModelSnapshot
+    [Migration("20260430212148_AuthInit")]
+    partial class AuthInit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
