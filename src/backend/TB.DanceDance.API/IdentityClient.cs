@@ -1,142 +1,86 @@
-﻿namespace TB.DanceDance.API;
+using Domain.Exceptions;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+
+namespace TB.DanceDance.API;
 
 public class IdentityClient : IIdentityClient
 {
-    public async Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token)
+    public Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token)
     {
-        // var handler = new JwtSecurityTokenHandler();
-        // var jsonToken = handler.ReadToken(accessToken);
-        // var tokenS = jsonToken as JwtSecurityToken;
-        // var sub = tokenS.Claims.FirstOrDefault(r => r.Type == "sub")?.Value;
-        //
-        // if (sub == null)
-        // {
-        //     throw new AppException("sub claim not found in a token");
-        // }
-        //
-        // var user = await userManager.FindByIdAsync(sub);
-        //
-        // if (user == null)
-        // {
-        //     throw new AppException($"user for sub {sub} not found");
-        // }
-        //
-        // var claims = await userManager.GetClaimsAsync(user);
-        //
-        // var firstName = claims.First(r => r.Type == ClaimTypes.GivenName).Value;
-        // var surname = claims.First(r => r.Type == ClaimTypes.Surname).Value;
-        // var email = claims.First(r => r.Type == ClaimTypes.Email).Value;
-        //
-        // return new Domain.Entities.User()
-        // {
-        //     Id = sub,
-        //     FirstName = firstName,
-        //     Email = email,
-        //     LastName = surname
-        // };
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(accessToken))
+        {
+            throw new AppException("Access token is empty.");
+        }
+
+        JwtSecurityToken jwtToken;
+        try
+        {
+            jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+        }
+        catch
+        {
+            throw new AppException("Access token is not a valid JWT.");
+        }
+
+        var subject = GetClaimValue(jwtToken, "sub", ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(subject))
+        {
+            throw new AppException("sub claim not found in a token");
+        }
+
+        var preferredUsername = GetClaimValue(jwtToken, "preferred_username", ClaimTypes.Name);
+        var fullName = GetClaimValue(jwtToken, "name", ClaimTypes.Name);
+        var firstName = GetClaimValue(jwtToken, "given_name", ClaimTypes.GivenName);
+        var lastName = GetClaimValue(jwtToken, "family_name", ClaimTypes.Surname);
+
+        if (string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(fullName))
+        {
+            firstName = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        }
+
+        if (string.IsNullOrWhiteSpace(lastName) && !string.IsNullOrWhiteSpace(fullName))
+        {
+            var nameParts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (nameParts.Length > 1)
+            {
+                lastName = string.Join(' ', nameParts.Skip(1));
+            }
+        }
+
+        var email = GetClaimValue(jwtToken, "email", ClaimTypes.Email);
+
+        var user = new Domain.Entities.User
+        {
+            Id = subject,
+            FirstName = firstName ?? preferredUsername ?? "User",
+            LastName = lastName ?? string.Empty,
+            Email = email ?? preferredUsername ?? $"{subject}@local"
+        };
+
+        return Task.FromResult(user);
+    }
+
+    private static string? GetClaimValue(JwtSecurityToken jwtToken, params string[] claimTypes)
+    {
+        foreach (var claimType in claimTypes)
+        {
+            var value = jwtToken.Claims
+                .FirstOrDefault(claim => string.Equals(claim.Type, claimType, StringComparison.OrdinalIgnoreCase))
+                ?.Value;
+
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
     }
 }
 
 public interface IIdentityClient
 {
-    // Idea of this interface is to provide a service that gives given name based on access token.
-    // As token may not contain (and should not) given name claim then access token
-    // should be used to request user informations from user info endpoint from oauth.
-    // In this application everything is tied together so we have access to UserManager class but interface is design to work without it.
-
-
+    // Returns user data resolved from access token claims.
     Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token);
 }
-
-
-// Example response from userinfo_endpoint
-//{
-//  "sub": "1238179238711321",
-//  "name": "Jan Kowalski"
-//}
-
-
-// Example response from .well-known
-
-//{
-//  "issuer": "https://localhost:7068",
-//  "jwks_uri": "https://localhost:7068/.well-known/openid-configuration/jwks",
-//  "authorization_endpoint": "https://localhost:7068/connect/authorize",
-//  "token_endpoint": "https://localhost:7068/connect/token",
-//  "userinfo_endpoint": "https://localhost:7068/connect/userinfo",
-//  "end_session_endpoint": "https://localhost:7068/connect/endsession",
-//  "check_session_iframe": "https://localhost:7068/connect/checksession",
-//  "revocation_endpoint": "https://localhost:7068/connect/revocation",
-//  "introspection_endpoint": "https://localhost:7068/connect/introspect",
-//  "device_authorization_endpoint": "https://localhost:7068/connect/deviceauthorization",
-//  "frontchannel_logout_supported": true,
-//  "frontchannel_logout_session_supported": true,
-//  "backchannel_logout_supported": true,
-//  "backchannel_logout_session_supported": true,
-//  "scopes_supported": [
-//    "openid",
-//    "profile",
-//    "email",
-//    "tbdancedanceapi.read",
-//    "tbdancedanceapi.write",
-//    "tbdancedanceapi.convert",
-//    "offline_access"
-//  ],
-//  "claims_supported": [
-//    "sub",
-//    "name",
-//    "family_name",
-//    "given_name",
-//    "middle_name",
-//    "nickname",
-//    "preferred_username",
-//    "profile",
-//    "picture",
-//    "website",
-//    "gender",
-//    "birthdate",
-//    "zoneinfo",
-//    "locale",
-//    "updated_at",
-//    "email",
-//    "email_verified"
-//  ],
-//  "grant_types_supported": [
-//    "authorization_code",
-//    "client_credentials",
-//    "refresh_token",
-//    "implicit",
-//    "password",
-//    "urn:ietf:params:oauth:grant-type:device_code"
-//  ],
-//  "response_types_supported": [
-//    "code",
-//    "token",
-//    "id_token",
-//    "id_token token",
-//    "code id_token",
-//    "code token",
-//    "code id_token token"
-//  ],
-//  "response_modes_supported": [
-//    "form_post",
-//    "query",
-//    "fragment"
-//  ],
-//  "token_endpoint_auth_methods_supported": [
-//    "client_secret_basic",
-//    "client_secret_post"
-//  ],
-//  "id_token_signing_alg_values_supported": [
-//    "RS256"
-//  ],
-//  "subject_types_supported": [
-//    "public"
-//  ],
-//  "code_challenge_methods_supported": [
-//    "plain",
-//    "S256"
-//  ],
-//  "request_parameter_supported": true
-//}
