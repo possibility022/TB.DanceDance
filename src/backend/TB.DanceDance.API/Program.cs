@@ -103,45 +103,6 @@ builder.Services.AddAuthorization(o =>
     });
 });
 
-/*
- * Previous (IdentityServer-in-API) setup kept intentionally for migration comparison:
- *
- * builder.Services.AddAuthorization(o =>
- * {
- *     o.AddPolicy(DanceDanceResources.WestCoastSwing.Scopes.ReadScope, c =>
- *     {
- *         c.AddAuthenticationSchemes(IdentityServerConstants.LocalApi.AuthenticationScheme);
- *         c.RequireAuthenticatedUser();
- *     });
- *
- *     o.AddPolicy(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert, c =>
- *     {
- *         c.RequireClaim(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
- *         c.RequireAuthenticatedUser();
- *     });
- * });
- *
- * var authBuilder = builder.Services
- *     .AddAuthentication()
- *     .AddLocalApi(o =>
- *     {
- *         o.ExpectedScope = DanceDanceResources.WestCoastSwing.Scopes.ReadScope;
- *     });
- *
- * var configureGoogleAuth = builder.Configuration["Authentication:Google:ClientId"] != null;
- *
- * if (configureGoogleAuth)
- * {
- *     authBuilder.AddGoogle(googleOptions =>
- *      {
- *          googleOptions.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
- *
- *          googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new AppException("Google Client Id is null.");
- *          googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new AppException("Google Client Secret is null.");
- *      });
- * }
- */
-
 builder.Services.AddScoped<IIdentityClient, IdentityClient>();
 
 var app = builder.Build();
@@ -161,7 +122,6 @@ if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.Or
 
 app.UseStaticFiles();
 app.UseAuthentication();
-// app.UseIdentityServer(); // Disabled during migration to dedicated auth server (TB.Auth.Web).
 app.UseAuthorization();
 app.MapControllers();
 
