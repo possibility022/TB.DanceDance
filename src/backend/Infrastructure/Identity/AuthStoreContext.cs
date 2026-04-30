@@ -13,6 +13,7 @@ public class AuthStoreContext : DbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.HasDefaultSchema(DefaultSchema);
+        builder.UseOpenIddict();
         base.OnModelCreating(builder);
     }
 }
