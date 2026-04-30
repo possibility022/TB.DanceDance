@@ -7,7 +7,6 @@ public static class DanceDanceResources
         public static class Scopes
         {
             public const string ReadScope = "tbdancedanceapi.read";
-            public const string WriteScope = "tbdancedanceapi.write";
             public const string WriteConvert = "tbdancedanceapi.convert";
         }
     }

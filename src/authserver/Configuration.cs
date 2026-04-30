@@ -1,3 +1,4 @@
+using Infrastructure.Identity.IdentityResources;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -20,8 +21,8 @@ public static class Configuration
                     Scopes.Profile,
                     Scopes.Email,
                     Scopes.OfflineAccess,
-                    "tbdancedanceapi.read",
-                    "tbdancedanceapi.convert");
+                    DanceDanceResources.WestCoastSwing.Scopes.ReadScope,
+                    DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
 
                 options.AllowAuthorizationCodeFlow()
                     .AllowRefreshTokenFlow()
@@ -53,7 +54,7 @@ public static class Configuration
                 scopeManager,
                 new OpenIddictScopeDescriptor
                 {
-                    Name = "tbdancedanceapi.read",
+                    Name = DanceDanceResources.WestCoastSwing.Scopes.ReadScope,
                     DisplayName = "TB DanceDance API - read",
                     Resources = { "tbdancedanceapi" }
                 });
@@ -62,7 +63,7 @@ public static class Configuration
                 scopeManager,
                 new OpenIddictScopeDescriptor
                 {
-                    Name = "tbdancedanceapi.convert",
+                    Name = DanceDanceResources.WestCoastSwing.Scopes.WriteConvert,
                     DisplayName = "TB DanceDance API - converter",
                     Resources = { "tbdancedanceapi" }
                 });
@@ -93,7 +94,7 @@ public static class Configuration
             };
 
             frontClientDescriptor.AddScopePermissions(Scopes.OpenId, Scopes.Profile, Scopes.Email, Scopes.OfflineAccess,
-                "tbdancedanceapi.read");
+                DanceDanceResources.WestCoastSwing.Scopes.ReadScope);
 
             await UpsertApplication(applicationManager, frontClientDescriptor);
 
@@ -106,7 +107,7 @@ public static class Configuration
                 Permissions = { Permissions.Endpoints.Token, Permissions.GrantTypes.ClientCredentials }
             };
 
-            converterClientDescriptor.AddScopePermissions("tbdancedanceapi.convert");
+            converterClientDescriptor.AddScopePermissions(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert);
 
             await UpsertApplication(applicationManager, converterClientDescriptor);
 
@@ -143,7 +144,7 @@ public static class Configuration
                 Scopes.Profile,
                 Scopes.Email,
                 Scopes.OfflineAccess,
-                "tbdancedanceapi.read");
+                DanceDanceResources.WestCoastSwing.Scopes.ReadScope);
 
             await UpsertApplication(applicationManager, androidClientDescriptor);
         }
