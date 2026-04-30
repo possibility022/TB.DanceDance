@@ -84,6 +84,8 @@ services:
     environment:
       - BlobStorageHostName=azuriteStorage
       - DB_HOST=postgresDb
+      - DB_NAME=dancedance
+      - AUTH_DBNAME=tbauthwebdb
     depends_on:
       - postgresDb
       - azuriteStorage

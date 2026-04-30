@@ -18,7 +18,7 @@ set -euo pipefail
 DB_HOST=${DB_HOST:-"host.docker.internal"}
 DB_PORT=${DB_PORT:-"5432"}
 DB_NAME=${DB_NAME:-"dancedance"}
-IDENT_DBNAME=${IDENT_DBNAME:-"identitystore"}
+AUTH_DBNAME=${AUTH_DBNAME:-${IDENT_DBNAME:-"tbauthwebdb"}}
 DB_USER=${DB_USER:-"postgres"}
 DB_PASSWORD=${DB_PASSWORD:-"rgFraWIuyxONqWCQ71wh"}
 RETRY_COUNT=15 
@@ -64,27 +64,26 @@ else
   echo "Database $DB_NAME already exists. Skipping creation."
 fi
 
-# Check if the IDENT DB exists
-DB_EXISTS=$(psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -tAc "SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '$IDENT_DBNAME');")
-#DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $IDENT_DBNAME | wc -l)
+# Check if the AUTH DB exists
+DB_EXISTS=$(psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -tAc "SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = '$AUTH_DBNAME');")
+#DB_EXISTS=$(psql -h $DB_HOST -p $DB_PORT -U $DB_USER -lqt | cut -d \| -f 1 | grep -w $AUTH_DBNAME | wc -l)
 
 # Create the database if it doesn't exist
 if [ "$DB_EXISTS" = "f" ]; then
-  echo "Database $IDENT_DBNAME does not exist. Creating..."
-  createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $IDENT_DBNAME
+  echo "Database $AUTH_DBNAME does not exist. Creating..."
+  createdb -h $DB_HOST -p $DB_PORT -U $DB_USER $AUTH_DBNAME
 else
-  echo "Database $IDENT_DBNAME already exists. Skipping creation."
+  echo "Database $AUTH_DBNAME already exists. Skipping creation."
 fi
 
 echo "Executing migration scripts."
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "persistedGrant-migrations.sql"
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "configuration-migrations.sql"
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identityStore-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "auth-identity-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "auth-openiddict-migrations.sql"
 psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "danceDb-migrations.sql"
 
 echo "Executing seed scripts."
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "identity-data-seed.sql"
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$IDENT_DBNAME" -f "oauth-data-seed.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "identity-data-seed.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "oauth-data-seed.sql"
 psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "dance-data-seed.sql"
 
 dotnet BlobSeedProgram.dll
