@@ -7,10 +7,8 @@ param (
 if ($null -eq $ConnectionString)
 {
     dotnet ef database update --context IdentityStoreContext
-    dotnet ef database update --context ConfigurationDbContext
-    dotnet ef database update --context PersistedGrantDbContext
+    dotnet ef database update --context AuthStoreContext
 } else {
     dotnet ef database update --context IdentityStoreContext --connection $ConnectionString
-    dotnet ef database update --context ConfigurationDbContext --connection $ConnectionString
-    dotnet ef database update --context PersistedGrantDbContext --connection $ConnectionString
+    dotnet ef database update --context AuthStoreContext --connection $ConnectionString
 }
