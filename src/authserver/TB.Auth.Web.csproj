@@ -27,4 +27,10 @@
       <ProjectReference Include="..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
 </Project>
