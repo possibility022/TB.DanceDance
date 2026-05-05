@@ -50,9 +50,7 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
-var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-var googleEnabled = !string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret);
+
 
 var openIddictBuilder = builder.Services.AddOpenIddict()
     .AddCore(options =>
@@ -61,36 +59,8 @@ var openIddictBuilder = builder.Services.AddOpenIddict()
             .UseDbContext<AuthStoreContext>();
     });
 
-if (googleEnabled)
-{
-    openIddictBuilder.AddClient(options =>
-    {
-        options.AllowAuthorizationCodeFlow();
-        options.SetRedirectionEndpointUris("callback/login/google");
-
-        options.AddDevelopmentEncryptionCertificate()
-            .AddDevelopmentSigningCertificate();
-
-        options.UseAspNetCore()
-            .EnableRedirectionEndpointPassthrough();
-
-        options.UseSystemNetHttp()
-            .SetProductInformation(typeof(Program).Assembly);
-
-        if (googleEnabled)
-        {
-            options.UseWebProviders()
-                .AddGoogle(options =>
-                {
-                    options.SetClientId(googleClientId!);
-                    options.SetClientSecret(googleClientSecret!);
-                    options.SetRedirectUri("callback/login/google");
-                });
-        }
-    });
-}
-
-openIddictBuilder.AddServerWithConfiguration(authOptions);
+var googleEnabled = openIddictBuilder.AddGoogleClient(builder, authOptions);
+openIddictBuilder.AddServerWithConfiguration(authOptions, builder.Environment.IsDevelopment());
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie();
@@ -122,7 +92,7 @@ app.MapEndpoints(googleEnabled);
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    await scope.ServiceProvider.InitializeDevDataAsync();
+    //await scope.ServiceProvider.InitializeDevDataAsync();
 }
 
 await app.RunAsync();
