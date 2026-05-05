@@ -8,6 +8,13 @@ using TB.Auth.Web.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
+}
+
+
 var authOptions = builder.Configuration.GetSection(AuthServerOptions.SectionName).Get<AuthServerOptions>() ?? new AuthServerOptions();
 if (authOptions.AllowedCorsOrigins.Length == 0)
 {
