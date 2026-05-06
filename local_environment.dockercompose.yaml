@@ -22,18 +22,11 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=2918379123298173918273861
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - TB:DanceDance:Cors:Origins=http://localhost:3000/
-      # Must equal AuthServer:Issuer in the authserver config — this value is embedded
-      # in every JWT's 'iss' claim and in the discovery document's 'issuer' field.
+      # Must equal AuthServer:Issuer — embedded in JWT 'iss' claim and OIDC discovery document.
       - Authentication:Authority=https://localhost:7259/
       - Authentication:Audience=tbdancedanceapi
-      # Overrides the URL used to fetch OIDC discovery, independently of Authority.
-      # The auth server's public issuer (https://localhost:7259) is not reachable from
-      # inside the API container, so discovery is fetched via the HTTP port exposed on
-      # the Docker host. Authority still equals the real issuer for token validation.
-      # - Authentication:MetadataAddress=https://host.docker.internal:7259/.well-known/openid-configuration
-      - Authentication:ValidIssuers=https://host.docker.internal:7259
-      # MetadataAddress is HTTP, so HTTPS enforcement for metadata must be off.
-      - Authentication:RequireHttpsMetadata=false
+      # Discovery fetched via host.docker.internal — dev cert validation is bypassed in BackchannelHttpHandler.
+      - Authentication:MetadataAddress=https://host.docker.internal:7259/.well-known/openid-configuration
       - ConnectionStrings:PostgreDb=Server=host.docker.internal;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=dancedance
       - ConnectionStrings:Blob=AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://host.docker.internal:10000/devstoreaccount1;QueueEndpoint=http://host.docker.internal:10001/devstoreaccount1;TableEndpoint=http://host.docker.internal:10002/devstoreaccount1;
     volumes:
@@ -63,7 +56,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=2918379123298173918273861
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - ConnectionStrings:AuthDbConnectionString=Server=host.docker.internal;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=tbauthwebdb
-      - AuthServer:Issuer=https://host.docker.internal:7259/
+      - AuthServer:Issuer=https://localhost:7259/
       - AuthServer:AllowedCorsOrigins:0=http://localhost:3000
     volumes:
       - $USERPROFILE\.aspnet\https\aspnetapp.pfx:/https/aspnetapp.pfx
