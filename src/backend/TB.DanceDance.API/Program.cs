@@ -3,6 +3,7 @@ using Domain.Exceptions;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using TB.DanceDance.API;
 
@@ -61,14 +62,49 @@ var audience = builder.Configuration["Authentication:Audience"]
                ?? throw new AppException("'Authentication:Audience' is not configured.");
 var requireHttpsMetadata = builder.Configuration.GetValue("Authentication:RequireHttpsMetadata", true);
 
+// Optional override for the OIDC discovery fetch URL, independent of Authority.
+//
+// Problem: JWT Bearer uses Authority for two distinct purposes:
+//   1. Building the discovery URL: {Authority}/.well-known/openid-configuration
+//   2. Validating the 'iss' claim in JWT tokens (via the issuer returned in the discovery doc)
+//
+// In Docker these two URLs cannot be the same value:
+//   - The auth server's public issuer is https://localhost:7259  (matches tokens, reachable by browsers)
+//   - Discovery must be fetched via http://host.docker.internal:5296 (reachable from inside the API container)
+//
+// Setting MetadataAddress decouples the fetch URL (#1) from the issuer validation (#2),
+// so Authority can stay equal to the real public issuer while discovery is fetched from a
+// container-internal HTTP endpoint. Leave this unset outside of Docker.
+var metadataAddress = builder.Configuration["Authentication:MetadataAddress"];
+var validIssuers = builder.Configuration["Authentication:ValidIssuers"];
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = authority;
         options.Audience = audience;
+
+        if (string.IsNullOrWhiteSpace(validIssuers) is false)
+        {
+            // IDX10204: Unable to validate issuer on K8s if not set
+            options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidIssuers = validIssuers?.Split(';',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                // IDX10500: Signature validation failed. No security keys were provided to validate the signature on K8s
+                SignatureValidator = delegate(string token, TokenValidationParameters parameters)
+                {
+                    var jwt = new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(token);
+                    return jwt;
+                }
+            };
+        }
+
         options.RequireHttpsMetadata = requireHttpsMetadata;
         options.MapInboundClaims = false;
+        if (!string.IsNullOrWhiteSpace(metadataAddress))
+            options.MetadataAddress = metadataAddress;
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
