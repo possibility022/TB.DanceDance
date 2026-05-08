@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\workspace\\\\TB.DanceDance\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "mcp__postgres-auth__query",
+      "mcp__postgres-dancedance__query"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "postgres-dancedance",
+    "postgres-auth"
+  ]
+}
