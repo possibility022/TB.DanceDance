@@ -4,7 +4,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\workspace\\\\TB.DanceDance\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
       "mcp__postgres-auth__query",
-      "mcp__postgres-dancedance__query"
+      "mcp__postgres-dancedance__query",
+      "Bash(Get-ChildItem -Path \"C:\\\\workspace\\\\TB.DanceDance\\\\src\\\\backend\\\\TB.DanceDance.API\\\\Extensions\" -File)",
+      "Bash(Select-Object Name)",
+      "Bash(dotnet build *)"
     ]
   },
   "enabledMcpjsonServers": [

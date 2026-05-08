@@ -8,6 +8,8 @@ using TB.Auth.Web.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
