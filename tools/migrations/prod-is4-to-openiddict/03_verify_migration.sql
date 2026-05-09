@@ -4,7 +4,7 @@
 -- Expected results:
 --   Users:        18 (17 prod + 1 test)
 --   UserClaims:   72+ (68 prod + 4 test)
---   Applications: 4
+--   Applications: 3 (tbdancedancefront, tbdancedanceconverter, tbdancedanceandroidapp)
 --   Scopes:       2
 
 -- Row counts

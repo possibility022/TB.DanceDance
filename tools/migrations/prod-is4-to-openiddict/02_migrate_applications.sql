@@ -1,15 +1,15 @@
--- Migration: IS4 → OpenIddict — Step 2: Application config (redirect URIs + secrets)
+-- Migration: IS4 → OpenIddict — Step 2: Scopes & Applications
 -- Run against: tbauthwebdb
 --
--- OpenIddict applications already exist (seeded with correct permissions/grant types).
--- This script fills in production-specific data from IS4 via dblink:
---   - tbdancedancefront:   production redirect URIs (read from ClientRedirectUris)
---   - tbdancedanceconverter: client secret hash (read from ClientSecrets)
+-- Creates all OpenIddict scopes and applications from scratch, filling in
+-- production-specific data from IS4 via dblink:
+--   - tbdancedancefront:    redirect URIs (from IS4 ClientRedirectUris)
+--   - tbdancedanceconverter: client secret hash (from IS4 ClientSecrets)
 --
 -- IS4 and OpenIddict both hash client secrets as SHA256(UTF8(secret)) → base64,
 -- so the stored hash is directly compatible — no re-hashing needed.
 --
--- Idempotent: safe to run multiple times.
+-- Idempotent: safe to run multiple times on both empty and already-seeded databases.
 
 CREATE EXTENSION IF NOT EXISTS dblink;
 
@@ -18,12 +18,31 @@ SELECT dblink_connect('src', :'source_conn');
 
 BEGIN;
 
--- tbdancedancefront: production redirect URIs
--- RedirectUris: all URIs registered in IS4
--- PostLogoutRedirectUris: non-callback URIs (i.e. base app URLs derived from IS4 redirect URIs)
-UPDATE "Idp.Auth"."OpenIddictApplications"
-SET
-    "RedirectUris" = (
+-- Scopes
+INSERT INTO "Idp.Auth"."OpenIddictScopes" ("Id", "ConcurrencyToken", "Name", "DisplayName", "Resources")
+VALUES ('scope_tbdancedanceapi_read', md5(random()::text || clock_timestamp()::text), 'tbdancedanceapi.read', 'TB DanceDance API - read', '["tbdancedanceapi"]')
+ON CONFLICT ("Name") DO UPDATE
+SET "DisplayName" = EXCLUDED."DisplayName",
+    "Resources"   = EXCLUDED."Resources";
+
+INSERT INTO "Idp.Auth"."OpenIddictScopes" ("Id", "ConcurrencyToken", "Name", "DisplayName", "Resources")
+VALUES ('scope_tbdancedanceapi_convert', md5(random()::text || clock_timestamp()::text), 'tbdancedanceapi.convert', 'TB DanceDance API - converter', '["tbdancedanceapi"]')
+ON CONFLICT ("Name") DO UPDATE
+SET "DisplayName" = EXCLUDED."DisplayName",
+    "Resources"   = EXCLUDED."Resources";
+
+-- tbdancedancefront: redirect URIs sourced from IS4
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ConcurrencyToken",
+    "Permissions", "RedirectUris", "PostLogoutRedirectUris", "Requirements")
+SELECT
+    'app_tbdancedancefront',
+    'tbdancedancefront',
+    'public',
+    'TB DanceDance Frontend',
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:authorization","ept:end_session","ept:token","gt:authorization_code","gt:refresh_token","rst:code","scp:openid","scp:profile","scp:email","scp:offline_access","scp:tbdancedanceapi.read"]',
+    (
         SELECT json_agg(r."RedirectUri")::text
         FROM dblink('src', '
             SELECT r."RedirectUri"
@@ -32,7 +51,7 @@ SET
             WHERE c."ClientId" = ''tbdancedancefront''
         ') AS r("RedirectUri" text)
     ),
-    "PostLogoutRedirectUris" = (
+    (
         SELECT json_agg(r."RedirectUri")::text
         FROM dblink('src', '
             SELECT r."RedirectUri"
@@ -42,13 +61,24 @@ SET
               AND r."RedirectUri" NOT LIKE ''%/callback''
         ') AS r("RedirectUri" text)
     ),
-    "ConcurrencyToken" = md5(random()::text || clock_timestamp()::text)
-WHERE "ClientId" = 'tbdancedancefront';
+    '["ft:pkce"]'
+ON CONFLICT ("ClientId") DO UPDATE
+SET "RedirectUris"          = EXCLUDED."RedirectUris",
+    "PostLogoutRedirectUris"= EXCLUDED."PostLogoutRedirectUris",
+    "Permissions"           = EXCLUDED."Permissions",
+    "Requirements"          = EXCLUDED."Requirements",
+    "ConcurrencyToken"      = md5(random()::text || clock_timestamp()::text);
 
--- tbdancedanceconverter: production client secret hash from IS4
-UPDATE "Idp.Auth"."OpenIddictApplications"
-SET
-    "ClientSecret" = (
+-- tbdancedanceconverter: client secret sourced from IS4
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ClientSecret", "ConcurrencyToken",
+    "Permissions")
+SELECT
+    'app_tbdancedanceconverter',
+    'tbdancedanceconverter',
+    'confidential',
+    'TB DanceDance Converter Daemon',
+    (
         SELECT src."Value"
         FROM dblink('src', '
             SELECT s."Value"
@@ -58,8 +88,34 @@ SET
             LIMIT 1
         ') AS src("Value" text)
     ),
-    "ConcurrencyToken" = md5(random()::text || clock_timestamp()::text)
-WHERE "ClientId" = 'tbdancedanceconverter';
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:token","gt:client_credentials","scp:tbdancedanceapi.convert"]'
+ON CONFLICT ("ClientId") DO UPDATE
+SET "ClientSecret"     = EXCLUDED."ClientSecret",
+    "Permissions"      = EXCLUDED."Permissions",
+    "ConcurrencyToken" = md5(random()::text || clock_timestamp()::text);
+
+-- tbdancedanceandroidapp: fully static
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ConcurrencyToken",
+    "Permissions", "RedirectUris", "PostLogoutRedirectUris", "Requirements")
+VALUES (
+    'app_tbdancedanceandroidapp',
+    'tbdancedanceandroidapp',
+    'public',
+    'TB DanceDance Android App',
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:authorization","ept:end_session","ept:token","gt:authorization_code","gt:refresh_token","rst:code","scp:openid","scp:profile","scp:email","scp:offline_access","scp:tbdancedanceapi.read"]',
+    '["tbdancedanceandroidapp://"]',
+    '["tbdancedanceandroidapp://"]',
+    '["ft:pkce"]'
+)
+ON CONFLICT ("ClientId") DO UPDATE
+SET "Permissions"           = EXCLUDED."Permissions",
+    "RedirectUris"          = EXCLUDED."RedirectUris",
+    "PostLogoutRedirectUris"= EXCLUDED."PostLogoutRedirectUris",
+    "Requirements"          = EXCLUDED."Requirements",
+    "ConcurrencyToken"      = md5(random()::text || clock_timestamp()::text);
 
 COMMIT;
 
