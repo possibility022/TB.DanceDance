@@ -14,4 +14,5 @@ public sealed class AuthServerOptions
     public string? ClientSigningCertificatePassword { get; set; }
     public string? ClientEncryptionCertificateBase64 { get; set; }
     public string? ClientEncryptionCertificatePassword { get; set; }
+    public bool AllowWeakPasswords { get; set; } = false;
 }

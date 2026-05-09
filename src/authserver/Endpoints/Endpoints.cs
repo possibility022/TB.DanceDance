@@ -24,9 +24,9 @@ public static class Endpoints
             });
         }
 
-        public void MapEndpoints(bool googleEnabled)
+        public void MapEndpoints(bool googleEnabled, bool allowPasswordLogin = false)
         {
-            app.ConfigureConnectAuthorize(googleEnabled);
+            app.ConfigureConnectAuthorize(googleEnabled, allowPasswordLogin);
             app.MapPost("connect/token", TokenHandler.HandleAsync);
             app.MapGet("policy/dancedanceapp", () => Results.Text("Privacy policy page is not implemented yet."));
             app.MapMethods("callback/login/google", 
@@ -42,10 +42,10 @@ public static class Endpoints
             });
         }
         
-        private void ConfigureConnectAuthorize(bool googleEnabled)
+        private void ConfigureConnectAuthorize(bool googleEnabled, bool allowPasswordLogin)
         {
             const string endpoint = "connect/authorize";
-            if (app.Environment.IsDevelopment())
+            if (allowPasswordLogin)
             {
                 app.MapMethods(endpoint, [HttpMethods.Get, HttpMethods.Post], ConnectAuthorizeHandler.HandleAsync);
                 return;

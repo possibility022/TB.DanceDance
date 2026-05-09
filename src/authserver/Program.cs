@@ -58,7 +58,7 @@ builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<IdentityStoreContext>()
     .AddDefaultTokenProviders();
 
-if (builder.Environment.IsDevelopment())
+if (authOptions.AllowWeakPasswords)
 {
     builder.Services.Configure<IdentityOptions>(options =>
     {
@@ -105,11 +105,11 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-if (app.Environment.IsDevelopment())
+if (authOptions.AllowWeakPasswords)
 {
     app.MapDevelopmentEndpoints();
 }
-app.MapEndpoints(googleEnabled);
+app.MapEndpoints(googleEnabled, authOptions.AllowWeakPasswords);
 
 await app.RunAsync();
 
