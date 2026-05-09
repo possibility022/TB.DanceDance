@@ -111,11 +111,6 @@ if (app.Environment.IsDevelopment())
 }
 app.MapEndpoints(googleEnabled);
 
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    //await scope.ServiceProvider.InitializeDevDataAsync();
-}
-
 await app.RunAsync();
 
 
