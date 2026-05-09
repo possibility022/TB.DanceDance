@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Guided migration: IdentityServer4 → OpenIddict
@@ -9,18 +9,18 @@
     .\run-migration.ps1 -PsqlPath "D:\pgsql\bin\psql.exe" -Host localhost -Port 5432 -User postgres
 #>
 param(
-    [string] $PsqlPath   = "D:\pgsql\bin\psql.exe",
-    [string] $Host       = "localhost",
-    [int]    $Port       = 5432,
-    [string] $User       = "postgres",
-    [string] $TargetDb   = "tbauthwebdb",
-    [string] $SourceDb   = "prodoriginaldata"
+    [string] $PsqlPath = "D:\pgsql\bin\psql.exe",
+    [string] $DbHost = "localhost",
+    [int]    $Port = 5432,
+    [string] $User = "postgres",
+    [string] $TargetDb = "tbauthwebdb",
+    [string] $SourceDb = "prodoriginaldata"
 )
 
 $ScriptDir = $PSScriptRoot
 
 function Write-Step([string]$msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
-function Write-Ok([string]$msg)   { Write-Host "    OK: $msg" -ForegroundColor Green }
+function Write-Ok([string]$msg) { Write-Host "    OK: $msg" -ForegroundColor Green }
 function Write-Fail([string]$msg) { Write-Host "    FAIL: $msg" -ForegroundColor Red }
 
 # ─── 1. Prerequisite: psql ───────────────────────────────────────────────────
@@ -36,21 +36,21 @@ Write-Ok $psqlVersion
 # ─── 2. Hasło ────────────────────────────────────────────────────────────────
 Write-Step "Podaj hasło PostgreSQL (user: $User)"
 $securePwd = Read-Host "Hasło" -AsSecureString
-$bstr      = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePwd)
-$Password  = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePwd)
+$Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
 
 $env:PGPASSWORD = $Password
 
 function Invoke-Psql([string]$Database, [string]$Sql, [hashtable]$Vars = @{}) {
     $varArgs = $Vars.Keys | ForEach-Object { "-v"; "$_=$($Vars[$_])" }
-    $output = & $PsqlPath -h $Host -p $Port -U $User -d $Database @varArgs -c $Sql 2>&1
+    $output = & $PsqlPath -h $DbHost -p $Port -U $User -d $Database @varArgs -c $Sql 2>&1
     return $output
 }
 
 function Invoke-PsqlFile([string]$Database, [string]$File, [hashtable]$Vars = @{}) {
     $varArgs = $Vars.Keys | ForEach-Object { "-v"; "$_=$($Vars[$_])" }
-    $output = & $PsqlPath -h $Host -p $Port -U $User -d $Database @varArgs -f $File 2>&1
+    $output = & $PsqlPath -h $DbHost -p $Port -U $User -d $Database @varArgs -f $File 2>&1
     return $output
 }
 
@@ -75,7 +75,7 @@ UNION ALL SELECT 'Applications', COUNT(*)::text FROM "Idp.Auth"."OpenIddictAppli
 $before | ForEach-Object { Write-Host "    $_" }
 
 # ─── 5. Potwierdzenie ────────────────────────────────────────────────────────
-Write-Host "`nMigracja dokona następujących zmian w $TargetDb:" -ForegroundColor Yellow
+Write-Host "`nMigracja dokona następujących zmian w $TargetDb :" -ForegroundColor Yellow
 Write-Host "  - Skopiuje użytkowników z $SourceDb.Idp.Ident → $TargetDb.Idp.Ident"
 Write-Host "  - Zaktualizuje redirect URIs aplikacji tbdancedancefront"
 Write-Host "  - Ustawi secret klienta tbdancedanceconverter"
@@ -85,12 +85,12 @@ if ($confirm -ne "" -and $confirm -notmatch "^[TtYy]") {
     exit 0
 }
 
-$sourceConn = "host=$Host port=$Port dbname=$SourceDb user=$User password=$Password"
+$sourceConn = "host=$DbHost port=$Port dbname=$SourceDb user=$User password=$Password"
 
 # ─── 6. Krok 1: Użytkownicy ─────────────────────────────────────────────────
 Write-Step "Krok 1/2: Migracja użytkowników (01_migrate_users.sql)..."
 $file1 = Join-Path $ScriptDir "01_migrate_users.sql"
-$out1  = Invoke-PsqlFile $TargetDb $file1 @{ source_conn = $sourceConn }
+$out1 = Invoke-PsqlFile $TargetDb $file1 @{ source_conn = $sourceConn }
 $out1 | ForEach-Object { Write-Host "    $_" }
 if ($LASTEXITCODE -ne 0) { Write-Fail "Skrypt zakończył się błędem. Migracja zatrzymana."; exit 1 }
 Write-Ok "Skrypt 01 zakończony"
@@ -98,7 +98,7 @@ Write-Ok "Skrypt 01 zakończony"
 # ─── 7. Krok 2: Aplikacje ────────────────────────────────────────────────────
 Write-Step "Krok 2/2: Migracja konfiguracji aplikacji (02_migrate_applications.sql)..."
 $file2 = Join-Path $ScriptDir "02_migrate_applications.sql"
-$out2  = Invoke-PsqlFile $TargetDb $file2 @{ source_conn = $sourceConn }
+$out2 = Invoke-PsqlFile $TargetDb $file2 @{ source_conn = $sourceConn }
 $out2 | Where-Object { $_ -notmatch "already exists, skipping" } | ForEach-Object { Write-Host "    $_" }
 if ($LASTEXITCODE -ne 0) { Write-Fail "Skrypt zakończył się błędem."; exit 1 }
 Write-Ok "Skrypt 02 zakończony"
@@ -106,7 +106,7 @@ Write-Ok "Skrypt 02 zakończony"
 # ─── 8. Weryfikacja ──────────────────────────────────────────────────────────
 Write-Step "Weryfikacja (03_verify_migration.sql)..."
 $file3 = Join-Path $ScriptDir "03_verify_migration.sql"
-$out3  = Invoke-PsqlFile $TargetDb $file3
+$out3 = Invoke-PsqlFile $TargetDb $file3
 $out3 | ForEach-Object { Write-Host "    $_" }
 
 # ─── 9. Podsumowanie ─────────────────────────────────────────────────────────
