@@ -107,6 +107,7 @@ app.UseAuthorization();
 
 if (authOptions.AllowWeakPasswords)
 {
+    Console.WriteLine("WARNING - Weak Passwords are enabled!");
     app.MapDevelopmentEndpoints();
 }
 app.MapEndpoints(googleEnabled, authOptions.AllowWeakPasswords);
