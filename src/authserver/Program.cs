@@ -10,12 +10,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true);
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
 }
 
+if (builder.Environment.IsProduction())
+{
+    builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
+}
+
+if (builder.Environment.IsEnvironment("QA"))
+{
+    builder.Configuration.AddJsonFile("appsettings.QA.json", optional: true);
+}
 
 var authOptions = builder.Configuration.GetSection(AuthServerOptions.SectionName).Get<AuthServerOptions>() ?? new AuthServerOptions();
 if (authOptions.AllowedCorsOrigins.Length == 0)
