@@ -90,7 +90,6 @@ builder.Services.AddSingleton<ApiHttpClient>((s) =>
 builder.Services.AddScoped<HttpClient>();
 builder.Services.AddScoped<IDanceDanceApiClient, DanceDanceApiClient>();
 builder.Services.AddScoped<IFFmpegClientConverter, FFmpegClientConverter>();
-builder.Services.AddScoped<Deamon>();
 
 builder.Services.AddHostedService<Deamon>();
 

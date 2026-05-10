@@ -1,18 +1,17 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
 internal sealed class Deamon : BackgroundService
 {
-    private readonly IDanceDanceApiClient client;
-    private readonly IFFmpegClientConverter converter;
+    private readonly IServiceScopeFactory scopeFactory;
     private readonly ProgramConfig programConfig;
 
-    public Deamon(IDanceDanceApiClient client, IFFmpegClientConverter converter, ProgramConfig programConfig)
+    public Deamon(IServiceScopeFactory scopeFactory, ProgramConfig programConfig)
     {
-        this.client = client;
-        this.converter = converter;
+        this.scopeFactory = scopeFactory;
         this.programConfig = programConfig;
     }
 
@@ -31,7 +30,7 @@ internal sealed class Deamon : BackgroundService
                 {
                     var delay = programConfig.DelayInMinutes * 1000 * 60;
                     Log.Information("Waiting till next run. Delay in minutes: {0}", programConfig.DelayInMinutes);
-                    
+
                     await Task.Delay(delay, token);
                 }
             }
@@ -49,6 +48,10 @@ internal sealed class Deamon : BackgroundService
 
     private async Task<bool> ProcessNext(CancellationToken token)
     {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var client = scope.ServiceProvider.GetRequiredService<IDanceDanceApiClient>();
+        var converter = scope.ServiceProvider.GetRequiredService<IFFmpegClientConverter>();
+
         Log.Information("Getting next video.");
         var nextVideoToConvert = await client.GetNextVideoToConvertAsync(token);
 
