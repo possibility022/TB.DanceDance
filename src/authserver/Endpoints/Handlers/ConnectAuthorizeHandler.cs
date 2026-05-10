@@ -3,7 +3,6 @@ using TB.Auth.Web.Identity;
 namespace TB.Auth.Web.Endpoints.Handlers;
 
 using System.Security.Claims;
-using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -13,18 +12,20 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using static OpenIddict.Client.WebIntegration.OpenIddictClientWebIntegrationConstants;
+using TB.Auth.Web;
 
 public static class ConnectAuthorizeHandler
 {
     public static async Task<IResult> HandleAsync(
         HttpContext context,
         UserManager<User> userManager,
-        IOpenIddictScopeManager scopeManager)
+        IOpenIddictScopeManager scopeManager,
+        AuthServerOptions authOptions)
     {
         var principal = (await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme))?.Principal;
         if (principal is not { Identity.IsAuthenticated: true })
         {
-            if (context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
+            if (authOptions.AllowWeakPasswords)
             {
                 var devReturnUrl = context.Request.GetEncodedUrl();
                 return Results.Redirect($"/dev/login?returnUrl={Uri.EscapeDataString(devReturnUrl)}");

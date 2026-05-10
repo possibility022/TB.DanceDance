@@ -30,6 +30,7 @@ if (builder.Environment.IsEnvironment("QA"))
 }
 
 var authOptions = builder.Configuration.GetSection(AuthServerOptions.SectionName).Get<AuthServerOptions>() ?? new AuthServerOptions();
+builder.Services.AddSingleton(authOptions);
 if (authOptions.AllowedCorsOrigins.Length == 0)
 {
     authOptions.AllowedCorsOrigins =
