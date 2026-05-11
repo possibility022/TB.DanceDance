@@ -126,7 +126,7 @@ public class UploadWorker : IDisposable
         {
             delay = TimeSpan.Zero;
             Serilog.Log.Information("Uploading one video.");
-            if (video.SasExpireAt < DateTime.Now.AddMinutes(-6))
+            if (video.SasExpireAt < DateTime.UtcNow.AddMinutes(-6))
                 await RefreshSas(video);
             
             await videoUploader.Upload(video, token);
@@ -167,7 +167,7 @@ public class UploadWorker : IDisposable
         {
             if (isPaused)
             {
-                await pauseLock.WaitAsync();
+                await pauseLock.WaitAsync(mainLoopCanncellationTokenSource!.Token);
             }
             else
             {
