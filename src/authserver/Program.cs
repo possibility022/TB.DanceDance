@@ -1,4 +1,3 @@
-using Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,24 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true);
-
+// appsettings.json and appsettings.{Environment}.json are already loaded by CreateBuilder
+// with correct priority (below env vars). Only add non-standard files here.
 if (builder.Environment.IsDevelopment())
-{
-    builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
-}
-
-if (builder.Environment.IsProduction())
-{
-    builder.Configuration.AddJsonFile("appsettings.Production.json", optional: true);
-}
 
 if (builder.Environment.IsEnvironment("QA"))
-{
     builder.Configuration.AddJsonFile("appsettings.QA.json", optional: true);
-}
 
 var authOptions = builder.Configuration.GetSection(AuthServerOptions.SectionName).Get<AuthServerOptions>() ?? new AuthServerOptions();
 builder.Services.AddSingleton(authOptions);

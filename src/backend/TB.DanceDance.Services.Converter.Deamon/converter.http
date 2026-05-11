@@ -1,0 +1,9 @@
+### Get access token (client credentials)
+POST https://localhost:7259/connect/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic dGJkYW5jZWRhbmNlY29udmVydGVyOk90aGVy
+
+grant_type=client_credentials&scope=tbdancedanceapi.convert
+
+# Authorization header above is Base64 of "tbdancedanceconverter:Other"
+# To regenerate: [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("tbdancedanceconverter:Other"))

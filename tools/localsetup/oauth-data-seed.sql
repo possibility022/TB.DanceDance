@@ -43,7 +43,7 @@ VALUES (
     'tbdancedanceconverter',
     'confidential',
     'TB DanceDance Converter Daemon',
-    '<TODO_INSERT_SECRET>',
+    'AQAAAAEAAYagAAAAEJfM9ZxHB62OVzW+PhwBkNqIxVZBdmJu0s5jQm9xcTUYqtH9Lfz2vku6TUyTb9l/Fw==', -- unencrypted = Other
     md5(random()::text || clock_timestamp()::text),
     '["ept:token","gt:client_credentials","scp:tbdancedanceapi.convert"]'
 )

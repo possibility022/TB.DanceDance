@@ -105,12 +105,13 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      - tb.dancedance.converter.oAuthOrigin=http://host.docker.internal:7259/
-      - tb.dancedance.converter.apiOrigin=http://host.docker.internal:8080/
-      - tb.dancedance.converter.clientSecret=other
-      - tb.dancedance.converter.clientId=tbdancedanceconverter
-      - tb.dancedance.converter.scope=tbdancedanceapi.convert
-      - tb.dancedance.converter.delayInMinutes=1
+      - DOTNET_ENVIRONMENT=Development
+      - tb_dancedance_converter_ConverterConfig__OAuthOrigin=https://host.docker.internal:7259/
+      - tb_dancedance_converter_ConverterConfig__ApiOrigin=https://host.docker.internal:7068/
+      - tb_dancedance_converter_ConverterConfig__TokenProviderOptions__ClientSecret=Other
+      - tb_dancedance_converter_ConverterConfig__TokenProviderOptions__ClientId=tbdancedanceconverter
+      - tb_dancedance_converter_ConverterConfig__TokenProviderOptions__Scope=tbdancedanceapi.convert
+      - tb_dancedance_converter_ConverterConfig__DelayInMinutes=1
 
   initializator:
     image: initializator:latest
