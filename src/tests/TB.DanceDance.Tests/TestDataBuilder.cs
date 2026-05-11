@@ -343,7 +343,7 @@ public class SharedLinkDataBuilder
 
     public SharedLinkDataBuilder()
     {
-        _id = TestDataBuilder.RandomName("link").Substring(0, 8); // 8-char placeholder
+        _id = TestDataBuilder.RandomName().Substring(0, 8 + 4); // 8-char placeholder
         _videoId = Guid.NewGuid();
         _sharedBy = TestDataBuilder.RandomUserId();
         _createdAt = DateTimeOffset.UtcNow;
