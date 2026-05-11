@@ -370,4 +370,5 @@ tb.dancedance.frontend/.env
 /ignored
 **/.idea
 src/authserver/appsettings.Local.json
+/.claude/settings.local.json
 
