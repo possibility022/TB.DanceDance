@@ -88,6 +88,7 @@ public class UploadWorker : IDisposable
                 }
             }
 
+            uploadProgressChannel.Writer.TryComplete();
             Serilog.Log.Debug("Requesting cancellation on {token}.", mainLoopCanncellationTokenSource.Token.GetHashCode());
             await mainLoopCanncellationTokenSource.CancelAsync();
             await monitorProgressProcess;
