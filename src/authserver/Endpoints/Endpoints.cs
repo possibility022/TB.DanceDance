@@ -55,7 +55,7 @@ public static class Endpoints
                 </ul>
                 <p>Przetwarzanie danych identyfikujących jest niezbędne do wykonania świadczenia usługi oraz opiera się na zgodzie użytkownika.</p>
                 <strong>Administrator Danych osobowych</strong>
-                <p>Administratorem danych jest osoba prywatna Tomasz Bąk - Kontakt: tomaszbakk@protonmail.com</p>
+                <p>Administratorem danych jest osoba prywatna Tomasz Bąk - Kontakt: &#116;&#111;&#109;&#97;&#115;&#122;&#98;&#97;&#107;&#107;&#64;&#112;&#114;&#111;&#116;&#111;&#110;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</p>
                 <strong>Okres przechowywania danych</strong>
                 <p>Dane są przechowywane od momentu zalogowania się do aplikacji do momentu zgłoszenia ich usunięcia. Administrator ma czas do dwóch tygodni na usunięcie danych z systemu po otrzymaniu zgłoszenia.</p>
                 <strong>Ujawnianie Danych Osobowych</strong>
@@ -72,7 +72,7 @@ public static class Endpoints
                 <p>Dane są przechowywane na serwerach zlokalizowanych w europie. </p>
                 <strong>Kontakt</strong>
                 <strong>Aby usunąć wszystkie dane przechowywane na Twój temat, skontaktuj się z administratorem z maila który wykorzustujesz do logowania.</strong>
-                <p>W przypadku pytań dotyczących Polityki Prywatności, prosimy o kontakt pod adresem tomaszbakk@protonmail.com.</p>
+                <p>W przypadku pytań dotyczących Polityki Prywatności, prosimy o kontakt pod adresem &#116;&#111;&#109;&#97;&#115;&#122;&#98;&#97;&#107;&#107;&#64;&#112;&#114;&#111;&#116;&#111;&#110;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;.</p>
                 </body></html>
                 """, "text/html"));
             app.MapMethods("callback/login/google", 
