@@ -30,6 +30,10 @@ public class UploadWorker : IDisposable
         this.videoUploader = videoUploader;
         this.apiClient = apiClient;
         this.uploadProgressChannel = uploadProgressChannel;
+    }
+
+    public void StartConnectivityMonitoring()
+    {
         try
         {
             Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
@@ -109,9 +113,9 @@ public class UploadWorker : IDisposable
         {
             Serilog.Log.Debug("Cancellation status of token {token} - {status}.", cancellationToken.GetHashCode(),
                 cancellationToken.IsCancellationRequested);
-            while (await uploadProgressChannel.Reader.WaitToReadAsync(cancellationToken))
+            while (await uploadProgressChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                var message = await uploadProgressChannel.Reader.ReadAsync(cancellationToken);
+                var message = await uploadProgressChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
             }
         }

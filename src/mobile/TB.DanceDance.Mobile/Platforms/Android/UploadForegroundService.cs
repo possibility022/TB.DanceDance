@@ -75,6 +75,7 @@ public sealed class UploadForegroundService : Service, IPlatformNotification
         if (intent.Action == nameof(ServiceAction.Start))
         {
             RegisterNotification();
+            worker.StartConnectivityMonitoring();
             uploadingTask ??= StartNewTask();
             worker.SetPlatformNotification(this);
         }
