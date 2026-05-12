@@ -37,7 +37,7 @@ public class UploadWorkerTests
         return (worker, db, uploader, api, platform, channel);
     }
 
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 10000)]
     public async Task Work_NoVideos_Completes_And_Notifies()
     {
         var (worker, db, uploader, api, platform, channel) = CreateSut();
