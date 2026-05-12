@@ -1,34 +1,16 @@
 using Domain;
 using Infrastructure.Data.BlobStorage;
-using System.Security.Cryptography;
-using System.Text;
 using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Infrastructure;
 
-public class q
-{
-    [Fact]
-    public void TestMethod()
-    {
-        using (SHA256 shA256 = SHA256.Create())
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes("secretforlocalhttpclient");
-            ;
-            var h = Convert.ToBase64String(shA256.ComputeHash(bytes));
-        }
-        var x = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("secretforlocalhttpclient"));
-    }
-}
 
 public class BlobDataServiceTests
 {
-    private readonly BlobStorageFixture blobStorageFixture;
     private readonly BlobDataServiceFactory factory;
 
     public BlobDataServiceTests(BlobStorageFixture blobStorageFixture)
     {
-        this.blobStorageFixture = blobStorageFixture;
         this.factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
     }
 

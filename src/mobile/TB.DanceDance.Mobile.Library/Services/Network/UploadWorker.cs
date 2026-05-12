@@ -115,7 +115,7 @@ public class UploadWorker : IDisposable
                 platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             // nothing to do
         }
@@ -137,7 +137,7 @@ public class UploadWorker : IDisposable
             // ReSharper disable once MethodSupportsCancellation
             await dbContext.SaveChangesAsync();
         }
-        catch (TaskCanceledException taskCanceledException)
+        catch (TaskCanceledException)
         {
             // Nothing to do, wait for resume
         }
@@ -175,7 +175,7 @@ public class UploadWorker : IDisposable
                 await Task.Delay(delay, mainLoopCanncellationTokenSource!.Token);
             }
         }
-        catch (TaskCanceledException exception)
+        catch (TaskCanceledException)
         {
             // nothing to do here
         }
