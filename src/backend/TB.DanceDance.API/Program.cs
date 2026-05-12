@@ -168,6 +168,11 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("policy/dancedanceapp", (IConfiguration config) =>
+{
+    var authority = config["Authentication:Authority"]?.TrimEnd('/') ?? string.Empty;
+    return Results.Redirect($"{authority}/policy/dancedanceapp", permanent: true);
+});
 
 app.Run();
 
