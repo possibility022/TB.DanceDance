@@ -128,7 +128,20 @@ jobs:
           context: src
           push: false
           file: src/backend/TB.DanceDance.API/Dockerfile
-  
+
+  gated-docker-authserver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build Auth Server Image
+        id: push
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: src
+          push: false
+          file: src/authserver/Dockerfile
+
   gated-docker-initializer:
     runs-on: ubuntu-latest
     steps:

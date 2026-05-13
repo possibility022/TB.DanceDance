@@ -2,6 +2,18 @@
 
 Everything except the mobile app is dockerized and can be started with a single command.
 
+## Prerequisites
+
+Before starting the environment for the first time, generate the auth server signing certificates:
+
+```powershell
+tools/generateAuthSigningCert.ps1
+```
+
+You will be prompted for a password that protects the generated certificates. The script writes the certificates and their passwords to `.env.authserver-certs` (used by Docker Compose) and updates `src/authserver/appsettings.Local.json`.
+
+> Re-run with `-Force` to regenerate existing certificates.
+
 ## Start the environment
 
 Run:
@@ -12,6 +24,7 @@ docker compose -f .\local_environment.dockercompose.yaml up
 This will start:
 - Database (PostgreSQL)
 - Blob Storage (Azurite)
+- Auth Server (OpenIddict)
 - API
 - Frontend (SPA)
 - Converter service

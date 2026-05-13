@@ -366,5 +366,9 @@ tb.dancedance.web/.env.production
 tb.dancedance.frontend/src/authConst.js
 tb.dancedance.frontend/setupRun.js
 tb.dancedance.frontend/.env
+.env.authserver-certs
 /ignored
 **/.idea
+src/authserver/appsettings.Local.json
+/.claude/settings.local.json
+

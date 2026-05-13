@@ -1,5 +1,5 @@
 
-export const REACT_APP_AUTH_URL_TO_REPLACE = 'https://localhost:7068'
+export const REACT_APP_AUTH_URL_TO_REPLACE = 'https://localhost:7259'
 export const REACT_APP_REDIRECT_URI_TO_REPLACE = 'http://localhost:3000/callback'
 
 export const IDENTITY_CONFIG: IdentityConfig = {
@@ -37,12 +37,12 @@ export type IdentityConfig = {
 }
 
 export const METADATA_OIDC: MetadataOidc = {
-    issuer: "https://identityserver",
+    issuer: REACT_APP_AUTH_URL_TO_REPLACE,
     jwks_uri: REACT_APP_AUTH_URL_TO_REPLACE + "/.well-known/openid-configuration/jwks",
     authorization_endpoint: REACT_APP_AUTH_URL_TO_REPLACE,
     token_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/token",
     userinfo_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/userinfo",
-    end_session_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/endsession",
+    end_session_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/logout",
     check_session_iframe: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/checksession",
     revocation_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/revocation",
     introspection_endpoint: REACT_APP_AUTH_URL_TO_REPLACE + "/connect/introspect"

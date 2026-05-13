@@ -1,10 +1,13 @@
-﻿using Domain.Services;
+using Domain.Services;
+using Infrastructure.Identity.IdentityResources;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 
 namespace TB.DanceDance.API.Controllers;
 
+[Authorize(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert)]
 public class ConverterController : Controller
 {
     private readonly IVideoUploaderService videoUploaderService;

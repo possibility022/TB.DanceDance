@@ -2,7 +2,7 @@
 
 public record Event
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public DateTime When { get; set; }
     public Guid Id { get; set; }
 

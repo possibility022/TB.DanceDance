@@ -82,11 +82,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<GroupVideosPageModel>();
         builder.Services.AddSingleton<UploadManagerPageModel>();
 
-        var browserFactory = new BrowserFactory();
-        browserFactory.SetFactory(() => new MauiAuthenticationBrowser());
-
         var networkAddressResolver = new NetworkAddressResolver(DeviceInfo.Platform);
         builder.Services.AddSingleton(networkAddressResolver);
+
+        var browserFactory = new BrowserFactory();
+        browserFactory.SetFactory(() => new MauiAuthenticationBrowser(networkAddressResolver));
 
         builder.Services.AddSingleton<IBrowserFactory>(browserFactory);
 
@@ -95,20 +95,15 @@ public static class MauiProgram
 
         var handler = DanceApiHttpClientFactory.CreateBaseHttpMessageHandlerChain(networkAddressResolver);
 
-        var primaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.ApiMainUrl);
-        var secondaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.ApiBackupUrl);
+        var primaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.AuthMainUrl);
 
         var primaryTokenStorage = new TokenStorage(TokenStorage.PrimaryStorageKey);
-        var secondaryTokenStorage = new TokenStorage(TokenStorage.SecondaryStorageKey);
 
         builder.Services.AddKeyedSingleton(TokenStorage.PrimaryStorageKey, primaryTokenStorage);
-        builder.Services.AddKeyedSingleton(TokenStorage.SecondaryStorageKey, secondaryTokenStorage);
 
         var primaryTokenProvider = new TokenProviderService(new OidcClient(primaryOptions), primaryTokenStorage);
-        var secondaryTokenProvider = new TokenProviderService(new OidcClient(secondaryOptions), secondaryTokenStorage);
 
         builder.Services.AddKeyedSingleton<ITokenProviderService>(TokenStorage.PrimaryStorageKey, primaryTokenProvider);
-        builder.Services.AddKeyedSingleton<ITokenProviderService>(TokenStorage.SecondaryStorageKey, secondaryTokenProvider);
 
         builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);
         builder.Services.AddTransientWithShellRoute<AddEventPage, AddEventPageModel>(Routes.Events.Add);

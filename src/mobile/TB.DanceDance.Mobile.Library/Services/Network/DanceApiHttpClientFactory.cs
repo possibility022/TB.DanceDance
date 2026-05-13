@@ -17,17 +17,13 @@ public interface IBrowserFactory
 public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
 {
     private readonly ITokenProviderService primaryTokenProvider;
-    private readonly ITokenProviderService secondaryTokenProvider;
     private readonly NetworkAddressResolver networkAddressResolver;
 
     public DanceApiHttpClientFactory(
         [FromKeyedServices(TokenStorage.PrimaryStorageKey)] ITokenProviderService primaryTokenProvider,
-        [FromKeyedServices(TokenStorage.SecondaryStorageKey)] ITokenProviderService secondaryTokenProvider,
-        
         NetworkAddressResolver networkAddressResolver)
     {
         this.primaryTokenProvider = primaryTokenProvider;
-        this.secondaryTokenProvider = secondaryTokenProvider;
         this.networkAddressResolver = networkAddressResolver;
     }
     
@@ -43,12 +39,11 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
 
 #if DEBUG
     public const string ApiMainUrl = "https://localhost:7068";
+    public const string AuthMainUrl = "https://localhost:7259";
 #else
     public const string ApiMainUrl = "https://ddapi.tomb.my.id";
+    public const string AuthMainUrl = "https://ddauth.tomb.my.id";
 #endif
-
-    public const string ApiBackupUrl = "https://localhost:7068";
-    private const string KeysPath = "/.well-known/openid-configuration/jwks";
 
     private HttpClient ResolveClientForDanceApi()
     {       
@@ -85,26 +80,13 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
         var resilienceHandler = new ResilienceHandler(retryPipeline){ InnerHandler = CreateSocketHandler() };
 
         HttpMessageHandler innerHandler =
-            new TokenDelegatingHandler(primaryTokenProvider, secondaryTokenProvider) { InnerHandler = resilienceHandler };
+            new TokenDelegatingHandler(primaryTokenProvider) { InnerHandler = resilienceHandler };
 
 #if DEBUG
         innerHandler = new DebuggingUrlHandler(networkAddressResolver, innerHandler);
 #endif
 
-        var baseMessageHandlerForHealthEndpoints = CreateBaseHttpMessageHandlerChain(networkAddressResolver);
-        var backupServerHandler = CreateBackupServerHttpHandler(innerHandler);
-
-        return backupServerHandler;
-    }
-
-    private BackupServerHttpHandler CreateBackupServerHttpHandler(HttpMessageHandler innerHandler)
-    {
-        return new BackupServerHttpHandler(new ServersConfiguration()
-        {
-            HealthEndpoint = KeysPath,
-            Primary = new Uri(ApiMainUrl),
-            Secondary = new Uri(ApiBackupUrl),
-        }, innerHandler, CreateBaseHttpMessageHandlerChain);
+        return innerHandler;
     }
 
     private static ResiliencePipeline<HttpResponseMessage> CreateRetryPipeline()

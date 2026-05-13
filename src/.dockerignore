@@ -22,5 +22,6 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/appsettings.Development.json
+**/appsettings.Local.json
 LICENSE
 README.md

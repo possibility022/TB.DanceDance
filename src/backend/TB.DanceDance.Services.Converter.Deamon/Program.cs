@@ -63,20 +63,25 @@ config.Validate();
 
 builder.Logging.ClearProviders();
 builder.Services.AddSingleton(config);
+HttpMessageHandler? devBypassHandler = builder.Environment.IsDevelopment()
+    ? new HttpClientHandler { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator }
+    : null;
+
 builder.Services.AddSingleton<OAuthHttpClient>((s) =>
 {
     var programConfig = s.GetRequiredService<ProgramConfig>();
-    return new OAuthHttpClient()
-    {
-        BaseAddress = new Uri(programConfig.OAuthOrigin)
-    };
+    var client = devBypassHandler is not null
+        ? new OAuthHttpClient(devBypassHandler)
+        : new OAuthHttpClient();
+    client.BaseAddress = new Uri(programConfig.OAuthOrigin);
+    return client;
 });
 
 builder.Services.AddSingleton<ApiHttpClient>((s) =>
 {
     var programConfig = s.GetRequiredService<ProgramConfig>();
     var tokenProvider = new TokenProvider(s.GetRequiredService<OAuthHttpClient>(), programConfig.TokenProviderOptions);
-    var handler = new TokenHttpHandler(tokenProvider);
+    var handler = new TokenHttpHandler(tokenProvider, devBypassHandler);
 
     var apiHttpClient = new ApiHttpClient(handler, true)
     {
@@ -90,7 +95,6 @@ builder.Services.AddSingleton<ApiHttpClient>((s) =>
 builder.Services.AddScoped<HttpClient>();
 builder.Services.AddScoped<IDanceDanceApiClient, DanceDanceApiClient>();
 builder.Services.AddScoped<IFFmpegClientConverter, FFmpegClientConverter>();
-builder.Services.AddScoped<Deamon>();
 
 builder.Services.AddHostedService<Deamon>();
 

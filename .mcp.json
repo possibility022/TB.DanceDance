@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "postgres-dancedance": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:rgFraWIuyxONqWCQ71wh@localhost:5432/dancedance"
+      ]
+    },
+    "postgres-auth": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:rgFraWIuyxONqWCQ71wh@localhost:5432/tbauthwebdb"
+      ]
+    }
+  }
+}

@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="authserver/TB.Auth.Web.csproj" />
   <Project Path="backend/Application/Application.csproj" />
   <Project Path="backend/Domain/Domain.csproj" />
   <Project Path="backend/Infrastructure/Infrastructure.csproj" />

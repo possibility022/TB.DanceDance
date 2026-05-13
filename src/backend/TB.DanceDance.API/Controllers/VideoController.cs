@@ -1,5 +1,4 @@
 ﻿using Domain.Services;
-using IdentityServer4.Validation;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,18 +13,15 @@ namespace TB.DanceDance.API.Controllers;
 public class VideoController : Controller
 {
     public VideoController(IVideoService videoService,
-        ITokenValidator tokenValidator,
         IAccessService accessService,
         ILogger<VideoController> logger)
     {
         this.videoService = videoService;
-        this.tokenValidator = tokenValidator;
         this.accessService = accessService;
         this.logger = logger;
     }
 
     private readonly IVideoService videoService;
-    private readonly ITokenValidator tokenValidator;
     private readonly IAccessService accessService;
     private readonly ILogger<VideoController> logger;
 
@@ -57,28 +53,11 @@ public class VideoController : Controller
 
     [Route(ApiEndpoints.Video.GetStream)]
     [HttpGet]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetStreamAsync(string guid, [FromQuery] string? token, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetStreamAsync(string guid, CancellationToken cancellationToken)
     {
-        // todo create better authentication. Send send tokens in headers
-
-        if (string.IsNullOrEmpty(token) && Request.Headers.TryGetValue("Authorization", out var tokenFromHeader))
-        {
-            token = tokenFromHeader.FirstOrDefault()?.Substring("Bearer ".Length);
-        }
-
-        var validationRes = await tokenValidator.ValidateAccessTokenAsync(token);
-        if (validationRes == null)
-            // Idk when this can happen
-            throw new Exception("Results of validation are null.");
-
-        if (validationRes.IsError)
+        var userSubjectId = User.TryGetSubject();
+        if (string.IsNullOrWhiteSpace(userSubjectId))
             return Unauthorized();
-
-        var userSubjectId = validationRes.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-
-        if (userSubjectId == null)
-            return BadRequest();
 
         // TODO: Implement storage quota enforcement for private videos at VIEW/STREAM time
         // Check if this is a private video (SharedWith.EventId == null && SharedWith.GroupId == null)

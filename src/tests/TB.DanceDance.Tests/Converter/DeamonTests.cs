@@ -1,4 +1,5 @@
-﻿using NSubstitute;
+﻿using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.Services.Converter.Deamon;
@@ -15,11 +16,20 @@ public class DeamonTests
 
     public DeamonTests()
     {
-        // Setup temporary work directory
         tempDir = Path.Combine(Path.GetTempPath(), "dd-tests-" + Guid.NewGuid());
         Directory.CreateDirectory(tempDir);
 
-        deamon = new Deamon(api, ffmpeg, new ProgramConfig()
+        var serviceProvider = Substitute.For<IServiceProvider>();
+        serviceProvider.GetService(typeof(IDanceDanceApiClient)).Returns(api);
+        serviceProvider.GetService(typeof(IFFmpegClientConverter)).Returns(ffmpeg);
+
+        var scope = Substitute.For<IServiceScope>();
+        scope.ServiceProvider.Returns(serviceProvider);
+
+        var scopeFactory = Substitute.For<IServiceScopeFactory>();
+        scopeFactory.CreateScope().Returns(scope);
+
+        deamon = new Deamon(scopeFactory, new ProgramConfig()
         {
             WorkDir = tempDir
         });

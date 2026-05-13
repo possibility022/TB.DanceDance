@@ -1,8 +1,9 @@
 ﻿name: Deploy To Cloud
 on:
-  release: 
+  release:
     types:
       - released
+      - prereleased
 
 permissions:
   contents: read
@@ -10,6 +11,7 @@ permissions:
 jobs:
   deploy-frontend:
     name: 'Deploy Frontend'
+    if: github.event.release.prerelease == false || contains(github.event.release.tag_name, 'beta')
     environment: 'production-azure'
     runs-on: ubuntu-latest
     steps:

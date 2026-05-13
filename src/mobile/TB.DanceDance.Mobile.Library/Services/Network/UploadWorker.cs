@@ -88,6 +88,7 @@ public class UploadWorker : IDisposable
                 }
             }
 
+            uploadProgressChannel.Writer.TryComplete();
             Serilog.Log.Debug("Requesting cancellation on {token}.", mainLoopCanncellationTokenSource.Token.GetHashCode());
             await mainLoopCanncellationTokenSource.CancelAsync();
             await monitorProgressProcess;
@@ -114,7 +115,7 @@ public class UploadWorker : IDisposable
                 platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             // nothing to do
         }
@@ -126,7 +127,7 @@ public class UploadWorker : IDisposable
         {
             delay = TimeSpan.Zero;
             Serilog.Log.Information("Uploading one video.");
-            if (video.SasExpireAt < DateTime.Now.AddMinutes(-6))
+            if (video.SasExpireAt < DateTime.UtcNow.AddMinutes(-6))
                 await RefreshSas(video);
             
             await videoUploader.Upload(video, token);
@@ -136,7 +137,7 @@ public class UploadWorker : IDisposable
             // ReSharper disable once MethodSupportsCancellation
             await dbContext.SaveChangesAsync();
         }
-        catch (TaskCanceledException taskCanceledException)
+        catch (TaskCanceledException)
         {
             // Nothing to do, wait for resume
         }
@@ -167,14 +168,14 @@ public class UploadWorker : IDisposable
         {
             if (isPaused)
             {
-                await pauseLock.WaitAsync();
+                await pauseLock.WaitAsync(mainLoopCanncellationTokenSource!.Token);
             }
             else
             {
                 await Task.Delay(delay, mainLoopCanncellationTokenSource!.Token);
             }
         }
-        catch (TaskCanceledException exception)
+        catch (TaskCanceledException)
         {
             // nothing to do here
         }

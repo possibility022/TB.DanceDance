@@ -1,36 +1,93 @@
-DO
-$$
-    DECLARE
-        userId text = '31db6f5c-747d-4f75-9e5f-d953968c2fd2';
-    BEGIN
-        IF NOT EXISTS (select 1 from "Idp.Ident"."AspNetUsers" where "Id" = userId) THEN
-            RAISE NOTICE 'Test user not found. Inserting into Idp.Ident.AspNetUsers';
+-- OpenIddict seed for TB.Auth.Web
+-- Important: update converter client secret manually after initialization.
 
-            INSERT INTO "Idp.Ident"."AspNetUsers" ("Id", "UserName", "NormalizedUserName", "Email", "NormalizedEmail",
-                                                   "EmailConfirmed", "PasswordHash", "SecurityStamp",
-                                                   "ConcurrencyStamp",
-                                                   "PhoneNumber", "PhoneNumberConfirmed", "TwoFactorEnabled",
-                                                   "LockoutEnd",
-                                                   "LockoutEnabled", "AccessFailedCount")
-            VALUES (userId, 'testemail@email.com', 'TESTEMAIL@EMAIL.COM', 'testemail@email.com',
-                    'TESTEMAIL@EMAIL.COM', false,
-                    'AQAAAAIAAYagAAAAELUtg1+KSabFIDi3guZ/hVZfnGtMvbJEM7zvQnfuxFGkNi06ZapZ1lHloP9hmRBUmg==',
-                    '66PAUXBTJGDL526DJFEBRYG4P2F5ZR4W', 'fbba58d2-dfc7-4c7f-802e-b100a5dbb7b0', null, false, false,
-                    null,
-                    true, 0);
+INSERT INTO "Idp.Auth"."OpenIddictScopes" ("Id", "ConcurrencyToken", "Name", "DisplayName", "Resources")
+VALUES ('scope_tbdancedanceapi_read', md5(random()::text || clock_timestamp()::text), 'tbdancedanceapi.read', 'TB DanceDance API - read', '["tbdancedanceapi"]')
+ON CONFLICT ("Name") DO UPDATE
+SET "DisplayName" = EXCLUDED."DisplayName",
+    "Resources" = EXCLUDED."Resources";
 
+INSERT INTO "Idp.Auth"."OpenIddictScopes" ("Id", "ConcurrencyToken", "Name", "DisplayName", "Resources")
+VALUES ('scope_tbdancedanceapi_convert', md5(random()::text || clock_timestamp()::text), 'tbdancedanceapi.convert', 'TB DanceDance API - converter', '["tbdancedanceapi"]')
+ON CONFLICT ("Name") DO UPDATE
+SET "DisplayName" = EXCLUDED."DisplayName",
+    "Resources" = EXCLUDED."Resources";
 
-            INSERT INTO "Idp.Ident"."AspNetUserClaims" ("Id", "UserId", "ClaimType", "ClaimValue")
-            VALUES (DEFAULT, userId, 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name', 'Tom Test');
-            INSERT INTO "Idp.Ident"."AspNetUserClaims" ("Id", "UserId", "ClaimType", "ClaimValue")
-            VALUES (DEFAULT, userId, 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
-                    'testemail@email.com');
-            INSERT INTO "Idp.Ident"."AspNetUserClaims" ("Id", "UserId", "ClaimType", "ClaimValue")
-            VALUES (DEFAULT, userId, 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname', 'Tom');
-            INSERT INTO "Idp.Ident"."AspNetUserClaims" ("Id", "UserId", "ClaimType", "ClaimValue")
-            VALUES (DEFAULT, userId, 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname', 'Test');
-        ELSE
-            RAISE NOTICE 'Test user found. Skipping insertion';
-        END IF;
-    END
-$$
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ConcurrencyToken",
+    "Permissions", "RedirectUris", "PostLogoutRedirectUris", "Requirements")
+VALUES (
+    'app_tbdancedancefront',
+    'tbdancedancefront',
+    'public',
+    'TB DanceDance Frontend',
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:authorization","ept:end_session","ept:token","gt:authorization_code","gt:refresh_token","rst:code","scp:openid","scp:profile","scp:email","scp:offline_access","scp:tbdancedanceapi.read"]',
+    '["http://localhost:3000/callback","http://localhost:4200/callback","http://localhost:5112/signin-callback.html","http://localhost:5112/signin-silent-callback.html","http://localhost:5112/index.html"]',
+    '["http://localhost:3000"]',
+    '["ft:pkce"]'
+)
+ON CONFLICT ("ClientId") DO UPDATE
+SET "ClientType" = EXCLUDED."ClientType",
+    "DisplayName" = EXCLUDED."DisplayName",
+    "Permissions" = EXCLUDED."Permissions",
+    "RedirectUris" = EXCLUDED."RedirectUris",
+    "PostLogoutRedirectUris" = EXCLUDED."PostLogoutRedirectUris",
+    "Requirements" = EXCLUDED."Requirements";
+
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ClientSecret", "ConcurrencyToken",
+    "Permissions")
+VALUES (
+    'app_tbdancedanceconverter',
+    'tbdancedanceconverter',
+    'confidential',
+    'TB DanceDance Converter Daemon',
+    'AQAAAAEAAYagAAAAEJfM9ZxHB62OVzW+PhwBkNqIxVZBdmJu0s5jQm9xcTUYqtH9Lfz2vku6TUyTb9l/Fw==', -- unencrypted = Other
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:token","gt:client_credentials","scp:tbdancedanceapi.convert"]'
+)
+ON CONFLICT ("ClientId") DO UPDATE
+SET "ClientType" = EXCLUDED."ClientType",
+    "DisplayName" = EXCLUDED."DisplayName",
+    "Permissions" = EXCLUDED."Permissions";
+
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ConcurrencyToken",
+    "Permissions", "RedirectUris", "PostLogoutRedirectUris", "Requirements")
+VALUES (
+    'app_tbdancedanceandroidapp',
+    'tbdancedanceandroidapp',
+    'public',
+    'TB DanceDance Android App',
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:authorization","ept:end_session","ept:token","gt:authorization_code","gt:refresh_token","rst:code","scp:openid","scp:profile","scp:email","scp:offline_access","scp:tbdancedanceapi.read"]',
+    '["tbdancedanceandroidapp://"]',
+    '["tbdancedanceandroidapp://"]',
+    '["ft:pkce"]'
+)
+ON CONFLICT ("ClientId") DO UPDATE
+SET "ClientType" = EXCLUDED."ClientType",
+    "DisplayName" = EXCLUDED."DisplayName",
+    "Permissions" = EXCLUDED."Permissions",
+    "RedirectUris" = EXCLUDED."RedirectUris",
+    "PostLogoutRedirectUris" = EXCLUDED."PostLogoutRedirectUris",
+    "Requirements" = EXCLUDED."Requirements";
+
+-- Kept from legacy script mapping. This client requires enabling password flow in server configuration.
+INSERT INTO "Idp.Auth"."OpenIddictApplications" (
+    "Id", "ClientId", "ClientType", "DisplayName", "ClientSecret", "ConcurrencyToken",
+    "Permissions")
+VALUES (
+    'app_tbdancedancehttpclient',
+    'tbdancedancehttpclient',
+    'confidential',
+    'TB DanceDance Http Client',
+    '4Vw/t6S10MOhxfx2mqQ995AVeyiUnyU1hWmX8Gn0Xxw=',
+    md5(random()::text || clock_timestamp()::text),
+    '["ept:token","gt:password","scp:openid","scp:profile","scp:tbdancedanceapi.read"]'
+)
+ON CONFLICT ("ClientId") DO UPDATE
+SET "ClientType" = EXCLUDED."ClientType",
+    "DisplayName" = EXCLUDED."DisplayName",
+    "Permissions" = EXCLUDED."Permissions";

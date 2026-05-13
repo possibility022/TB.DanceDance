@@ -16,7 +16,7 @@ $passwordPath = Join-Path $scriptDir 'publishPassword.tmp'
 $password = Read-Host "Podaj hasło do keystore" -AsSecureString
 
 $originalLocation = Get-Location
-$mobileDir = Join-Path $scriptDir '..\src\TB.DanceDance.Mobile'
+$mobileDir = Join-Path $scriptDir '..\src\mobile\TB.DanceDance.Mobile'
 
 $increaseVersion = Read-Host -Prompt "Chcesz podnieść wersję? y/N"
 

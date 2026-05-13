@@ -16,7 +16,6 @@ public class DanceHttpApiClientTests : IDisposable
     private readonly WireMockServer server;
     private readonly DanceHttpApiClient client;
     private readonly ITokenProviderService tokenProvider;
-    private readonly ITokenProviderService secondaryTokenProvider;
     private readonly JsonSerializerOptions serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     private class TestHttpClientFactory : IHttpClientFactory
@@ -37,11 +36,10 @@ public class DanceHttpApiClientTests : IDisposable
     public DanceHttpApiClientTests()
     {
         tokenProvider = Substitute.For<ITokenProviderService>();
-        secondaryTokenProvider = Substitute.For<ITokenProviderService>();
 
         server = WireMockServer.Start();
         var factory = new TestHttpClientFactory(server.Url!);
-        client = new DanceHttpApiClient(factory, tokenProvider, secondaryTokenProvider);
+        client = new DanceHttpApiClient(factory, tokenProvider);
     }
 
     [Fact]

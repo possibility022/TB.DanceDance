@@ -3,10 +3,10 @@ internal class TokenHttpHandler : DelegatingHandler
 {
     private readonly TokenProvider tokenProvider;
 
-    public TokenHttpHandler(TokenProvider tokenProvider) : base()
+    public TokenHttpHandler(TokenProvider tokenProvider, HttpMessageHandler? innerHandler = null) : base()
     {
         this.tokenProvider = tokenProvider;
-        this.InnerHandler = new HttpClientHandler();
+        this.InnerHandler = innerHandler ?? new HttpClientHandler();
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

@@ -11,17 +11,13 @@ public partial class MainPageViewModel : ObservableObject
 {
     private readonly IServiceProvider serviceProvider;
     private readonly TokenStorage primaryTokenStorage;
-    private readonly TokenStorage secondaryTokenStorage;
     private Task? _checkHostTask = null;
 
     public MainPageViewModel(IServiceProvider serviceProvider, 
-        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage,
-        [FromKeyedServices(TokenStorage.SecondaryStorageKey)] TokenStorage secondaryTokenStorage
-        )
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage)
     {
         this.serviceProvider = serviceProvider;
         this.primaryTokenStorage = primaryTokenStorage;
-        this.secondaryTokenStorage = secondaryTokenStorage;
     }
 
     [ObservableProperty]
@@ -63,7 +59,6 @@ public partial class MainPageViewModel : ObservableObject
     private async Task Logout()
     {
         primaryTokenStorage.ClearToken();
-        secondaryTokenStorage.ClearToken();
         LoginEnabled = true;
         IsLoggedIn = false;
 #if ANDROID

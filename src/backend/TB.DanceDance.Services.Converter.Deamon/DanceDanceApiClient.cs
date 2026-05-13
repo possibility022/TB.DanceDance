@@ -6,7 +6,7 @@ using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
-internal class DanceDanceApiClient : IDanceDanceApiClient, IDisposable
+internal class DanceDanceApiClient : IDanceDanceApiClient
 {
     private readonly ApiHttpClient apiClient;
     private readonly HttpClient blobClient;
@@ -83,11 +83,5 @@ internal class DanceDanceApiClient : IDanceDanceApiClient, IDisposable
 
         var res = await apiClient.SendAsync(request, token);
         res.EnsureSuccessStatusCode();
-    }
-
-    public void Dispose()
-    {
-        apiClient.Dispose();
-        blobClient.Dispose();
     }
 }
