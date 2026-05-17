@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Domain.Services;
+namespace Application.Features.Sharing;
 
 public interface ISharedLinkService
 {

@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
+using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 namespace TB.DanceDance.Mobile.Pages.Popups;
