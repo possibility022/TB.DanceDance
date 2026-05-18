@@ -1,10 +1,11 @@
+using Application.Features.Sharing;
 using Application.Services;
 using Domain.Entities;
 using Domain.Services;
 using Infrastructure.Data;
 using TB.DanceDance.Tests.TestsFixture;
 
-namespace TB.DanceDance.Tests.Application;
+namespace TB.DanceDance.Tests.Features.Sharing;
 
 public class SharedLinkServiceTests : BaseTestClass
 {

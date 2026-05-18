@@ -1,13 +1,13 @@
+using Application.Features.Sharing;
 using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Extensions;
 
-namespace TB.DanceDance.API.Controllers;
+namespace TB.DanceDance.API.Features.Sharing;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class ShareController : Controller
@@ -33,7 +33,7 @@ public class ShareController : Controller
     /// Creates a shared link for a video. Requires authentication.
     /// </summary>
     [HttpPost]
-    [Route(ApiEndpoints.Share.Create)]
+    [Route(ShareRoutes.Create)]
     public async Task<ActionResult<SharedLinkResponse>> CreateSharedLink(
         [FromRoute] Guid videoId,
         [FromBody] CreateSharedLinkRequest request,
@@ -77,7 +77,7 @@ public class ShareController : Controller
     /// Revokes a shared link. Requires authentication. Only the link creator or video owner can revoke.
     /// </summary>
     [HttpDelete]
-    [Route(ApiEndpoints.Share.Revoke)]
+    [Route(ShareRoutes.Revoke)]
     public async Task<IActionResult> RevokeSharedLink(
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
@@ -98,7 +98,7 @@ public class ShareController : Controller
     /// Gets all shared links created by the user or for videos owned by the user. Requires authentication.
     /// </summary>
     [HttpGet]
-    [Route(ApiEndpoints.Share.GetMy)]
+    [Route(ShareRoutes.GetMy)]
     public async Task<ActionResult<IEnumerable<SharedLinkResponse>>> GetMySharedLinks(CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
@@ -128,7 +128,7 @@ public class ShareController : Controller
     /// </summary>
     [AllowAnonymous]
     [HttpGet]
-    [Route(ApiEndpoints.Share.GetInfo)]
+    [Route(ShareRoutes.GetInfo)]
     public async Task<ActionResult<SharedVideoInfoResponse>> GetVideoInfoBySharedLink(
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
@@ -167,7 +167,7 @@ public class ShareController : Controller
     /// </summary>
     [AllowAnonymous]
     [HttpGet]
-    [Route(ApiEndpoints.Share.GetStream)]
+    [Route(ShareRoutes.GetStream)]
     public async Task<IActionResult> StreamVideoBySharedLink(
         [FromRoute] string linkId,
         CancellationToken cancellationToken)

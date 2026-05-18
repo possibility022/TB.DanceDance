@@ -2,7 +2,7 @@ using Domain.Entities;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Services;
+namespace Application.Features.Sharing;
 
 public class SharedLinkService : ISharedLinkService
 {
