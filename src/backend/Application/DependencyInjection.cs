@@ -1,4 +1,5 @@
-﻿using Application.Features.Sharing;
+﻿using Application.Features.Events;
+using Application.Features.Sharing;
 ﻿using Application.Features.Groups;
 ﻿using Application.Features.Comments;
 using Application.Services;
@@ -17,7 +18,6 @@ public static class DependencyInjection
             services
                 .AddScoped<IAccessService, AccessService>()
                 .AddScoped<IVideoService, VideoService>()
-                .AddScoped<IEventService, EventService>()
                 .AddScoped<IVideoUploaderService, VideoUploaderService>()
                 .AddScoped<ICommentService, CommentService>()
                 .AddScoped<ISharedLinkService, SharedLinkService>();
@@ -26,6 +26,7 @@ public static class DependencyInjection
 
             services.AddSharingFeature();
             services.AddGroupsFeature();
+            services.AddEventsFeature();
 
             return services;
         }

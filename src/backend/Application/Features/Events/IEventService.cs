@@ -1,7 +1,7 @@
 ﻿
 using Domain.Entities;
 
-namespace Domain.Services;
+namespace Application.Features.Events;
 public interface IEventService
 {
     Task<ICollection<Event>> GetAllEvents(CancellationToken cancellationToken);
