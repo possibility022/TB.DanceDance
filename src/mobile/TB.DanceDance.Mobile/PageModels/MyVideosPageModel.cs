@@ -1,42 +1,42 @@
-﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Nalu;
 using Serilog;
-using System.Diagnostics;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.PageModels.Intents;
 using TB.DanceDance.Mobile.Pages.Popups;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class MyVideosPageModel : ObservableObject
+public partial class MyVideosPageModel : ObservableObject, IAppearingAware
 {
     [ObservableProperty] IReadOnlyCollection<Video> videos = [];
     [ObservableProperty] private bool isRefreshing;
     private readonly IDanceHttpApiClient apiClient;
     private readonly VideoProvider videoProvider;
     private readonly IPopupService popupService;
+    private readonly INavigationService navigationService;
     private bool videosLoaded = false;
 
-    public MyVideosPageModel(IDanceHttpApiClient apiClient, VideoProvider videoProvider, IPopupService popupService)
+    public MyVideosPageModel(IDanceHttpApiClient apiClient, VideoProvider videoProvider, IPopupService popupService, INavigationService navigationService)
     {
         this.apiClient = apiClient;
         this.videoProvider = videoProvider;
         this.popupService = popupService;
+        this.navigationService = navigationService;
     }
 
     [RelayCommand]
-    private async Task NavigateToWatchVideo(Video video)
-    {
-        await Shell.Current.GoToAsync(Routes.Player, new Dictionary<string, object>()
-        {
-            { "videoBlobId", video.BlobId }
-        });
-    }
+    private Task NavigateToWatchVideo(Video video)
+        => navigationService.GoToAsync(
+            Navigation.Relative()
+                .Push<WatchVideoPageModel>()
+                .WithIntent(new WatchVideoIntent(video.BlobId)));
 
-    [RelayCommand]
-    private async Task Appearing()
+    public async ValueTask OnAppearingAsync()
     {
         if (!videosLoaded)
             await Refresh();
@@ -91,13 +91,11 @@ public partial class MyVideosPageModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task NavigateToUpload()
-    {
-        await Shell.Current.GoToAsync(Routes.Upload.Uploader, new Dictionary<string, object>()
-        {
-            { "isPrivate", true }
-        });
-    }
+    private Task NavigateToUpload()
+        => navigationService.GoToAsync(
+            Navigation.Relative()
+                .Push<UploadVideoPageModel>()
+                .WithIntent(new UploadToPrivateIntent()));
 
     [RelayCommand]
     private async Task Refresh()

@@ -9,15 +9,6 @@
              x:DataType="pageModels:UploadVideoPageModel"
              x:Name="UploadVideoPageView"
              x:Class="TB.DanceDance.Mobile.Pages.UploadVideoPage">
-    <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            BindingContext="{Binding Path=BindingContext, 
-        Source={x:Reference UploadVideoPageView}, 
-        x:DataType=pageModels:UploadVideoPageModel}"
-            Command="{Binding AppearingCommand}">
-        </toolkit:EventToCommandBehavior>
-    </ContentPage.Behaviors>
     <ContentPage.Content>
         <Grid Margin="10, 0, 10, 0">
             <VerticalStackLayout Spacing="10">

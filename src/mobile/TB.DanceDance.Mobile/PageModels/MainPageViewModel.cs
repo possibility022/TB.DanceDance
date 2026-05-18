@@ -1,22 +1,25 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.Mobile.Library.Data;
+using Nalu;
 using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class MainPageViewModel : ObservableObject
+public partial class MainPageViewModel : ObservableObject, IAppearingAware
 {
     private readonly IServiceProvider serviceProvider;
+    private readonly INavigationService navigationService;
     private readonly TokenStorage primaryTokenStorage;
     private Task? _checkHostTask = null;
 
-    public MainPageViewModel(IServiceProvider serviceProvider, 
+    public MainPageViewModel(IServiceProvider serviceProvider,
+        INavigationService navigationService,
         [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage)
     {
         this.serviceProvider = serviceProvider;
+        this.navigationService = navigationService;
         this.primaryTokenStorage = primaryTokenStorage;
     }
 
@@ -30,30 +33,20 @@ public partial class MainPageViewModel : ObservableObject
     private bool loginInProgress;
 
     [RelayCommand]
-    private async Task NavigateToGroups()
-    {
-        await Shell.Current.GoToAsync("//" + Routes.Groups.AllVideos);
-    }
+    private Task NavigateToGroups()
+        => navigationService.GoToAsync(Navigation.Absolute().Root<GroupVideosPageModel>());
 
     [RelayCommand]
-    private async Task NavigateToEvents()
-    {
-        await Shell.Current.GoToAsync("//" + Routes.Events.EventsList);
-    }
+    private Task NavigateToEvents()
+        => navigationService.GoToAsync(Navigation.Absolute().Root<EventsPageModel>());
 
     [RelayCommand]
-    private async Task NavigateToMyVideos()
-    {
-        await Shell.Current.GoToAsync("//" + Routes.Private.MyVideos);
-    }
-
+    private Task NavigateToMyVideos()
+        => navigationService.GoToAsync(Navigation.Absolute().Root<MyVideosPageModel>());
 
     [RelayCommand]
-    private async Task NavigateToGetAccess()
-    {
-        await Shell.Current.GoToAsync(Routes.GetAccess);
-    }
-
+    private Task NavigateToGetAccess()
+        => navigationService.GoToAsync(Navigation.Relative().Push<GetAccessPageModel>());
 
     [RelayCommand]
     private async Task Logout()
@@ -88,20 +81,17 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task Appearing()
+    public async ValueTask OnAppearingAsync()
     {
         try
         {
             await CheckLoginStatus();
             if (!IsLoggedIn && primaryTokenStorage.Token != null)
             {
-                // We have a refresh token, just login automatically
                 await Login();
             }
 #if ANDROID
-            //if (dbContext.VideosToUpload.Any(r => r.Uploaded == false))
-                UploadForegroundService.StartService();
+            UploadForegroundService.StartService();
 #endif
         }
         finally

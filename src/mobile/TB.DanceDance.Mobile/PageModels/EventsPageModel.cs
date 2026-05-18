@@ -9,7 +9,7 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class EventsPageModel : ObservableObject,
     IAppearingAware,
-    IEnteringAware<RefreshEventsIntent>
+    IAppearingAware<RefreshEventsIntent>
 {
     private readonly IDanceHttpApiClient _apiClient;
     private readonly INavigationService _navigationService;
@@ -31,7 +31,7 @@ public partial class EventsPageModel : ObservableObject,
             await Refresh();
     }
 
-    public async ValueTask OnEnteringAsync(RefreshEventsIntent intent)
+    public async ValueTask OnAppearingAsync(RefreshEventsIntent intent)
         => await Refresh();
 
     [RelayCommand]
