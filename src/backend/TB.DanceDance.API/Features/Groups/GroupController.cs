@@ -1,13 +1,14 @@
-﻿using Domain.Entities;
-using Domain.Services;
+﻿using Application.Features.Groups;
+using Domain.Entities;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 
-namespace TB.DanceDance.API.Controllers;
+namespace TB.DanceDance.API.Features.Groups;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class GroupController : Controller
@@ -20,7 +21,7 @@ public class GroupController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Group.Videos)]
+    [Route(GroupRoutes.Videos)]
     public async Task<IActionResult> GetVideosAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
@@ -34,7 +35,7 @@ public class GroupController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Group.VideosForGroup)]
+    [Route(GroupRoutes.VideosForGroup)]
     public async Task<IActionResult> GetVideosPerGroup(Guid groupId, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();

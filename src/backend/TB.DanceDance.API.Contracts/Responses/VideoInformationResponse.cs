@@ -1,20 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 
 namespace TB.DanceDance.API.Contracts.Responses
 {
     public class VideoInformationResponse : VideoInformationModel
     {
 
-    }
-
-    public class GroupWithVideosResponse
-    {
-        public Guid GroupId { get; set; }
-        public string GroupName { get; set; } = null!;
-        public DateTime SeasonStart { get; set; }
-        public DateTime SeasonEnd { get; set; }
-        public ICollection<VideoInformationModel> Videos { get; set; } = null!;
     }
 
     public class VideoInformationModel
