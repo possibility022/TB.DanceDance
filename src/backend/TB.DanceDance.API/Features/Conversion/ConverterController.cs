@@ -1,12 +1,10 @@
 using Application.Features.Videos;
-using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Contracts.Features.Conversion;
 
-namespace TB.DanceDance.API.Controllers;
+namespace TB.DanceDance.API.Features.Conversion;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.WriteConvert)]
 public class ConverterController : Controller
@@ -19,7 +17,7 @@ public class ConverterController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Converter.Videos)]
+    [Route(ConversionRoutes.Videos)]
     public async Task<IActionResult> GetVideosToConvert(CancellationToken cancellationToken)
     {
         var video = await videoUploaderService.GetNextVideoToTransformAsync(cancellationToken);
@@ -38,7 +36,7 @@ public class ConverterController : Controller
     }
 
     [HttpPost]
-    [Route(ApiEndpoints.Converter.Videos)]
+    [Route(ConversionRoutes.Videos)]
     public async Task<IActionResult> UpdateVideoInfo([FromBody] UpdateVideoInfoRequest publishVideo, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -60,7 +58,7 @@ public class ConverterController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Converter.GetPublishSas)]
+    [Route(ConversionRoutes.GetPublishSas)]
     public async Task<IActionResult> GetPublishSas([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
         var shared = await videoUploaderService.GetSasForConvertedVideoAsync(videoId, cancellationToken);
@@ -72,7 +70,7 @@ public class ConverterController : Controller
     }
 
     [HttpPost]
-    [Route(ApiEndpoints.Converter.Upload)]
+    [Route(ConversionRoutes.Upload)]
     public async Task<IActionResult> PublishConvertedVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
         var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId, cancellationToken);

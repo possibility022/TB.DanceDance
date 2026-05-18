@@ -1,4 +1,4 @@
-﻿namespace TB.DanceDance.API.Contracts.Responses
+﻿namespace TB.DanceDance.API.Contracts.Features.Conversion
 {
     public class GetPublishSasResponse
     {
