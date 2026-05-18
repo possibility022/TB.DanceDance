@@ -67,6 +67,15 @@ public static class ApiEndpoints
         public const string Hide = $"{Base}/{{commentId:guid}}/hide";
         public const string Unhide = $"{Base}/{{commentId:guid}}/unhide";
         public const string Report = $"{Base}/{{commentId:guid}}/report";
+    public static class Share
+    {
+        private const string Base = $"{ApiBase}/share";
+
+        public const string Create = $"{ApiBase}/videos/{{videoId:guid}}/share";
+        public const string Revoke = $"{Base}/{{linkId}}";
+        public const string GetMy = $"{Base}/my";
+        public const string GetInfo = $"{Base}/{{linkId}}";
+        public const string GetStream = $"{Base}/{{linkId}}/stream";
     }
 
     public static class Info

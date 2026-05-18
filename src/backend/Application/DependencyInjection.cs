@@ -1,4 +1,5 @@
 ﻿using Application.Features.Sharing;
+﻿using Application.Features.Comments;
 using Application.Services;
 using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,9 @@ public static class DependencyInjection
                 .AddScoped<IGroupService, GroupService>()
                 .AddScoped<IVideoUploaderService, VideoUploaderService>()
                 .AddScoped<ICommentService, CommentService>();
+                .AddScoped<ISharedLinkService, SharedLinkService>();
+
+            services.AddCommentsFeature();
 
             services.AddSharingFeature();
 
