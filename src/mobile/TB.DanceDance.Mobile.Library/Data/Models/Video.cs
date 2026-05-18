@@ -1,5 +1,5 @@
 ﻿using TB.DanceDance.API.Contracts.Features.Groups;
-using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace TB.DanceDance.Mobile.Library.Data.Models;
 

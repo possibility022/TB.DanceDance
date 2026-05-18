@@ -1,5 +1,5 @@
 ﻿using Application.Features.AccessManagement;
-using Application.Services;
+using Application.Features.Videos;
 using Domain;
 using Domain.Entities;
 using Domain.Models;
@@ -8,10 +8,10 @@ using Infrastructure.Data;
 using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.Tests.TestsFixture;
 
-namespace TB.DanceDance.Tests.Application;
+namespace TB.DanceDance.Tests.Features.Videos;
 
 public class VideoServiceTests : BaseTestClass
 {

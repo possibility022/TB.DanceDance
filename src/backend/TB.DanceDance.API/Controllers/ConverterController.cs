@@ -1,3 +1,4 @@
+using Application.Features.Videos;
 using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;

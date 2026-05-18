@@ -1,11 +1,11 @@
-﻿using Application.Services;
+﻿using Application.Features.Videos;
 using Domain;
 using Infrastructure.Data;
 using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Tests.TestsFixture;
 
-namespace TB.DanceDance.Tests.Application;
+namespace TB.DanceDance.Tests.Features.Videos;
 
 public class VideoUploaderTests : BaseTestClass
 {

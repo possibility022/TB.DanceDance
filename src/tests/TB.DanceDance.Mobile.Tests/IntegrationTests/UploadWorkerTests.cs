@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using System.Threading.Channels;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;

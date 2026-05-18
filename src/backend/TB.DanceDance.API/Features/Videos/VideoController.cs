@@ -1,14 +1,13 @@
 ﻿using Application.Features.AccessManagement;
-using Domain.Services;
+using Application.Features.Videos;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.API.Contracts.Models;
-using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 
-namespace TB.DanceDance.API.Controllers;
+namespace TB.DanceDance.API.Features.Videos;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class VideoController : Controller
@@ -27,7 +26,7 @@ public class VideoController : Controller
     private readonly ILogger<VideoController> logger;
 
 
-    [Route(ApiEndpoints.Video.MyVideos)]
+    [Route(VideoRoutes.MyVideos)]
     public async Task<IActionResult> MyVideos(CancellationToken cancellationToken)
     {
         var videos = await accessService.GetUserPrivateVideos(User.GetSubject(), cancellationToken);
@@ -36,7 +35,7 @@ public class VideoController : Controller
         return new OkObjectResult(apiModel);
     }
     
-    [Route(ApiEndpoints.Video.GetSingle)]
+    [Route(VideoRoutes.GetSingle)]
     [HttpGet]
     public async Task<IActionResult> GetInformationAsync(string guid, CancellationToken cancellationToken)
     {
@@ -52,7 +51,7 @@ public class VideoController : Controller
         return new OkObjectResult(results);
     }
 
-    [Route(ApiEndpoints.Video.GetStream)]
+    [Route(VideoRoutes.GetStream)]
     [HttpGet]
     public async Task<IActionResult> GetStreamAsync(string guid, CancellationToken cancellationToken)
     {
@@ -76,7 +75,7 @@ public class VideoController : Controller
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 
-    [Route(ApiEndpoints.Video.Rename)]
+    [Route(VideoRoutes.Rename)]
     [HttpPost]
     public async Task<IActionResult> RenameVideo([FromRoute] Guid videoId, [FromBody] VideoRenameRequest input, CancellationToken cancellationToken)
     {
@@ -92,7 +91,7 @@ public class VideoController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Video.RefreshUploadUrl)]
+    [Route(VideoRoutes.RefreshUploadUrl)]
     public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute]Guid videoId, CancellationToken cancellationToken)
     {
         string user  = User.GetSubject();
@@ -111,7 +110,7 @@ public class VideoController : Controller
         };
     }
 
-    [Route(ApiEndpoints.Video.GetUploadUrl)]
+    [Route(VideoRoutes.GetUploadUrl)]
     [HttpPost]
     public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation(
         [FromBody] SharedVideoInformationRequest sharedVideoInformation,
@@ -208,7 +207,7 @@ public class VideoController : Controller
     /// Updates the comment visibility setting for a video. Only the video owner can update this.
     /// </summary>
     [HttpPut]
-    [Route(ApiEndpoints.Video.UpdateCommentSettings)]
+    [Route(VideoRoutes.UpdateCommentSettings)]
     public async Task<IActionResult> UpdateCommentSettings(
         [FromRoute] Guid videoId,
         [FromBody] UpdateVideoCommentSettingsRequest request,

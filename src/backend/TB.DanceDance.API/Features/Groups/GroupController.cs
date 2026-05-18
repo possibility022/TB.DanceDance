@@ -4,6 +4,7 @@ using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.API.Contracts.Features.Groups;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
