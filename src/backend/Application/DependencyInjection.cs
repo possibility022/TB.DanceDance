@@ -19,7 +19,7 @@ public static class DependencyInjection
                 .AddScoped<IVideoService, VideoService>()
                 .AddScoped<IEventService, EventService>()
                 .AddScoped<IVideoUploaderService, VideoUploaderService>()
-                .AddScoped<ICommentService, CommentService>();
+                .AddScoped<ICommentService, CommentService>()
                 .AddScoped<ISharedLinkService, SharedLinkService>();
 
             services.AddCommentsFeature();
