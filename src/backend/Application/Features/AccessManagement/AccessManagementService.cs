@@ -1,9 +1,8 @@
 ﻿using Domain.Entities;
 using Domain.Models;
-using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Services;
+namespace Application.Features.AccessManagement;
 
 public class AccessManagementService : IAccessManagementService
 {

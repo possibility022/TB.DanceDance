@@ -1,4 +1,5 @@
-﻿using Application.Features.Events;
+﻿using Application.Features.AccessManagement;
+using Application.Features.Events;
 using Application.Features.Sharing;
 ﻿using Application.Features.Groups;
 ﻿using Application.Features.Comments;
@@ -16,7 +17,6 @@ public static class DependencyInjection
         {
 
             services
-                .AddScoped<IAccessService, AccessService>()
                 .AddScoped<IVideoService, VideoService>()
                 .AddScoped<IVideoUploaderService, VideoUploaderService>()
                 .AddScoped<ICommentService, CommentService>()
@@ -27,6 +27,7 @@ public static class DependencyInjection
             services.AddSharingFeature();
             services.AddGroupsFeature();
             services.AddEventsFeature();
+            services.AddAccessManagementFeature();
 
             return services;
         }

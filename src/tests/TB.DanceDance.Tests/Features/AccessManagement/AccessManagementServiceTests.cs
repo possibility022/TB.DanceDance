@@ -1,10 +1,10 @@
-﻿using Application.Services;
+﻿using Application.Features.AccessManagement;
 using Domain.Entities;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Tests.TestsFixture;
 
-namespace TB.DanceDance.Tests.Application;
+namespace TB.DanceDance.Tests.Features.AccessManagement;
 
 public class AccessManagementServiceTests : BaseTestClass
 {

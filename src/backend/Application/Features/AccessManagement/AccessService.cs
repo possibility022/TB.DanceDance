@@ -1,8 +1,7 @@
 ﻿using Domain.Entities;
-using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Services;
+namespace Application.Features.AccessManagement;
 
 public class AccessService : IAccessService
 {

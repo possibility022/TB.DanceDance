@@ -1,5 +1,4 @@
 ﻿using Application;
-using Application.Services;
 using Domain;
 using Domain.Exceptions;
 using Domain.Services;
@@ -27,8 +26,6 @@ public static class DependencyInjection
                 options.UseNpgsql(configuration.GetConnectionString("PostgreDb") ?? throw new AppException(
                     "PostgreDb connection string is null."));
             });
-
-            services.AddScoped<IAccessManagementService, AccessManagementService>();
 
             return services;
         }
