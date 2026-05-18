@@ -1,14 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Nalu;
 using Serilog;
 using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.PageModels.Intents;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class EventDetailsPageModel : ObservableObject, IQueryAttributable
+public partial class EventDetailsPageModel : ObservableObject,
+    IQueryAttributable,
+    IEnteringAware<EventDetailsIntent>
 {
     private readonly VideoProvider videoProvider;
     private readonly IDanceHttpApiClient apiClient;
@@ -84,6 +88,12 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
             EventId = eventIdFromRoute;
             Refresh();//todo fireandforgetsafeasync
         }
+    }
+
+    public async ValueTask OnEnteringAsync(EventDetailsIntent intent)
+    {
+        EventId = intent.EventId;
+        await Refresh();
     }
     
     [RelayCommand]

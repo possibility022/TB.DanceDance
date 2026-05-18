@@ -1,8 +1,11 @@
-﻿namespace TB.DanceDance.Mobile;
+using Nalu;
 
-public partial class AppShell : Shell
+namespace TB.DanceDance.Mobile;
+
+public partial class AppShell : NaluShell
 {
-    public AppShell()
+    public AppShell(INavigationService navigationService)
+        : base(navigationService, typeof(MainPage))
     {
         InitializeComponent();
     }

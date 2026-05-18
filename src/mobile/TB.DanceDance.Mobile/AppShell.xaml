@@ -1,40 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Shell
+<nalu:NaluShell
     x:Class="TB.DanceDance.Mobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TB.DanceDance.Mobile"
     xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
+    xmlns:nalu="https://nalu-development.github.com/nalu/navigation"
     xmlns:global="clr-namespace:"
-    Shell.FlyoutBehavior="Flyout"
+    FlyoutBehavior="Flyout"
     Title="TB.DanceDance.Mobile">
-    
-        
+
     <ShellContent
         Title="Menu"
-        ContentTemplate="{DataTemplate local:MainPage}"
+        nalu:Navigation.PageType="local:MainPage"
         Route="MainPage" />
 
     <ShellContent
         Title="Status wysyłania plików"
-        ContentTemplate="{DataTemplate pages:UploadManagerPage}"
+        nalu:Navigation.PageType="pages:UploadManagerPage"
         Route="{x:Static global:Routes+Upload.Manager}" />
 
     <TabBar>
         <Tab Title="Wydarzenia"
              Icon="event.png">
-            <ShellContent ContentTemplate="{DataTemplate pages:EventsPage}" Route="{x:Static global:Routes+Events.EventsList}" />
+            <ShellContent nalu:Navigation.PageType="pages:EventsPage"
+                          Route="{x:Static global:Routes+Events.EventsList}" />
         </Tab>
         <Tab Title="Lekcje Reg."
              Icon="dance.png">
-            <ShellContent ContentTemplate="{DataTemplate pages:GroupVideosPage}" Route="{x:Static global:Routes+Groups.AllVideos}" />
+            <ShellContent nalu:Navigation.PageType="pages:GroupVideosPage"
+                          Route="{x:Static global:Routes+Groups.AllVideos}" />
         </Tab>
-        
+
         <Tab Title="Osobiste"
              Icon="dance.png">
-            <ShellContent ContentTemplate="{DataTemplate pages:MyVideosPage}" Route="{x:Static global:Routes+Private.MyVideos}" /> <!-- I have no idea why this does not work here: {x:Static global:Routes+MyVideos} -->
+            <ShellContent nalu:Navigation.PageType="pages:MyVideosPage"
+                          Route="{x:Static global:Routes+Private.MyVideos}" />
         </Tab>
 
     </TabBar>
-    
-</Shell>
+
+</nalu:NaluShell>
