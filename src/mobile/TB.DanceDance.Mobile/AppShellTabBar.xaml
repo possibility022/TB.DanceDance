@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+      xmlns:local="clr-namespace:TB.DanceDance.Mobile"
+      xmlns:nalu="https://nalu-development.github.com/nalu/layouts"
+      SafeAreaEdges="None"
+      x:Class="TB.DanceDance.Mobile.AppShellTabBar">
+    <Grid SafeAreaEdges="None"
+          Margin="{OnPlatform Default=0, iOS='0,0,0,-12'}">
+        <Grid.Resources>
+            <Style TargetType="ImageButton">
+                <Setter Property="Padding" Value="12"/>
+                <Setter Property="HeightRequest" Value="48"/>
+            </Style>
+            <Style TargetType="FontImageSource">
+                <Setter Property="Size" Value="24"/>
+                <Setter Property="FontFamily" Value="MaterialRound"/>
+                <Setter Property="Color" Value="{AppThemeBinding Light='#888', Dark='#BBB'}"/>
+            </Style>
+        </Grid.Resources>
+        <Border SafeAreaEdges="Container"
+                ZIndex="1"
+                StrokeThickness="0"
+                BackgroundColor="{AppThemeBinding Light='#E9E9F0', Dark='#252547'}"
+                Shadow="{Shadow Radius=4, Offset='1,1', Opacity=0.16}">
+            <Border.StrokeShape>
+                <local:FancyTabBarShape x:Name="TabBarShape"
+                                        InsetHeight="40"
+                                        InsetWidth="120" />
+            </Border.StrokeShape>
+            <Grid x:Name="Buttons"
+                  ColumnDefinitions="*,*,*,*"
+                  SafeAreaEdges="None"
+                  Padding="20,0,20,0">
+                <!-- Wydarzenia (event) -->
+                <ImageButton Source="{FontImageSource Glyph='&#xe878;'}"
+                             Grid.Column="0"
+                             Clicked="IconClicked"/>
+                <!-- Lekcje Reg. (group) -->
+                <ImageButton Source="{FontImageSource Glyph='&#xe7ef;'}"
+                             Grid.Column="1"
+                             Clicked="IconClicked"/>
+                <!-- Osobiste (video_library) -->
+                <ImageButton Source="{FontImageSource Glyph='&#xe04a;'}"
+                             Grid.Column="2"
+                             Clicked="IconClicked"/>
+                <!-- Konto (account_circle) -->
+                <ImageButton Source="{FontImageSource Glyph='&#xe853;'}"
+                             Grid.Column="3"
+                             Clicked="IconClicked"/>
+            </Grid>
+        </Border>
+
+        <Grid x:Name="SelectedShapeContainer"
+              TranslationY="-20"
+              TranslationX="32"
+              HorizontalOptions="Start"
+              VerticalOptions="Start">
+            <nalu:ViewBox x:Name="SelectedShape" HorizontalOptions="Start" Padding="4">
+                <Border HeightRequest="48"
+                        StrokeThickness="0"
+                        WidthRequest="48"
+                        BackgroundColor="{AppThemeBinding Light='#E9E9F0', Dark='#252547'}"
+                        Shadow="{Shadow Radius=4, Offset='1,1', Opacity=0.4}"
+                        StrokeShape="RoundRectangle 24">
+                    <ImageButton x:Name="SelectedButton"
+                                 Padding="10"
+                                 Clicked="SelectedButtonClicked">
+                        <ImageButton.Source>
+                            <FontImageSource Glyph="&#xe878;"
+                                             FontFamily="MaterialRound"
+                                             Color="{AppThemeBinding Light=Black, Dark=White}"/>
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Border>
+            </nalu:ViewBox>
+        </Grid>
+    </Grid>
+</Grid>

@@ -12,7 +12,6 @@ public partial class MainPageViewModel : ObservableObject, IAppearingAware
     private readonly IServiceProvider serviceProvider;
     private readonly INavigationService navigationService;
     private readonly TokenStorage primaryTokenStorage;
-    private Task? _checkHostTask = null;
 
     public MainPageViewModel(IServiceProvider serviceProvider,
         INavigationService navigationService,
@@ -23,40 +22,28 @@ public partial class MainPageViewModel : ObservableObject, IAppearingAware
         this.primaryTokenStorage = primaryTokenStorage;
     }
 
-    [ObservableProperty]
-    private bool isLoggedIn;
+    [ObservableProperty] private bool loginEnabled = true;
+    [ObservableProperty] private bool loginInProgress;
 
-    [ObservableProperty]
-    private bool loginEnabled;
-
-    [ObservableProperty]
-    private bool loginInProgress;
-
-    [RelayCommand]
-    private Task NavigateToGroups()
-        => navigationService.GoToAsync(Navigation.Absolute().Root<GroupVideosPageModel>());
-
-    [RelayCommand]
-    private Task NavigateToEvents()
-        => navigationService.GoToAsync(Navigation.Absolute().Root<EventsPageModel>());
-
-    [RelayCommand]
-    private Task NavigateToMyVideos()
-        => navigationService.GoToAsync(Navigation.Absolute().Root<MyVideosPageModel>());
-
-    [RelayCommand]
-    private Task NavigateToGetAccess()
-        => navigationService.GoToAsync(Navigation.Relative().Push<GetAccessPageModel>());
-
-    [RelayCommand]
-    private async Task Logout()
+    public async ValueTask OnAppearingAsync()
     {
-        primaryTokenStorage.ClearToken();
-        LoginEnabled = true;
-        IsLoggedIn = false;
-#if ANDROID
-        UploadForegroundService.StopService();
-#endif
+        try
+        {
+            if (await IsAlreadyLoggedIn())
+            {
+                await GoToHomeTab();
+                return;
+            }
+
+            if (primaryTokenStorage.Token?.RefreshToken is not null)
+            {
+                await Login();
+            }
+        }
+        finally
+        {
+            LoginEnabled = true;
+        }
     }
 
     [RelayCommand]
@@ -68,7 +55,14 @@ public partial class MainPageViewModel : ObservableObject, IAppearingAware
             LoginEnabled = false;
 
             await serviceProvider.GetRequiredService<IDanceHttpApiClient>().GetUserAccesses();
-            await CheckLoginStatus();
+
+            if (await IsAlreadyLoggedIn())
+            {
+#if ANDROID
+                UploadForegroundService.StartService();
+#endif
+                await GoToHomeTab();
+            }
         }
         catch (Exception ex)
         {
@@ -81,41 +75,15 @@ public partial class MainPageViewModel : ObservableObject, IAppearingAware
         }
     }
 
-    public async ValueTask OnAppearingAsync()
-    {
-        try
-        {
-            await CheckLoginStatus();
-            if (!IsLoggedIn && primaryTokenStorage.Token != null)
-            {
-                await Login();
-            }
-#if ANDROID
-            UploadForegroundService.StartService();
-#endif
-        }
-        finally
-        {
-            LoginEnabled = true;
-        }
-    }
-
-    private async Task CheckLoginStatus()
+    private async Task<bool> IsAlreadyLoggedIn()
     {
         if (primaryTokenStorage.Token is null)
             await primaryTokenStorage.LoadRefreshTokenFromStorage();
 
-        if (_checkHostTask is not null)
-            await _checkHostTask;
-
-        if (primaryTokenStorage.Token?.AccessTokenExpiration is not null &&
-            primaryTokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
-        {
-            IsLoggedIn = true;
-        }
-        else
-        {
-            IsLoggedIn = false;
-        }
+        return primaryTokenStorage.Token?.AccessTokenExpiration is not null
+               && primaryTokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5);
     }
+
+    private Task GoToHomeTab()
+        => navigationService.GoToAsync(Navigation.Absolute().Root<EventsPageModel>());
 }

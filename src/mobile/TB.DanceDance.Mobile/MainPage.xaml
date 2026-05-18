@@ -1,69 +1,38 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
-             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
              x:DataType="pageModels:MainPageViewModel"
              x:Name="MainPageViewPage"
              x:Class="TB.DanceDance.Mobile.MainPage">
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
-    <Grid>
+    <Grid VerticalOptions="Center">
         <Grid.RowDefinitions>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0"
-                             IsVisible="{Binding IsLoggedIn, Converter={StaticResource InverseBooleanConverter}}"
-                             VerticalOptions="Center">
-            
-            <Grid.RowDefinitions>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-            </Grid.RowDefinitions>
-            
-            <Label
-                Grid.Row="0"
-                Text="Cześć!"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
 
-            <Label
-                Grid.Row="1"
-                Text="Zarejestruj się lub zaloguj :)"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level2" />
+        <Label
+            Grid.Row="0"
+            Text="Cześć!"
+            Style="{StaticResource Headline}"
+            SemanticProperties.HeadingLevel="Level1" />
 
-            <ActivityIndicator Grid.Row="2" IsRunning="true" IsVisible="{Binding LoginInProgress}" />
+        <Label
+            Grid.Row="1"
+            Text="Zarejestruj się lub zaloguj :)"
+            Style="{StaticResource Headline}"
+            SemanticProperties.HeadingLevel="Level2" />
 
-            <controls:FillButton Grid.Row="3"
-                Text="Zarejestruj / Zaloguj"
-                Command="{Binding LoginCommand}"
-                IsEnabled="{Binding LoginEnabled}" />
-        </Grid>
-        <Grid Grid.Row="1" IsVisible="{Binding IsLoggedIn}" VerticalOptions="Center">
+        <ActivityIndicator Grid.Row="2" IsRunning="true" IsVisible="{Binding LoginInProgress}" />
 
-            <Grid.RowDefinitions>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-            </Grid.RowDefinitions>
-
-            <controls:FillButton Grid.Row="0" Text="Nagrania z Wydarzeń" Command="{Binding NavigateToEventsCommand}"></controls:FillButton>
-            <controls:FillButton Grid.Row="1" Text="Nagrania z Zajęć Regularnych" Command="{Binding NavigateToGroupsCommand}"></controls:FillButton>
-            <controls:FillButton Grid.Row="2" Text="Moje Osobiste Nagrania" Command="{Binding NavigateToMyVideosCommand}"></controls:FillButton>
-            <controls:FillButton Grid.Row="3" Text="Uzyskaj Dostępy" Command="{Binding NavigateToGetAccessCommand}"></controls:FillButton>
-            <controls:FillButton Grid.Row="4" Text="Wyloguj" Command="{Binding LogoutCommand}"></controls:FillButton>
-        </Grid>
+        <controls:FillButton Grid.Row="3"
+            Text="Zarejestruj / Zaloguj"
+            Command="{Binding LoginCommand}"
+            IsEnabled="{Binding LoginEnabled}" />
     </Grid>
 
 </ContentPage>
