@@ -1,4 +1,5 @@
-﻿using Domain.Exceptions;
+﻿using Application.Features.Groups;
+using Domain.Exceptions;
 using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;

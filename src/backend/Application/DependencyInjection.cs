@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application.Features.Groups;
+using Application.Services;
 using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,10 +16,11 @@ public static class DependencyInjection
                 .AddScoped<IAccessService, AccessService>()
                 .AddScoped<IVideoService, VideoService>()
                 .AddScoped<IEventService, EventService>()
-                .AddScoped<IGroupService, GroupService>()
                 .AddScoped<IVideoUploaderService, VideoUploaderService>()
                 .AddScoped<ISharedLinkService, SharedLinkService>()
                 .AddScoped<ICommentService, CommentService>();
+
+            services.AddGroupsFeature();
 
             return services;
         }

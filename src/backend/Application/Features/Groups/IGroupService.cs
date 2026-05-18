@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 
-namespace Domain.Services;
+namespace Application.Features.Groups;
 public interface IGroupService
 {
     Task<ICollection<Group>> GetAllGroups(CancellationToken cancellationToken);
