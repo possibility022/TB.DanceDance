@@ -1,15 +1,14 @@
+using Application.Features.Comments;
 using Domain.Entities;
-using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
-using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Contracts.Features.Comments;
 using TB.DanceDance.API.Extensions;
 
-namespace TB.DanceDance.API.Controllers;
+namespace TB.DanceDance.API.Features.Comments;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class CommentsController : Controller
@@ -29,7 +28,7 @@ public class CommentsController : Controller
     /// </summary>
     [AllowAnonymous]
     [HttpPost]
-    [Route(ApiEndpoints.Comments.Create)]
+    [Route(CommentRoutes.Create)]
     public async Task<ActionResult<CommentResponse>> CreateComment(
         [FromRoute] string linkId,
         [FromBody] CreateCommentRequest request,
@@ -65,7 +64,7 @@ public class CommentsController : Controller
     /// </summary>
     [AllowAnonymous]
     [HttpGet]
-    [Route(ApiEndpoints.Comments.GetByLink)]
+    [Route(CommentRoutes.GetByLink)]
     public async Task<ActionResult<IEnumerable<CommentResponse>>> GetCommentsByLink(
         [FromRoute] string linkId,
         [FromQuery] string? anonymousId,
@@ -99,7 +98,7 @@ public class CommentsController : Controller
     /// </summary>
     [HttpPut]
     [AllowAnonymous]
-    [Route(ApiEndpoints.Comments.Update)]
+    [Route(CommentRoutes.Update)]
     public async Task<IActionResult> UpdateComment(
         [FromRoute] Guid commentId,
         [FromBody] UpdateCommentRequest request,
@@ -146,7 +145,7 @@ public class CommentsController : Controller
     /// Deletes a comment. Can be deleted by the author or video owner.
     /// </summary>
     [AllowAnonymous]
-    [Route(ApiEndpoints.Comments.Delete)]
+    [Route(CommentRoutes.Delete)]
     [HttpDelete]
     public async Task<IActionResult> DeleteComment(
         [FromRoute] Guid commentId,
@@ -181,7 +180,7 @@ public class CommentsController : Controller
     /// Hides a comment. Only the video owner can hide comments.
     /// </summary>
     [HttpPut]
-    [Route(ApiEndpoints.Comments.Hide)]
+    [Route(CommentRoutes.Hide)]
     public async Task<IActionResult> HideComment(
         [FromRoute] Guid commentId,
         CancellationToken cancellationToken)
@@ -202,7 +201,7 @@ public class CommentsController : Controller
     /// Unhides a comment. Only the video owner can unhide comments.
     /// </summary>
     [HttpPut]
-    [Route(ApiEndpoints.Comments.Unhide)]
+    [Route(CommentRoutes.Unhide)]
     public async Task<IActionResult> UnhideComment(
         [FromRoute] Guid commentId,
         CancellationToken cancellationToken)
@@ -224,7 +223,7 @@ public class CommentsController : Controller
     /// </summary>
     [AllowAnonymous]
     [HttpPost]
-    [Route(ApiEndpoints.Comments.Report)]
+    [Route(CommentRoutes.Report)]
     public async Task<IActionResult> ReportComment(
         [FromRoute] Guid commentId,
         [FromBody] ReportCommentRequest request,
@@ -249,7 +248,7 @@ public class CommentsController : Controller
     }
     
     [HttpGet]
-    [Route(ApiEndpoints.Comments.GetCommentsForVideo)]
+    [Route(CommentRoutes.GetCommentsForVideo)]
     public async Task<IActionResult> GetCommentsForVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();

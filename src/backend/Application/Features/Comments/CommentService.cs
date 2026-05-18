@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Application.Services;
+namespace Application.Features.Comments;
 
 public class CommentService : ICommentService
 {
