@@ -39,6 +39,8 @@ public static class MauiProgram
             })
             .UseMauiCommunityToolkitMediaElement(false)
             .UseMauiCommunityToolkit()
+            .UseNaluLayouts()
+            .UseNaluTabBar()
             .UseNaluNavigation<App>(nav => nav
                 .AddPage<MainPageViewModel, MainPage>()
                 .AddPage<EventsPageModel, EventsPage>()
