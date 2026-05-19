@@ -1,6 +1,6 @@
 using System;
 
-namespace TB.DanceDance.API.Contracts.Responses
+namespace TB.DanceDance.API.Contracts.Features.Videos
 {
     public class VideoInformationResponse : VideoInformationModel
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.API.Contracts.Requests
+namespace TB.DanceDance.API.Contracts.Features.Videos
 {
 
     public class SharedVideoInformationRequest

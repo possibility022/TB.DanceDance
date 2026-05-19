@@ -1,7 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Models;
 
-namespace Domain.Services;
+namespace Application.Features.Videos;
 
 public interface IVideoUploaderService
 {

@@ -4,7 +4,7 @@ using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Services;
+namespace Application.Features.Videos;
 
 public class VideoUploaderService : IVideoUploaderService
 {

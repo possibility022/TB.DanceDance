@@ -4,9 +4,9 @@ using Domain.Entities;
 using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Features.Videos;
 
-namespace Application.Services;
+namespace Application.Features.Videos;
 
 public class VideoService : IVideoService
 {

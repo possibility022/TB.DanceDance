@@ -1,8 +1,8 @@
 ﻿using Domain.Entities;
 using Domain.Models;
-using TB.DanceDance.API.Contracts.Requests;
+using TB.DanceDance.API.Contracts.Features.Videos;
 
-namespace Domain.Services;
+namespace Application.Features.Videos;
 
 public interface IVideoService
 {
