@@ -1,14 +1,26 @@
-﻿namespace TB.DanceDance.Mobile;
+using Nalu;
+
+namespace TB.DanceDance.Mobile;
 
 public partial class App : Application
 {
-    public App()
+    private readonly INavigationService _navigationService;
+#if ANDROID
+    private Window? _window;
+#endif
+
+    public App(INavigationService navigationService)
     {
+        _navigationService = navigationService;
         InitializeComponent();
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(new AppShell());
+#if ANDROID
+        return _window ??= new Window(new AppShell(_navigationService));
+#else
+        return new Window(new AppShell(_navigationService));
+#endif
     }
 }

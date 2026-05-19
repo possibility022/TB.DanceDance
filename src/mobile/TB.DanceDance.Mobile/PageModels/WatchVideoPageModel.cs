@@ -1,10 +1,12 @@
-﻿using CommunityToolkit.Maui.Views;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Nalu;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.PageModels.Intents;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
+public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<WatchVideoIntent>
 {
     private readonly IDanceHttpApiClient apiClient;
 
@@ -57,12 +59,8 @@ public partial class WatchVideoPageModel : ObservableObject, IQueryAttributable
 
     [ObservableProperty] private MediaSource media = null;
 
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    public async ValueTask OnEnteringAsync(WatchVideoIntent intent)
     {
-        var weHaveIt = query.TryGetValue("videoBlobId", out var videoIdAsObject);
-        if (weHaveIt && videoIdAsObject is string routeVideoId)
-        {
-            LoadData(routeVideoId); //todo fire and forget async safe
-        }
+        await LoadData(intent.VideoBlobId);
     }
 }

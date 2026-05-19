@@ -1,20 +1,26 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Nalu;
 using Serilog;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.PageModels.Intents;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
+public partial class UploadVideoPageModel : ObservableObject,
+    IAppearingAware,
+    IEnteringAware<UploadVideoIntent>
 {
     private readonly IDanceHttpApiClient apiClient;
     private readonly IVideoUploader videoUploader;
+    private readonly INavigationService navigationService;
 
-    public UploadVideoPageModel(IDanceHttpApiClient apiClient, IVideoUploader videoUploader)
+    public UploadVideoPageModel(IDanceHttpApiClient apiClient, IVideoUploader videoUploader, INavigationService navigationService)
     {
         this.apiClient = apiClient;
         this.videoUploader = videoUploader;
+        this.navigationService = navigationService;
     }
 
     [ObservableProperty] private ICollection<FileResult> selectedFiles = [];
@@ -37,8 +43,25 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
 
     private UploadTo uploadTo = UploadTo.NotSpecified;
 
-    [RelayCommand]
-    private async Task Appearing()
+    public ValueTask OnEnteringAsync(UploadVideoIntent intent)
+    {
+        switch (intent)
+        {
+            case UploadToPrivateIntent:
+                SetPrivateUploadStyle();
+                break;
+            case UploadToEventIntent e:
+                SetEventUploadStyle(e.EventId);
+                break;
+            case UploadToGroupIntent:
+                SetGroupUploadStyle();
+                break;
+        }
+
+        return default;
+    }
+
+    public async ValueTask OnAppearingAsync()
     {
         try
         {
@@ -55,7 +78,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     }
 
     [RelayCommand]
-    private async Task GroupSelectedIndexChanged()
+    private void GroupSelectedIndexChanged()
     {
         SetUploadButton();
     }
@@ -64,15 +87,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     {
         if (uploadTo == UploadTo.Event || uploadTo == UploadTo.Private)
         {
-            // for event
-            if (SelectedFiles.Count > 0)
-            {
-                UploadButtonEnabled = true;
-            }
-            else
-            {
-                UploadButtonEnabled = false;
-            }
+            UploadButtonEnabled = SelectedFiles.Count > 0;
         }
         else if (SelectedFiles.Count > 0 && SelectedGroupIndex > -1)
         {
@@ -106,7 +121,8 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                 {
                     await videoUploader.UploadVideoToGroup(file.FullPath, Groups[SelectedGroupIndex].Id,
                         CancellationToken.None);
-                } else if (uploadTo == UploadTo.Private)
+                }
+                else if (uploadTo == UploadTo.Private)
                 {
                     await videoUploader.UploadVideoToPrivate(file.FullPath, CancellationToken.None);
                 }
@@ -115,14 +131,12 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
                     throw new ArgumentOutOfRangeException(nameof(uploadTo));
                 }
             }
-            
+
             await Shell.Current.CurrentPage.DisplayAlertAsync(
                 "Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
                 "OK");
 
-            
-            
-            await Shell.Current.GoToAsync("..");
+            await navigationService.GoToAsync(Navigation.Relative().Pop());
         }
         catch (Exception ex)
         {
@@ -132,25 +146,6 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
         {
             UploadButtonEnabled = true;
             UploadButtonPressed = false;
-        }
-    }
-
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        var uploadingToEvent = query.TryGetValue("eventId", out object? eventIdAsObject);
-        var uploadingToPrivate = query.TryGetValue("isPrivate", out object? isPrivateFlag);
-
-        if (uploadingToPrivate && isPrivateFlag is bool flag && flag)
-        {
-            SetPrivateUploadStyle();
-        } 
-        else if (uploadingToEvent && eventIdAsObject is Guid eventIdFromRoute)
-        {
-            SetEventUploadStyle(eventIdFromRoute);
-        }
-        else
-        {
-            SetGroupUploadStyle();
         }
     }
 
@@ -178,7 +173,8 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
     {
         PickOptions options = new()
         {
-            PickerTitle = "Please select a video file", FileTypes = FilePickerFileType.Videos,
+            PickerTitle = "Please select a video file",
+            FileTypes = FilePickerFileType.Videos,
         };
 
         try
@@ -186,7 +182,7 @@ public partial class UploadVideoPageModel : ObservableObject, IQueryAttributable
             var result = await FilePicker.Default.PickMultipleAsync(options);
             return result ?? [];
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // The user canceled or something went wrong
         }

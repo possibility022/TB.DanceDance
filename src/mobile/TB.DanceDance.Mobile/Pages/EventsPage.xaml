@@ -2,20 +2,12 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models;assembly=TB.DanceDance.Mobile.Library"
              x:DataType="pageModels:EventsPageModel"
              x:Name="EventsPageView"
              x:Class="TB.DanceDance.Mobile.Pages.EventsPage">
-    <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            BindingContext="{Binding Path=BindingContext, Source={x:Reference EventsPageView}, x:DataType=pageModels:EventsPageModel}"
-            Command="{Binding AppearingCommand}">
-        </toolkit:EventToCommandBehavior>
-    </ContentPage.Behaviors>
     <Grid>
         <StackLayout Margin="10">
             <RefreshView IsRefreshing="{Binding IsRefreshing}"

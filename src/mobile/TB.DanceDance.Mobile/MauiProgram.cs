@@ -3,6 +3,7 @@ using Duende.IdentityModel.OidcClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
+using Nalu;
 using Serilog;
 using Serilog.Events;
 using System.Threading.Channels;
@@ -38,10 +39,26 @@ public static class MauiProgram
             })
             .UseMauiCommunityToolkitMediaElement(false)
             .UseMauiCommunityToolkit()
+            .UseNaluLayouts()
+            .UseNaluTabBar()
+            .UseNaluNavigation<App>(nav => nav
+                .AddPage<MainPageViewModel, MainPage>()
+                .AddPage<EventsPageModel, EventsPage>()
+                .AddPage<GroupVideosPageModel, GroupVideosPage>()
+                .AddPage<MyVideosPageModel, MyVideosPage>()
+                .AddPage<UploadManagerPageModel, UploadManagerPage>()
+                .AddPage<EventDetailsPageModel, EventDetailsPage>()
+                .AddPage<AddEventPageModel, AddEventPage>()
+                .AddPage<GetAccessPageModel, GetAccessPage>()
+                .AddPage<WatchVideoPageModel, WatchVideo>()
+                .AddPage<UploadVideoPageModel, UploadVideoPage>()
+                .AddPage<AccountPageModel, AccountPage>()
+                .WithLeakDetectorState(NavigationLeakDetectorState.EnabledWithDebugger))
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("MaterialIcons-Round.otf", "MaterialRound");
             });
 
         var serilogConfig = new LoggerConfiguration();
@@ -64,8 +81,6 @@ public static class MauiProgram
         Log.Logger = serilogConfig.CreateLogger();
         builder.Services.AddSerilog(Log.Logger);
 
-        builder.Services.AddSingleton<MainPageViewModel>();
-
         var networker = new NetworkStatusMonitor();
         builder.Services.AddSingleton<NetworkStatusMonitor>(networker);
         builder.Services.AddScoped<UploadWorker>();
@@ -76,11 +91,6 @@ public static class MauiProgram
 
         builder.Services.AddTransient<VideoProvider>();
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
-
-        builder.Services.AddSingleton<EventsPageModel>();
-        builder.Services.AddSingleton<MyVideosPageModel>();
-        builder.Services.AddSingleton<GroupVideosPageModel>();
-        builder.Services.AddSingleton<UploadManagerPageModel>();
 
         var networkAddressResolver = new NetworkAddressResolver(DeviceInfo.Platform);
         builder.Services.AddSingleton(networkAddressResolver);
@@ -105,12 +115,6 @@ public static class MauiProgram
 
         builder.Services.AddKeyedSingleton<ITokenProviderService>(TokenStorage.PrimaryStorageKey, primaryTokenProvider);
 
-        builder.Services.AddTransientWithShellRoute<EventDetailsPage, EventDetailsPageModel>(Routes.Events.EventDetails);
-        builder.Services.AddTransientWithShellRoute<AddEventPage, AddEventPageModel>(Routes.Events.Add);
-        builder.Services.AddTransientWithShellRoute<GetAccessPage, GetAccessPageModel>(Routes.GetAccess);
-        builder.Services.AddTransientWithShellRoute<WatchVideo, WatchVideoPageModel>(Routes.Player);
-        builder.Services.AddTransientWithShellRoute<UploadVideoPage, UploadVideoPageModel>(Routes.Upload.Uploader);
-        
         // Popups
         builder.Services.AddTransientPopup<SharingPopup, SharingPopupViewModel>();
 

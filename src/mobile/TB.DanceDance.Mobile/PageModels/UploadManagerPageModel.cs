@@ -1,14 +1,14 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.Mobile.Data;
+using Nalu;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class UploadManagerPageModel : ObservableObject
+public partial class UploadManagerPageModel : ObservableObject, IAppearingAware
 {
     private readonly VideosDbContext dbContext;
     private readonly IPlatformNotification platformNotification;
@@ -24,8 +24,7 @@ public partial class UploadManagerPageModel : ObservableObject
     [ObservableProperty] private bool isRefreshing;
     [ObservableProperty] private bool notificationBlocked;
 
-    [RelayCommand]
-    private async Task Appearing()
+    public async ValueTask OnAppearingAsync()
     {
         await Refresh();
         await CheckNotificationSettings();
@@ -53,7 +52,7 @@ public partial class UploadManagerPageModel : ObservableObject
                 .AsNoTracking()
                 .ToListAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             //todo - handle it
         }
