@@ -1,7 +1,6 @@
 <Solution>
   <Project Path="src/authserver/TB.Auth.Web.csproj" />
   <Project Path="src/backend/Application/Application.csproj" />
-  <Project Path="src/backend/Domain/Domain.csproj" />
   <Project Path="src/backend/Infrastructure/Infrastructure.csproj" />
   <Project Path="src/backend/TB.DanceDance.API.Contracts/TB.DanceDance.API.Contracts.csproj" />
   <Project Path="src/backend/TB.DanceDance.API/TB.DanceDance.API.csproj" />

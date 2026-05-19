@@ -32,7 +32,6 @@
     <ItemGroup>
       <ProjectReference Include="..\..\authserver\TB.Auth.Web.csproj" />
       <ProjectReference Include="..\..\backend\Application\Application.csproj" />
-      <ProjectReference Include="..\..\backend\Domain\Domain.csproj" />
       <ProjectReference Include="..\..\backend\Infrastructure\Infrastructure.csproj" />
       <ProjectReference Include="..\..\backend\TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj" />
     </ItemGroup>
