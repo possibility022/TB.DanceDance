@@ -1,4 +1,5 @@
-﻿using Application.Features.Groups;
+﻿using Application.Features.Events;
+using Application.Features.Groups;
 using Domain.Exceptions;
 using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
@@ -90,25 +91,6 @@ public class EventsController : Controller
         return responseModel;
     }
 
-    [HttpPost]
-    [Route(ApiEndpoints.Event.AddEvent)]
-    public async Task<IActionResult> CreateEventAsync([FromBody] CreateNewEventRequest request, CancellationToken token)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-
-        var @event = ContractMappers.MapFromNewEventRequestToEvent(request, User);
-
-        if (!ModelState.IsValid)
-            return BadRequest();
-
-        var createdEvent = await eventService.CreateEventAsync(@event,token);
-
-
-        return Created("", createdEvent); //todo
-    }
-
     [Route(ApiEndpoints.Video.Access.RequestAccess)]
     [HttpPost]
     public async Task<IActionResult> RequestAccess([FromBody] RequestAssigmentModelRequest requests, CancellationToken cancellationToken)
@@ -153,28 +135,6 @@ public class EventsController : Controller
         }
 
         return authToken;
-    }
-
-    [HttpGet]
-    [Route(ApiEndpoints.Event.Videos)]
-    public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId, CancellationToken token)
-    {
-        var userId = User.GetSubject();
-        var videos = await eventService
-            .GetVideos(eventId, userId, token);
-
-        if (videos.Length == 0)
-        {
-            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId, token);
-            if (!isAssigned)
-                return Unauthorized();
-        }
-
-        var results = videos
-            .Select(r => ContractMappers.MapToVideoInformation(r))
-            .ToList();
-
-        return Ok(results);
     }
 
     [HttpGet]

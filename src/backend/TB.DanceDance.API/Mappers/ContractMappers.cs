@@ -1,4 +1,5 @@
-﻿using TB.DanceDance.API.Contracts.Models;
+﻿using TB.DanceDance.API.Contracts.Features.Events;
+using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
 using TB.DanceDance.API.Extensions;

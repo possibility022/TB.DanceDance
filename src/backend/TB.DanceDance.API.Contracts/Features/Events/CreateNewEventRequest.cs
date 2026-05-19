@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TB.DanceDance.API.Contracts.Models;
 
-namespace TB.DanceDance.API.Contracts.Requests
+namespace TB.DanceDance.API.Contracts.Features.Events
 {
     public class CreateNewEventRequest
     {
