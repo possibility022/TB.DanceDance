@@ -1,4 +1,9 @@
-﻿using Application.Services;
+﻿using Application.Features.AccessManagement;
+using Application.Features.Events;
+using Application.Features.Sharing;
+using Application.Features.Videos;
+﻿using Application.Features.Groups;
+﻿using Application.Features.Comments;
 using Domain.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,13 +17,16 @@ public static class DependencyInjection
         {
 
             services
-                .AddScoped<IAccessService, AccessService>()
-                .AddScoped<IVideoService, VideoService>()
-                .AddScoped<IEventService, EventService>()
-                .AddScoped<IGroupService, GroupService>()
-                .AddScoped<IVideoUploaderService, VideoUploaderService>()
-                .AddScoped<ISharedLinkService, SharedLinkService>()
-                .AddScoped<ICommentService, CommentService>();
+                .AddScoped<ICommentService, CommentService>()
+                .AddScoped<ISharedLinkService, SharedLinkService>();
+
+            services.AddCommentsFeature();
+
+            services.AddSharingFeature();
+            services.AddGroupsFeature();
+            services.AddEventsFeature();
+            services.AddAccessManagementFeature();
+            services.AddVideosFeature();
 
             return services;
         }

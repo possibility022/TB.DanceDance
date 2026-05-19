@@ -10,7 +10,6 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["backend/TB.DanceDance.API/TB.DanceDance.API.csproj", "backend/TB.DanceDance.API/"]
 COPY ["backend/Application/Application.csproj", "backend/Application/"]
-COPY ["backend/Domain/Domain.csproj", "backend/Domain/"]
 COPY ["backend/Infrastructure/Infrastructure.csproj", "backend/Infrastructure/"]
 COPY ["backend/TB.DanceDance.API.Contracts/TB.DanceDance.API.Contracts.csproj", "backend/TB.DanceDance.API.Contracts/"]
 RUN dotnet restore "backend/TB.DanceDance.API/TB.DanceDance.API.csproj"

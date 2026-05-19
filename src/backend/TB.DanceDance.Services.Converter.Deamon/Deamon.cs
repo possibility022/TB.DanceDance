@@ -76,7 +76,7 @@ internal sealed class Deamon : BackgroundService
         Log.Information("Getting video information.");
         var info = await converter.GetInfoAsync(inputVideo);
         Log.Information("Updating video informations.");
-        await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Requests.UpdateVideoInfoRequest()
+        await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Features.Conversion.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
             RecordedDateTime = info.Value.Item1,
