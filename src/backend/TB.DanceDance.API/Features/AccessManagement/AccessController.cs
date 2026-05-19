@@ -1,19 +1,19 @@
-﻿using Application.Features.Events;
+using Application.Features.AccessManagement;
+using Application.Features.Events;
 using Application.Features.Groups;
 using Domain.Exceptions;
 using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Contracts.Features.AccessManagement;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
 
-namespace TB.DanceDance.API.Controllers;
+namespace TB.DanceDance.API.Features.AccessManagement;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
-public class EventsController : Controller
+public class AccessController : Controller
 {
     private readonly IAccessManagementService accessManagementService;
     private readonly IAccessService accessService;
@@ -21,10 +21,10 @@ public class EventsController : Controller
     private readonly IIdentityClient identityClient;
     private readonly IGroupService groupService;
 
-    public EventsController(
+    public AccessController(
         IAccessManagementService accessManagementService,
         IAccessService accessService,
-        IEventService eventService, 
+        IEventService eventService,
         IIdentityClient identityClient,
         IGroupService groupService
         )
@@ -36,7 +36,7 @@ public class EventsController : Controller
         this.groupService = groupService;
     }
 
-    [Route(ApiEndpoints.Video.Access.GetAll)]
+    [Route(AccessRoutes.GetAll)]
     [HttpGet]
     public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups(CancellationToken token)
     {
@@ -54,7 +54,7 @@ public class EventsController : Controller
         };
     }
 
-    [Route(ApiEndpoints.Video.Access.GetUserAccess)]
+    [Route(AccessRoutes.GetUserAccess)]
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken cancellationToken)
     {
         var user = User.GetSubject();
@@ -82,7 +82,7 @@ public class EventsController : Controller
         responseModel.Available.Groups = listOfGroups.Except(userGroups)
             .Select(group => ContractMappers.MapToGroupContract(group))
             .ToArray();
-        
+
         var myPendingRequests = await accessManagementService.GetPendingUserRequests(user, cancellationToken);
 
         responseModel.Pending.Events = myPendingRequests.Events;
@@ -91,7 +91,7 @@ public class EventsController : Controller
         return responseModel;
     }
 
-    [Route(ApiEndpoints.Video.Access.RequestAccess)]
+    [Route(AccessRoutes.RequestAccess)]
     [HttpPost]
     public async Task<IActionResult> RequestAccess([FromBody] RequestAssigmentModelRequest requests, CancellationToken cancellationToken)
     {
@@ -138,7 +138,7 @@ public class EventsController : Controller
     }
 
     [HttpGet]
-    [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
+    [Route(AccessRoutes.ManageAccessRequests)]
     public async Task<RequestedAccessesResponse> GetRequestAccessList(CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
@@ -150,8 +150,8 @@ public class EventsController : Controller
     }
 
     [HttpPost]
-    [Route(ApiEndpoints.Video.Access.ManageAccessRequests)]
-    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody]ApproveAccessRequest requestBody, CancellationToken cancellationToken)
+    [Route(AccessRoutes.ManageAccessRequests)]
+    public async Task<IActionResult> ApproveOrRejectRequestAccess([FromBody] ApproveAccessRequest requestBody, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
 
@@ -167,7 +167,4 @@ public class EventsController : Controller
         else
             return BadRequest();
     }
-
-
-
 }

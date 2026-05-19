@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using TB.DanceDance.API.Contracts.Models;
 
-namespace TB.DanceDance.API.Contracts.Responses
+namespace TB.DanceDance.API.Contracts.Features.AccessManagement
 {
 
     public class EventsAndGroupsResponse : EventsAndGroups

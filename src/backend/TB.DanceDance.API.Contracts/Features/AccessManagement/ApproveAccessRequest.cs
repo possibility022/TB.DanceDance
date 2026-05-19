@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TB.DanceDance.API.Contracts.Requests
+namespace TB.DanceDance.API.Contracts.Features.AccessManagement
 {
     public class ApproveAccessRequest
     {

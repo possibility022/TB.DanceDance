@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TB.DanceDance.API.Contracts.Requests
+namespace TB.DanceDance.API.Contracts.Features.AccessManagement
 {
 
     public class RequestAssigmentModelRequest

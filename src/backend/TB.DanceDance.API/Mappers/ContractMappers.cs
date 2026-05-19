@@ -1,4 +1,5 @@
-﻿using TB.DanceDance.API.Contracts.Features.Events;
+﻿using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.API.Contracts.Requests;
 using TB.DanceDance.API.Contracts.Responses;
@@ -60,7 +61,7 @@ public class ContractMappers
         };
     }
 
-    public static Contracts.Responses.RequestedAccessesResponse MapToAccessRequests(ICollection<Domain.Models.RequestedAccess> accessRequests)
+    public static RequestedAccessesResponse MapToAccessRequests(ICollection<Domain.Models.RequestedAccess> accessRequests)
     {
         return new RequestedAccessesResponse()
         {

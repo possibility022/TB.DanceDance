@@ -16,18 +16,6 @@ public static class ApiEndpoints
         public const string GetUploadUrl = $"{Base}/upload";
         public const string RefreshUploadUrl = $"{Base}/upload/{{videoId:guid}}";
         public const string UpdateCommentSettings = $"{Base}/{{videoId:guid}}/comment-settings";
-
-
-        public static class Access
-        {
-            private const string Base = $"{Video.Base}/accesses";
-
-            public const string GetAll = $"{Base}";
-            public const string GetUserAccess = $"{Base}/my";
-            public const string RequestAccess = $"{Base}/request";
-            public const string ManageAccessRequests = $"{Base}/requests";
-        }
-
     }
 
     public static class Converter
