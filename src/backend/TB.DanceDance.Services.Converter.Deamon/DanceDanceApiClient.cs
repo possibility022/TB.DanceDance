@@ -1,8 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using System.Net.Http.Json;
 using System.Text.Json;
-using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
+using TB.DanceDance.API.Contracts.Features.Conversion;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;

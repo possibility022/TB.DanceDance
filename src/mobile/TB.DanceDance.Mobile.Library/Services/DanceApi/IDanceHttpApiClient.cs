@@ -3,8 +3,6 @@ using TB.DanceDance.API.Contracts.Features.Sharing;
 ﻿using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
-using TB.DanceDance.API.Contracts.Requests;
-using TB.DanceDance.API.Contracts.Responses;
 
 namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
