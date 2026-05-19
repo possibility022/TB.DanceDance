@@ -10,28 +10,30 @@
     Title="TB.DanceDance.Mobile">
 
     <ShellContent
-        Title="Menu"
+        Title="Logowanie"
+        Shell.FlyoutBehavior="Disabled"
         nalu:Navigation.PageType="local:MainPage" />
+
+    <FlyoutItem
+        Title="Aplikacja"
+        FlyoutDisplayOptions="AsMultipleItems"
+        nalu:NaluShell.TabBarView="{local:AppShellTabBar}">
+
+        <ShellContent Title="Wydarzenia"
+                      nalu:Navigation.PageType="pages:EventsPage" />
+
+        <ShellContent Title="Lekcje Reg."
+                      nalu:Navigation.PageType="pages:GroupVideosPage" />
+
+        <ShellContent Title="Osobiste"
+                      nalu:Navigation.PageType="pages:MyVideosPage" />
+
+        <ShellContent Title="Konto"
+                      nalu:Navigation.PageType="pages:AccountPage" />
+    </FlyoutItem>
 
     <ShellContent
         Title="Status wysyłania plików"
         nalu:Navigation.PageType="pages:UploadManagerPage" />
-
-    <TabBar>
-        <Tab Title="Wydarzenia"
-             Icon="event.png">
-            <ShellContent nalu:Navigation.PageType="pages:EventsPage" />
-        </Tab>
-        <Tab Title="Lekcje Reg."
-             Icon="dance.png">
-            <ShellContent nalu:Navigation.PageType="pages:GroupVideosPage" />
-        </Tab>
-
-        <Tab Title="Osobiste"
-             Icon="dance.png">
-            <ShellContent nalu:Navigation.PageType="pages:MyVideosPage" />
-        </Tab>
-
-    </TabBar>
 
 </nalu:NaluShell>

@@ -50,11 +50,13 @@ public static class MauiProgram
                 .AddPage<GetAccessPageModel, GetAccessPage>()
                 .AddPage<WatchVideoPageModel, WatchVideo>()
                 .AddPage<UploadVideoPageModel, UploadVideoPage>()
+                .AddPage<AccountPageModel, AccountPage>()
                 .WithLeakDetectorState(NavigationLeakDetectorState.EnabledWithDebugger))
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("MaterialIcons-Round.otf", "MaterialRound");
             });
 
         var serilogConfig = new LoggerConfiguration();
