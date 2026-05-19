@@ -1,69 +1,49 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TB.DanceDance.Mobile.Library.Data;
+using Nalu;
 using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class MainPageViewModel : ObservableObject
+public partial class MainPageViewModel : ObservableObject, IAppearingAware
 {
     private readonly IServiceProvider serviceProvider;
+    private readonly INavigationService navigationService;
     private readonly TokenStorage primaryTokenStorage;
-    private Task? _checkHostTask = null;
 
-    public MainPageViewModel(IServiceProvider serviceProvider, 
+    public MainPageViewModel(IServiceProvider serviceProvider,
+        INavigationService navigationService,
         [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage)
     {
         this.serviceProvider = serviceProvider;
+        this.navigationService = navigationService;
         this.primaryTokenStorage = primaryTokenStorage;
     }
 
-    [ObservableProperty]
-    private bool isLoggedIn;
+    [ObservableProperty] private bool loginEnabled = true;
+    [ObservableProperty] private bool loginInProgress;
 
-    [ObservableProperty]
-    private bool loginEnabled;
-
-    [ObservableProperty]
-    private bool loginInProgress;
-
-    [RelayCommand]
-    private async Task NavigateToGroups()
+    public async ValueTask OnAppearingAsync()
     {
-        await Shell.Current.GoToAsync("//" + Routes.Groups.AllVideos);
-    }
+        try
+        {
+            if (await IsAlreadyLoggedIn())
+            {
+                await GoToHomeTab();
+                return;
+            }
 
-    [RelayCommand]
-    private async Task NavigateToEvents()
-    {
-        await Shell.Current.GoToAsync("//" + Routes.Events.EventsList);
-    }
-
-    [RelayCommand]
-    private async Task NavigateToMyVideos()
-    {
-        await Shell.Current.GoToAsync("//" + Routes.Private.MyVideos);
-    }
-
-
-    [RelayCommand]
-    private async Task NavigateToGetAccess()
-    {
-        await Shell.Current.GoToAsync(Routes.GetAccess);
-    }
-
-
-    [RelayCommand]
-    private async Task Logout()
-    {
-        primaryTokenStorage.ClearToken();
-        LoginEnabled = true;
-        IsLoggedIn = false;
-#if ANDROID
-        UploadForegroundService.StopService();
-#endif
+            if (primaryTokenStorage.Token?.RefreshToken is not null)
+            {
+                await Login();
+            }
+        }
+        finally
+        {
+            LoginEnabled = true;
+        }
     }
 
     [RelayCommand]
@@ -75,7 +55,14 @@ public partial class MainPageViewModel : ObservableObject
             LoginEnabled = false;
 
             await serviceProvider.GetRequiredService<IDanceHttpApiClient>().GetUserAccesses();
-            await CheckLoginStatus();
+
+            if (await IsAlreadyLoggedIn())
+            {
+#if ANDROID
+                UploadForegroundService.StartService();
+#endif
+                await GoToHomeTab();
+            }
         }
         catch (Exception ex)
         {
@@ -88,44 +75,15 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task Appearing()
-    {
-        try
-        {
-            await CheckLoginStatus();
-            if (!IsLoggedIn && primaryTokenStorage.Token != null)
-            {
-                // We have a refresh token, just login automatically
-                await Login();
-            }
-#if ANDROID
-            //if (dbContext.VideosToUpload.Any(r => r.Uploaded == false))
-                UploadForegroundService.StartService();
-#endif
-        }
-        finally
-        {
-            LoginEnabled = true;
-        }
-    }
-
-    private async Task CheckLoginStatus()
+    private async Task<bool> IsAlreadyLoggedIn()
     {
         if (primaryTokenStorage.Token is null)
             await primaryTokenStorage.LoadRefreshTokenFromStorage();
 
-        if (_checkHostTask is not null)
-            await _checkHostTask;
-
-        if (primaryTokenStorage.Token?.AccessTokenExpiration is not null &&
-            primaryTokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5))
-        {
-            IsLoggedIn = true;
-        }
-        else
-        {
-            IsLoggedIn = false;
-        }
+        return primaryTokenStorage.Token?.AccessTokenExpiration is not null
+               && primaryTokenStorage.Token.AccessTokenExpiration > DateTimeOffset.Now.AddMinutes(-5);
     }
+
+    private Task GoToHomeTab()
+        => navigationService.GoToAsync(Navigation.Absolute().Root<EventsPageModel>());
 }

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Nalu;
 using Serilog;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
 using TB.DanceDance.API.Contracts.Features.Videos;
@@ -35,7 +36,7 @@ public record AccessModel
     public Guid Id { get; set; }
 }
 
-public partial class GetAccessPageModel : ObservableObject
+public partial class GetAccessPageModel : ObservableObject, IAppearingAware
 {
     private readonly IDanceHttpApiClient apiClient;
 
@@ -52,8 +53,7 @@ public partial class GetAccessPageModel : ObservableObject
     bool isLoaded = false;
 
     
-    [RelayCommand]
-    private async Task Appearing()
+    public async ValueTask OnAppearingAsync()
     {
         if (!isLoaded)
             await Refresh();

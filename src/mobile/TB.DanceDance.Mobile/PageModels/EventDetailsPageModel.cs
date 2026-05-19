@@ -1,34 +1,36 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Nalu;
 using Serilog;
-using TB.DanceDance.Mobile.Data;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.PageModels.Intents;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class EventDetailsPageModel : ObservableObject, IQueryAttributable
+public partial class EventDetailsPageModel : ObservableObject,
+    IEnteringAware<EventDetailsIntent>
 {
     private readonly VideoProvider videoProvider;
     private readonly IDanceHttpApiClient apiClient;
+    private readonly INavigationService navigationService;
 
-    public EventDetailsPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient)
+    public EventDetailsPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient, INavigationService navigationService)
     {
         this.videoProvider = videoProvider;
         this.apiClient = apiClient;
+        this.navigationService = navigationService;
     }
-    
+
     [RelayCommand]
-    private async Task NavigateToWatchVideo(Video video)
-    {
-        await Shell.Current.GoToAsync(Routes.Player, new Dictionary<string, object>()
-        {
-            { "videoBlobId", video.BlobId }
-        });
-    }
-    
-    
+    private Task NavigateToWatchVideo(Video video)
+        => navigationService.GoToAsync(
+            Navigation.Relative()
+                .Push<WatchVideoPageModel>()
+                .WithIntent(new WatchVideoIntent(video.BlobId)));
+
+
     [RelayCommand]
     private async Task RenameVideo(Guid videoId)
     {
@@ -37,10 +39,10 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
             var newName = await Shell.Current.CurrentPage.DisplayPromptAsync("Zmień nazwę",
                 "Podaj nową nazwę dla nagrania.", "Ok",
                 "Anuluj");
-            
+
             if (newName == null)
                 return;
-            
+
             var video = Videos.First(r => r.Id == videoId);
             if (video.Name == newName)
                 return;
@@ -50,7 +52,7 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
                 await Shell.Current.CurrentPage.DisplayAlertAsync("Zła nazwa", "Nazwa musi mieć od 5 do 50 znaków.", "Ok");
                 return;
             }
-            
+
             await apiClient.RenameVideoAsync(videoId, newName);
             video.Name = newName;
 
@@ -63,29 +65,23 @@ public partial class EventDetailsPageModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    private async Task NavigateToUploadToEvent()
-    {
-        await Shell.Current.GoToAsync(Routes.Upload.Uploader, new Dictionary<string, object>()
-        {
-            { "eventId", EventId }
-        });
-    }
+    private Task NavigateToUploadToEvent()
+        => navigationService.GoToAsync(
+            Navigation.Relative()
+                .Push<UploadVideoPageModel>()
+                .WithIntent(new UploadToEventIntent(EventId)));
 
     [ObservableProperty] Guid eventId;
-    
+
     [ObservableProperty] List<Video> videos = [];
     [ObservableProperty] private bool isRefreshing;
-    
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
+
+    public async ValueTask OnEnteringAsync(EventDetailsIntent intent)
     {
-        var weHaveIt = query.TryGetValue("eventId", out object? eventIdAsObject);
-        if (weHaveIt && eventIdAsObject is Guid eventIdFromRoute)
-        {
-            EventId = eventIdFromRoute;
-            Refresh();//todo fireandforgetsafeasync
-        }
+        EventId = intent.EventId;
+        await Refresh();
     }
-    
+
     [RelayCommand]
     private async Task Refresh()
     {

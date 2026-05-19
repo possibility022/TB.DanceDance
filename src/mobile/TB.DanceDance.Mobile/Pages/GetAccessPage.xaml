@@ -4,19 +4,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.PageModels"
              xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="pageModels:GetAccessPageModel"
              x:Name="GetAccessPageView"
              x:Class="TB.DanceDance.Mobile.Pages.GetAccessPage">
-    <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            BindingContext="{Binding Path=BindingContext, 
-        Source={x:Reference GetAccessPageView}, 
-        x:DataType=pageModels:GetAccessPageModel}"
-            Command="{Binding AppearingCommand}">
-        </toolkit:EventToCommandBehavior>
-    </ContentPage.Behaviors>
     <ContentPage.Content>
         <StackLayout Margin="10, 0, 10, 0">
             <RefreshView IsRefreshing="{Binding IsRefreshing}"

@@ -1,57 +1,51 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Nalu;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
+using TB.DanceDance.Mobile.PageModels.Intents;
 
 namespace TB.DanceDance.Mobile.PageModels;
 
-public partial class EventsPageModel : ObservableObject, IQueryAttributable
+public partial class EventsPageModel : ObservableObject,
+    IAppearingAware,
+    IAppearingAware<RefreshEventsIntent>
 {
     private readonly IDanceHttpApiClient _apiClient;
+    private readonly INavigationService _navigationService;
+    private bool _eventsLoaded;
 
-    public EventsPageModel(IDanceHttpApiClient apiClient)
+    public EventsPageModel(IDanceHttpApiClient apiClient, INavigationService navigationService)
     {
         _apiClient = apiClient;
+        _navigationService = navigationService;
     }
-    
-    [ObservableProperty] bool _isRefreshing;
-    
+
+    [ObservableProperty] private bool _isRefreshing;
+
     [ObservableProperty] private List<Event> _userEvents = [];
 
-    private bool eventsLoaded = false;
-
-    [RelayCommand]
-    private async Task Appearing()
+    public async ValueTask OnAppearingAsync()
     {
-        if (!eventsLoaded)
+        if (!_eventsLoaded)
             await Refresh();
     }
 
-    [RelayCommand]
-    private async Task NavigateToEventDetails(Event @event)
-    {
-        await Shell.Current.GoToAsync(Routes.Events.EventDetails, new Dictionary<string, object>()
-        {
-            { "eventId", @event.Id }
-        });
-    }
+    public async ValueTask OnAppearingAsync(RefreshEventsIntent intent)
+        => await Refresh();
 
     [RelayCommand]
-    private async Task NavigateToAddEvent()
-    {
-        await Shell.Current.GoToAsync(Routes.Events.Add);
-    }
-    
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        var weHaveIt = query.TryGetValue("refreshEventList", out object? refreshListRequired);
-        if (weHaveIt && refreshListRequired is bool refreshListRequiredAsBool)
-        {
-            if (refreshListRequiredAsBool)
-                Refresh();//todo fireandforgetsafeasync
-        }
-    }
-    
+    private Task NavigateToEventDetails(Event @event)
+        => _navigationService.GoToAsync(
+            Navigation.Relative()
+                .Push<EventDetailsPageModel>()
+                .WithIntent(new EventDetailsIntent(@event.Id)));
+
+    [RelayCommand]
+    private Task NavigateToAddEvent()
+        => _navigationService.GoToAsync(
+            Navigation.Relative().Push<AddEventPageModel>());
+
     [RelayCommand]
     private async Task Refresh()
     {
@@ -60,7 +54,7 @@ public partial class EventsPageModel : ObservableObject, IQueryAttributable
             IsRefreshing = true;
             await LoadData();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //todo _errorHandler.HandleError(e);
         }
@@ -74,8 +68,8 @@ public partial class EventsPageModel : ObservableObject, IQueryAttributable
     {
         var accesses = await _apiClient.GetUserAccesses();
         if (accesses != null)
-            UserEvents = accesses.Assigned.Events.Select(Event.MapFromApiEvent).ToList();;
-        
-        eventsLoaded = true;
+            UserEvents = accesses.Assigned.Events.Select(Event.MapFromApiEvent).ToList();
+
+        _eventsLoaded = true;
     }
 }

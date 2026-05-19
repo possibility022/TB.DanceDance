@@ -5,18 +5,10 @@
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls" 
              xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters" 
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models;assembly=TB.DanceDance.Mobile.Library" 
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="TB.DanceDance.Mobile.Pages.MyVideosPage"
              x:Name="MyVideosPageView"
              x:DataType="pageModels:MyVideosPageModel"
              Title="MyVideosPage">
-    <ContentPage.Behaviors>
-        <toolkit:EventToCommandBehavior
-            EventName="Appearing"
-            BindingContext="{Binding Path=BindingContext, Source={x:Reference MyVideosPageView}, x:DataType=pageModels:MyVideosPageModel}"
-            Command="{Binding AppearingCommand}">
-        </toolkit:EventToCommandBehavior>   
-    </ContentPage.Behaviors>
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
