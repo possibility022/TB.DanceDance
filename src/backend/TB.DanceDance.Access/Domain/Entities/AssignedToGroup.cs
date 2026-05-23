@@ -1,7 +1,9 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Access.Domain.Entities;
 
 public class AssignedToGroup
 {
+    private AssignedToGroup() { } //for EF
+    
     public Guid Id { get; set; }
 
     public required Guid GroupId { get; init; }

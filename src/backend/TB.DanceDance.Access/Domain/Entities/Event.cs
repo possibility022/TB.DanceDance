@@ -1,12 +1,12 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Access.Domain.Entities;
 
 public class Event
 {
+    private Event() { }
+    
     public Guid Id { get; set; }
     public required string Name { get; set; }
     public required DateTime Date { get; init; }
     public required EventType Type { get; init; }
     public required string Owner { get; init; }
-
-    public ICollection<SharedWith> HasSharedVideos { get; set; } = null!;
 }

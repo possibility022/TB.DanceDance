@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Access.Domain.Entities;
 public abstract class AssigmentRequestBase
 {
     public required string UserId { get; init; }

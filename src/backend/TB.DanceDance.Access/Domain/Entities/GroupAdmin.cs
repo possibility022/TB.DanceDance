@@ -1,6 +1,8 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Access.Domain.Entities;
 public class GroupAdmin
 {
+    private GroupAdmin() { }
+    
     public required Guid Id { get; set; }
     public required string UserId { get; set; }
     public required Guid GroupId { get; set; }

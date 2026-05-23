@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Access.Domain.Entities;
 
 public enum EventType
 {

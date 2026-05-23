@@ -1,7 +1,9 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Access.Domain.Entities;
 
 public class AssignedToEvent
 {
+    private AssignedToEvent() { } //for EF
+    
     public Guid Id { get; set; }
 
     public required Guid EventId { get; init; }
