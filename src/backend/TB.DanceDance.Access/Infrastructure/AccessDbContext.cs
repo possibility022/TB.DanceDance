@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using TB.DanceDance.Access.Domain.Entities;
 using TB.DanceDance.SharedKernel;
 
@@ -14,6 +15,11 @@ public class AccessDbContext : DbContext
     public DbSet<AssignedToEvent> AssignedToEvents { get; set; }
     public DbSet<GroupAssignmentRequest> GroupAssignmentRequests { get; set; }
     public DbSet<EventAssignmentRequest> EventAssignmentRequests { get; set; }
+
+    public AccessDbContext(DbContextOptions<AccessDbContext> options) : base(options)
+    {
+        
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
