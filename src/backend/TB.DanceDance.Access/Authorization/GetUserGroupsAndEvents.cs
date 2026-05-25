@@ -3,7 +3,7 @@ using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.Access.Infrastructure;
 using TB.DanceDance.Utilities.Mediating;
 
-namespace TB.DanceDance.Access.AccessManagement;
+namespace TB.DanceDance.Access.Authorization;
 
 public class GetUserGroupsAndEventsHandler : IRequestHandler<GetUserGroupsAndEvents, UserGroupsAndEvents>
 {

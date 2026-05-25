@@ -3,15 +3,15 @@ using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.Access.Infrastructure;
 using TB.DanceDance.Utilities.Mediating;
 
-namespace TB.DanceDance.Access.AccessManagement;
+namespace TB.DanceDance.Access.Authorization;
 
-public class DoesUserHasAccess :
+public class CanUserUpload :
     IRequestHandler<CanUserUploadToEventRequest, bool>,
     IRequestHandler<CanUserUploadToGroupRequest, bool>
 {
     private readonly AccessDbContext dbContext;
 
-    public DoesUserHasAccess(AccessDbContext dbContext)
+    public CanUserUpload(AccessDbContext dbContext)
     {
         this.dbContext = dbContext;
     }

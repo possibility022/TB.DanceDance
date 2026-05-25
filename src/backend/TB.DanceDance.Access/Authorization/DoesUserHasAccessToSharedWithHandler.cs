@@ -4,7 +4,7 @@ using TB.DanceDance.Access.Infrastructure;
 using TB.DanceDance.Utilities.Mediating;
 using TB.DanceDance.Videos.Contracts;
 
-namespace TB.DanceDance.Access.AccessManagement;
+namespace TB.DanceDance.Access.Authorization;
 
 class DoesUserHasAccessToSharedWithHandler : IRequestHandler<DoesUserHasAccessToSharedWith, bool>
 {

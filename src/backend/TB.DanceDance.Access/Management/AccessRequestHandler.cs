@@ -4,7 +4,7 @@ using TB.DanceDance.Access.Domain.Entities;
 using TB.DanceDance.Access.Infrastructure;
 using TB.DanceDance.Utilities.Mediating;
 
-namespace TB.DanceDance.Access.AccessManagement;
+namespace TB.DanceDance.Access.Management;
 
 class AccessRequestHandler : 
     IRequestHandler<DeclineAccessRequestCommand, bool>,
