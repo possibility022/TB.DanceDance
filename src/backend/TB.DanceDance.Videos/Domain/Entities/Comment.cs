@@ -1,10 +1,12 @@
-namespace Domain.Entities;
+namespace TB.DanceDance.Videos.Domain.Entities;
 
 /// <summary>
 /// Represents a comment on a video, either from an authenticated user or an anonymous user via a shared link.
 /// </summary>
 public class Comment
 {
+    private Comment() { }
+    
     public Guid Id { get; set; }
 
     /// <summary>
@@ -69,7 +71,6 @@ public class Comment
     public string? ReportedReason { get; set; }
 
     // Navigation properties
-    public User? User { get; set; }
     public Video Video { get; set; } = null!;
     public SharedLink? SharedLink { get; set; }
 }

@@ -1,7 +1,9 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Videos.Domain.Entities;
 
 public class SharedLink
 {
+    private SharedLink() { }
+    
     public string Id { get; set; } = null!;
     public Guid VideoId { get; set; }
     public string SharedBy { get; set; } = null!;
@@ -21,6 +23,5 @@ public class SharedLink
     /// </summary>
     public bool AllowAnonymousComments { get; set; } = false;
 
-    public User SharedByUser { get; set; } = null!;
     public Video Video { get; set; } = null!;
 }

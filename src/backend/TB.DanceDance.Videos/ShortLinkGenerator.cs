@@ -1,4 +1,4 @@
-namespace Domain.Entities;
+namespace TB.DanceDance.Videos;
 
 /// <summary>
 /// Generates short, URL-safe, Base62-encoded link identifiers.

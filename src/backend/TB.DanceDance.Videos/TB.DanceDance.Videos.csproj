@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Npgsql" Version="10.0.2" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="UploadVideo\" />
+      <Folder Include="ViewVideo\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TB.DanceDance.SharedKernel\TB.DanceDance.SharedKernel.csproj" />
+      <ProjectReference Include="..\TB.DanceDance.Utilities\TB.DanceDance.Utilities.csproj" />
+      <ProjectReference Include="..\TB.DanceDance.Videos.Contracts\TB.DanceDance.Videos.Contracts.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,6 +1,8 @@
-﻿namespace Domain.Entities;
+﻿namespace TB.DanceDance.Videos.Domain.Entities;
 public class Video
 {
+    private Video() { }
+    
     public Guid Id { get; set; }
     public string? BlobId { get; set; }
     public string Name { get; set; }

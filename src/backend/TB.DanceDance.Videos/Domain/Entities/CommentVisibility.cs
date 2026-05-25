@@ -1,4 +1,4 @@
-namespace Domain.Entities;
+namespace TB.DanceDance.Videos.Domain.Entities;
 
 /// <summary>
 /// Defines who can see comments on a video.
