@@ -1,6 +1,6 @@
-﻿using Domain.Models;
+﻿using TB.DanceDance.Utilities.Infrastructure.Models;
 
-namespace Domain.Services;
+namespace TB.DanceDance.Utilities.Infrastructure;
 
 public interface IBlobDataService
 {

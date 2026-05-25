@@ -1,6 +1,4 @@
-﻿using Domain.Services;
-
-namespace Domain;
+﻿namespace TB.DanceDance.Utilities.Infrastructure;
 
 public interface IBlobDataServiceFactory
 {

@@ -1,4 +1,4 @@
-﻿namespace Domain.Models;
+﻿namespace TB.DanceDance.Utilities.Infrastructure.Models;
 
 public class SharedBlob
 {
