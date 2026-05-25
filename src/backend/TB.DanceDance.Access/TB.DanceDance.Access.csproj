@@ -17,11 +17,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Domain\" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <ProjectReference Include="..\TB.DanceDance.Access.Contracts\TB.DanceDance.Access.Contracts.csproj" />
       <ProjectReference Include="..\TB.DanceDance.SharedKernel\TB.DanceDance.SharedKernel.csproj" />
+      <ProjectReference Include="..\TB.DanceDance.Utilities\TB.DanceDance.Utilities.csproj" />
+      <ProjectReference Include="..\TB.DanceDance.Videos.Contracts\TB.DanceDance.Videos.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

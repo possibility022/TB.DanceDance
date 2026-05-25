@@ -14,4 +14,17 @@ public class AssignedToGroup
 
     public Group Group { get; set; } = null!;
     public User User { get; set; } = null!;
+    
+    public class Factory
+    {
+        public static AssignedToGroup Create(Guid groupId, string userId, DateTime whenJoined)
+        {
+            return new AssignedToGroup
+            {
+                GroupId = groupId,
+                UserId = userId,
+                WhenJoined = whenJoined
+            };
+        }
+    }
 }

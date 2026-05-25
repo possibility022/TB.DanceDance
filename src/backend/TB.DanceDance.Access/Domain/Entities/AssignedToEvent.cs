@@ -13,4 +13,17 @@ public class AssignedToEvent
     public Event Event { get; set; } = null!;
     
     public User User { get; set; } = null!;
+    
+    public class Factory
+    {
+        public static AssignedToEvent Create(Guid eventId, string userId)
+        {
+            return new AssignedToEvent
+            {
+                EventId = eventId,
+                UserId = userId,
+                Id = Guid.NewGuid(),
+            };
+        }
+    }
 }
