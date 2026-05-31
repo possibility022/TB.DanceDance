@@ -1,47 +1,45 @@
-﻿using Application.Features.AccessManagement;
-using Application.Features.Videos;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
+using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos.Contracts;
+using ApiSharingWithType = TB.DanceDance.API.Contracts.Features.Videos.SharingWithType;
+using VideosSharingWithType = TB.DanceDance.Videos.Contracts.SharingWithType;
 
 namespace TB.DanceDance.API.Features.Videos;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class VideoController : Controller
 {
-    public VideoController(IVideoService videoService,
-        IAccessService accessService,
-        ILogger<VideoController> logger)
-    {
-        this.videoService = videoService;
-        this.accessService = accessService;
-        this.logger = logger;
-    }
-
-    private readonly IVideoService videoService;
-    private readonly IAccessService accessService;
+    private readonly IMediator mediator;
     private readonly ILogger<VideoController> logger;
 
+    public VideoController(IMediator mediator, ILogger<VideoController> logger)
+    {
+        this.mediator = mediator;
+        this.logger = logger;
+    }
 
     [Route(VideoRoutes.MyVideos)]
     public async Task<IActionResult> MyVideos(CancellationToken cancellationToken)
     {
-        var videos = await accessService.GetUserPrivateVideos(User.GetSubject(), cancellationToken);
+        var videos = await mediator.SendAsync(new ViewPrivateVideosQuery(User.GetSubject()), cancellationToken);
         var apiModel = videos.Select(ContractMappers.MapToVideoInformation);
-        
+
         return new OkObjectResult(apiModel);
     }
-    
+
     [Route(VideoRoutes.GetSingle)]
     [HttpGet]
     public async Task<IActionResult> GetInformationAsync(string guid, CancellationToken cancellationToken)
     {
         string user = User.GetSubject();
 
-        var info = await videoService.GetVideoByBlobAsync(user, guid, cancellationToken);
+        var info = await mediator.SendAsync(new GetVideoForViewingQuery(user, guid), cancellationToken);
 
         if (info == null)
             return NotFound();
@@ -67,11 +65,11 @@ public class VideoController : Controller
         //   3. If over quota, return 403 Forbidden with message about storage limit
         // This allows users to upload videos even over quota, but they cannot view them until space is freed
 
-        var hasAccess = await accessService.DoesUserHasAccessAsync(guid, userSubjectId, cancellationToken);
+        var hasAccess = await mediator.SendAsync(new DoesUserHaveAccessToVideoByBlobQuery(userSubjectId, guid), cancellationToken);
         if (!hasAccess)
             return new UnauthorizedResult();
 
-        var stream = await videoService.OpenStream(guid, cancellationToken);
+        var stream = await mediator.SendAsync(new OpenVideoStreamQuery(guid), cancellationToken);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 
@@ -79,10 +77,11 @@ public class VideoController : Controller
     [HttpPost]
     public async Task<IActionResult> RenameVideo([FromRoute] Guid videoId, [FromBody] VideoRenameRequest input, CancellationToken cancellationToken)
     {
-        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, User.GetSubject(), cancellationToken);
+        var hasAccess = await mediator.SendAsync(new DoesUserHaveAccessToVideoQuery(User.GetSubject(), videoId), cancellationToken);
         if (!hasAccess)
             return Unauthorized();
-        var res = await videoService.RenameVideoAsync(videoId, input.NewName, cancellationToken);
+
+        var res = await mediator.SendAsync(new RenameVideoCommand { VideoId = videoId, NewName = input.NewName }, cancellationToken);
 
         if (res == false)
             return BadRequest();
@@ -92,18 +91,18 @@ public class VideoController : Controller
 
     [HttpGet]
     [Route(VideoRoutes.RefreshUploadUrl)]
-    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute]Guid videoId, CancellationToken cancellationToken)
+    public async Task<ActionResult<UploadVideoInformationResponse>> GetUploadInformation([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
-        string user  = User.GetSubject();
-        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, user, cancellationToken);
+        string user = User.GetSubject();
+        var hasAccess = await mediator.SendAsync(new DoesUserHaveAccessToVideoQuery(user, videoId), cancellationToken);
         if (!hasAccess)
             return Unauthorized();
 
-        var sharedBlob = await videoService.GetSharingLink(videoId, cancellationToken);
-        
+        var sharedBlob = await mediator.SendAsync(new CreateSharingLinkCommand { VideoId = videoId }, cancellationToken);
+
         if (sharedBlob == null)
             return NotFound();
-        
+
         return new UploadVideoInformationResponse()
         {
             Sas = sharedBlob.Sas.ToString(), VideoId = sharedBlob.VideoId, ExpireAt = sharedBlob.ExpireAt
@@ -117,23 +116,22 @@ public class VideoController : Controller
         CancellationToken cancellationToken
         )
     {
-        string? user = null;
-        var sharedWith = sharedVideoInformation?.SharedWith;
-
         if (sharedVideoInformation == null)
         {
             return BadRequest("SharedVideoInformation is required.");
         }
+
+        var sharedWith = sharedVideoInformation.SharedWith;
 
         // TODO: Storage quota is enforced at VIEW/STREAM time, not upload time
         // Users can always upload videos regardless of quota status
         // Quota enforcement happens when trying to view/stream the video
         // This allows users to upload first, then manage storage by deleting old videos if needed
 
-        user = User.GetSubject();
+        var user = User.GetSubject();
 
         // Handle different sharing types
-        if (sharedVideoInformation.SharingWithType == SharingWithType.Group)
+        if (sharedVideoInformation.SharingWithType == ApiSharingWithType.Group)
         {
             if (sharedWith == null)
             {
@@ -141,7 +139,7 @@ public class VideoController : Controller
                 return BadRequest(ModelState);
             }
 
-            var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value, cancellationToken);
+            var canUploadToGroup = await mediator.SendAsync(new CanUserUploadToGroupRequest { UserId = user, GroupId = sharedWith.Value }, cancellationToken);
 
             if (!canUploadToGroup)
             {
@@ -151,7 +149,7 @@ public class VideoController : Controller
                 return new UnauthorizedResult();
             }
         }
-        else if (sharedVideoInformation.SharingWithType == SharingWithType.Event)
+        else if (sharedVideoInformation.SharingWithType == ApiSharingWithType.Event)
         {
             if (sharedWith == null)
             {
@@ -159,7 +157,7 @@ public class VideoController : Controller
                 return BadRequest(ModelState);
             }
 
-            var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith.Value, cancellationToken);
+            var canUploadToEvent = await mediator.SendAsync(new CanUserUploadToEventRequest { UserId = user, EventId = sharedWith.Value }, cancellationToken);
 
             if (!canUploadToEvent)
             {
@@ -169,7 +167,7 @@ public class VideoController : Controller
                 return new UnauthorizedResult();
             }
         }
-        else if (sharedVideoInformation.SharingWithType == SharingWithType.Private)
+        else if (sharedVideoInformation.SharingWithType == ApiSharingWithType.Private)
         {
             // Private videos: no group/event access check needed
             // SharedWith should be null for private videos
@@ -189,13 +187,17 @@ public class VideoController : Controller
             return BadRequest(ModelState);
         }
 
-        var sharedBlob = await videoService.GetSharingLink(
-            user,
-            sharedVideoInformation.NameOfVideo,
-            sharedVideoInformation.FileName,
-            sharedVideoInformation.SharingWithType,
-            sharedVideoInformation.SharedWith,
-            cancellationToken);
+        var sharedBlob = await mediator.SendAsync(new CreateVideoUploadCommand
+        {
+            UserId = user,
+            Name = sharedVideoInformation.NameOfVideo,
+            FileName = sharedVideoInformation.FileName,
+            SharingWithType = MapSharingWithType(sharedVideoInformation.SharingWithType),
+            SharedWith = sharedVideoInformation.SharedWith,
+        }, cancellationToken);
+
+        if (sharedBlob == null)
+            return NotFound();
 
         return new UploadVideoInformationResponse()
         {
@@ -215,11 +217,12 @@ public class VideoController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await videoService.UpdateCommentVisibilityAsync(
-            videoId,
-            userId,
-            (Domain.Entities.CommentVisibility)request.CommentVisibility,
-            cancellationToken);
+        var result = await mediator.SendAsync(new UpdateCommentVisibilityCommand
+        {
+            VideoId = videoId,
+            UserId = userId,
+            CommentVisibility = request.CommentVisibility,
+        }, cancellationToken);
 
         if (!result)
         {
@@ -228,4 +231,12 @@ public class VideoController : Controller
 
         return Ok();
     }
+
+    private static VideosSharingWithType MapSharingWithType(ApiSharingWithType type) => type switch
+    {
+        ApiSharingWithType.Group => VideosSharingWithType.Group,
+        ApiSharingWithType.Event => VideosSharingWithType.Event,
+        ApiSharingWithType.Private => VideosSharingWithType.Private,
+        _ => VideosSharingWithType.NotSpecified,
+    };
 }

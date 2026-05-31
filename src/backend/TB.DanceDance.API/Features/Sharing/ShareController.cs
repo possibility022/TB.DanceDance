@@ -1,31 +1,27 @@
-using Application.Features.Sharing;
-using Application.Features.Videos;
-using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Extensions;
+using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.API.Features.Sharing;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class ShareController : Controller
 {
-    private readonly ISharedLinkService sharedLinkService;
-    private readonly IVideoService videoService;
+    private readonly IMediator mediator;
     private readonly IOptions<AppOptions> appOptions;
     private readonly ILogger<ShareController> logger;
 
     public ShareController(
-        ISharedLinkService sharedLinkService,
-        IVideoService videoService,
+        IMediator mediator,
         IOptions<AppOptions> appOptions,
         ILogger<ShareController> logger)
     {
-        this.sharedLinkService = sharedLinkService;
-        this.videoService = videoService;
+        this.mediator = mediator;
         this.appOptions = appOptions;
         this.logger = logger;
     }
@@ -44,28 +40,16 @@ public class ShareController : Controller
 
         try
         {
-            var link = await sharedLinkService.CreateSharedLinkAsync(
-                videoId,
-                userId,
-                request.ExpirationDays,
-                request.AllowComments,
-                request.AllowAnonymousComments,
-                cancellationToken);
-
-            var response = new SharedLinkResponse
+            var link = await mediator.SendAsync(new CreateSharedLinkCommand
             {
-                LinkId = link.Id,
-                VideoId = link.VideoId,
-                VideoName = link.Video?.Name ?? string.Empty,
-                CreatedAt = link.CreatedAt,
-                ExpireAt = link.ExpireAt,
-                IsRevoked = link.IsRevoked,
-                ShareUrl = ResolveLinkUrl(link.Id),
-                AllowComments = link.AllowComments,
-                AllowAnonymousComments = link.AllowAnonymousComments
-            };
+                VideoId = videoId,
+                UserId = userId,
+                ExpirationDays = request.ExpirationDays,
+                AllowComments = request.AllowComments,
+                AllowAnonymousComments = request.AllowAnonymousComments,
+            }, cancellationToken);
 
-            return Ok(response);
+            return Ok(MapToResponse(link));
         }
         catch (ArgumentException ex)
         {
@@ -85,7 +69,7 @@ public class ShareController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await sharedLinkService.RevokeSharedLinkAsync(linkId, userId, cancellationToken);
+        var result = await mediator.SendAsync(new RevokeSharedLinkCommand(linkId, userId), cancellationToken);
 
         if (!result)
         {
@@ -104,25 +88,27 @@ public class ShareController : Controller
     {
         var userId = User.GetSubject();
 
-        var links = await sharedLinkService.GetUserSharedLinksAsync(userId, cancellationToken);
+        var links = await mediator.SendAsync(new GetUserSharedLinksQuery(userId), cancellationToken);
 
-        var response = links.Select(link => new SharedLinkResponse
-        {
-            LinkId = link.Id,
-            VideoId = link.VideoId,
-            VideoName = link.Video?.Name ?? string.Empty,
-            CreatedAt = link.CreatedAt,
-            ExpireAt = link.ExpireAt,
-            IsRevoked = link.IsRevoked,
-            ShareUrl = ResolveLinkUrl(link.Id),
-            AllowComments = link.AllowComments,
-            AllowAnonymousComments = link.AllowAnonymousComments
-        });
+        var response = links.Select(MapToResponse);
 
         return Ok(response);
     }
 
     private string ResolveLinkUrl(string linkId) => $"{this.appOptions.Value.AppWebsiteOrigin}/shared/{linkId}";
+
+    private SharedLinkResponse MapToResponse(SharedLinkDto link) => new()
+    {
+        LinkId = link.Id,
+        VideoId = link.VideoId,
+        VideoName = link.Video?.Name ?? string.Empty,
+        CreatedAt = link.CreatedAt,
+        ExpireAt = link.ExpireAt,
+        IsRevoked = link.IsRevoked,
+        ShareUrl = ResolveLinkUrl(link.Id),
+        AllowComments = link.AllowComments,
+        AllowAnonymousComments = link.AllowAnonymousComments
+    };
 
     /// <summary>
     /// Gets video information by shared link ID. Anonymous access allowed.
@@ -134,8 +120,7 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        // Get the shared link with video
-        var link = await GetSharedLinkWithVideo(linkId, cancellationToken);
+        var link = await mediator.SendAsync(new GetSharedLinkQuery(linkId), cancellationToken);
 
         if (link == null || link.Video == null)
         {
@@ -150,17 +135,12 @@ public class ShareController : Controller
             Name = video.Name,
             Duration = video.Duration,
             RecordedDateTime = video.RecordedDateTime,
-            CommentVisibility = (int)video.CommentVisibility,
+            CommentVisibility = video.CommentVisibility,
             AllowCommentsOnThisLink = link.AllowComments,
             AllowAnonymousCommentsOnThisLink = link.AllowAnonymousComments
         };
 
         return Ok(response);
-    }
-
-    private async Task<Domain.Entities.SharedLink?> GetSharedLinkWithVideo(string linkId, CancellationToken cancellationToken)
-    {
-        return await sharedLinkService.GetSharedLinkAsync(linkId, cancellationToken);
     }
 
     /// <summary>
@@ -173,7 +153,7 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        var video = await sharedLinkService.GetVideoBySharedLinkAsync(linkId, cancellationToken);
+        var video = await mediator.SendAsync(new GetVideoBySharedLinkQuery(linkId), cancellationToken);
 
         if (video == null)
         {
@@ -185,7 +165,7 @@ public class ShareController : Controller
             return NotFound(new { error = "Video file not available." });
         }
 
-        var stream = await videoService.OpenStream(video.BlobId, cancellationToken);
+        var stream = await mediator.SendAsync(new OpenVideoStreamQuery(video.BlobId), cancellationToken);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 }

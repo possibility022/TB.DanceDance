@@ -1,25 +1,25 @@
-using Application.Features.AccessManagement;
-using Application.Features.Events;
-using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.Access.Contracts;
+using TB.DanceDance.Access.Events;
 using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
+using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos.Contracts;
+using ApiEvent = TB.DanceDance.API.Contracts.Models.Event;
 
 namespace TB.DanceDance.API.Features.Events;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class EventsController : Controller
 {
-    private readonly IAccessService accessService;
-    private readonly IEventService eventService;
+    private readonly IMediator mediator;
 
-    public EventsController(IAccessService accessService, IEventService eventService)
+    public EventsController(IMediator mediator)
     {
-        this.accessService = accessService;
-        this.eventService = eventService;
+        this.mediator = mediator;
     }
 
     [HttpPost]
@@ -29,16 +29,20 @@ public class EventsController : Controller
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        var ownerId = User.GetSubject();
+        var date = request.Event.Date.ToUniversalTime();
 
-        var @event = ContractMappers.MapFromNewEventRequestToEvent(request, User);
+        var eventId = await mediator.SendAsync(
+            new CreateEventCommand(request.Event.Name, date, ownerId), token);
 
-        if (!ModelState.IsValid)
-            return BadRequest();
+        var created = new ApiEvent()
+        {
+            Id = eventId,
+            Name = request.Event.Name,
+            Date = date,
+        };
 
-        var createdEvent = await eventService.CreateEventAsync(@event, token);
-
-
-        return Created("", createdEvent); //todo
+        return Created("", created);
     }
 
     [HttpGet]
@@ -46,18 +50,23 @@ public class EventsController : Controller
     public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId, CancellationToken token)
     {
         var userId = User.GetSubject();
-        var videos = await eventService
-            .GetVideos(eventId, userId, token);
+        var videos = await mediator.SendAsync(new ViewVideosFromEventQuery(userId, eventId), token);
 
-        if (videos.Length == 0)
+        if (videos.Count == 0)
         {
-            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId, token);
+            var isAssigned = await mediator.SendAsync(new DoesUserHasAccessToSharedWith
+            {
+                UserId = userId,
+                SharedToId = eventId,
+                SharedWithType = SharedWithByType.Event,
+            }, token);
+
             if (!isAssigned)
                 return Unauthorized();
         }
 
         var results = videos
-            .Select(r => ContractMappers.MapToVideoInformation(r))
+            .Select(ContractMappers.MapToVideoInformation)
             .ToList();
 
         return Ok(results);

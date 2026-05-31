@@ -1,10 +1,11 @@
-using Application;
-using Domain.Exceptions;
-using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
+using TB.DanceDance.Access;
 using TB.DanceDance.API;
+using TB.DanceDance.Utilities.Infrastructure;
+using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +31,19 @@ OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
 
-builder.Services.RegisterApplicationServices();
-builder.Services.RegisterInfrastructureServices(builder.Configuration);
+var postgreConnectionString = builder.Configuration.GetConnectionString("PostgreDb")
+    ?? throw new AppException("PostgreDb connection string is null.");
+var blobConnectionString = builder.Configuration.GetConnectionString("Blob")
+    ?? throw new AppException("Blob connection string is null.");
+
+builder.Services.AddAccessModuleInfrastructure(postgreConnectionString);
+builder.Services.AddVideosModuleInfrastructure(postgreConnectionString);
+builder.Services.AddSingleton<IBlobDataServiceFactory>(new BlobDataServiceFactory(blobConnectionString));
+
+builder.Services
+    .AddMediator()
+    .AddAccessModule()
+    .AddVideosModule();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddCors(setup =>
