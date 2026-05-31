@@ -22,6 +22,11 @@ public record GroupDto
     public required DateOnly SeasonEnd { get; init; }
 }
 
+public record AssignedGroupDto : GroupDto
+{
+    public DateTime WhenJoined { get; set; }
+}
+
 public record EventDto
 {
     public Guid Id { get; init; }

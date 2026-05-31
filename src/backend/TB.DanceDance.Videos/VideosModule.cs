@@ -1,7 +1,10 @@
-﻿using TB.DanceDance.Utilities.Infrastructure.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using TB.DanceDance.Utilities.Infrastructure.Models;
 using TB.DanceDance.Utilities.Mediating;
 using TB.DanceDance.Videos.Comments;
 using TB.DanceDance.Videos.Contracts;
+using TB.DanceDance.Videos.Infrastructure;
 using TB.DanceDance.Videos.Management;
 using TB.DanceDance.Videos.Sharing;
 using TB.DanceDance.Videos.UploadVideo;
@@ -45,5 +48,16 @@ public static class VideosModule
             .Register<HideCommentCommand, bool, CommentHandlers>()
             .Register<UnhideCommentCommand, bool, CommentHandlers>()
             .Register<ReportCommentCommand, bool, CommentHandlers>();
+    }
+
+    /// <summary>
+    /// Registers the Videos module's <see cref="VideosDbContext"/> against the shared PostgreSQL
+    /// database. One physical database; the context maps to the <c>video</c> and <c>comments</c>
+    /// schemas.
+    /// </summary>
+    public static IServiceCollection AddVideosModuleInfrastructure(this IServiceCollection services, string connectionString)
+    {
+        services.AddDbContext<VideosDbContext>(options => options.UseNpgsql(connectionString));
+        return services;
     }
 }

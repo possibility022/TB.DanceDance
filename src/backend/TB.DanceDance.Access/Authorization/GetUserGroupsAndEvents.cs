@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.Access.Infrastructure;
+using TB.DanceDance.Access.Mappers;
 using TB.DanceDance.Utilities.Mediating;
 
 namespace TB.DanceDance.Access.Authorization;
@@ -66,13 +67,7 @@ public class GetUserGroupsAndEventsHandler : IRequestHandler<GetUserGroupsAndEve
         var events = from eventAssign in dbContext.AssignedToEvents
                 join @event in dbContext.Events on eventAssign.EventId equals @event.Id
                 where eventAssign.UserId == request.UserId
-                select new EventDto()
-                {
-                    Date = @event.Date,
-                    Id = @event.Id,
-                    Name = @event.Name,
-                    Owner = @event.Owner
-                }
+                select @event.MapToDto();
             ;
 
         var groupsResults = await groups.ToListAsync(cancellationToken);
