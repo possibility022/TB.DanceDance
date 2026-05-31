@@ -1,4 +1,4 @@
-﻿namespace Domain.Models;
+﻿namespace TB.DanceDance.Videos.Contracts;
 
 public record UploadContext
 {
