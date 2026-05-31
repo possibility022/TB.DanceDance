@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.Utilities.Mediating;
@@ -21,12 +21,17 @@ class ViewVideos
       IRequestHandler<ViewPrivateVideosQuery, IReadOnlyCollection<VideoDto>>
 {
     private readonly VideosDbContext dbContext;
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<GetUserGroupMembershipsQuery, IReadOnlyCollection<GroupMembershipDto>> getUserGroupMembershipsQuery;
+    private readonly IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWith;
 
-    public ViewVideos(VideosDbContext dbContext, IMediator mediator)
+    public ViewVideos(VideosDbContext dbContext,
+        IRequestHandler<GetUserGroupMembershipsQuery,IReadOnlyCollection<GroupMembershipDto>> getUserGroupMembershipsQuery,
+        IRequestHandler<DoesUserHasAccessToSharedWith,bool> doesUserHasAccessToSharedWith
+        )
     {
         this.dbContext = dbContext;
-        this.mediator = mediator;
+        this.getUserGroupMembershipsQuery = getUserGroupMembershipsQuery;
+        this.doesUserHasAccessToSharedWith = doesUserHasAccessToSharedWith;
     }
 
     private static readonly Expression<Func<Video, VideoDto>> ToDto = v => new VideoDto()
@@ -46,7 +51,7 @@ class ViewVideos
     {
         // Membership + join date come from Access — only members see the group's videos, and only
         // those recorded after they joined.
-        var memberships = await mediator.SendAsync(new GetUserGroupMembershipsQuery(request.UserId), cancellationToken);
+        var memberships = await getUserGroupMembershipsQuery.HandleAsync(new GetUserGroupMembershipsQuery(request.UserId), cancellationToken);
         var membership = memberships.FirstOrDefault(m => m.GroupId == request.GroupId);
         if (membership is null)
             return Array.Empty<VideoDto>();
@@ -66,7 +71,7 @@ class ViewVideos
     public async Task<IReadOnlyCollection<VideoDto>> HandleAsync(ViewVideosFromEventQuery request, CancellationToken cancellationToken = default)
     {
         // Event membership has no join-date restriction in the original EventService.GetVideos.
-        var isMember = await mediator.SendAsync(new DoesUserHasAccessToSharedWith
+        var isMember = await doesUserHasAccessToSharedWith.HandleAsync(new DoesUserHasAccessToSharedWith
         {
             UserId = request.UserId,
             SharedToId = request.EventId,
@@ -88,7 +93,7 @@ class ViewVideos
 
     public async Task<IReadOnlyCollection<VideoDto>> HandleAsync(ViewVideosFromAllGroupsQuery request, CancellationToken cancellationToken = default)
     {
-        var memberships = await mediator.SendAsync(new GetUserGroupMembershipsQuery(request.UserId), cancellationToken);
+        var memberships = await getUserGroupMembershipsQuery.HandleAsync(new GetUserGroupMembershipsQuery(request.UserId), cancellationToken);
         if (memberships.Count == 0)
             return Array.Empty<VideoDto>();
 

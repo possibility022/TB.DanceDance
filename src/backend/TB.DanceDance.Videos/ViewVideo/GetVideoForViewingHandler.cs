@@ -12,17 +12,17 @@ namespace TB.DanceDance.Videos.ViewVideo;
 class GetVideoForViewingHandler : IRequestHandler<GetVideoForViewingQuery, VideoDto?>
 {
     private readonly VideosDbContext dbContext;
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<DoesUserHaveAccessToVideoByBlobQuery, bool> doesUserHaveAccessToVideoByBlobQuery;
 
-    public GetVideoForViewingHandler(VideosDbContext dbContext, IMediator mediator)
+    public GetVideoForViewingHandler(VideosDbContext dbContext, IRequestHandler<DoesUserHaveAccessToVideoByBlobQuery, bool> doesUserHaveAccessToVideoByBlobQuery)
     {
         this.dbContext = dbContext;
-        this.mediator = mediator;
+        this.doesUserHaveAccessToVideoByBlobQuery = doesUserHaveAccessToVideoByBlobQuery;
     }
 
     public async Task<VideoDto?> HandleAsync(GetVideoForViewingQuery request, CancellationToken cancellationToken = default)
     {
-        var hasAccess = await mediator.SendAsync(
+        var hasAccess = await doesUserHaveAccessToVideoByBlobQuery.HandleAsync(
             new DoesUserHaveAccessToVideoByBlobQuery(request.UserId, request.BlobId), cancellationToken);
 
         if (!hasAccess)

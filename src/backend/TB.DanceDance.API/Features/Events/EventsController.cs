@@ -15,11 +15,17 @@ namespace TB.DanceDance.API.Features.Events;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class EventsController : Controller
 {
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<CreateEventCommand, Guid> createEventCommand;
+    private readonly IRequestHandler<ViewVideosFromEventQuery, IReadOnlyCollection<VideoDto>> viewVideosFromEventQuery;
+    private readonly IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWithQuery;
 
-    public EventsController(IMediator mediator)
+    public EventsController(IRequestHandler<CreateEventCommand, Guid> createEventCommand,
+        IRequestHandler<ViewVideosFromEventQuery, IReadOnlyCollection<VideoDto>> viewVideosFromEventQuery,
+        IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWithQuery)
     {
-        this.mediator = mediator;
+        this.createEventCommand = createEventCommand;
+        this.viewVideosFromEventQuery = viewVideosFromEventQuery;
+        this.doesUserHasAccessToSharedWithQuery = doesUserHasAccessToSharedWithQuery;
     }
 
     [HttpPost]
@@ -32,7 +38,7 @@ public class EventsController : Controller
         var ownerId = User.GetSubject();
         var date = request.Event.Date.ToUniversalTime();
 
-        var eventId = await mediator.SendAsync(
+        var eventId = await createEventCommand.HandleAsync(
             new CreateEventCommand(request.Event.Name, date, ownerId), token);
 
         var created = new ApiEvent()
@@ -50,11 +56,11 @@ public class EventsController : Controller
     public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId, CancellationToken token)
     {
         var userId = User.GetSubject();
-        var videos = await mediator.SendAsync(new ViewVideosFromEventQuery(userId, eventId), token);
+        var videos = await viewVideosFromEventQuery.HandleAsync(new ViewVideosFromEventQuery(userId, eventId), token);
 
         if (videos.Count == 0)
         {
-            var isAssigned = await mediator.SendAsync(new DoesUserHasAccessToSharedWith
+            var isAssigned = await doesUserHasAccessToSharedWithQuery.HandleAsync(new DoesUserHasAccessToSharedWith
             {
                 UserId = userId,
                 SharedToId = eventId,

@@ -24,12 +24,12 @@ class SharedLinkHandlers
     private const int MaxExpirationDays = 365;
 
     private readonly VideosDbContext dbContext;
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<DoesUserHaveAccessToVideoQuery, bool> doesUserHaveAccessToVideoQueryHandler;
 
-    public SharedLinkHandlers(VideosDbContext dbContext, IMediator mediator)
+    public SharedLinkHandlers(VideosDbContext dbContext, IRequestHandler<DoesUserHaveAccessToVideoQuery, bool> doesUserHaveAccessToVideoQueryHandler)
     {
         this.dbContext = dbContext;
-        this.mediator = mediator;
+        this.doesUserHaveAccessToVideoQueryHandler = doesUserHaveAccessToVideoQueryHandler;
     }
 
     public async Task<SharedLinkDto> HandleAsync(CreateSharedLinkCommand request, CancellationToken cancellationToken = default)
@@ -162,7 +162,7 @@ class SharedLinkHandlers
 
         // Otherwise delegate the (cross-module) access decision to the Videos access check,
         // which resolves group/event shares through the Access module.
-        return await mediator.SendAsync(
+        return await doesUserHaveAccessToVideoQueryHandler.HandleAsync(
             new DoesUserHaveAccessToVideoQuery(userId, video.Id), cancellationToken);
     }
 

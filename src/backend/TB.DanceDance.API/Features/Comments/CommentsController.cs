@@ -14,14 +14,40 @@ namespace TB.DanceDance.API.Features.Comments;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class CommentsController : Controller
 {
-    private readonly IMediator mediator;
     private readonly ILogger<CommentsController> logger;
+    private readonly IRequestHandler<CreateCommentCommand, CommentDto> createCommentCommand;
+    private readonly IRequestHandler<GetCommentsForVideoByLinkQuery, IReadOnlyCollection<CommentDto>> getCommentsForVideoByLinkCommand;
+    private readonly IRequestHandler<UpdateCommentCommand, bool> updateCommentCommand;
+    private readonly IRequestHandler<DeleteCommentCommand, bool> deleteCommentCommand;
+    private readonly IRequestHandler<HideCommentCommand, bool> hideCommentCommand;
+    private readonly IRequestHandler<UnhideCommentCommand, bool> unhideCommentCommand;
+    private readonly IRequestHandler<ReportCommentCommand, bool> reportCommentCommand;
+    private readonly IRequestHandler<GetCommentsForVideoByIdQuery, IReadOnlyCollection<CommentDto>> getCommentsForVideoByIdCommand;
+    private readonly IRequestHandler<GetUsersByIdsQuery, IReadOnlyCollection<UserInfoDto>> getUsersByIdsCommand;
     public const string AnonymousHeaderId = "AnonymousId";
 
-    public CommentsController(IMediator mediator, ILogger<CommentsController> logger)
+    public CommentsController(ILogger<CommentsController> logger,
+        IRequestHandler<CreateCommentCommand, CommentDto> createCommentCommand,
+        IRequestHandler<GetCommentsForVideoByLinkQuery,IReadOnlyCollection<CommentDto>> getCommentsForVideoByLinkCommand,
+        IRequestHandler<UpdateCommentCommand, bool> updateCommentCommand,
+        IRequestHandler<DeleteCommentCommand, bool> deleteCommentCommand,
+        IRequestHandler<HideCommentCommand, bool> hideCommentCommand,
+        IRequestHandler<UnhideCommentCommand, bool> unhideCommentCommand,
+        IRequestHandler<ReportCommentCommand, bool> reportCommentCommand,
+        IRequestHandler<GetCommentsForVideoByIdQuery, IReadOnlyCollection<CommentDto>> getCommentsForVideoByIdCommand,
+        IRequestHandler<GetUsersByIdsQuery, IReadOnlyCollection<UserInfoDto>> getUsersByIdsCommand
+        )
     {
-        this.mediator = mediator;
         this.logger = logger;
+        this.createCommentCommand = createCommentCommand;
+        this.getCommentsForVideoByLinkCommand = getCommentsForVideoByLinkCommand;
+        this.updateCommentCommand = updateCommentCommand;
+        this.deleteCommentCommand = deleteCommentCommand;
+        this.hideCommentCommand = hideCommentCommand;
+        this.unhideCommentCommand = unhideCommentCommand;
+        this.reportCommentCommand = reportCommentCommand;
+        this.getCommentsForVideoByIdCommand = getCommentsForVideoByIdCommand;
+        this.getUsersByIdsCommand = getUsersByIdsCommand;
     }
 
     /// <summary>
@@ -40,7 +66,7 @@ public class CommentsController : Controller
 
         try
         {
-            var comment = await mediator.SendAsync(new CreateCommentCommand(
+            var comment = await createCommentCommand.HandleAsync(new CreateCommentCommand(
                 userId,
                 linkId,
                 request.Content,
@@ -76,7 +102,7 @@ public class CommentsController : Controller
 
         try
         {
-            var comments = await mediator.SendAsync(new GetCommentsForVideoByLinkQuery(
+            var comments = await getCommentsForVideoByLinkCommand.HandleAsync(new GetCommentsForVideoByLinkQuery(
                 userId,
                 anonymousId,
                 linkId), cancellationToken);
@@ -112,7 +138,7 @@ public class CommentsController : Controller
 
         try
         {
-            var result = await mediator.SendAsync(new UpdateCommentCommand(
+            var result = await updateCommentCommand.HandleAsync(new UpdateCommentCommand(
                 commentId,
                 userId,
                 request.AnonymousId,
@@ -159,7 +185,7 @@ public class CommentsController : Controller
 
         try
         {
-            var result = await mediator.SendAsync(new DeleteCommentCommand(
+            var result = await deleteCommentCommand.HandleAsync(new DeleteCommentCommand(
                 commentId,
                 userId,
                 anonymousId), cancellationToken);
@@ -188,7 +214,7 @@ public class CommentsController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await mediator.SendAsync(new HideCommentCommand(commentId, userId), cancellationToken);
+        var result = await hideCommentCommand.HandleAsync(new HideCommentCommand(commentId, userId), cancellationToken);
 
         if (!result)
         {
@@ -209,7 +235,7 @@ public class CommentsController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await mediator.SendAsync(new UnhideCommentCommand(commentId, userId), cancellationToken);
+        var result = await unhideCommentCommand.HandleAsync(new UnhideCommentCommand(commentId, userId), cancellationToken);
 
         if (!result)
         {
@@ -232,7 +258,7 @@ public class CommentsController : Controller
     {
         try
         {
-            var result = await mediator.SendAsync(new ReportCommentCommand(commentId, request.Reason), cancellationToken);
+            var result = await reportCommentCommand.HandleAsync(new ReportCommentCommand(commentId, request.Reason), cancellationToken);
 
             if (!result)
             {
@@ -258,7 +284,7 @@ public class CommentsController : Controller
         {
             var anonymousId = ResolveAnonymousId(null, Request);
 
-            var comments = await mediator.SendAsync(new GetCommentsForVideoByIdQuery(userId, anonymousId, videoId), cancellationToken);
+            var comments = await getCommentsForVideoByIdCommand.HandleAsync(new GetCommentsForVideoByIdQuery(userId, anonymousId, videoId), cancellationToken);
 
             byte[]? shaOfAnonymousId = ComputeSha256(anonymousId);
 
@@ -294,7 +320,7 @@ public class CommentsController : Controller
         if (userIds.Length == 0)
             return new Dictionary<string, string>();
 
-        var users = await mediator.SendAsync(new GetUsersByIdsQuery(userIds), cancellationToken);
+        var users = await getUsersByIdsCommand.HandleAsync(new GetUsersByIdsQuery(userIds), cancellationToken);
 
         return users.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}");
     }

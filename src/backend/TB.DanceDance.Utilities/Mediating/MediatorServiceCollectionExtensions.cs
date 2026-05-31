@@ -8,7 +8,6 @@ public static class MediatorServiceCollectionExtensions
     {
         var registry = new MediatorHandlerRegistry();
         services.AddSingleton(registry);
-        services.AddScoped<IMediator, Mediator>();
         return new MediatorBuilder(services, registry);
     }
 }

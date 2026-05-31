@@ -16,22 +16,29 @@ class DoesUserHaveAccessToVideoHandler
     : IRequestHandler<DoesUserHaveAccessToVideoQuery, bool>,
       IRequestHandler<DoesUserHaveAccessToVideoByBlobQuery, bool>
 {
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<SharedWithByVideoIdQuery, IReadOnlyCollection<SharedWithResponse>> sharedWithByVideoIdQueryHandler;
+    private readonly IRequestHandler<SharedWithByVideoBlobIdQuery, IReadOnlyCollection<SharedWithResponse>> sharedWithByVideoBlobIdQueryHandler;
+    private readonly IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWith;
 
-    public DoesUserHaveAccessToVideoHandler(IMediator mediator)
+    public DoesUserHaveAccessToVideoHandler(
+        IRequestHandler<SharedWithByVideoIdQuery, IReadOnlyCollection<SharedWithResponse>> sharedWithByVideoIdQueryHandler,
+        IRequestHandler<SharedWithByVideoBlobIdQuery, IReadOnlyCollection<SharedWithResponse>> sharedWithByVideoBlobIdQueryHandler,
+        IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWith)
     {
-        this.mediator = mediator;
+        this.sharedWithByVideoIdQueryHandler = sharedWithByVideoIdQueryHandler;
+        this.sharedWithByVideoBlobIdQueryHandler = sharedWithByVideoBlobIdQueryHandler;
+        this.doesUserHasAccessToSharedWith = doesUserHasAccessToSharedWith;
     }
 
     public async Task<bool> HandleAsync(DoesUserHaveAccessToVideoQuery request, CancellationToken cancellationToken = default)
     {
-        var shares = await mediator.SendAsync(new SharedWithByVideoIdQuery { VideoId = request.VideoId }, cancellationToken);
+        var shares = await sharedWithByVideoIdQueryHandler.HandleAsync(new SharedWithByVideoIdQuery { VideoId = request.VideoId }, cancellationToken);
         return await HasAccessAsync(request.UserId, shares, cancellationToken);
     }
 
     public async Task<bool> HandleAsync(DoesUserHaveAccessToVideoByBlobQuery request, CancellationToken cancellationToken = default)
     {
-        var shares = await mediator.SendAsync(new SharedWithByVideoBlobIdQuery { VideoBlobId = request.BlobId }, cancellationToken);
+        var shares = await sharedWithByVideoBlobIdQueryHandler.HandleAsync(new SharedWithByVideoBlobIdQuery { VideoBlobId = request.BlobId }, cancellationToken);
         return await HasAccessAsync(request.UserId, shares, cancellationToken);
     }
 
@@ -50,7 +57,7 @@ class DoesUserHaveAccessToVideoHandler
 
             if (share.EventId is { } eventId)
             {
-                var hasEventAccess = await mediator.SendAsync(new DoesUserHasAccessToSharedWith
+                var hasEventAccess = await doesUserHasAccessToSharedWith.HandleAsync(new DoesUserHasAccessToSharedWith
                 {
                     UserId = userId,
                     SharedToId = eventId,
@@ -68,7 +75,7 @@ class DoesUserHaveAccessToVideoHandler
                 // we pass DateTime.MinValue (UTC) to make the handler's
                 // AssignedToGroup.WhenJoined >= WhenJoined check always pass — replicating the
                 // old behavior exactly.
-                var hasGroupAccess = await mediator.SendAsync(new DoesUserHasAccessToSharedWith
+                var hasGroupAccess = await doesUserHasAccessToSharedWith.HandleAsync(new DoesUserHasAccessToSharedWith
                 {
                     UserId = userId,
                     SharedToId = groupId,

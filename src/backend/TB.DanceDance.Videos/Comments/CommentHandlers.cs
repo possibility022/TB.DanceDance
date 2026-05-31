@@ -28,12 +28,12 @@ class CommentHandlers
     private const int MaxCommentLength = 2000;
 
     private readonly VideosDbContext dbContext;
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<DoesUserHaveAccessToVideoQuery, bool> doesUserHaveAccessToVideoQueryHandler;
 
-    public CommentHandlers(VideosDbContext dbContext, IMediator mediator)
+    public CommentHandlers(VideosDbContext dbContext, IRequestHandler<DoesUserHaveAccessToVideoQuery, bool> doesUserHaveAccessToVideoQueryHandler)
     {
         this.dbContext = dbContext;
-        this.mediator = mediator;
+        this.doesUserHaveAccessToVideoQueryHandler = doesUserHaveAccessToVideoQueryHandler;
     }
 
     public async Task<CommentDto> HandleAsync(CreateCommentCommand request, CancellationToken cancellationToken = default)
@@ -128,7 +128,7 @@ class CommentHandlers
 
     public async Task<IReadOnlyCollection<CommentDto>> HandleAsync(GetCommentsForVideoByIdQuery request, CancellationToken cancellationToken = default)
     {
-        var hasAccess = await mediator.SendAsync(
+        var hasAccess = await doesUserHaveAccessToVideoQueryHandler.HandleAsync(
             new DoesUserHaveAccessToVideoQuery(request.UserId, request.VideoId), cancellationToken);
         if (!hasAccess)
             throw new UnauthorizedAccessException("No access to the video.");

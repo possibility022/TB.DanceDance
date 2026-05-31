@@ -14,11 +14,21 @@ namespace TB.DanceDance.API.Features.Groups;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class GroupController : Controller
 {
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<GetUserGroupMembershipsQuery, IReadOnlyCollection<GroupMembershipDto>> getUserGroupMembershipsQuery;
+    private readonly IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery;
+    private readonly IRequestHandler<GetGroupByIdQuery, GroupDto?> getGroupByIdQuery;
+    private readonly IRequestHandler<ViewVideosFromGroupQuery, IReadOnlyCollection<VideoDto>> viewVideosFromGroupQuery;
 
-    public GroupController(IMediator mediator)
+    public GroupController(
+        IRequestHandler<GetUserGroupMembershipsQuery, IReadOnlyCollection<GroupMembershipDto>> getUserGroupMembershipsQuery,
+        IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery,
+        IRequestHandler<GetGroupByIdQuery, GroupDto?> getGroupByIdQuery,
+        IRequestHandler<ViewVideosFromGroupQuery, IReadOnlyCollection<VideoDto>> viewVideosFromGroupQuery)
     {
-        this.mediator = mediator;
+        this.getUserGroupMembershipsQuery = getUserGroupMembershipsQuery;
+        this.getAllGroupsQuery = getAllGroupsQuery;
+        this.getGroupByIdQuery = getGroupByIdQuery;
+        this.viewVideosFromGroupQuery = viewVideosFromGroupQuery;
     }
 
     [HttpGet]
@@ -27,8 +37,8 @@ public class GroupController : Controller
     {
         var userId = User.GetSubject();
 
-        var memberships = await mediator.SendAsync(new GetUserGroupMembershipsQuery(userId), cancellationToken);
-        var allGroups = await mediator.SendAsync(new GetAllGroupsQuery(), cancellationToken);
+        var memberships = await getUserGroupMembershipsQuery.HandleAsync(new GetUserGroupMembershipsQuery(userId), cancellationToken);
+        var allGroups = await getAllGroupsQuery.HandleAsync(new GetAllGroupsQuery(), cancellationToken);
         var groupsById = allGroups.ToDictionary(g => g.Id);
 
         var response = new List<GroupWithVideosResponse>();
@@ -38,7 +48,7 @@ public class GroupController : Controller
             if (!groupsById.TryGetValue(membership.GroupId, out var group))
                 continue;
 
-            var videos = await mediator.SendAsync(new ViewVideosFromGroupQuery(userId, membership.GroupId), cancellationToken);
+            var videos = await viewVideosFromGroupQuery.HandleAsync(new ViewVideosFromGroupQuery(userId, membership.GroupId), cancellationToken);
 
             if (videos.Count == 0)
                 continue;
@@ -55,12 +65,12 @@ public class GroupController : Controller
     {
         var userId = User.GetSubject();
 
-        var videos = await mediator.SendAsync(new ViewVideosFromGroupQuery(userId, groupId), cancellationToken);
+        var videos = await viewVideosFromGroupQuery.HandleAsync(new ViewVideosFromGroupQuery(userId, groupId), cancellationToken);
 
         if (videos.Count == 0)
             return NotFound();
 
-        var group = await mediator.SendAsync(new GetGroupByIdQuery { Id = groupId }, cancellationToken);
+        var group = await getGroupByIdQuery.HandleAsync(new GetGroupByIdQuery { Id = groupId }, cancellationToken);
 
         if (group == null)
             return NotFound();

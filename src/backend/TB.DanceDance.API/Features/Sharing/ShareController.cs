@@ -12,16 +12,31 @@ namespace TB.DanceDance.API.Features.Sharing;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class ShareController : Controller
 {
-    private readonly IMediator mediator;
+    private readonly IRequestHandler<CreateSharedLinkCommand, SharedLinkDto> createSharedLinkCommand;
+    private readonly IRequestHandler<RevokeSharedLinkCommand, bool> revokeSharedLinkCommand;
+    private readonly IRequestHandler<GetUserSharedLinksQuery, IReadOnlyCollection<SharedLinkDto>> getUserSharedLinksQuery;
+    private readonly IRequestHandler<GetSharedLinkQuery, SharedLinkDto?> getSharedLinkQuery;
+    private readonly IRequestHandler<OpenVideoStreamQuery, Stream> openVideoStreamQuery;
+    private readonly IRequestHandler<GetVideoBySharedLinkQuery, VideoDto?> getVideoBySharedLinkQuery;
     private readonly IOptions<AppOptions> appOptions;
     private readonly ILogger<ShareController> logger;
 
     public ShareController(
-        IMediator mediator,
+        IRequestHandler<CreateSharedLinkCommand, SharedLinkDto> createSharedLinkCommand,
+        IRequestHandler<RevokeSharedLinkCommand, bool> revokeSharedLinkCommand,
+        IRequestHandler<GetUserSharedLinksQuery, IReadOnlyCollection<SharedLinkDto>> getUserSharedLinksQuery,
+        IRequestHandler<GetSharedLinkQuery, SharedLinkDto?> getSharedLinkQuery,
+        IRequestHandler<OpenVideoStreamQuery, Stream> openVideoStreamQuery,
+        IRequestHandler<GetVideoBySharedLinkQuery, VideoDto?> getVideoBySharedLinkQuery,
         IOptions<AppOptions> appOptions,
         ILogger<ShareController> logger)
     {
-        this.mediator = mediator;
+        this.createSharedLinkCommand = createSharedLinkCommand;
+        this.revokeSharedLinkCommand = revokeSharedLinkCommand;
+        this.getUserSharedLinksQuery = getUserSharedLinksQuery;
+        this.getSharedLinkQuery = getSharedLinkQuery;
+        this.openVideoStreamQuery = openVideoStreamQuery;
+        this.getVideoBySharedLinkQuery = getVideoBySharedLinkQuery;
         this.appOptions = appOptions;
         this.logger = logger;
     }
@@ -40,7 +55,7 @@ public class ShareController : Controller
 
         try
         {
-            var link = await mediator.SendAsync(new CreateSharedLinkCommand
+            var link = await createSharedLinkCommand.HandleAsync(new CreateSharedLinkCommand
             {
                 VideoId = videoId,
                 UserId = userId,
@@ -69,7 +84,7 @@ public class ShareController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await mediator.SendAsync(new RevokeSharedLinkCommand(linkId, userId), cancellationToken);
+        var result = await revokeSharedLinkCommand.HandleAsync(new RevokeSharedLinkCommand(linkId, userId), cancellationToken);
 
         if (!result)
         {
@@ -88,7 +103,7 @@ public class ShareController : Controller
     {
         var userId = User.GetSubject();
 
-        var links = await mediator.SendAsync(new GetUserSharedLinksQuery(userId), cancellationToken);
+        var links = await getUserSharedLinksQuery.HandleAsync(new GetUserSharedLinksQuery(userId), cancellationToken);
 
         var response = links.Select(MapToResponse);
 
@@ -120,7 +135,7 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        var link = await mediator.SendAsync(new GetSharedLinkQuery(linkId), cancellationToken);
+        var link = await getSharedLinkQuery.HandleAsync(new GetSharedLinkQuery(linkId), cancellationToken);
 
         if (link == null || link.Video == null)
         {
@@ -153,7 +168,7 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        var video = await mediator.SendAsync(new GetVideoBySharedLinkQuery(linkId), cancellationToken);
+        var video = await getVideoBySharedLinkQuery.HandleAsync(new GetVideoBySharedLinkQuery(linkId), cancellationToken);
 
         if (video == null)
         {
@@ -165,7 +180,7 @@ public class ShareController : Controller
             return NotFound(new { error = "Video file not available." });
         }
 
-        var stream = await mediator.SendAsync(new OpenVideoStreamQuery(video.BlobId), cancellationToken);
+        var stream = await openVideoStreamQuery.HandleAsync(new OpenVideoStreamQuery(video.BlobId), cancellationToken);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 }

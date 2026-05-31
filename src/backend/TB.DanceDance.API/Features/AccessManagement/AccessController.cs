@@ -13,21 +13,49 @@ namespace TB.DanceDance.API.Features.AccessManagement;
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class AccessController : Controller
 {
-    private readonly IMediator mediator;
     private readonly IIdentityClient identityClient;
+    private readonly IRequestHandler<GetAllEventsQuery, IReadOnlyCollection<EventDto>> getAllEventsQuery;
+    private readonly IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery;
+    private readonly IRequestHandler<GetUserGroupsAndEvents, UserGroupsAndEvents> getUserGroupsAndEvents;
+    private readonly IRequestHandler<GetPendingUserRequestsQuery, UserRequests> getPendingUserRequestsQuery;
+    private readonly IRequestHandler<AddOrUpdateUserCommand, bool> addOrUpdateUserCommand;
+    private readonly IRequestHandler<SaveGroupsAssignmentCommand, bool> saveGroupsAssignmentCommand;
+    private readonly IRequestHandler<SaveEventsAssignmentCommand, bool> saveEventsAssignmentCommand;
+    private readonly IRequestHandler<GetAccessRequestsToApproveQuery, IReadOnlyCollection<RequestedAccess>> getAccessRequestsToApproveQuery;
+    private readonly IRequestHandler<DeclineAccessRequestCommand, bool> declineAccessRequestCommand;
+    private readonly IRequestHandler<ApproveAccessRequestCommand, bool> approveAccessRequestCommand;
 
-    public AccessController(IMediator mediator, IIdentityClient identityClient)
+    public AccessController(IIdentityClient identityClient,
+        IRequestHandler<GetAllEventsQuery, IReadOnlyCollection<EventDto>> getAllEventsQuery,
+        IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery,
+        IRequestHandler<GetUserGroupsAndEvents, UserGroupsAndEvents> getUserGroupsAndEvents,
+        IRequestHandler<GetPendingUserRequestsQuery,UserRequests> getPendingUserRequestsQuery,
+        IRequestHandler<AddOrUpdateUserCommand, bool> addOrUpdateUserCommand,
+        IRequestHandler<SaveGroupsAssignmentCommand, bool> saveGroupsAssignmentCommand,
+        IRequestHandler<SaveEventsAssignmentCommand, bool> saveEventsAssignmentCommand,
+        IRequestHandler<GetAccessRequestsToApproveQuery,IReadOnlyCollection<RequestedAccess>> getAccessRequestsToApproveQuery,
+        IRequestHandler<DeclineAccessRequestCommand, bool> declineAccessRequestCommand,
+        IRequestHandler<ApproveAccessRequestCommand, bool> approveAccessRequestCommand)
     {
-        this.mediator = mediator;
         this.identityClient = identityClient;
+        this.getAllEventsQuery = getAllEventsQuery;
+        this.getAllGroupsQuery = getAllGroupsQuery;
+        this.getUserGroupsAndEvents = getUserGroupsAndEvents;
+        this.getPendingUserRequestsQuery = getPendingUserRequestsQuery;
+        this.addOrUpdateUserCommand = addOrUpdateUserCommand;
+        this.saveGroupsAssignmentCommand = saveGroupsAssignmentCommand;
+        this.saveEventsAssignmentCommand = saveEventsAssignmentCommand;
+        this.getAccessRequestsToApproveQuery = getAccessRequestsToApproveQuery;
+        this.declineAccessRequestCommand = declineAccessRequestCommand;
+        this.approveAccessRequestCommand = approveAccessRequestCommand;
     }
 
     [Route(AccessRoutes.GetAll)]
     [HttpGet]
     public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups(CancellationToken token)
     {
-        var listOfEvents = await mediator.SendAsync(new GetAllEventsQuery(), token);
-        var listOfGroups = await mediator.SendAsync(new GetAllGroupsQuery(), token);
+        var listOfEvents = await getAllEventsQuery.HandleAsync(new GetAllEventsQuery(), token);
+        var listOfGroups = await getAllGroupsQuery.HandleAsync(new GetAllGroupsQuery(), token);
 
         return new EventsAndGroupsResponse()
         {
@@ -44,7 +72,7 @@ public class AccessController : Controller
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken cancellationToken)
     {
         var user = User.GetSubject();
-        var assigned = await mediator.SendAsync(new GetUserGroupsAndEvents { UserId = user }, cancellationToken);
+        var assigned = await getUserGroupsAndEvents.HandleAsync(new GetUserGroupsAndEvents { UserId = user }, cancellationToken);
         var userGroups = assigned.Groups;
         var userEvents = assigned.Events;
 
@@ -59,19 +87,19 @@ public class AccessController : Controller
                 .Select(ContractMappers.MapToEventContract)
                 .ToArray();
 
-        var listOfEvents = await mediator.SendAsync(new GetAllEventsQuery(), cancellationToken);
+        var listOfEvents = await getAllEventsQuery.HandleAsync(new GetAllEventsQuery(), cancellationToken);
 
         responseModel.Available.Events = listOfEvents.Except(userEvents)
             .Select(ContractMappers.MapToEventContract)
             .ToArray();
 
-        var listOfGroups = await mediator.SendAsync(new GetAllGroupsQuery(), cancellationToken);
+        var listOfGroups = await getAllGroupsQuery.HandleAsync(new GetAllGroupsQuery(), cancellationToken);
 
         responseModel.Available.Groups = listOfGroups.Except(userGroups)
             .Select(ContractMappers.MapToGroupContract)
             .ToArray();
 
-        var myPendingRequests = await mediator.SendAsync(new GetPendingUserRequestsQuery { UserId = user }, cancellationToken);
+        var myPendingRequests = await getPendingUserRequestsQuery.HandleAsync(new GetPendingUserRequestsQuery { UserId = user }, cancellationToken);
 
         responseModel.Pending.Events = myPendingRequests.Events;
         responseModel.Pending.Groups = myPendingRequests.Groups;
@@ -97,7 +125,7 @@ public class AccessController : Controller
         var token = GetAccessTokenFromHeader();
         var userData = await identityClient.GetNameAsync(token, cancellationToken);
 
-        await mediator.SendAsync(new AddOrUpdateUserCommand
+        await addOrUpdateUserCommand.HandleAsync(new AddOrUpdateUserCommand
         {
             Id = userData.Id,
             FirstName = userData.FirstName,
@@ -106,12 +134,12 @@ public class AccessController : Controller
         }, cancellationToken);
 
         if (requests.Events?.Count > 0)
-            await mediator.SendAsync(new SaveEventsAssignmentCommand { UserId = user, Events = requests.Events }, cancellationToken);
+            await saveEventsAssignmentCommand.HandleAsync(new SaveEventsAssignmentCommand { UserId = user, Events = requests.Events }, cancellationToken);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await mediator.SendAsync(new SaveGroupsAssignmentCommand { UserId = user, Groups = model }, cancellationToken);
+            await saveGroupsAssignmentCommand.HandleAsync(new SaveGroupsAssignmentCommand { UserId = user, Groups = model }, cancellationToken);
         }
 
         return Ok();
@@ -137,7 +165,7 @@ public class AccessController : Controller
     {
         var userId = User.GetSubject();
 
-        var accessRequests = await mediator.SendAsync(new GetAccessRequestsToApproveQuery { UserId = userId }, cancellationToken);
+        var accessRequests = await getAccessRequestsToApproveQuery.HandleAsync(new GetAccessRequestsToApproveQuery { UserId = userId }, cancellationToken);
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;
@@ -152,14 +180,14 @@ public class AccessController : Controller
         bool results;
 
         if (requestBody.IsApproved)
-            results = await mediator.SendAsync(new ApproveAccessRequestCommand
+            results = await approveAccessRequestCommand.HandleAsync(new ApproveAccessRequestCommand
             {
                 RequestId = requestBody.RequestId,
                 IsGroup = requestBody.IsGroup,
                 UserId = userId,
             }, cancellationToken);
         else
-            results = await mediator.SendAsync(new DeclineAccessRequestCommand
+            results = await declineAccessRequestCommand.HandleAsync(new DeclineAccessRequestCommand
             {
                 RequestId = requestBody.RequestId,
                 IsGroup = requestBody.IsGroup,
