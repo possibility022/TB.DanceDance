@@ -1,5 +1,6 @@
 ﻿using TB.DanceDance.Utilities.Infrastructure.Models;
 using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos.Comments;
 using TB.DanceDance.Videos.Contracts;
 using TB.DanceDance.Videos.Management;
 using TB.DanceDance.Videos.Sharing;
@@ -35,6 +36,14 @@ public static class VideosModule
             .Register<GetVideoBySharedLinkQuery, VideoDto?, SharedLinkHandlers>()
             .Register<RevokeSharedLinkCommand, bool, SharedLinkHandlers>()
             .Register<GetUserSharedLinksQuery, IReadOnlyCollection<SharedLinkDto>, SharedLinkHandlers>()
-            .Register<GetSharedLinkQuery, SharedLinkDto?, SharedLinkHandlers>();
+            .Register<GetSharedLinkQuery, SharedLinkDto?, SharedLinkHandlers>()
+            .Register<CreateCommentCommand, CommentDto, CommentHandlers>()
+            .Register<GetCommentsForVideoByLinkQuery, IReadOnlyCollection<CommentDto>, CommentHandlers>()
+            .Register<GetCommentsForVideoByIdQuery, IReadOnlyCollection<CommentDto>, CommentHandlers>()
+            .Register<UpdateCommentCommand, bool, CommentHandlers>()
+            .Register<DeleteCommentCommand, bool, CommentHandlers>()
+            .Register<HideCommentCommand, bool, CommentHandlers>()
+            .Register<UnhideCommentCommand, bool, CommentHandlers>()
+            .Register<ReportCommentCommand, bool, CommentHandlers>();
     }
 }

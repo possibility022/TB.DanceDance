@@ -73,4 +73,33 @@ public class Comment
     // Navigation properties
     public Video Video { get; set; } = null!;
     public SharedLink? SharedLink { get; set; }
+
+    /// <summary>
+    /// Creates comments inside the Videos module (the ctor is private, like the other entities here).
+    /// </summary>
+    public static class Factory
+    {
+        public static Comment Create(
+            Guid videoId,
+            string? userId,
+            string sharedLinkId,
+            string content,
+            string? anonymousName,
+            byte[]? shaOfAnonymousId) => new()
+        {
+            Id = Guid.NewGuid(),
+            VideoId = videoId,
+            UserId = userId, // null for anonymous, populated for authenticated
+            SharedLinkId = sharedLinkId,
+            Content = content,
+            AnonymousName = anonymousName,
+            ShaOfAnonymousId = shaOfAnonymousId,
+            PostedAsAnonymous = userId is null,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = null,
+            IsHidden = false,
+            IsReported = false,
+            ReportedReason = null,
+        };
+    }
 }
