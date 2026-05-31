@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 public class User
 {
     private User() { }
@@ -18,5 +21,13 @@ public class User
     {
         public static User Create(string id, string firstName, string lastName, string email) =>
             new() { Id = id, FirstName = firstName, LastName = lastName, Email = email };
+    }
+}
+
+public class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.ToTable("Users");
     }
 }

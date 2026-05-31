@@ -17,6 +17,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("access")
                 .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -121,7 +122,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
 
                     b.HasIndex("ManagedBy");
 
-                    b.ToTable("EventAssignmentRequest", "access");
+                    b.ToTable("EventAssignmentRequests", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Access.Domain.Entities.Group", b =>
@@ -195,7 +196,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
 
                     b.HasIndex("ManagedBy");
 
-                    b.ToTable("GroupAssignmentRequest", "access");
+                    b.ToTable("GroupAssignmentRequests", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Access.Domain.Entities.User", b =>
@@ -220,7 +221,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", "access");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Access.Domain.Entities.AssignedToEvent", b =>

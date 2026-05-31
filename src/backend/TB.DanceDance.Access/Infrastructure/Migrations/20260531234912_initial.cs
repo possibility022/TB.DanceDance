@@ -31,6 +31,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Users",
+                schema: "access",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -67,6 +68,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_AssignedToGroups_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "access",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -89,13 +91,14 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Events_Users_Owner",
                         column: x => x.Owner,
+                        principalSchema: "access",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GroupAssignmentRequest",
+                name: "GroupAssignmentRequests",
                 schema: "access",
                 columns: table => new
                 {
@@ -108,17 +111,18 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroupAssignmentRequest", x => x.Id);
+                    table.PrimaryKey("PK_GroupAssignmentRequests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GroupAssignmentRequest_Groups_GroupId",
+                        name: "FK_GroupAssignmentRequests_Groups_GroupId",
                         column: x => x.GroupId,
                         principalSchema: "access",
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GroupAssignmentRequest_Users_ManagedBy",
+                        name: "FK_GroupAssignmentRequests_Users_ManagedBy",
                         column: x => x.ManagedBy,
+                        principalSchema: "access",
                         principalTable: "Users",
                         principalColumn: "Id");
                 });
@@ -145,6 +149,7 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_GroupsAdmins_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "access",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -172,13 +177,14 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_AssignedToEvents_Users_UserId",
                         column: x => x.UserId,
+                        principalSchema: "access",
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "EventAssignmentRequest",
+                name: "EventAssignmentRequests",
                 schema: "access",
                 columns: table => new
                 {
@@ -190,17 +196,18 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EventAssignmentRequest", x => x.Id);
+                    table.PrimaryKey("PK_EventAssignmentRequests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_EventAssignmentRequest_Events_EventId",
+                        name: "FK_EventAssignmentRequests_Events_EventId",
                         column: x => x.EventId,
                         principalSchema: "access",
                         principalTable: "Events",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EventAssignmentRequest_Users_ManagedBy",
+                        name: "FK_EventAssignmentRequests_Users_ManagedBy",
                         column: x => x.ManagedBy,
+                        principalSchema: "access",
                         principalTable: "Users",
                         principalColumn: "Id");
                 });
@@ -230,15 +237,15 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventAssignmentRequest_EventId",
+                name: "IX_EventAssignmentRequests_EventId",
                 schema: "access",
-                table: "EventAssignmentRequest",
+                table: "EventAssignmentRequests",
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventAssignmentRequest_ManagedBy",
+                name: "IX_EventAssignmentRequests_ManagedBy",
                 schema: "access",
-                table: "EventAssignmentRequest",
+                table: "EventAssignmentRequests",
                 column: "ManagedBy");
 
             migrationBuilder.CreateIndex(
@@ -248,15 +255,15 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                 column: "Owner");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupAssignmentRequest_GroupId",
+                name: "IX_GroupAssignmentRequests_GroupId",
                 schema: "access",
-                table: "GroupAssignmentRequest",
+                table: "GroupAssignmentRequests",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GroupAssignmentRequest_ManagedBy",
+                name: "IX_GroupAssignmentRequests_ManagedBy",
                 schema: "access",
-                table: "GroupAssignmentRequest",
+                table: "GroupAssignmentRequests",
                 column: "ManagedBy");
 
             migrationBuilder.CreateIndex(
@@ -284,11 +291,11 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                 schema: "access");
 
             migrationBuilder.DropTable(
-                name: "EventAssignmentRequest",
+                name: "EventAssignmentRequests",
                 schema: "access");
 
             migrationBuilder.DropTable(
-                name: "GroupAssignmentRequest",
+                name: "GroupAssignmentRequests",
                 schema: "access");
 
             migrationBuilder.DropTable(
@@ -304,7 +311,8 @@ namespace TB.DanceDance.Access.Infrastructure.Migrations
                 schema: "access");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Users",
+                schema: "access");
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 
 public class Event
 {
@@ -22,5 +25,18 @@ public class Event
                 Owner = ownerId,
             };
         }
+    }
+}
+
+public class EventConfiguration : IEntityTypeConfiguration<Event>
+{
+    public void Configure(EntityTypeBuilder<Event> builder)
+    {
+        builder.ToTable("Events");
+        
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.Owner)
+            .IsRequired();
     }
 }

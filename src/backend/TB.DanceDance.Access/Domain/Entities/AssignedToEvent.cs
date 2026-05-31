@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 
 public class AssignedToEvent
 {
@@ -25,5 +28,13 @@ public class AssignedToEvent
                 Id = Guid.NewGuid(),
             };
         }
+    }
+}
+
+public class AssignedToEventConfiguration : IEntityTypeConfiguration<AssignedToEvent>
+{
+    public void Configure(EntityTypeBuilder<AssignedToEvent> builder)
+    {
+        builder.ToTable("AssignedToEvents");
     }
 }

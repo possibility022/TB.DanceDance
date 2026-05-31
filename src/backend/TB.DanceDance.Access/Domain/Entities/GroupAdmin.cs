@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 public class GroupAdmin
 {
     private GroupAdmin() { }
@@ -9,4 +12,12 @@ public class GroupAdmin
 
     public Group Group { get; set; } = null!;
     public User User { get; set; } = null!;
+}
+
+public class GroupAdminConfiguration : IEntityTypeConfiguration<GroupAdmin>
+{
+    public void Configure(EntityTypeBuilder<GroupAdmin> builder)
+    {
+        builder.ToTable("GroupsAdmins");
+    }
 }

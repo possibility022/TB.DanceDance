@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 
 public class GroupAssignmentRequest : AssigmentRequestBase
 {
@@ -20,5 +23,22 @@ public class GroupAssignmentRequest : AssigmentRequestBase
                 Id = Guid.NewGuid(),
             };
         }
+    }
+}
+
+public class GroupAssignmentRequestConfiguration : IEntityTypeConfiguration<GroupAssignmentRequest>
+{
+    public void Configure(EntityTypeBuilder<GroupAssignmentRequest> builder)
+    {
+        builder.ToTable("GroupAssignmentRequests");
+        
+        builder.HasOne<Group>()
+            .WithMany()
+            .HasForeignKey(e => e.GroupId)
+            .IsRequired();
+        
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.ManagedBy);
     }
 }

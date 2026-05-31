@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 
 public class AssignedToGroup
 {
@@ -26,5 +29,13 @@ public class AssignedToGroup
                 WhenJoined = whenJoined
             };
         }
+    }
+}
+
+public class AssignedToGroupConfiguration : IEntityTypeConfiguration<AssignedToGroup>
+{
+    public void Configure(EntityTypeBuilder<AssignedToGroup> builder)
+    {
+        builder.ToTable("AssignedToGroups");
     }
 }

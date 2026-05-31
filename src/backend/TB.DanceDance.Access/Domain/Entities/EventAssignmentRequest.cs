@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Access.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Access.Domain.Entities;
 
 public class EventAssignmentRequest : AssigmentRequestBase
 {
@@ -20,4 +23,21 @@ public class EventAssignmentRequest : AssigmentRequestBase
         }
     }
 
+}
+
+public class EventAssignmentRequestConfiguration : IEntityTypeConfiguration<EventAssignmentRequest>
+{
+    public void Configure(EntityTypeBuilder<EventAssignmentRequest> builder)
+    {
+        builder.ToTable("EventAssignmentRequests");
+        
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(r => r.ManagedBy);
+        
+        builder.HasOne<Event>()
+            .WithMany()
+            .HasForeignKey(e => e.EventId)
+            .IsRequired();
+    }
 }
