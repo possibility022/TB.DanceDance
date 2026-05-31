@@ -11,6 +11,6 @@ public class VideoMetadata
     public static class Factory
     {
         public static VideoMetadata Create(Guid videoId, byte[] metadata)
-            => new() { VideoId = videoId, Metadata = metadata };
+            => new() { Id = Guid.NewGuid(), VideoId = videoId, Metadata = metadata };
     }
 }

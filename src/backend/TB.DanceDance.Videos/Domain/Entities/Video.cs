@@ -3,7 +3,7 @@ public class Video
 {
     private Video() { }
     
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
     public string? BlobId { get; set; }
     public string Name { get; set; }
 
@@ -59,6 +59,7 @@ public class Video
         {
             return new Video()
             {
+                Id = Guid.NewGuid(),
                 FileName = fileName,
                 SourceBlobId = sourceBlobId,
                 Name = name,

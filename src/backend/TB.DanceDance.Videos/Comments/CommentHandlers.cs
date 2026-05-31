@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Utilities.Mediating;
 using TB.DanceDance.Videos.Contracts;
+using TB.DanceDance.Videos.Domain;
 using TB.DanceDance.Videos.Domain.Entities;
 using TB.DanceDance.Videos.Infrastructure;
 
