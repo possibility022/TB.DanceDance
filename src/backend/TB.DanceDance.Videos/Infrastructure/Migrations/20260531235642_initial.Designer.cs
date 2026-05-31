@@ -12,7 +12,7 @@ using TB.DanceDance.Videos.Infrastructure;
 namespace TB.DanceDance.Videos.Infrastructure.Migrations
 {
     [DbContext(typeof(VideosDbContext))]
-    [Migration("20260531233046_initial")]
+    [Migration("20260531235642_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -20,6 +20,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("video")
                 .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
