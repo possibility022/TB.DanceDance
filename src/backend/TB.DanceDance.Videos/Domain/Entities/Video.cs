@@ -1,4 +1,7 @@
-﻿namespace TB.DanceDance.Videos.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TB.DanceDance.Videos.Domain.Entities;
 public class Video
 {
     private Video() { }
@@ -71,5 +74,19 @@ public class Video
                 Converted = false
             };
         }
+    }
+}
+
+public class VideoConfiguration : IEntityTypeConfiguration<Video>
+{
+    public void Configure(EntityTypeBuilder<Video> builder)
+    {
+        builder.ToTable("Videos");
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Name).IsRequired();
+        builder.Property(x => x.UploadedBy).IsRequired();
+        builder.Property(x => x.FileName).IsRequired();
+        builder.Property(x => x.SourceBlobId).IsRequired();
     }
 }
