@@ -43,4 +43,32 @@ public class Video
     public CommentVisibility CommentVisibility { get; set; } = CommentVisibility.OwnerOnly;
 
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
+
+    public class Factory
+    {
+        /// <summary>
+        /// Creates a brand-new, not-yet-converted video for the user upload flow,
+        /// with its initial set of <see cref="SharedWith"/> entries.
+        /// </summary>
+        public static Video CreateForUpload(
+            string name,
+            string fileName,
+            string sourceBlobId,
+            string userId,
+            ICollection<SharedWith> sharedWith)
+        {
+            return new Video()
+            {
+                FileName = fileName,
+                SourceBlobId = sourceBlobId,
+                Name = name,
+                UploadedBy = userId,
+                Duration = null,
+                RecordedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
+                SharedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
+                SharedWith = sharedWith,
+                Converted = false
+            };
+        }
+    }
 }

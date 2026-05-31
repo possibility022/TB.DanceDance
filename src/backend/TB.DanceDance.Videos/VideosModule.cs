@@ -19,11 +19,17 @@ public static class VideosModule
             .Register<GetPublishSasQuery, SharedBlob?, GetPublishSasHandler>()
             .Register<RenameVideoCommand, bool, RenameVideoHandler>()
             .Register<CreateSharingLinkCommand, UploadContext?, CreateSharingLinkCommandHandler>()
+            .Register<CreateVideoUploadCommand, UploadContext?, CreateVideoUploadHandler>()
+            .Register<UpdateCommentVisibilityCommand, bool, UpdateCommentVisibilityHandler>()
             .Register<SharedWithByVideoBlobIdQuery, IReadOnlyCollection<SharedWithResponse>, SharedWithByVideoHandlers>()
             .Register<SharedWithByVideoIdQuery, IReadOnlyCollection<SharedWithResponse>, SharedWithByVideoHandlers>()
             .Register<DoesUserHaveAccessToVideoQuery, bool, DoesUserHaveAccessToVideoHandler>()
             .Register<DoesUserHaveAccessToVideoByBlobQuery, bool, DoesUserHaveAccessToVideoHandler>()
             .Register<GetVideoForViewingQuery, VideoDto?, GetVideoForViewingHandler>()
-            .Register<OpenVideoStreamQuery, Stream, OpenVideoStreamHandler>();
+            .Register<OpenVideoStreamQuery, Stream, OpenVideoStreamHandler>()
+            .Register<ViewVideosFromGroupQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
+            .Register<ViewVideosFromEventQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
+            .Register<ViewVideosFromAllGroupsQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
+            .Register<ViewPrivateVideosQuery, IReadOnlyCollection<VideoDto>, ViewVideos>();
     }
 }
