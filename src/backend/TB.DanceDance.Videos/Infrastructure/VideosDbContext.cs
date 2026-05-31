@@ -17,6 +17,7 @@ public class VideosDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasDefaultSchema(SchemaNames.Video);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(VideosDbContext).Assembly);
     }
 }
