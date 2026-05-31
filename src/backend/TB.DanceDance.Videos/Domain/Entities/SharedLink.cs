@@ -24,4 +24,32 @@ public class SharedLink
     public bool AllowAnonymousComments { get; set; } = false;
 
     public Video Video { get; set; } = null!;
+
+    public class Factory
+    {
+        /// <summary>
+        /// Creates a new, active public sharing link for a video.
+        /// </summary>
+        public static SharedLink Create(
+            string linkId,
+            Guid videoId,
+            string sharedBy,
+            int expirationDays,
+            bool allowComments,
+            bool allowAnonymousComments)
+        {
+            var now = DateTimeOffset.UtcNow;
+            return new SharedLink()
+            {
+                Id = linkId,
+                VideoId = videoId,
+                SharedBy = sharedBy,
+                CreatedAt = now,
+                ExpireAt = now.AddDays(expirationDays),
+                IsRevoked = false,
+                AllowComments = allowComments,
+                AllowAnonymousComments = allowAnonymousComments
+            };
+        }
+    }
 }

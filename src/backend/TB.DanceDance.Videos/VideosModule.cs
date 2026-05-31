@@ -30,6 +30,11 @@ public static class VideosModule
             .Register<ViewVideosFromGroupQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
             .Register<ViewVideosFromEventQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
             .Register<ViewVideosFromAllGroupsQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
-            .Register<ViewPrivateVideosQuery, IReadOnlyCollection<VideoDto>, ViewVideos>();
+            .Register<ViewPrivateVideosQuery, IReadOnlyCollection<VideoDto>, ViewVideos>()
+            .Register<CreateSharedLinkCommand, SharedLinkDto, SharedLinkHandlers>()
+            .Register<GetVideoBySharedLinkQuery, VideoDto?, SharedLinkHandlers>()
+            .Register<RevokeSharedLinkCommand, bool, SharedLinkHandlers>()
+            .Register<GetUserSharedLinksQuery, IReadOnlyCollection<SharedLinkDto>, SharedLinkHandlers>()
+            .Register<GetSharedLinkQuery, SharedLinkDto?, SharedLinkHandlers>();
     }
 }
