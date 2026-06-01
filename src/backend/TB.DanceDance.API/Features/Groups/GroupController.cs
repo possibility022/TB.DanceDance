@@ -1,23 +1,34 @@
-﻿using Application.Features.Groups;
-using Domain.Entities;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
+using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.API.Features.Groups;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class GroupController : Controller
 {
-    private readonly IGroupService groupService;
+    private readonly IRequestHandler<GetUserGroupMembershipsQuery, IReadOnlyCollection<GroupMembershipDto>> getUserGroupMembershipsQuery;
+    private readonly IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery;
+    private readonly IRequestHandler<GetGroupByIdQuery, GroupDto?> getGroupByIdQuery;
+    private readonly IRequestHandler<ViewVideosFromGroupQuery, IReadOnlyCollection<VideoDto>> viewVideosFromGroupQuery;
 
-    public GroupController(IGroupService groupService)
+    public GroupController(
+        IRequestHandler<GetUserGroupMembershipsQuery, IReadOnlyCollection<GroupMembershipDto>> getUserGroupMembershipsQuery,
+        IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery,
+        IRequestHandler<GetGroupByIdQuery, GroupDto?> getGroupByIdQuery,
+        IRequestHandler<ViewVideosFromGroupQuery, IReadOnlyCollection<VideoDto>> viewVideosFromGroupQuery)
     {
-        this.groupService = groupService;
+        this.getUserGroupMembershipsQuery = getUserGroupMembershipsQuery;
+        this.getAllGroupsQuery = getAllGroupsQuery;
+        this.getGroupByIdQuery = getGroupByIdQuery;
+        this.viewVideosFromGroupQuery = viewVideosFromGroupQuery;
     }
 
     [HttpGet]
@@ -26,10 +37,24 @@ public class GroupController : Controller
     {
         var userId = User.GetSubject();
 
-        var videos = await groupService
-            .GetUserVideosForAllGroups(userId, cancellationToken);
+        var memberships = await getUserGroupMembershipsQuery.HandleAsync(new GetUserGroupMembershipsQuery(userId), cancellationToken);
+        var allGroups = await getAllGroupsQuery.HandleAsync(new GetAllGroupsQuery(), cancellationToken);
+        var groupsById = allGroups.ToDictionary(g => g.Id);
 
-        var response = MapToVideoForGroupInfoResponse(videos);
+        var response = new List<GroupWithVideosResponse>();
+
+        foreach (var membership in memberships)
+        {
+            if (!groupsById.TryGetValue(membership.GroupId, out var group))
+                continue;
+
+            var videos = await viewVideosFromGroupQuery.HandleAsync(new ViewVideosFromGroupQuery(userId, membership.GroupId), cancellationToken);
+
+            if (videos.Count == 0)
+                continue;
+
+            response.Add(MapToGroupWithVideosResponse(group, videos));
+        }
 
         return Ok(response);
     }
@@ -40,45 +65,28 @@ public class GroupController : Controller
     {
         var userId = User.GetSubject();
 
-        var videos = await groupService
-            .GetUserVideosForGroup(userId, groupId, cancellationToken);
+        var videos = await viewVideosFromGroupQuery.HandleAsync(new ViewVideosFromGroupQuery(userId, groupId), cancellationToken);
 
-        var videosByGroups = MapToVideoForGroupInfoResponse(videos);
-        var group = videosByGroups.FirstOrDefault();
+        if (videos.Count == 0)
+            return NotFound();
+
+        var group = await getGroupByIdQuery.HandleAsync(new GetGroupByIdQuery { Id = groupId }, cancellationToken);
 
         if (group == null)
             return NotFound();
 
-        return Ok(group);
+        return Ok(MapToGroupWithVideosResponse(group, videos));
     }
 
-    private static IEnumerable<GroupWithVideosResponse> MapToVideoForGroupInfoResponse(IEnumerable<VideoFromGroupInfo> videos)
+    private static GroupWithVideosResponse MapToGroupWithVideosResponse(GroupDto group, IReadOnlyCollection<VideoDto> videos)
     {
-        var dict = new Dictionary<Guid, (string, Group, List<VideoInformationModel>)>();
-
-        foreach (var video in videos)
+        return new GroupWithVideosResponse()
         {
-            var videoDetails = ContractMappers.MapToVideoInformation(video);
-
-            if (!dict.ContainsKey(video.GroupId))
-            {
-                dict[video.GroupId] = new(video.GroupName, video.Group, new List<VideoInformationModel>() { videoDetails });
-            }
-            else
-            {
-                dict[video.GroupId].Item3.Add(videoDetails);
-            }
-        }
-
-        var map = dict.Select((k) => new GroupWithVideosResponse()
-        {
-            GroupId = k.Key,
-            GroupName = k.Value.Item1,
-            SeasonStart = k.Value.Item2.SeasonStart.ToDateTime(TimeOnly.MinValue),
-            SeasonEnd = k.Value.Item2.SeasonEnd.ToDateTime(TimeOnly.MaxValue),
-            Videos = k.Value.Item3
-        });
-
-        return map;
+            GroupId = group.Id,
+            GroupName = group.Name,
+            SeasonStart = group.SeasonStart.ToDateTime(TimeOnly.MinValue),
+            SeasonEnd = group.SeasonEnd.ToDateTime(TimeOnly.MaxValue),
+            Videos = videos.Select(v => (VideoInformationModel)ContractMappers.MapToVideoInformation(v)).ToList(),
+        };
     }
 }

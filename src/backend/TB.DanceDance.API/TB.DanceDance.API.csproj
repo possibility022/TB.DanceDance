@@ -26,9 +26,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application\Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Access\TB.DanceDance.Access.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Access.Contracts\TB.DanceDance.Access.Contracts.csproj" />
     <ProjectReference Include="..\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Utilities\TB.DanceDance.Utilities.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Videos\TB.DanceDance.Videos.csproj" />
+    <ProjectReference Include="..\TB.DanceDance.Videos.Contracts\TB.DanceDance.Videos.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

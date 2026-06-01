@@ -1,40 +1,32 @@
-﻿using Application.Features.AccessManagement;
-using Application.Features.Videos;
-using Domain;
-using Domain.Entities;
-using Domain.Models;
-using Domain.Services;
-using Infrastructure.Data;
-using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
-using NSubstitute;
-using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.Tests.TestsFixture;
+using TB.DanceDance.Utilities.Infrastructure;
+using TB.DanceDance.Videos.Contracts;
+using TB.DanceDance.Videos.Domain;
+using TB.DanceDance.Videos.Domain.Entities;
 
 namespace TB.DanceDance.Tests.Features.Videos;
 
+/// <summary>
+/// Video viewing/management/upload handlers (Videos module). The previously-mocked access service and
+/// uploader service are now the real wiring: access is decided by seeding shares, and SAS issuance hits
+/// Azurite through the blob factory.
+/// </summary>
 public class VideoServiceTests : BaseTestClass
 {
     private readonly BlobStorageFixture blobStorageFixture;
+    private IBlobDataServiceFactory factory = null!;
 
-    private BlobDataServiceFactory factory = null!;
-    private readonly IVideoUploaderService uploaderService;
-    private readonly IAccessService accessService;
-
-    private VideoService videoService = null!;
-
-    public VideoServiceTests(DanceDbFixture danceDbFixture, BlobStorageFixture blobStorageFixture) : base(
-        danceDbFixture)
+    public VideoServiceTests(DanceDbFixture danceDbFixture, BlobStorageFixture blobStorageFixture) : base(danceDbFixture)
     {
-        uploaderService = Substitute.For<IVideoUploaderService>();
-        accessService = Substitute.For<IAccessService>();
         this.blobStorageFixture = blobStorageFixture;
     }
 
-    protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
+    protected override string BlobConnectionString => blobStorageFixture.GetConnectionString();
+
+    protected override ValueTask Initialize()
     {
         factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
-        videoService = new VideoService(runtimeDbContext, factory, uploaderService, accessService);
         return ValueTask.CompletedTask;
     }
 
@@ -43,13 +35,12 @@ public class VideoServiceTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
-        SeedDbContext.AddRange(user, video);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken)
-            .Returns(false);
-
-        var result = await videoService.GetVideoByBlobAsync(user.Id, video.BlobId!, TestContext.Current.CancellationToken);
+        var result = await Send(new GetVideoForViewingQuery(user.Id, video.BlobId!), TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -57,14 +48,13 @@ public class VideoServiceTests : BaseTestClass
     public async Task GetVideoByBlobAsync_ReturnsVideo_WhenAccessGranted()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
-        SeedDbContext.AddRange(user, video);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).ShareAsPrivate(user).Build();
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        accessService.DoesUserHasAccessAsync(video.BlobId!, user.Id, TestContext.Current.CancellationToken)
-            .Returns(true);
-
-        var result = await videoService.GetVideoByBlobAsync(user.Id, video.BlobId!, TestContext.Current.CancellationToken);
+        var result = await Send(new GetVideoForViewingQuery(user.Id, video.BlobId!), TestContext.Current.CancellationToken);
         Assert.NotNull(result);
         Assert.Equal(video.Id, result!.Id);
     }
@@ -74,20 +64,21 @@ public class VideoServiceTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var video = new VideoDataBuilder().UploadedBy(user).WithName("Old Name").Build();
-        SeedDbContext.AddRange(user, video);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var ok = await videoService.RenameVideoAsync(video.Id, "New Name", TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var ok = await Send(new RenameVideoCommand { VideoId = video.Id, NewName = "New Name" }, TestContext.Current.CancellationToken);
         Assert.True(ok);
-        var updated = await SeedDbContext.Videos.FindAsync([video.Id], TestContext.Current.CancellationToken);
-        Assert.Equal("New Name", updated!.Name);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal("New Name", updated.Name);
     }
 
     [Fact]
     public async Task RenameVideoAsync_ReturnsFalse_WhenNotFound()
     {
-        var ok = await videoService.RenameVideoAsync(Guid.NewGuid(), "Name", TestContext.Current.CancellationToken);
+        var ok = await Send(new RenameVideoCommand { VideoId = Guid.NewGuid(), NewName = "Name" }, TestContext.Current.CancellationToken);
         Assert.False(ok);
     }
 
@@ -96,23 +87,22 @@ public class VideoServiceTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var video = new VideoDataBuilder().UploadedBy(user).WithSourceBlobId("src-123").Build();
-        SeedDbContext.AddRange(user, video);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var sas = new SharedBlob { BlobId = video.SourceBlobId, Sas = new Uri("https://example/sas"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
-        uploaderService.GetUploadSasUri(video.SourceBlobId).Returns(sas);
-
-        var ctx = await videoService.GetSharingLink(video.Id, TestContext.Current.CancellationToken);
+        var ctx = await Send(new CreateSharingLinkCommand { VideoId = video.Id }, TestContext.Current.CancellationToken);
         Assert.NotNull(ctx);
         Assert.Equal(video.Id, ctx!.VideoId);
         Assert.Equal(video.SourceBlobId, ctx.SourceBlobId);
-        Assert.Equal(sas.Sas, ctx.Sas);
+        Assert.True(ctx.Sas.IsAbsoluteUri);
     }
 
     [Fact]
     public async Task GetSharingLink_ForExistingVideo_ReturnsNull_WhenVideoMissing()
     {
-        var ctx = await videoService.GetSharingLink(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var ctx = await Send(new CreateSharingLinkCommand { VideoId = Guid.NewGuid() }, TestContext.Current.CancellationToken);
         Assert.Null(ctx);
     }
 
@@ -123,27 +113,23 @@ public class VideoServiceTests : BaseTestClass
         var evtB = new EventDataBuilder();
         var owner = evtB.BuildOwner();
         var evt = evtB.Build();
-        SeedDbContext.AddRange(owner, evt, user);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(owner, evt, user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas1"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
-        uploaderService.GetUploadSasUri().Returns(shared);
+        var ctx = await Send(new CreateVideoUploadCommand
+        {
+            UserId = user.Id, Name = "VidName", FileName = "file.mp4", SharingWithType = SharingWithType.Event, SharedWith = evt.Id
+        }, TestContext.Current.CancellationToken);
 
-        var ctx = await videoService.GetSharingLink(user.Id, "VidName", "file.mp4", SharingWithType.Event, sharedWith: evt.Id, TestContext.Current.CancellationToken);
-
-        // Verify persisted
-        SeedDbContext.ChangeTracker.Clear();
-        var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(shared.BlobId, saved.SourceBlobId);
+        Assert.NotNull(ctx);
+        var saved = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == ctx!.VideoId, TestContext.Current.CancellationToken);
+        Assert.Equal(ctx!.SourceBlobId, saved.SourceBlobId);
         Assert.Equal(user.Id, saved.UploadedBy);
         Assert.False(saved.Converted);
-        // SharedWith
-        var link = SeedDbContext.SharedWith.Single(sw => sw.VideoId == saved.Id);
+        var link = await SeedVideosContext.SharedWith.AsNoTracking().SingleAsync(sw => sw.VideoId == saved.Id, TestContext.Current.CancellationToken);
         Assert.Equal(user.Id, link.UserId);
         Assert.Equal(evt.Id, link.EventId);
         Assert.Null(link.GroupId);
-
-        uploaderService.Received(1).GetUploadSasUri();
     }
 
     [Fact]
@@ -151,175 +137,132 @@ public class VideoServiceTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var group = new GroupDataBuilder().Build();
-        SeedDbContext.AddRange(user, group);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(user, group);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas2"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
-        uploaderService.GetUploadSasUri().Returns(shared);
+        var ctx = await Send(new CreateVideoUploadCommand
+        {
+            UserId = user.Id, Name = "VidName", FileName = "file.mp4", SharingWithType = SharingWithType.Group, SharedWith = group.Id
+        }, TestContext.Current.CancellationToken);
 
-        var ctx = await videoService.GetSharingLink(user.Id, "VidName", "file.mp4", SharingWithType.Group, sharedWith: group.Id, TestContext.Current.CancellationToken);
-
-        SeedDbContext.ChangeTracker.Clear();
-        var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(shared.BlobId, saved.SourceBlobId);
-        var link = SeedDbContext.SharedWith.Single(sw => sw.VideoId == saved.Id);
+        Assert.NotNull(ctx);
+        var saved = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == ctx!.VideoId, TestContext.Current.CancellationToken);
+        var link = await SeedVideosContext.SharedWith.AsNoTracking().SingleAsync(sw => sw.VideoId == saved.Id, TestContext.Current.CancellationToken);
         Assert.Equal(user.Id, link.UserId);
         Assert.Equal(group.Id, link.GroupId);
         Assert.Null(link.EventId);
-
-        uploaderService.Received(1).GetUploadSasUri();
-    }
-
-    [Fact]
-    public async Task OpenStream_ReturnsStream_ForExistingBlob()
-    {
-        // Arrange: upload a small blob to the container used by VideoService
-        var blobSvc = factory.GetBlobDataService(BlobContainer.Videos);
-        var blobId = Guid.NewGuid().ToString();
-        await blobSvc.Upload(blobId, new MemoryStream([1,2,3,4]));
-
-        // Act
-        await using var stream = await videoService.OpenStream(blobId, TestContext.Current.CancellationToken);
-
-        // Assert
-        Assert.NotNull(stream);
-        var buffer = new byte[4];
-        var read = await stream.ReadAsync(buffer, TestContext.Current.CancellationToken);
-        Assert.Equal(4, read);
-        Assert.Equal(new byte[] {1,2,3,4}, buffer);
     }
 
     [Fact]
     public async Task GetSharingLink_CreatesVideo_AndShare_ForPrivateVideo()
     {
-        // Arrange
         var user = new UserDataBuilder().Build();
-        SeedDbContext.Add(user);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas-private"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
-        uploaderService.GetUploadSasUri().Returns(shared);
+        var ctx = await Send(new CreateVideoUploadCommand
+        {
+            UserId = user.Id, Name = "MyPrivateVideo", FileName = "private.mp4", SharingWithType = SharingWithType.Private, SharedWith = null
+        }, TestContext.Current.CancellationToken);
 
-        // Act
-        var ctx = await videoService.GetSharingLink(user.Id, "MyPrivateVideo", "private.mp4", SharingWithType.Private, sharedWith: null, TestContext.Current.CancellationToken);
-
-        // Assert
         Assert.NotNull(ctx);
-        Assert.Equal(shared.Sas, ctx.Sas);
-        Assert.Equal(shared.BlobId, ctx.SourceBlobId);
+        Assert.True(ctx!.Sas.IsAbsoluteUri);
 
-        // Verify video was persisted
-        SeedDbContext.ChangeTracker.Clear();
-        var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(shared.BlobId, saved.SourceBlobId);
+        var saved = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == ctx.VideoId, TestContext.Current.CancellationToken);
+        Assert.Equal(ctx.SourceBlobId, saved.SourceBlobId);
         Assert.Equal(user.Id, saved.UploadedBy);
         Assert.Equal("MyPrivateVideo", saved.Name);
         Assert.False(saved.Converted);
 
-        // Verify SharedWith entry: both EventId and GroupId should be null for private videos
-        var link = SeedDbContext.SharedWith.Single(sw => sw.VideoId == saved.Id);
+        var link = await SeedVideosContext.SharedWith.AsNoTracking().SingleAsync(sw => sw.VideoId == saved.Id, TestContext.Current.CancellationToken);
         Assert.Equal(user.Id, link.UserId);
         Assert.Null(link.EventId);
         Assert.Null(link.GroupId);
-
-        uploaderService.Received(1).GetUploadSasUri();
     }
 
     [Fact]
     public async Task GetSharingLink_ThrowsArgumentException_ForInvalidSharingType()
     {
-        // Arrange
         var user = new UserDataBuilder().Build();
-        SeedDbContext.Add(user);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var shared = new SharedBlob { BlobId = Guid.NewGuid().ToString(), Sas = new Uri("https://upload/sas"), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
-        uploaderService.GetUploadSasUri().Returns(shared);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(async () =>
-        {
-            await videoService.GetSharingLink(user.Id, "Video", "file.mp4", SharingWithType.NotSpecified, sharedWith: null, TestContext.Current.CancellationToken);
-        });
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            Send(new CreateVideoUploadCommand
+            {
+                UserId = user.Id, Name = "Video", FileName = "file.mp4", SharingWithType = SharingWithType.NotSpecified, SharedWith = null
+            }, TestContext.Current.CancellationToken));
     }
 
-    #region UpdateCommentVisibilityAsync Tests
+    [Fact]
+    public async Task OpenStream_ReturnsStream_ForExistingBlob()
+    {
+        var blobSvc = factory.GetBlobDataService(BlobContainer.Videos);
+        var blobId = Guid.NewGuid().ToString();
+        await blobSvc.Upload(blobId, new MemoryStream([1, 2, 3, 4]));
+
+        await using var stream = await Send(new OpenVideoStreamQuery(blobId), TestContext.Current.CancellationToken);
+
+        Assert.NotNull(stream);
+        var buffer = new byte[4];
+        var read = await stream.ReadAsync(buffer, TestContext.Current.CancellationToken);
+        Assert.Equal(4, read);
+        Assert.Equal(new byte[] { 1, 2, 3, 4 }, buffer);
+    }
 
     [Fact]
     public async Task UpdateCommentVisibility_VideoOwner_UpdatesSuccessfully()
     {
-        // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder()
-            .UploadedBy(owner)
-            .WithCommentVisibility(CommentVisibility.Public)
-            .Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).WithCommentVisibility(CommentVisibility.Public).Build();
+        SeedAccessContext.Add(owner);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        SeedDbContext.AddRange(owner, video);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var result = await Send(new UpdateCommentVisibilityCommand
+        {
+            VideoId = video.Id, UserId = owner.Id, CommentVisibility = (int)CommentVisibility.OwnerOnly
+        }, TestContext.Current.CancellationToken);
 
-        // Act
-        var result = await videoService.UpdateCommentVisibilityAsync(
-            video.Id,
-            owner.Id,
-            CommentVisibility.OwnerOnly,
-            TestContext.Current.CancellationToken);
-
-        // Assert
         Assert.True(result);
-        SeedDbContext.ChangeTracker.Clear();
-        var updated = await SeedDbContext.Videos.FindAsync([video.Id], TestContext.Current.CancellationToken);
-        Assert.Equal(CommentVisibility.OwnerOnly, updated!.CommentVisibility);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(CommentVisibility.OwnerOnly, updated.CommentVisibility);
     }
 
     [Fact]
     public async Task UpdateCommentVisibility_NotVideoOwner_ReturnsFalse()
     {
-        // Arrange
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().WithId("other-user-id").Build();
-        var video = new VideoDataBuilder()
-            .UploadedBy(owner)
-            .WithCommentVisibility(CommentVisibility.Public)
-            .Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).WithCommentVisibility(CommentVisibility.Public).Build();
+        SeedAccessContext.AddRange(owner, otherUser);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        SeedDbContext.AddRange(owner, otherUser, video);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var result = await Send(new UpdateCommentVisibilityCommand
+        {
+            VideoId = video.Id, UserId = otherUser.Id, CommentVisibility = (int)CommentVisibility.OwnerOnly
+        }, TestContext.Current.CancellationToken);
 
-        // Act
-        var result = await videoService.UpdateCommentVisibilityAsync(
-            video.Id,
-            otherUser.Id,
-            CommentVisibility.OwnerOnly,
-            TestContext.Current.CancellationToken);
-
-        // Assert
         Assert.False(result);
-        SeedDbContext.ChangeTracker.Clear();
-        var unchanged = await SeedDbContext.Videos.FindAsync([video.Id], TestContext.Current.CancellationToken);
-        Assert.Equal(CommentVisibility.Public, unchanged!.CommentVisibility);
+        var unchanged = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(CommentVisibility.Public, unchanged.CommentVisibility);
     }
 
     [Fact]
     public async Task UpdateCommentVisibility_NonExistentVideo_ReturnsFalse()
     {
-        // Arrange
         var user = new UserDataBuilder().Build();
-        SeedDbContext.Add(user);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // Act
-        var result = await videoService.UpdateCommentVisibilityAsync(
-            Guid.NewGuid(),
-            user.Id,
-            CommentVisibility.OwnerOnly,
-            TestContext.Current.CancellationToken);
+        var result = await Send(new UpdateCommentVisibilityCommand
+        {
+            VideoId = Guid.NewGuid(), UserId = user.Id, CommentVisibility = (int)CommentVisibility.OwnerOnly
+        }, TestContext.Current.CancellationToken);
 
-        // Assert
         Assert.False(result);
     }
-
-    #endregion
 }

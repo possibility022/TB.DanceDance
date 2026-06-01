@@ -1,6 +1,5 @@
-using Domain;
-using Infrastructure.Data.BlobStorage;
 using TB.DanceDance.Tests.TestsFixture;
+using TB.DanceDance.Utilities.Infrastructure;
 
 namespace TB.DanceDance.Tests.Infrastructure;
 

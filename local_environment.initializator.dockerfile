@@ -14,13 +14,21 @@ COPY ["src/authserver", "authserver/"]
 
 RUN mkdir -p /artifacts
 
-RUN dotnet build "/src/backend/Infrastructure/Infrastructure.csproj" -c $BUILD_CONFIGURATION
+RUN dotnet build "/src/backend/TB.DanceDance.Access/TB.DanceDance.Access.csproj" -c $BUILD_CONFIGURATION
 RUN dotnet-ef migrations script \
-    --project /src/backend/Infrastructure/Infrastructure.csproj \
-    --startup-project /src/backend/Infrastructure/Infrastructure.csproj \
-    --context DanceDbContext \
+    --project /src/backend/TB.DanceDance.Access/TB.DanceDance.Access.csproj \
+    --startup-project /src/backend/TB.DanceDance.Access/TB.DanceDance.Access.csproj \
+    --context AccessDbContext \
     --idempotent \
-    --output /artifacts/danceDb-migrations.sql
+    --output /artifacts/access-migrations.sql
+
+RUN dotnet build "/src/backend/TB.DanceDance.Videos/TB.DanceDance.Videos.csproj" -c $BUILD_CONFIGURATION
+RUN dotnet-ef migrations script \
+    --project /src/backend/TB.DanceDance.Videos/TB.DanceDance.Videos.csproj \
+    --startup-project /src/backend/TB.DanceDance.Videos/TB.DanceDance.Videos.csproj \
+    --context VideosDbContext \
+    --idempotent \
+    --output /artifacts/videos-migrations.sql
 
 RUN dotnet build "/src/authserver/TB.Auth.Web.csproj" -c $BUILD_CONFIGURATION
 RUN dotnet-ef migrations script \

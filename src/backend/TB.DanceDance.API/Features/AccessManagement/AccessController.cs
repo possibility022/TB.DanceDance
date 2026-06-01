@@ -1,55 +1,69 @@
-using Application.Features.AccessManagement;
-using Application.Features.Events;
-using Application.Features.Groups;
-using Domain.Exceptions;
-using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TB.DanceDance.Access.Contracts;
+using TB.DanceDance.API;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
+using TB.DanceDance.Utilities.Mediating;
 
 namespace TB.DanceDance.API.Features.AccessManagement;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class AccessController : Controller
 {
-    private readonly IAccessManagementService accessManagementService;
-    private readonly IAccessService accessService;
-    private readonly IEventService eventService;
     private readonly IIdentityClient identityClient;
-    private readonly IGroupService groupService;
+    private readonly IRequestHandler<GetAllEventsQuery, IReadOnlyCollection<EventDto>> getAllEventsQuery;
+    private readonly IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery;
+    private readonly IRequestHandler<GetUserGroupsAndEvents, UserGroupsAndEvents> getUserGroupsAndEvents;
+    private readonly IRequestHandler<GetPendingUserRequestsQuery, UserRequests> getPendingUserRequestsQuery;
+    private readonly IRequestHandler<AddOrUpdateUserCommand, bool> addOrUpdateUserCommand;
+    private readonly IRequestHandler<SaveGroupsAssignmentCommand, bool> saveGroupsAssignmentCommand;
+    private readonly IRequestHandler<SaveEventsAssignmentCommand, bool> saveEventsAssignmentCommand;
+    private readonly IRequestHandler<GetAccessRequestsToApproveQuery, IReadOnlyCollection<RequestedAccess>> getAccessRequestsToApproveQuery;
+    private readonly IRequestHandler<DeclineAccessRequestCommand, bool> declineAccessRequestCommand;
+    private readonly IRequestHandler<ApproveAccessRequestCommand, bool> approveAccessRequestCommand;
 
-    public AccessController(
-        IAccessManagementService accessManagementService,
-        IAccessService accessService,
-        IEventService eventService,
-        IIdentityClient identityClient,
-        IGroupService groupService
-        )
+    public AccessController(IIdentityClient identityClient,
+        IRequestHandler<GetAllEventsQuery, IReadOnlyCollection<EventDto>> getAllEventsQuery,
+        IRequestHandler<GetAllGroupsQuery, IReadOnlyCollection<GroupDto>> getAllGroupsQuery,
+        IRequestHandler<GetUserGroupsAndEvents, UserGroupsAndEvents> getUserGroupsAndEvents,
+        IRequestHandler<GetPendingUserRequestsQuery,UserRequests> getPendingUserRequestsQuery,
+        IRequestHandler<AddOrUpdateUserCommand, bool> addOrUpdateUserCommand,
+        IRequestHandler<SaveGroupsAssignmentCommand, bool> saveGroupsAssignmentCommand,
+        IRequestHandler<SaveEventsAssignmentCommand, bool> saveEventsAssignmentCommand,
+        IRequestHandler<GetAccessRequestsToApproveQuery,IReadOnlyCollection<RequestedAccess>> getAccessRequestsToApproveQuery,
+        IRequestHandler<DeclineAccessRequestCommand, bool> declineAccessRequestCommand,
+        IRequestHandler<ApproveAccessRequestCommand, bool> approveAccessRequestCommand)
     {
-        this.accessManagementService = accessManagementService;
-        this.accessService = accessService;
-        this.eventService = eventService;
         this.identityClient = identityClient;
-        this.groupService = groupService;
+        this.getAllEventsQuery = getAllEventsQuery;
+        this.getAllGroupsQuery = getAllGroupsQuery;
+        this.getUserGroupsAndEvents = getUserGroupsAndEvents;
+        this.getPendingUserRequestsQuery = getPendingUserRequestsQuery;
+        this.addOrUpdateUserCommand = addOrUpdateUserCommand;
+        this.saveGroupsAssignmentCommand = saveGroupsAssignmentCommand;
+        this.saveEventsAssignmentCommand = saveEventsAssignmentCommand;
+        this.getAccessRequestsToApproveQuery = getAccessRequestsToApproveQuery;
+        this.declineAccessRequestCommand = declineAccessRequestCommand;
+        this.approveAccessRequestCommand = approveAccessRequestCommand;
     }
 
     [Route(AccessRoutes.GetAll)]
     [HttpGet]
     public async Task<EventsAndGroupsResponse> GetAllEventsAndGroups(CancellationToken token)
     {
-        var listOfEvents = await eventService.GetAllEvents(token);
-        var listOfGroups = await groupService.GetAllGroups(token);
+        var listOfEvents = await getAllEventsQuery.HandleAsync(new GetAllEventsQuery(), token);
+        var listOfGroups = await getAllGroupsQuery.HandleAsync(new GetAllGroupsQuery(), token);
 
         return new EventsAndGroupsResponse()
         {
             Events = listOfEvents
-                .Select(@event => ContractMappers.MapToEventContract(@event))
+                .Select(ContractMappers.MapToEventContract)
                 .ToList(),
             Groups = listOfGroups
-                .Select(group => ContractMappers.MapToGroupContract(group))
+                .Select(ContractMappers.MapToGroupContract)
                 .ToList()
         };
     }
@@ -58,32 +72,34 @@ public class AccessController : Controller
     public async Task<UserEventsAndGroupsResponse> GetAssignedGroupsAsync(CancellationToken cancellationToken)
     {
         var user = User.GetSubject();
-        (var userGroups, var userEvents) = await accessService.GetUserEventsAndGroupsAsync(user, cancellationToken);
+        var assigned = await getUserGroupsAndEvents.HandleAsync(new GetUserGroupsAndEvents { UserId = user }, cancellationToken);
+        var userGroups = assigned.Groups;
+        var userEvents = assigned.Events;
 
         var responseModel = new UserEventsAndGroupsResponse();
 
         responseModel.Assigned.Groups = userGroups
-            .Select(group => ContractMappers.MapToGroupContract(group))
+            .Select(ContractMappers.MapToGroupContract)
                 .ToArray();
 
         responseModel.Assigned.Events = userEvents
                 .OrderByDescending(r => r.Date)
-                .Select(@event => ContractMappers.MapToEventContract(@event))
+                .Select(ContractMappers.MapToEventContract)
                 .ToArray();
 
-        var listOfEvents = await eventService.GetAllEvents(cancellationToken);
+        var listOfEvents = await getAllEventsQuery.HandleAsync(new GetAllEventsQuery(), cancellationToken);
 
         responseModel.Available.Events = listOfEvents.Except(userEvents)
-            .Select(@event => ContractMappers.MapToEventContract(@event))
+            .Select(ContractMappers.MapToEventContract)
             .ToArray();
 
-        var listOfGroups = await groupService.GetAllGroups(cancellationToken);
+        var listOfGroups = await getAllGroupsQuery.HandleAsync(new GetAllGroupsQuery(), cancellationToken);
 
         responseModel.Available.Groups = listOfGroups.Except(userGroups)
-            .Select(group => ContractMappers.MapToGroupContract(group))
+            .Select(ContractMappers.MapToGroupContract)
             .ToArray();
 
-        var myPendingRequests = await accessManagementService.GetPendingUserRequests(user, cancellationToken);
+        var myPendingRequests = await getPendingUserRequestsQuery.HandleAsync(new GetPendingUserRequestsQuery { UserId = user }, cancellationToken);
 
         responseModel.Pending.Events = myPendingRequests.Events;
         responseModel.Pending.Groups = myPendingRequests.Groups;
@@ -109,15 +125,21 @@ public class AccessController : Controller
         var token = GetAccessTokenFromHeader();
         var userData = await identityClient.GetNameAsync(token, cancellationToken);
 
-        await accessManagementService.AddOrUpdateUserAsync(userData, cancellationToken);
+        await addOrUpdateUserCommand.HandleAsync(new AddOrUpdateUserCommand
+        {
+            Id = userData.Id,
+            FirstName = userData.FirstName,
+            LastName = userData.LastName,
+            Email = userData.Email,
+        }, cancellationToken);
 
         if (requests.Events?.Count > 0)
-            await accessManagementService.SaveEventsAssigmentRequest(user, requests.Events, cancellationToken);
+            await saveEventsAssignmentCommand.HandleAsync(new SaveEventsAssignmentCommand { UserId = user, Events = requests.Events }, cancellationToken);
 
         if (requests.Groups?.Count > 0)
         {
             var model = requests.Groups.Select(r => (r.Id, r.JoinedDate)).ToArray();
-            await accessManagementService.SaveGroupsAssigmentRequests(user, model, cancellationToken);
+            await saveGroupsAssignmentCommand.HandleAsync(new SaveGroupsAssignmentCommand { UserId = user, Groups = model }, cancellationToken);
         }
 
         return Ok();
@@ -143,7 +165,7 @@ public class AccessController : Controller
     {
         var userId = User.GetSubject();
 
-        var accessRequests = await accessManagementService.GetAccessRequestsToApproveAsync(userId, cancellationToken);
+        var accessRequests = await getAccessRequestsToApproveQuery.HandleAsync(new GetAccessRequestsToApproveQuery { UserId = userId }, cancellationToken);
         var response = ContractMappers.MapToAccessRequests(accessRequests);
 
         return response;
@@ -158,9 +180,19 @@ public class AccessController : Controller
         bool results;
 
         if (requestBody.IsApproved)
-            results = await accessManagementService.ApproveAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId);
+            results = await approveAccessRequestCommand.HandleAsync(new ApproveAccessRequestCommand
+            {
+                RequestId = requestBody.RequestId,
+                IsGroup = requestBody.IsGroup,
+                UserId = userId,
+            }, cancellationToken);
         else
-            results = await accessManagementService.DeclineAccessRequest(requestBody.RequestId, requestBody.IsGroup, userId, cancellationToken);
+            results = await declineAccessRequestCommand.HandleAsync(new DeclineAccessRequestCommand
+            {
+                RequestId = requestBody.RequestId,
+                IsGroup = requestBody.IsGroup,
+                UserId = userId,
+            }, cancellationToken);
 
         if (results)
             return Ok();

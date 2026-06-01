@@ -1,26 +1,53 @@
-using Application.Features.Comments;
-using Domain.Entities;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
+using TB.DanceDance.Access.Contracts;
 using TB.DanceDance.API.Contracts.Features.Comments;
 using TB.DanceDance.API.Extensions;
+using TB.DanceDance.Utilities.Mediating;
+using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.API.Features.Comments;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class CommentsController : Controller
 {
-    private readonly ICommentService commentService;
     private readonly ILogger<CommentsController> logger;
+    private readonly IRequestHandler<CreateCommentCommand, CommentDto> createCommentCommand;
+    private readonly IRequestHandler<GetCommentsForVideoByLinkQuery, IReadOnlyCollection<CommentDto>> getCommentsForVideoByLinkCommand;
+    private readonly IRequestHandler<UpdateCommentCommand, bool> updateCommentCommand;
+    private readonly IRequestHandler<DeleteCommentCommand, bool> deleteCommentCommand;
+    private readonly IRequestHandler<HideCommentCommand, bool> hideCommentCommand;
+    private readonly IRequestHandler<UnhideCommentCommand, bool> unhideCommentCommand;
+    private readonly IRequestHandler<ReportCommentCommand, bool> reportCommentCommand;
+    private readonly IRequestHandler<GetCommentsForVideoByIdQuery, IReadOnlyCollection<CommentDto>> getCommentsForVideoByIdCommand;
+    private readonly IRequestHandler<GetUsersByIdsQuery, IReadOnlyCollection<UserInfoDto>> getUsersByIdsCommand;
     public const string AnonymousHeaderId = "AnonymousId";
 
-    public CommentsController(ICommentService commentService, ILogger<CommentsController> logger)
+    public CommentsController(ILogger<CommentsController> logger,
+        IRequestHandler<CreateCommentCommand, CommentDto> createCommentCommand,
+        IRequestHandler<GetCommentsForVideoByLinkQuery,IReadOnlyCollection<CommentDto>> getCommentsForVideoByLinkCommand,
+        IRequestHandler<UpdateCommentCommand, bool> updateCommentCommand,
+        IRequestHandler<DeleteCommentCommand, bool> deleteCommentCommand,
+        IRequestHandler<HideCommentCommand, bool> hideCommentCommand,
+        IRequestHandler<UnhideCommentCommand, bool> unhideCommentCommand,
+        IRequestHandler<ReportCommentCommand, bool> reportCommentCommand,
+        IRequestHandler<GetCommentsForVideoByIdQuery, IReadOnlyCollection<CommentDto>> getCommentsForVideoByIdCommand,
+        IRequestHandler<GetUsersByIdsQuery, IReadOnlyCollection<UserInfoDto>> getUsersByIdsCommand
+        )
     {
-        this.commentService = commentService;
         this.logger = logger;
+        this.createCommentCommand = createCommentCommand;
+        this.getCommentsForVideoByLinkCommand = getCommentsForVideoByLinkCommand;
+        this.updateCommentCommand = updateCommentCommand;
+        this.deleteCommentCommand = deleteCommentCommand;
+        this.hideCommentCommand = hideCommentCommand;
+        this.unhideCommentCommand = unhideCommentCommand;
+        this.reportCommentCommand = reportCommentCommand;
+        this.getCommentsForVideoByIdCommand = getCommentsForVideoByIdCommand;
+        this.getUsersByIdsCommand = getUsersByIdsCommand;
     }
 
     /// <summary>
@@ -39,15 +66,15 @@ public class CommentsController : Controller
 
         try
         {
-            var comment = await commentService.CreateCommentAsync(
+            var comment = await createCommentCommand.HandleAsync(new CreateCommentCommand(
                 userId,
                 linkId,
                 request.Content,
-                request.AuthorName, 
-                request.AnonymousId,
-                cancellationToken);
-            
-            var response = MapToResponse(comment, userId, null);
+                request.AuthorName,
+                request.AnonymousId), cancellationToken);
+
+            var authorNames = await ResolveAuthorNamesAsync(new[] { comment }, cancellationToken);
+            var response = MapToResponse(comment, userId, null, authorNames);
             return Ok(response);
         }
         catch (ArgumentException ex)
@@ -58,7 +85,7 @@ public class CommentsController : Controller
     }
 
     private byte[]? ComputeSha256(string? anonymousId) => anonymousId == null ? null : SHA256.HashData(Encoding.UTF8.GetBytes(anonymousId));
-    
+
     /// <summary>
     /// Gets comments for a video accessed through a shared link. Anonymous access allowed.
     /// </summary>
@@ -72,18 +99,18 @@ public class CommentsController : Controller
     {
         var userId = User.TryGetSubject();
         anonymousId = ResolveAnonymousId(anonymousId, Request);
-        
+
         try
         {
-            var comments = await commentService.GetCommentsForVideoAsync(
+            var comments = await getCommentsForVideoByLinkCommand.HandleAsync(new GetCommentsForVideoByLinkQuery(
                 userId,
                 anonymousId,
-                linkId,
-                cancellationToken);
+                linkId), cancellationToken);
 
             byte[]? shaOfAnonymousId = ComputeSha256(anonymousId);
 
-            var response = comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId));
+            var authorNames = await ResolveAuthorNamesAsync(comments, cancellationToken);
+            var response = comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId, authorNames));
             return Ok(response);
         }
         catch (ArgumentException ex)
@@ -111,12 +138,12 @@ public class CommentsController : Controller
 
         try
         {
-            var result = await commentService.UpdateCommentAsync(commentId,
+            var result = await updateCommentCommand.HandleAsync(new UpdateCommentCommand(
+                commentId,
                 userId,
                 request.AnonymousId,
                 request.AuthorName,
-                request.Content,
-                cancellationToken);
+                request.Content), cancellationToken);
 
             if (!result)
             {
@@ -131,14 +158,14 @@ public class CommentsController : Controller
             return BadRequest(new { error = ex.Message });
         }
     }
-    
+
     private string? ResolveAnonymousId(string? anonymousIdFromQuery, HttpRequest request)
     {
         if (!string.IsNullOrEmpty(anonymousIdFromQuery))
             return anonymousIdFromQuery;
-        
+
         string? anonymousIdFromHeader = request.Headers[AnonymousHeaderId].FirstOrDefault();
-        return  anonymousIdFromHeader;
+        return anonymousIdFromHeader;
     }
 
     /// <summary>
@@ -158,11 +185,11 @@ public class CommentsController : Controller
 
         try
         {
-            var result = await commentService.DeleteCommentAsync(commentId,
+            var result = await deleteCommentCommand.HandleAsync(new DeleteCommentCommand(
+                commentId,
                 userId,
-                anonymousId,
-                cancellationToken);
-            
+                anonymousId), cancellationToken);
+
             if (!result)
             {
                 return NotFound(new { error = "Comment not found or you are not authorized to delete it." });
@@ -172,7 +199,7 @@ public class CommentsController : Controller
         {
             return BadRequest(new { error = e.Message });
         }
-        
+
         return Ok();
     }
 
@@ -187,7 +214,7 @@ public class CommentsController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await commentService.HideCommentAsync(commentId, userId, cancellationToken);
+        var result = await hideCommentCommand.HandleAsync(new HideCommentCommand(commentId, userId), cancellationToken);
 
         if (!result)
         {
@@ -208,7 +235,7 @@ public class CommentsController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await commentService.UnhideCommentAsync(commentId, userId, cancellationToken);
+        var result = await unhideCommentCommand.HandleAsync(new UnhideCommentCommand(commentId, userId), cancellationToken);
 
         if (!result)
         {
@@ -231,7 +258,7 @@ public class CommentsController : Controller
     {
         try
         {
-            var result = await commentService.ReportCommentAsync(commentId, request.Reason, cancellationToken);
+            var result = await reportCommentCommand.HandleAsync(new ReportCommentCommand(commentId, request.Reason), cancellationToken);
 
             if (!result)
             {
@@ -246,22 +273,23 @@ public class CommentsController : Controller
             return BadRequest(new { error = ex.Message });
         }
     }
-    
+
     [HttpGet]
     [Route(CommentRoutes.GetCommentsForVideo)]
     public async Task<IActionResult> GetCommentsForVideo([FromRoute] Guid videoId, CancellationToken cancellationToken)
     {
         var userId = User.GetSubject();
-            
+
         try
         {
             var anonymousId = ResolveAnonymousId(null, Request);
-            
-            var comments = await commentService.GetCommentsForVideoAsync(userId, anonymousId, videoId, cancellationToken);
-            
+
+            var comments = await getCommentsForVideoByIdCommand.HandleAsync(new GetCommentsForVideoByIdQuery(userId, anonymousId, videoId), cancellationToken);
+
             byte[]? shaOfAnonymousId = ComputeSha256(anonymousId);
-            
-            return Ok(comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId)));
+
+            var authorNames = await ResolveAuthorNamesAsync(comments, cancellationToken);
+            return Ok(comments.Select(c => MapToResponse(c, userId, shaOfAnonymousId, authorNames)));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -275,17 +303,45 @@ public class CommentsController : Controller
         }
     }
 
-    private CommentResponse MapToResponse(Comment comment, string? currentUserId, byte[]? anonymousId)
+    /// <summary>
+    /// Resolves authenticated authors' display names from the Access module. Anonymous comments
+    /// carry their own name on the comment, so only non-anonymous authors are looked up.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<string, string>> ResolveAuthorNamesAsync(
+        IEnumerable<CommentDto> comments,
+        CancellationToken cancellationToken)
     {
-        var isVideoOwner = comment.Video?.UploadedBy == currentUserId;
+        var userIds = comments
+            .Where(c => !c.PostedAsAnonymous && c.UserId != null)
+            .Select(c => c.UserId!)
+            .Distinct()
+            .ToArray();
+
+        if (userIds.Length == 0)
+            return new Dictionary<string, string>();
+
+        var users = await getUsersByIdsCommand.HandleAsync(new GetUsersByIdsQuery(userIds), cancellationToken);
+
+        return users.ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}");
+    }
+
+    private static CommentResponse MapToResponse(
+        CommentDto comment,
+        string? currentUserId,
+        byte[]? anonymousId,
+        IReadOnlyDictionary<string, string> authorNames)
+    {
+        var isVideoOwner = comment.VideoOwnerId == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
-        var isAnonymousAuthor = comment.ShaOfAnonymousId?.SequenceEqual(anonymousId) ?? false;
-        
+        var isAnonymousAuthor = anonymousId != null
+            && comment.ShaOfAnonymousId != null
+            && comment.ShaOfAnonymousId.SequenceEqual(anonymousId);
+
         string? authorName;
         if (comment.PostedAsAnonymous)
             authorName = comment.AnonymousName;
         else
-            authorName = comment.User != null ? $"{comment.User.FirstName} {comment.User.LastName}" : null;
+            authorName = comment.UserId != null && authorNames.TryGetValue(comment.UserId, out var name) ? name : null;
 
         return new CommentResponse
         {
