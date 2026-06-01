@@ -10,5 +10,6 @@
   <Project Path="src/backend/TB.DanceDance.Videos/TB.DanceDance.Videos.csproj" />
   <Project Path="src/mobile/TB.DanceDance.Mobile.Library/TB.DanceDance.Mobile.Library.csproj" />
   <Project Path="src/mobile/TB.DanceDance.Mobile/TB.DanceDance.Mobile.csproj" />
+  <Project Path="src/tests/TB.DanceDance.Mobile.Tests/TB.DanceDance.Mobile.Tests.csproj" />
   <Project Path="src/tests/TB.DanceDance.Tests/TB.DanceDance.Tests.csproj" />
 </Solution>
