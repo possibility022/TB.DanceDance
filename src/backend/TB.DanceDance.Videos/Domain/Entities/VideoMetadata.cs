@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TB.DanceDance.SharedKernel;
 
 namespace TB.DanceDance.Videos.Domain.Entities;
 
@@ -23,7 +22,7 @@ public class VideoMetadataConfiguration : IEntityTypeConfiguration<VideoMetadata
 {
     public void Configure(EntityTypeBuilder<VideoMetadata> builder)
     {
-        builder.ToTable("VideoMetadata", Constants.DbSchemas.Video);
+        builder.ToTable("VideoMetadata");
         builder.HasKey(x => x.Id);
         builder.Property(x => x.VideoId).IsRequired();
         builder.Property(x => x.Metadata).IsRequired();

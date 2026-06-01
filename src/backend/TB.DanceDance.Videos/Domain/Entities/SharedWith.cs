@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TB.DanceDance.Videos.Infrastructure;
 
 namespace TB.DanceDance.Videos.Domain.Entities;
 public class SharedWith
@@ -33,7 +34,7 @@ public class SharedWithConfiguration : IEntityTypeConfiguration<SharedWith>
 {
     public void Configure(EntityTypeBuilder<SharedWith> builder)
     {
-        builder.ToTable("SharedWith");
+        builder.ToTable("SharedWith", SchemaNames.Sharing);
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Property(x => x.UserId).IsRequired();

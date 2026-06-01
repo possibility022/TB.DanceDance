@@ -5,7 +5,6 @@
   <Project Path="src/backend/TB.DanceDance.API.Contracts/TB.DanceDance.API.Contracts.csproj" />
   <Project Path="src/backend/TB.DanceDance.API/TB.DanceDance.API.csproj" />
   <Project Path="src/backend/TB.DanceDance.Services.Converter.Deamon/TB.DanceDance.Services.Converter.Deamon.csproj" />
-  <Project Path="src/backend/TB.DanceDance.SharedKernel/TB.DanceDance.SharedKernel.csproj" />
   <Project Path="src/backend/TB.DanceDance.Utilities/TB.DanceDance.Utilities.csproj" />
   <Project Path="src/backend/TB.DanceDance.Videos.Contracts/TB.DanceDance.Videos.Contracts.csproj" />
   <Project Path="src/backend/TB.DanceDance.Videos/TB.DanceDance.Videos.csproj" />

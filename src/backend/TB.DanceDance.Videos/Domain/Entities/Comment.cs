@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TB.DanceDance.SharedKernel;
+using TB.DanceDance.Videos.Infrastructure;
 
 namespace TB.DanceDance.Videos.Domain.Entities;
 
@@ -112,7 +112,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
 {
     public void Configure(EntityTypeBuilder<Comment> builder)
     {
-        builder.ToTable("Comments", Constants.DbSchemas.Comments);
+        builder.ToTable("Comments", SchemaNames.Comments);
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedOnAdd();
 
