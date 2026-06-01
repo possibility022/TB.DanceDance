@@ -2,7 +2,7 @@ using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TB.DanceDance.Access.Contracts;
-using TB.DanceDance.Access.Events;
+using TB.DanceDance.Access.Features.Events;
 using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;

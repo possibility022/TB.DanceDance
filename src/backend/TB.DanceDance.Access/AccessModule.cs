@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using TB.DanceDance.Access.Authorization;
 using TB.DanceDance.Access.Contracts;
-using TB.DanceDance.Access.Events;
-using TB.DanceDance.Access.Groups;
+using TB.DanceDance.Access.Features.Authorization;
+using TB.DanceDance.Access.Features.Events;
+using TB.DanceDance.Access.Features.Groups;
+using TB.DanceDance.Access.Features.Management;
 using TB.DanceDance.Access.Infrastructure;
-using TB.DanceDance.Access.Management;
 using TB.DanceDance.Utilities.Mediating;
 
 namespace TB.DanceDance.Access;

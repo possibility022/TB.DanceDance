@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.Access.Events;
+using TB.DanceDance.Access.Features.Events;
 using TB.DanceDance.Tests.TestsFixture;
 using TB.DanceDance.Videos.Contracts;
 

@@ -22,4 +22,8 @@
       <ProjectReference Include="..\TB.DanceDance.Videos.Contracts\TB.DanceDance.Videos.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\" />
+    </ItemGroup>
+
 </Project>

@@ -2,13 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using TB.DanceDance.Utilities.Infrastructure.Models;
 using TB.DanceDance.Utilities.Mediating;
-using TB.DanceDance.Videos.Comments;
 using TB.DanceDance.Videos.Contracts;
+using TB.DanceDance.Videos.Features.Comments;
+using TB.DanceDance.Videos.Features.Management;
+using TB.DanceDance.Videos.Features.Sharing;
+using TB.DanceDance.Videos.Features.UploadVideo;
+using TB.DanceDance.Videos.Features.ViewVideo;
 using TB.DanceDance.Videos.Infrastructure;
-using TB.DanceDance.Videos.Management;
-using TB.DanceDance.Videos.Sharing;
-using TB.DanceDance.Videos.UploadVideo;
-using TB.DanceDance.Videos.ViewVideo;
 
 namespace TB.DanceDance.Videos;
 
