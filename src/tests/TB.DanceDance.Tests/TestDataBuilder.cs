@@ -9,7 +9,10 @@ namespace TB.DanceDance.Tests;
 public static class TestDataBuilder
 {
     public static string RandomEmail(string? prefix = null) => $"{prefix ?? Random.Shared.Next(10000).ToString()}user@test{Random.Shared.Next(10000)}.com";
-    public static string RandomUserId() => Random.Shared.Next(100000, 999999).ToString();
+    // Globally unique: the test DB is an assembly-wide fixture that is never cleaned between tests, so
+    // users from every test accumulate in one table. A small numeric range would collide on PK_Users
+    // (birthday paradox) and fail inserts intermittently. A GUID keeps each user id unique for the run.
+    public static string RandomUserId() => Guid.NewGuid().ToString("N");
     public static string RandomName(string prefix = "Name") => $"{prefix}-{Guid.NewGuid():N}";
     public static Guid NewGuid() => Guid.NewGuid();
     public static DateTime UtcNow => DateTime.UtcNow;
