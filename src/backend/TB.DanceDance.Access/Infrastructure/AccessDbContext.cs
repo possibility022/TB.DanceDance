@@ -23,6 +23,12 @@ public class AccessDbContext : DbContext
     {
         
     }
+    
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseNpgsql(o => o.MigrationsHistoryTable("Access_MigrationHistory"));
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
