@@ -15,6 +15,9 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
                 name: "comments");
 
             migrationBuilder.EnsureSchema(
+                name: "sharing");
+
+            migrationBuilder.EnsureSchema(
                 name: "video");
 
             migrationBuilder.CreateTable(
@@ -44,7 +47,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "SharedLinks",
-                schema: "video",
+                schema: "sharing",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -70,7 +73,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "SharedWith",
-                schema: "video",
+                schema: "sharing",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -137,7 +140,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Comments_SharedLinks_SharedLinkId",
                         column: x => x.SharedLinkId,
-                        principalSchema: "video",
+                        principalSchema: "sharing",
                         principalTable: "SharedLinks",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -169,37 +172,37 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedLinks_SharedBy",
-                schema: "video",
+                schema: "sharing",
                 table: "SharedLinks",
                 column: "SharedBy");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedLinks_VideoId",
-                schema: "video",
+                schema: "sharing",
                 table: "SharedLinks",
                 column: "VideoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_EventId",
-                schema: "video",
+                schema: "sharing",
                 table: "SharedWith",
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_GroupId",
-                schema: "video",
+                schema: "sharing",
                 table: "SharedWith",
                 column: "GroupId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_UserId",
-                schema: "video",
+                schema: "sharing",
                 table: "SharedWith",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SharedWith_VideoId",
-                schema: "video",
+                schema: "sharing",
                 table: "SharedWith",
                 column: "VideoId");
 
@@ -219,7 +222,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "SharedWith",
-                schema: "video");
+                schema: "sharing");
 
             migrationBuilder.DropTable(
                 name: "VideoMetadata",
@@ -227,7 +230,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "SharedLinks",
-                schema: "video");
+                schema: "sharing");
 
             migrationBuilder.DropTable(
                 name: "Videos",

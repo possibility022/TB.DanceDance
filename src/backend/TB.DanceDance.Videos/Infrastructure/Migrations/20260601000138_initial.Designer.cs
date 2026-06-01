@@ -12,7 +12,7 @@ using TB.DanceDance.Videos.Infrastructure;
 namespace TB.DanceDance.Videos.Infrastructure.Migrations
 {
     [DbContext(typeof(VideosDbContext))]
-    [Migration("20260531235642_initial")]
+    [Migration("20260601000138_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -116,7 +116,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("SharedLinks", "video");
+                    b.ToTable("SharedLinks", "sharing");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Videos.Domain.Entities.SharedWith", b =>
@@ -148,7 +148,7 @@ namespace TB.DanceDance.Videos.Infrastructure.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("SharedWith", "video");
+                    b.ToTable("SharedWith", "sharing");
                 });
 
             modelBuilder.Entity("TB.DanceDance.Videos.Domain.Entities.Video", b =>
