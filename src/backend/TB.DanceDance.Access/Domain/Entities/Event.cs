@@ -19,6 +19,7 @@ public class Event
         {
             return new Event()
             {
+                Id = Guid.NewGuid(),
                 Date = date,
                 Name = name,
                 Type = type,

@@ -1,54 +1,51 @@
-﻿using Application.Features.Videos;
-using Domain;
-using Infrastructure.Data;
-using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Tests.TestsFixture;
+using TB.DanceDance.Utilities.Infrastructure;
+using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.Tests.Features.Videos;
 
+/// <summary>
+/// Converter-flow handlers (Videos module): pick-next-to-convert, update-info, upload-converted, and
+/// re-issue publish SAS. Note the old <c>VideoUploaderService.GetUploadSasUri</c>/<c>GetVideoSas</c>
+/// helpers are not exposed as handlers (they are internal to <see cref="CreateVideoUploadCommand"/> /
+/// streaming), so those two micro-tests have no module-surface equivalent and are not ported.
+/// </summary>
 public class VideoUploaderTests : BaseTestClass
 {
-    
     private static readonly SemaphoreSlim Locker = new(1);
-    private bool lockedByThisClass = false;
-    
-    private readonly BlobStorageFixture blobStorageFixture;
+    private bool lockedByThisClass;
 
-    private BlobDataServiceFactory factory;
-    private VideoUploaderService uploaderService = null!;
+    private readonly BlobStorageFixture blobStorageFixture;
+    private IBlobDataServiceFactory factory = null!;
 
     public VideoUploaderTests(DanceDbFixture dbContextFixture, BlobStorageFixture blobStorageFixture) : base(dbContextFixture)
     {
         this.blobStorageFixture = blobStorageFixture;
-        this.factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
     }
 
-    protected override ValueTask BeforeDispose(DanceDbContext runtimeDbContext)
-    {
-        if (lockedByThisClass)
-            Locker.Release(1);
-        
-        return base.BeforeDispose(runtimeDbContext);
-    }
+    protected override string BlobConnectionString => blobStorageFixture.GetConnectionString();
 
-    protected override async ValueTask Initialize(DanceDbContext runtimeDbContext)
+    protected override async ValueTask Initialize()
     {
         var isIn = await Locker.WaitAsync(TimeSpan.FromSeconds(10));
         lockedByThisClass = isIn;
-        
         if (!isIn)
-        {
             throw new("Could not acquire lock");
-        }
-        
+
         factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
-        this.uploaderService = new VideoUploaderService(factory, runtimeDbContext);
+    }
+
+    protected override ValueTask BeforeDispose()
+    {
+        if (lockedByThisClass)
+            Locker.Release(1);
+        return ValueTask.CompletedTask;
     }
 
     private async Task MakeAllExistingVideosIneligible()
     {
-        var existing = SeedDbContext.Videos.ToList();
+        var existing = await SeedVideosContext.Videos.ToListAsync(TestContext.Current.CancellationToken);
         if (existing.Count > 0)
         {
             foreach (var vid in existing)
@@ -56,7 +53,7 @@ public class VideoUploaderTests : BaseTestClass
                 vid.Converted = true;
                 vid.LockedTill = DateTime.UtcNow.AddDays(365 * 10);
             }
-            await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
     }
 
@@ -65,13 +62,16 @@ public class VideoUploaderTests : BaseTestClass
     {
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
-        var locked = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddMinutes(-1)).Build();
+        var locked = new VideoDataBuilder().UploadedBy(user).Build();
         locked.LockedTill = DateTime.UtcNow.AddHours(1);
-        var converted = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddMinutes(-2)).Converted(true).Build();
-        SeedDbContext.AddRange(user, locked, converted);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var converted = new VideoDataBuilder().UploadedBy(user).Converted(true).Build();
 
-        var next = await uploaderService.GetNextVideoToTransformAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.AddRange(locked, converted);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var next = await Send(new GetNextVideoToConvertQuery(), TestContext.Current.CancellationToken);
         if (next is not null)
         {
             Assert.NotEqual(locked.Id, next.Id);
@@ -80,37 +80,30 @@ public class VideoUploaderTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetNextVideoToTransformAsync_SkipsLockedAndConverted_AndLocksNewest()
+    public async Task GetNextVideoToTransformAsync_SkipsLockedAndConverted_AndLocksEligible()
     {
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
-        var vLocked = new VideoDataBuilder()
-            .UploadedBy(user)
-            .SharedAt(DateTime.UtcNow.AddMinutes(-30))
-            .Build();
+        var vLocked = new VideoDataBuilder().UploadedBy(user).Build();
         vLocked.LockedTill = DateTime.UtcNow.AddHours(1);
+        var vConverted = new VideoDataBuilder().UploadedBy(user).Converted(true).Build();
+        var vEligible = new VideoDataBuilder().UploadedBy(user).Build();
 
-        var vConverted = new VideoDataBuilder()
-            .UploadedBy(user)
-            .SharedAt(DateTime.UtcNow.AddMinutes(-10))
-            .Converted(true)
-            .Build();
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.AddRange(vLocked, vConverted, vEligible);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var vEligible = new VideoDataBuilder()
-            .UploadedBy(user)
-            .SharedAt(DateTime.UtcNow.AddDays(5))
-            .Build();
-
-        SeedDbContext.AddRange(user, vLocked, vConverted, vEligible);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var next = await uploaderService.GetNextVideoToTransformAsync(TestContext.Current.CancellationToken);
+        var next = await Send(new GetNextVideoToConvertQuery(), TestContext.Current.CancellationToken);
 
         Assert.NotNull(next);
         Assert.Equal(vEligible.Id, next!.Id);
-        Assert.NotNull(next.LockedTill);
-        Assert.True(next.LockedTill!.Value > DateTime.UtcNow);
-        Assert.Equal(DateTimeKind.Utc, next.LockedTill!.Value.Kind);
+
+        // VideoToConvertDto does not expose LockedTill; verify the row was locked on the entity.
+        var locked = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(v => v.Id == next.Id, TestContext.Current.CancellationToken);
+        Assert.NotNull(locked.LockedTill);
+        Assert.True(locked.LockedTill!.Value > DateTime.UtcNow);
+        Assert.Equal(DateTimeKind.Utc, locked.LockedTill!.Value.Kind);
     }
 
     [Fact]
@@ -118,23 +111,24 @@ public class VideoUploaderTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var v = new VideoDataBuilder().UploadedBy(user).Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var duration = TimeSpan.FromMinutes(2);
         var recorded = DateTime.UtcNow.AddDays(-2);
         var metadata = new byte[] { 1, 2, 3 };
 
-        var ok = await uploaderService.UpdateVideoInformation(v.Id, duration, recorded, metadata, TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var ok = await Send(new UpdateVideoInformationCommand { VideoId = v.Id, Duration = duration, Recorded = recorded, Metadata = metadata },
+            TestContext.Current.CancellationToken);
 
         Assert.True(ok);
-        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
         Assert.Equal(duration, updated.Duration);
-        // Use tolerance because some providers truncate sub-millisecond precision
         Assert.True((updated.RecordedDateTime - recorded).Duration() < TimeSpan.FromMilliseconds(5));
         Assert.Equal(DateTimeKind.Utc, updated.RecordedDateTime.Kind);
-        Assert.True(await SeedDbContext.VideoMetadata.AnyAsync(m => m.VideoId == v.Id, TestContext.Current.CancellationToken));
+        Assert.True(await SeedVideosContext.VideoMetadata.AnyAsync(m => m.VideoId == v.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -142,19 +136,21 @@ public class VideoUploaderTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var v = new VideoDataBuilder().UploadedBy(user).Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var ok = await uploaderService.UpdateVideoInformation(v.Id, TimeSpan.FromSeconds(10), DateTime.UtcNow, null, TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var ok = await Send(new UpdateVideoInformationCommand { VideoId = v.Id, Duration = TimeSpan.FromSeconds(10), Recorded = DateTime.UtcNow, Metadata = null },
+            TestContext.Current.CancellationToken);
         Assert.True(ok);
-        Assert.False(await SeedDbContext.VideoMetadata.AnyAsync(m => m.VideoId == v.Id, TestContext.Current.CancellationToken));
+        Assert.False(await SeedVideosContext.VideoMetadata.AnyAsync(m => m.VideoId == v.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task UploadConvertedVideoAsync_ReturnsNull_WhenVideoMissing()
     {
-        var result = await uploaderService.UploadConvertedVideoAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await Send(new UploadConvertedVideoCommand(Guid.NewGuid()), TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -163,10 +159,12 @@ public class VideoUploaderTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(null).Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+        var result = await Send(new UploadConvertedVideoCommand(v.Id), TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -175,10 +173,12 @@ public class VideoUploaderTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+        var result = await Send(new UploadConvertedVideoCommand(v.Id), TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -188,40 +188,24 @@ public class VideoUploaderTests : BaseTestClass
         var user = new UserDataBuilder().Build();
         var blobId = Guid.NewGuid().ToString();
         var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(blobId).Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // Upload a blob to the published videos container so service sees it
         var published = factory.GetBlobDataService(BlobContainer.Videos);
         await published.Upload(blobId, new MemoryStream(new byte[] { 9, 9, 9 }));
 
-        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var result = await Send(new UploadConvertedVideoCommand(v.Id), TestContext.Current.CancellationToken);
         Assert.Equal(v.Id, result);
-        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
         Assert.True(updated.Converted);
-    }
-
-    [Fact]
-    public void GetUploadSasUri_ReturnsSharedBlob()
-    {
-        var shared = uploaderService.GetUploadSasUri();
-        Assert.NotNull(shared);
-        Assert.False(string.IsNullOrWhiteSpace(shared.BlobId));
-        Assert.True(shared.ExpiresAt > DateTimeOffset.Now);
-        Assert.True(shared.Sas.IsAbsoluteUri);
-    }
-
-    [Fact]
-    public void GetUploadSasUri_Throws_OnEmptyBlobId()
-    {
-        Assert.Throws<ArgumentNullException>(() => uploaderService.GetUploadSasUri(" "));
     }
 
     [Fact]
     public async Task GetSasForConvertedVideoAsync_ReturnsNull_WhenVideoMissing()
     {
-        var sas = await uploaderService.GetSasForConvertedVideoAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var sas = await Send(new GetPublishSasQuery(Guid.NewGuid()), TestContext.Current.CancellationToken);
         Assert.Null(sas);
     }
 
@@ -229,60 +213,46 @@ public class VideoUploaderTests : BaseTestClass
     public async Task GetSasForConvertedVideoAsync_AssignsBlobId_AndPersists()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(null).Build();
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var sas = await uploaderService.GetSasForConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+        var sas = await Send(new GetPublishSasQuery(v.Id), TestContext.Current.CancellationToken);
         Assert.NotNull(sas);
-        SeedDbContext.ChangeTracker.Clear();
-        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
         Assert.False(string.IsNullOrWhiteSpace(updated.BlobId));
         Assert.Equal(updated.BlobId, sas!.BlobId);
         Assert.True(sas.Sas.IsAbsoluteUri);
     }
 
     [Fact]
-    public void GetVideoSas_ReturnsUri()
-    {
-        var uri = uploaderService.GetVideoSas(Guid.NewGuid().ToString());
-        Assert.True(uri.IsAbsoluteUri);
-    }
-
-    [Fact]
     public async Task UploadConvertedVideoAsync_CalculatesAndStoresBlobSizes()
     {
-        // Arrange
         var user = new UserDataBuilder().Build();
         var sourceBlobId = Guid.NewGuid().ToString();
         var convertedBlobId = Guid.NewGuid().ToString();
-        var v = new VideoDataBuilder()
-            .UploadedBy(user)
-            .WithSourceBlobId(sourceBlobId)
-            .WithBlobId(convertedBlobId)
-            .Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var v = new VideoDataBuilder().UploadedBy(user).WithSourceBlobId(sourceBlobId).WithBlobId(convertedBlobId).Build();
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // Upload source blob (1024 bytes)
         var sourceData = new byte[1024];
         Array.Fill(sourceData, (byte)1);
         var toConvert = factory.GetBlobDataService(BlobContainer.VideosToConvert);
         await toConvert.Upload(sourceBlobId, new MemoryStream(sourceData));
 
-        // Upload converted blob (2048 bytes)
         var convertedData = new byte[2048];
         Array.Fill(convertedData, (byte)2);
         var published = factory.GetBlobDataService(BlobContainer.Videos);
         await published.Upload(convertedBlobId, new MemoryStream(convertedData));
 
-        // Act
-        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+        var result = await Send(new UploadConvertedVideoCommand(v.Id), TestContext.Current.CancellationToken);
 
-        // Assert
         Assert.NotNull(result);
-        SeedDbContext.ChangeTracker.Clear();
-        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
         Assert.True(updated.Converted);
         Assert.Equal(1024, updated.SourceBlobSize);
         Assert.Equal(2048, updated.ConvertedBlobSize);
@@ -291,30 +261,24 @@ public class VideoUploaderTests : BaseTestClass
     [Fact]
     public async Task UploadConvertedVideoAsync_ContinuesWithZeroSizes_WhenSizeCalculationFails()
     {
-        // Arrange - create video with blobs that don't actually exist (size calculation will fail)
         var user = new UserDataBuilder().Build();
         var sourceBlobId = Guid.NewGuid().ToString();
         var convertedBlobId = Guid.NewGuid().ToString();
-        var v = new VideoDataBuilder()
-            .UploadedBy(user)
-            .WithSourceBlobId(sourceBlobId)
-            .WithBlobId(convertedBlobId)
-            .Build();
-        SeedDbContext.AddRange(user, v);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var v = new VideoDataBuilder().UploadedBy(user).WithSourceBlobId(sourceBlobId).WithBlobId(convertedBlobId).Build();
+        SeedAccessContext.Add(user);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(v);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // Only upload the converted blob, but not the source blob - GetBlobSizeAsync will throw for source
+        // Only the converted blob exists; source size calculation throws and is swallowed.
         var convertedData = new byte[512];
         var published = factory.GetBlobDataService(BlobContainer.Videos);
         await published.Upload(convertedBlobId, new MemoryStream(convertedData));
 
-        // Act
-        var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
+        var result = await Send(new UploadConvertedVideoCommand(v.Id), TestContext.Current.CancellationToken);
 
-        // Assert - should still succeed and mark as converted, but sizes remain 0
         Assert.NotNull(result);
-        SeedDbContext.ChangeTracker.Clear();
-        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        var updated = await SeedVideosContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
         Assert.True(updated.Converted);
         Assert.Equal(0, updated.SourceBlobSize);
         Assert.Equal(0, updated.ConvertedBlobSize);

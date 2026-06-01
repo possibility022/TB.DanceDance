@@ -12,6 +12,19 @@ public class GroupAdmin
 
     public Group Group { get; set; } = null!;
     public User User { get; set; } = null!;
+
+    public class Factory
+    {
+        public static GroupAdmin Create(string userId, Guid groupId)
+        {
+            return new GroupAdmin
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                GroupId = groupId,
+            };
+        }
+    }
 }
 
 public class GroupAdminConfiguration : IEntityTypeConfiguration<GroupAdmin>

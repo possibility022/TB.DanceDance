@@ -1,22 +1,19 @@
-﻿using Application.Features.Events;
-using Domain.Entities;
-using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Access.Events;
 using TB.DanceDance.Tests.TestsFixture;
+using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.Tests.Features.Events;
 
+/// <summary>
+/// Event video listing (<see cref="ViewVideosFromEventQuery"/>, Videos module — gated by Access event
+/// membership through the mediator) and event creation (<see cref="CreateEventCommand"/>, Access module,
+/// which auto-adds the owner's membership).
+/// </summary>
 public class EventServiceTests : BaseTestClass
 {
-    private EventService eventService = null!;
-
     public EventServiceTests(DanceDbFixture danceDbFixture) : base(danceDbFixture)
     {
-    }
-
-    protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
-    {
-        this.eventService = new EventService(runtimeDbContext);
-        return ValueTask.CompletedTask;
     }
 
     // C10: Returns videos shared with the event for an assigned user
@@ -24,23 +21,19 @@ public class EventServiceTests : BaseTestClass
     public async Task GetVideos_ReturnsOnlyEventVideos_ForAssignedUser()
     {
         var testData = TestDataFactory.OneUserAssignedToEvent_WithOneVideo();
-        SeedDbContext.Add(testData.owner);
-        SeedDbContext.Add(testData.user);
-        SeedDbContext.Add(testData.evt);
-        SeedDbContext.Add(testData.video);
-        SeedDbContext.Add(testData.eventShare);
-        SeedDbContext.Add(testData.participation);
+        SeedAccessContext.AddRange(testData.owner, testData.user, testData.evt, testData.participation);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(testData.video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var videos =
-            await eventService.GetVideos(testData.evt.Id, testData.user.Id, TestContext.Current.CancellationToken);
+        var videos = await Send(new ViewVideosFromEventQuery(testData.user.Id, testData.evt.Id),
+            TestContext.Current.CancellationToken);
 
         Assert.Single(videos);
         Assert.Equal(testData.video.Id, videos.Single().Id);
     }
 
-    // A1: CreateEventAsync sets Id and persists event
+    // A1: CreateEventCommand returns a new id and persists the event
     [Fact]
     public async Task CreateEventAsync_SetsId_And_PersistsEvent()
     {
@@ -48,15 +41,13 @@ public class EventServiceTests : BaseTestClass
         var owner = eventB.BuildOwner();
         var evt = eventB.Build();
 
-        // Persist owner for FK
-        SeedDbContext.Add(owner);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(owner);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var created = await eventService.CreateEventAsync(evt, CancellationToken.None);
-        SeedDbContext.ChangeTracker.Clear();
+        var createdId = await Send(new CreateEventCommand(evt.Name, evt.Date, owner.Id), CancellationToken.None);
 
-        Assert.NotEqual(Guid.Empty, created.Id);
-        Assert.True(SeedDbContext.Events.Any(e => e.Id == created.Id));
+        Assert.NotEqual(Guid.Empty, createdId);
+        Assert.True(await SeedAccessContext.Events.AnyAsync(e => e.Id == createdId, TestContext.Current.CancellationToken));
     }
 
     // A2/A3: Owner auto-membership added once
@@ -67,14 +58,14 @@ public class EventServiceTests : BaseTestClass
         var owner = eventB.BuildOwner();
         var evt = eventB.Build();
 
-        SeedDbContext.Add(owner);
-        await SeedDbContext.SaveChangesAsync();
+        SeedAccessContext.Add(owner);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var created = await eventService.CreateEventAsync(evt, TestContext.Current.CancellationToken);
+        var createdId = await Send(new CreateEventCommand(evt.Name, evt.Date, owner.Id), TestContext.Current.CancellationToken);
 
-        SeedDbContext.ChangeTracker.Clear();
-        var ownerMemberships = SeedDbContext.AssingedToEvents
-            .Where(a => a.EventId == created.Id && a.UserId == created.Owner).ToList();
+        var ownerMemberships = await SeedAccessContext.AssignedToEvents
+            .Where(a => a.EventId == createdId && a.UserId == owner.Id)
+            .ToListAsync(TestContext.Current.CancellationToken);
         Assert.Single(ownerMemberships);
     }
 
@@ -87,13 +78,14 @@ public class EventServiceTests : BaseTestClass
         var eventB = new EventDataBuilder().WithOwner(owner);
         var evt = eventB.Build();
 
-        SeedDbContext.Add(owner);
-        await SeedDbContext.SaveChangesAsync();
+        SeedAccessContext.Add(owner);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var created = await eventService.CreateEventAsync(evt, TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var createdId = await Send(new CreateEventCommand(evt.Name, evt.Date, owner.Id), TestContext.Current.CancellationToken);
+
+        var created = await SeedAccessContext.Events.AsNoTracking().FirstAsync(e => e.Id == createdId, TestContext.Current.CancellationToken);
         Assert.Equal(owner.Id, created.Owner);
-        Assert.True(SeedDbContext.AssingedToEvents.Any(a => a.EventId == created.Id && a.UserId == owner.Id));
+        Assert.True(await SeedAccessContext.AssignedToEvents.AnyAsync(a => a.EventId == createdId && a.UserId == owner.Id, TestContext.Current.CancellationToken));
     }
 
     // C11: Filters out videos shared to other events
@@ -112,23 +104,14 @@ public class EventServiceTests : BaseTestClass
 
         var membershipA = userB.AssignTo(evtA);
 
-        var videoForB = new VideoDataBuilder().UploadedBy(user).Build();
-        var shareToB = new VideoDataBuilder().WithId(videoForB.Id); // placeholder
+        var videoForB = new VideoDataBuilder().UploadedBy(user).ShareWithEvent(evtB, user).Build();
 
-        SeedDbContext.Add(ownerA);
-        SeedDbContext.Add(ownerB);
-        SeedDbContext.Add(user);
-        SeedDbContext.AddRange(evtA, evtB);
-        SeedDbContext.Add(membershipA);
-        SeedDbContext.Add(videoForB);
-        // Share video with B
-        SeedDbContext.Add(new SharedWith
-        {
-            Id = Guid.NewGuid(), VideoId = videoForB.Id, UserId = user.Id, EventId = evtB.Id
-        });
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(ownerA, ownerB, user, evtA, evtB, membershipA);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(videoForB);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var videos = await eventService.GetVideos(evtA.Id, user.Id, TestContext.Current.CancellationToken);
+        var videos = await Send(new ViewVideosFromEventQuery(user.Id, evtA.Id), TestContext.Current.CancellationToken);
         Assert.Empty(videos);
     }
 
@@ -145,25 +128,15 @@ public class EventServiceTests : BaseTestClass
 
         var group = new GroupDataBuilder().Build();
 
-        var videoToGroup = new VideoDataBuilder().UploadedBy(user).Build();
-        var shareGroup = new SharedWith
-        {
-            Id = Guid.NewGuid(), VideoId = videoToGroup.Id, UserId = user.Id, GroupId = group.Id
-        };
+        var videoToGroup = new VideoDataBuilder().UploadedBy(user).ShareWithGroup(group, user).Build();
+        var videoDirect = new VideoDataBuilder().UploadedBy(user).ShareWithUser(user).Build();
 
-        var videoDirect = new VideoDataBuilder().UploadedBy(user).Build();
-        var shareDirect = new SharedWith { Id = Guid.NewGuid(), VideoId = videoDirect.Id, UserId = user.Id };
+        SeedAccessContext.AddRange(owner, user, evt, membership, group);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.AddRange(videoToGroup, videoDirect);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        SeedDbContext.Add(owner);
-        SeedDbContext.Add(user);
-        SeedDbContext.Add(evt);
-        SeedDbContext.Add(membership);
-        SeedDbContext.Add(group);
-        SeedDbContext.AddRange(videoToGroup, videoDirect);
-        SeedDbContext.AddRange(shareGroup, shareDirect);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var videos = await eventService.GetVideos(evt.Id, user.Id, TestContext.Current.CancellationToken);
+        var videos = await Send(new ViewVideosFromEventQuery(user.Id, evt.Id), TestContext.Current.CancellationToken);
         Assert.Empty(videos);
     }
 
@@ -176,14 +149,14 @@ public class EventServiceTests : BaseTestClass
         var evt = evtB.Build();
         var user = new UserDataBuilder().Build();
 
-        var vidB = new VideoDataBuilder().UploadedBy(user);
-        var video = vidB.Build();
-        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = evt.Id };
+        var video = new VideoDataBuilder().UploadedBy(user).ShareWithEvent(evt, user).Build();
 
-        SeedDbContext.AddRange(owner, user, evt, video, share);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(owner, user, evt);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var videos = await eventService.GetVideos(evt.Id, user.Id, TestContext.Current.CancellationToken);
+        var videos = await Send(new ViewVideosFromEventQuery(user.Id, evt.Id), TestContext.Current.CancellationToken);
         Assert.Empty(videos);
     }
 
@@ -198,19 +171,16 @@ public class EventServiceTests : BaseTestClass
         var evt = evtB.Build();
         var membership = userB.AssignTo(evt);
 
-        var v1 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-3)).Build();
-        var v2 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-1)).Build();
-        var v3 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-2)).Build();
+        var v1 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-3)).ShareWithEvent(evt, user).Build();
+        var v2 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-1)).ShareWithEvent(evt, user).Build();
+        var v3 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-2)).ShareWithEvent(evt, user).Build();
 
-        SeedDbContext.AddRange(owner, user, evt, membership, v1, v2, v3);
-        SeedDbContext.AddRange(
-            new SharedWith { Id = Guid.NewGuid(), VideoId = v1.Id, UserId = user.Id, EventId = evt.Id },
-            new SharedWith { Id = Guid.NewGuid(), VideoId = v2.Id, UserId = user.Id, EventId = evt.Id },
-            new SharedWith { Id = Guid.NewGuid(), VideoId = v3.Id, UserId = user.Id, EventId = evt.Id }
-        );
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(owner, user, evt, membership);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.AddRange(v1, v2, v3);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(evt.Id, user.Id, TestContext.Current.CancellationToken);
+        var result = await Send(new ViewVideosFromEventQuery(user.Id, evt.Id), TestContext.Current.CancellationToken);
         Assert.Equal(new[] { v2.Id, v3.Id, v1.Id }, result.Select(r => r.Id).ToArray());
     }
 
@@ -224,17 +194,15 @@ public class EventServiceTests : BaseTestClass
         var owner = evtB.BuildOwner();
         var evt = evtB.Build();
         var membership = userB.AssignTo(evt);
-        var video = new VideoDataBuilder().UploadedBy(user).Build();
+        var video = new VideoDataBuilder().UploadedBy(user).ShareWithEvent(evt, user).ShareWithEvent(evt, user).Build();
 
-        SeedDbContext.AddRange(owner, user, evt, membership, video);
-        SeedDbContext.AddRange(
-            new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = evt.Id },
-            new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = evt.Id }
-        );
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(owner, user, evt, membership);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(evt.Id, user.Id,TestContext.Current.CancellationToken);
-        Assert.Equal(2, result.Length);
+        var result = await Send(new ViewVideosFromEventQuery(user.Id, evt.Id), TestContext.Current.CancellationToken);
+        Assert.Equal(2, result.Count);
         Assert.All(result, v => Assert.Equal(video.Id, v.Id));
     }
 
@@ -255,22 +223,20 @@ public class EventServiceTests : BaseTestClass
         var memA = userB.AssignTo(evtA);
         var memB = userB.AssignTo(evtB);
 
-        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-5)).Build();
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-4)).Build();
+        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-5)).ShareWithEvent(evtA, user).Build();
+        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-4)).ShareWithEvent(evtB, user).Build();
 
-        SeedDbContext.AddRange(ownerA, ownerB, user, evtA, evtB, memA, memB, vA, vB);
-        SeedDbContext.AddRange(
-            new SharedWith { Id = Guid.NewGuid(), VideoId = vA.Id, UserId = user.Id, EventId = evtA.Id },
-            new SharedWith { Id = Guid.NewGuid(), VideoId = vB.Id, UserId = user.Id, EventId = evtB.Id }
-        );
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(ownerA, ownerB, user, evtA, evtB, memA, memB);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedVideosContext.AddRange(vA, vB);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var resultA = await eventService.GetVideos(evtA.Id, user.Id,TestContext.Current.CancellationToken);
+        var resultA = await Send(new ViewVideosFromEventQuery(user.Id, evtA.Id), TestContext.Current.CancellationToken);
         Assert.Single(resultA);
         Assert.Equal(vA.Id, resultA.Single().Id);
     }
 
-    // C18: Owner-only case when event created via service
+    // C18: Owner-only case when event created via the command (owner gets auto-membership)
     [Fact]
     public async Task GetVideos_OwnerSeesVideos_WhenCreatedViaService()
     {
@@ -278,22 +244,21 @@ public class EventServiceTests : BaseTestClass
         var owner = eventB.BuildOwner();
         var evt = eventB.Build();
 
-        SeedDbContext.Add(owner);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.Add(owner);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var created = await eventService.CreateEventAsync(evt, TestContext.Current.CancellationToken);
+        var createdId = await Send(new CreateEventCommand(evt.Name, evt.Date, owner.Id), TestContext.Current.CancellationToken);
 
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
-        SeedDbContext.AddRange(video,
-            new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id, EventId = created.Id });
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareWithEvent(createdId, owner.Id).Build();
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(created.Id, owner.Id,TestContext.Current.CancellationToken);
+        var result = await Send(new ViewVideosFromEventQuery(owner.Id, createdId), TestContext.Current.CancellationToken);
         Assert.Single(result);
         Assert.Equal(video.Id, result.Single().Id);
     }
 
-    // C19: Event created outside service without owner membership -> owner cannot see videos
+    // C19: Event created without owner membership -> owner cannot see videos
     [Fact]
     public async Task GetVideos_ReturnsEmpty_WhenEventCreatedOutsideService_WithoutOwnerMembership()
     {
@@ -301,16 +266,14 @@ public class EventServiceTests : BaseTestClass
         var owner = eventB.BuildOwner();
         var evt = eventB.Build();
 
-        SeedDbContext.AddRange(owner, evt);
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedAccessContext.AddRange(owner, evt);
+        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
-        SeedDbContext.AddRange(video,
-            new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id, EventId = evt.Id });
-        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareWithEvent(evt, owner).Build();
+        SeedVideosContext.Add(video);
+        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(evt.Id, owner.Id,TestContext.Current.CancellationToken);
-        SeedDbContext.ChangeTracker.Clear();
+        var result = await Send(new ViewVideosFromEventQuery(owner.Id, evt.Id), TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 }

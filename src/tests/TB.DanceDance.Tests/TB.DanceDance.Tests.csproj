@@ -31,8 +31,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\authserver\TB.Auth.Web.csproj" />
-      <ProjectReference Include="..\..\backend\Application\Application.csproj" />
-      <ProjectReference Include="..\..\backend\Infrastructure\Infrastructure.csproj" />
+      <ProjectReference Include="..\..\backend\TB.DanceDance.Access\TB.DanceDance.Access.csproj" />
+      <ProjectReference Include="..\..\backend\TB.DanceDance.Access.Contracts\TB.DanceDance.Access.Contracts.csproj" />
+      <ProjectReference Include="..\..\backend\TB.DanceDance.Videos\TB.DanceDance.Videos.csproj" />
+      <ProjectReference Include="..\..\backend\TB.DanceDance.Videos.Contracts\TB.DanceDance.Videos.Contracts.csproj" />
+      <ProjectReference Include="..\..\backend\TB.DanceDance.Utilities\TB.DanceDance.Utilities.csproj" />
+      <ProjectReference Include="..\..\backend\TB.DanceDance.API.Contracts\TB.DanceDance.API.Contracts.csproj" />
       <ProjectReference Include="..\..\backend\TB.DanceDance.Services.Converter.Deamon\TB.DanceDance.Services.Converter.Deamon.csproj" />
     </ItemGroup>
 

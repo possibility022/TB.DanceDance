@@ -9,9 +9,23 @@ public class Group
     
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    
+
     public required DateOnly SeasonStart { get; set; }
     public required DateOnly SeasonEnd { get; set; }
+
+    public class Factory
+    {
+        public static Group Create(string name, DateOnly seasonStart, DateOnly seasonEnd)
+        {
+            return new Group
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                SeasonStart = seasonStart,
+                SeasonEnd = seasonEnd,
+            };
+        }
+    }
 }
 
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
