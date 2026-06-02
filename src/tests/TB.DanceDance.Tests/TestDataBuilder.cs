@@ -1,17 +1,12 @@
+﻿using Domain.Entities;
 using System.Security.Cryptography;
 using System.Text;
-using TB.DanceDance.Access.Domain.Entities;
-using TB.DanceDance.Videos.Domain;
-using TB.DanceDance.Videos.Domain.Entities;
 
 namespace TB.DanceDance.Tests;
 
 public static class TestDataBuilder
 {
     public static string RandomEmail(string? prefix = null) => $"{prefix ?? Random.Shared.Next(10000).ToString()}user@test{Random.Shared.Next(10000)}.com";
-    // Globally unique: the test DB is an assembly-wide fixture that is never cleaned between tests, so
-    // users from every test accumulate in one table. A small numeric range would collide on PK_Users
-    // (birthday paradox) and fail inserts intermittently. A GUID keeps each user id unique for the run.
     public static string RandomUserId() => Guid.NewGuid().ToString("N");
     public static string RandomName(string prefix = "Name") => $"{prefix}-{Guid.NewGuid():N}";
     public static Guid NewGuid() => Guid.NewGuid();
@@ -61,12 +56,28 @@ public class UserDataBuilder
     public string UserId => _userId;
     public string Email => _email;
 
-    public User Build() => User.Factory.Create(_userId, _firstName, _lastName, _email);
+    public User Build() => new User
+    {
+        Id = _userId,
+        FirstName = _firstName,
+        LastName = _lastName,
+        Email = _email
+    };
 
-    public AssignedToEvent AssignTo(Event evt) => AssignedToEvent.Factory.Create(evt.Id, _userId);
+    public AssignedToEvent AssignTo(Event evt) => new AssignedToEvent
+    {
+        Id = Guid.NewGuid(),
+        EventId = evt.Id,
+        UserId = _userId
+    };
 
-    public AssignedToGroup AssignTo(Group group, DateTime? whenJoined = null) =>
-        AssignedToGroup.Factory.Create(group.Id, _userId, whenJoined ?? DateTime.UtcNow);
+    public AssignedToGroup AssignTo(Group group, DateTime? whenJoined = null) => new AssignedToGroup
+    {
+        Id = Guid.NewGuid(),
+        GroupId = group.Id,
+        UserId = _userId,
+        WhenJoined = whenJoined ?? DateTime.UtcNow
+    };
 }
 
 public class GroupDataBuilder
@@ -103,18 +114,29 @@ public class GroupDataBuilder
         return this;
     }
 
-    public Group Build()
+    public Group Build() => new Group
     {
-        var group = Group.Factory.Create(_name, _seasonStart, _seasonEnd);
-        group.Id = _id;
-        return group;
-    }
+        Id = _id,
+        Name = _name,
+        SeasonStart = _seasonStart,
+        SeasonEnd = _seasonEnd,
+    };
 
-    public AssignedToGroup AddMember(User user, DateTime? whenJoined = null) =>
-        AssignedToGroup.Factory.Create(_id, user.Id, whenJoined ?? DateTime.UtcNow);
+    public AssignedToGroup AddMember(User user, DateTime? whenJoined = null) => new AssignedToGroup
+    {
+        Id = Guid.NewGuid(),
+        GroupId = _id,
+        UserId = user.Id,
+        WhenJoined = whenJoined ?? DateTime.UtcNow
+    };
 
-    public AssignedToGroup AddMember(UserDataBuilder userBuilder, DateTime? whenJoined = null) =>
-        AssignedToGroup.Factory.Create(_id, userBuilder.UserId, whenJoined ?? DateTime.UtcNow);
+    public AssignedToGroup AddMember(UserDataBuilder userBuilder, DateTime? whenJoined = null) => new AssignedToGroup
+    {
+        Id = Guid.NewGuid(),
+        GroupId = _id,
+        UserId = userBuilder.UserId,
+        WhenJoined = whenJoined ?? DateTime.UtcNow
+    };
 }
 
 public class EventDataBuilder
@@ -175,56 +197,74 @@ public class EventDataBuilder
     // Expose the created owner user for convenience
     public User BuildOwner() => (_ownerBuilder ?? new UserDataBuilder().WithId(_owner)).Build();
 
-    public Event Build()
+    public Event Build() => new Event
     {
-        var evt = Event.Factory.Create(_name, _date, _type, _owner);
-        evt.Id = _id;
-        return evt;
-    }
+        Id = _id,
+        Name = _name,
+        Date = _date,
+        Type = _type,
+        Owner = _owner
+    };
 
-    public AssignedToEvent AddParticipant(User user) =>
-        AssignedToEvent.Factory.Create(_id, user.Id);
+    public AssignedToEvent AddParticipant(User user) => new AssignedToEvent
+    {
+        Id = Guid.NewGuid(),
+        EventId = _id,
+        UserId = user.Id
+    };
 
-    public AssignedToEvent AddParticipant(UserDataBuilder userBuilder) =>
-        AssignedToEvent.Factory.Create(_id, userBuilder.UserId);
+    public AssignedToEvent AddParticipant(UserDataBuilder userBuilder) => new AssignedToEvent
+    {
+        Id = Guid.NewGuid(),
+        EventId = _id,
+        UserId = userBuilder.UserId
+    };
 }
 
 public class VideoDataBuilder
 {
+    private Guid _id;
     private string? _blobId;
     private string _name;
     private string _uploadedBy;
     private DateTime _recorded;
+    private DateTime _shared;
     private TimeSpan? _duration;
     private string _fileName;
     private string _sourceBlobId;
     private bool _converted;
+    private bool _published;
     private long _sourceBlobSize;
     private long _convertedBlobSize;
     private CommentVisibility _commentVisibility;
 
-    private readonly List<(string userId, Guid? eventId, Guid? groupId)> _shares = new();
+    private readonly List<SharedWith> _sharedWith = new();
 
     public VideoDataBuilder()
     {
+        _id = Guid.NewGuid();
         _name = TestDataBuilder.RandomName("Video");
         _uploadedBy = TestDataBuilder.RandomUserId();
         _recorded = DateTime.UtcNow.AddDays(-1);
+        _shared = DateTime.UtcNow;
         _duration = TestDataBuilder.RandomDuration();
         _fileName = $"{_name}.mp4";
         _sourceBlobId = $"src-{Guid.NewGuid():N}";
         _converted = false;
+        _published = true;
         _sourceBlobSize = 0;
         _convertedBlobSize = 0;
         _commentVisibility = CommentVisibility.Public;
     }
 
+    public VideoDataBuilder WithId(Guid id) { _id = id; return this; }
     public VideoDataBuilder WithBlobId(string? blobId) { _blobId = blobId; return this; }
     public VideoDataBuilder WithName(string name) { _name = name; return this; }
     public VideoDataBuilder UploadedBy(string userId) { _uploadedBy = userId; return this; }
     public VideoDataBuilder UploadedBy(User user) { _uploadedBy = user.Id; return this; }
     public VideoDataBuilder UploadedBy(UserDataBuilder userBuilder) { _uploadedBy = userBuilder.UserId; return this; }
     public VideoDataBuilder RecordedAt(DateTime dt) { _recorded = dt; return this; }
+    public VideoDataBuilder SharedAt(DateTime dt) { _shared = dt; return this; }
     public VideoDataBuilder WithDuration(TimeSpan? duration) { _duration = duration; return this; }
     public VideoDataBuilder WithFileName(string file) { _fileName = file; return this; }
     public VideoDataBuilder WithSourceBlobId(string src) { _sourceBlobId = src; return this; }
@@ -233,9 +273,26 @@ public class VideoDataBuilder
     public VideoDataBuilder WithConvertedBlobSize(long size) { _convertedBlobSize = size; return this; }
     public VideoDataBuilder WithCommentVisibility(CommentVisibility visibility) { _commentVisibility = visibility; return this; }
 
+    public Video Build() => new Video
+    {
+        Id = _id,
+        BlobId = _blobId,
+        Name = _name,
+        UploadedBy = _uploadedBy,
+        RecordedDateTime = _recorded,
+        SharedDateTime = _shared,
+        Duration = _duration,
+        FileName = _fileName,
+        SourceBlobId = _sourceBlobId,
+        Converted = _converted,
+        SourceBlobSize = _sourceBlobSize,
+        ConvertedBlobSize = _convertedBlobSize,
+        CommentVisibility = _commentVisibility
+    };
+
     public VideoDataBuilder ShareWithUser(string userId)
     {
-        _shares.Add((userId, null, null));
+        _sharedWith.Add(new SharedWith { Id = Guid.NewGuid(), VideoId = _id, UserId = userId });
         return this;
     }
 
@@ -247,57 +304,30 @@ public class VideoDataBuilder
     /// </summary>
     public VideoDataBuilder ShareAsPrivate(string userId)
     {
-        _shares.Add((userId, null, null));
+        _sharedWith.Add(new SharedWith { Id = Guid.NewGuid(), VideoId = _id, UserId = userId, EventId = null, GroupId = null });
         return this;
     }
 
     public VideoDataBuilder ShareAsPrivate(User user) => ShareAsPrivate(user.Id);
     public VideoDataBuilder ShareAsPrivate(UserDataBuilder userBuilder) => ShareAsPrivate(userBuilder.UserId);
 
-    public VideoDataBuilder ShareWithGroup(Guid groupId, string userId)
+    public VideoDataBuilder ShareWithGroup(Group group, string userId)
     {
-        _shares.Add((userId, null, groupId));
+        _sharedWith.Add(new SharedWith { Id = Guid.NewGuid(), VideoId = _id, UserId = userId, GroupId = group.Id });
         return this;
     }
-    public VideoDataBuilder ShareWithGroup(Group group, string userId) => ShareWithGroup(group.Id, userId);
-    public VideoDataBuilder ShareWithGroup(Group group, User user) => ShareWithGroup(group.Id, user.Id);
-    public VideoDataBuilder ShareWithGroup(Group group, UserDataBuilder userBuilder) => ShareWithGroup(group.Id, userBuilder.UserId);
+    public VideoDataBuilder ShareWithGroup(Group group, User user) => ShareWithGroup(group, user.Id);
+    public VideoDataBuilder ShareWithGroup(Group group, UserDataBuilder userBuilder) => ShareWithGroup(group, userBuilder.UserId);
 
-    public VideoDataBuilder ShareWithEvent(Guid eventId, string userId)
+    public VideoDataBuilder ShareWithEvent(Event evt, string userId)
     {
-        _shares.Add((userId, eventId, null));
+        _sharedWith.Add(new SharedWith { Id = Guid.NewGuid(), VideoId = _id, UserId = userId, EventId = evt.Id });
         return this;
     }
-    public VideoDataBuilder ShareWithEvent(Event evt, string userId) => ShareWithEvent(evt.Id, userId);
-    public VideoDataBuilder ShareWithEvent(Event evt, User user) => ShareWithEvent(evt.Id, user.Id);
-    public VideoDataBuilder ShareWithEvent(Event evt, UserDataBuilder userBuilder) => ShareWithEvent(evt.Id, userBuilder.UserId);
+    public VideoDataBuilder ShareWithEvent(Event evt, User user) => ShareWithEvent(evt, user.Id);
+    public VideoDataBuilder ShareWithEvent(Event evt, UserDataBuilder userBuilder) => ShareWithEvent(evt, userBuilder.UserId);
 
-    public Video Build()
-    {
-        // Shares are attached through the Video.SharedWith navigation; EF fixes up SharedWith.VideoId
-        // (which is init-only and set to Guid.Empty by SharedWith.Factory) on save.
-        var shares = _shares
-            .Select(s => SharedWith.Factory.Create(s.userId, s.eventId, s.groupId))
-            .ToList();
-
-        var video = Video.Factory.CreateForUpload(_name, _fileName, _sourceBlobId, _uploadedBy, shares);
-
-        video.BlobId = _blobId;
-        video.RecordedDateTime = _recorded;
-        video.Duration = _duration;
-        video.Converted = _converted;
-        video.SourceBlobSize = _sourceBlobSize;
-        video.ConvertedBlobSize = _convertedBlobSize;
-        video.CommentVisibility = _commentVisibility;
-
-        return video;
-    }
-
-    /// <summary>
-    /// Builds the video together with its shares and returns the share rows. The returned
-    /// <see cref="SharedWith.VideoId"/> values are populated by EF once the video is saved.
-    /// </summary>
-    public IReadOnlyList<SharedWith> BuildShares() => Build().SharedWith.ToList();
+    public IReadOnlyList<SharedWith> BuildShares() => _sharedWith.ToList();
 }
 
 public class SharedLinkDataBuilder
@@ -398,14 +428,17 @@ public class SharedLinkDataBuilder
 
     public string LinkId => _id;
 
-    public SharedLink Build()
+    public SharedLink Build() => new SharedLink
     {
-        var link = SharedLink.Factory.Create(_id, _videoId, _sharedBy, expirationDays: 0, _allowComments, _allowAnonymousComments);
-        link.CreatedAt = _createdAt;
-        link.ExpireAt = _expireAt;
-        link.IsRevoked = _isRevoked;
-        return link;
-    }
+        Id = _id,
+        VideoId = _videoId,
+        SharedBy = _sharedBy,
+        CreatedAt = _createdAt,
+        ExpireAt = _expireAt,
+        IsRevoked = _isRevoked,
+        AllowComments = _allowComments,
+        AllowAnonymousComments = _allowAnonymousComments
+    };
 }
 
 public class CommentDataBuilder
@@ -544,23 +577,21 @@ public class CommentDataBuilder
         byte[]? anonymouseIdSha = null;
         if (_anonymouseId != null)
             anonymouseIdSha = SHA256.HashData(Encoding.UTF8.GetBytes(_anonymouseId));
-
-        var comment = Comment.Factory.Create(
-            _videoId,
-            _userId,
-            _sharedLinkId ?? string.Empty,
-            _content,
-            _anonymouseName,
-            anonymouseIdSha);
-
-        comment.Id = _id;
-        comment.SharedLinkId = _sharedLinkId;
-        comment.CreatedAt = _createdAt;
-        comment.UpdatedAt = _updatedAt;
-        comment.IsHidden = _isHidden;
-        comment.IsReported = _isReported;
-        comment.ReportedReason = _reportedReason;
-
-        return comment;
+        
+        return new Comment
+        {
+            Id = _id,
+            VideoId = _videoId,
+            UserId = _userId,
+            SharedLinkId = _sharedLinkId,
+            Content = _content,
+            CreatedAt = _createdAt,
+            UpdatedAt = _updatedAt,
+            IsHidden = _isHidden,
+            IsReported = _isReported,
+            AnonymousName = _anonymouseName,
+            ShaOfAnonymousId = anonymouseIdSha,
+            ReportedReason = _reportedReason
+        };
     }
 }

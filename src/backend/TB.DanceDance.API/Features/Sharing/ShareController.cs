@@ -1,42 +1,31 @@
+using Application.Features.Sharing;
+using Application.Features.Videos;
+using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Extensions;
-using TB.DanceDance.Utilities.Mediating;
-using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.API.Features.Sharing;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class ShareController : Controller
 {
-    private readonly IRequestHandler<CreateSharedLinkCommand, SharedLinkDto> createSharedLinkCommand;
-    private readonly IRequestHandler<RevokeSharedLinkCommand, bool> revokeSharedLinkCommand;
-    private readonly IRequestHandler<GetUserSharedLinksQuery, IReadOnlyCollection<SharedLinkDto>> getUserSharedLinksQuery;
-    private readonly IRequestHandler<GetSharedLinkQuery, SharedLinkDto?> getSharedLinkQuery;
-    private readonly IRequestHandler<OpenVideoStreamQuery, Stream> openVideoStreamQuery;
-    private readonly IRequestHandler<GetVideoBySharedLinkQuery, VideoDto?> getVideoBySharedLinkQuery;
+    private readonly ISharedLinkService sharedLinkService;
+    private readonly IVideoService videoService;
     private readonly IOptions<AppOptions> appOptions;
     private readonly ILogger<ShareController> logger;
 
     public ShareController(
-        IRequestHandler<CreateSharedLinkCommand, SharedLinkDto> createSharedLinkCommand,
-        IRequestHandler<RevokeSharedLinkCommand, bool> revokeSharedLinkCommand,
-        IRequestHandler<GetUserSharedLinksQuery, IReadOnlyCollection<SharedLinkDto>> getUserSharedLinksQuery,
-        IRequestHandler<GetSharedLinkQuery, SharedLinkDto?> getSharedLinkQuery,
-        IRequestHandler<OpenVideoStreamQuery, Stream> openVideoStreamQuery,
-        IRequestHandler<GetVideoBySharedLinkQuery, VideoDto?> getVideoBySharedLinkQuery,
+        ISharedLinkService sharedLinkService,
+        IVideoService videoService,
         IOptions<AppOptions> appOptions,
         ILogger<ShareController> logger)
     {
-        this.createSharedLinkCommand = createSharedLinkCommand;
-        this.revokeSharedLinkCommand = revokeSharedLinkCommand;
-        this.getUserSharedLinksQuery = getUserSharedLinksQuery;
-        this.getSharedLinkQuery = getSharedLinkQuery;
-        this.openVideoStreamQuery = openVideoStreamQuery;
-        this.getVideoBySharedLinkQuery = getVideoBySharedLinkQuery;
+        this.sharedLinkService = sharedLinkService;
+        this.videoService = videoService;
         this.appOptions = appOptions;
         this.logger = logger;
     }
@@ -55,16 +44,28 @@ public class ShareController : Controller
 
         try
         {
-            var link = await createSharedLinkCommand.HandleAsync(new CreateSharedLinkCommand
-            {
-                VideoId = videoId,
-                UserId = userId,
-                ExpirationDays = request.ExpirationDays,
-                AllowComments = request.AllowComments,
-                AllowAnonymousComments = request.AllowAnonymousComments,
-            }, cancellationToken);
+            var link = await sharedLinkService.CreateSharedLinkAsync(
+                videoId,
+                userId,
+                request.ExpirationDays,
+                request.AllowComments,
+                request.AllowAnonymousComments,
+                cancellationToken);
 
-            return Ok(MapToResponse(link));
+            var response = new SharedLinkResponse
+            {
+                LinkId = link.Id,
+                VideoId = link.VideoId,
+                VideoName = link.Video?.Name ?? string.Empty,
+                CreatedAt = link.CreatedAt,
+                ExpireAt = link.ExpireAt,
+                IsRevoked = link.IsRevoked,
+                ShareUrl = ResolveLinkUrl(link.Id),
+                AllowComments = link.AllowComments,
+                AllowAnonymousComments = link.AllowAnonymousComments
+            };
+
+            return Ok(response);
         }
         catch (ArgumentException ex)
         {
@@ -84,7 +85,7 @@ public class ShareController : Controller
     {
         var userId = User.GetSubject();
 
-        var result = await revokeSharedLinkCommand.HandleAsync(new RevokeSharedLinkCommand(linkId, userId), cancellationToken);
+        var result = await sharedLinkService.RevokeSharedLinkAsync(linkId, userId, cancellationToken);
 
         if (!result)
         {
@@ -103,27 +104,25 @@ public class ShareController : Controller
     {
         var userId = User.GetSubject();
 
-        var links = await getUserSharedLinksQuery.HandleAsync(new GetUserSharedLinksQuery(userId), cancellationToken);
+        var links = await sharedLinkService.GetUserSharedLinksAsync(userId, cancellationToken);
 
-        var response = links.Select(MapToResponse);
+        var response = links.Select(link => new SharedLinkResponse
+        {
+            LinkId = link.Id,
+            VideoId = link.VideoId,
+            VideoName = link.Video?.Name ?? string.Empty,
+            CreatedAt = link.CreatedAt,
+            ExpireAt = link.ExpireAt,
+            IsRevoked = link.IsRevoked,
+            ShareUrl = ResolveLinkUrl(link.Id),
+            AllowComments = link.AllowComments,
+            AllowAnonymousComments = link.AllowAnonymousComments
+        });
 
         return Ok(response);
     }
 
     private string ResolveLinkUrl(string linkId) => $"{this.appOptions.Value.AppWebsiteOrigin}/shared/{linkId}";
-
-    private SharedLinkResponse MapToResponse(SharedLinkDto link) => new()
-    {
-        LinkId = link.Id,
-        VideoId = link.VideoId,
-        VideoName = link.Video?.Name ?? string.Empty,
-        CreatedAt = link.CreatedAt,
-        ExpireAt = link.ExpireAt,
-        IsRevoked = link.IsRevoked,
-        ShareUrl = ResolveLinkUrl(link.Id),
-        AllowComments = link.AllowComments,
-        AllowAnonymousComments = link.AllowAnonymousComments
-    };
 
     /// <summary>
     /// Gets video information by shared link ID. Anonymous access allowed.
@@ -135,7 +134,8 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        var link = await getSharedLinkQuery.HandleAsync(new GetSharedLinkQuery(linkId), cancellationToken);
+        // Get the shared link with video
+        var link = await GetSharedLinkWithVideo(linkId, cancellationToken);
 
         if (link == null || link.Video == null)
         {
@@ -150,12 +150,17 @@ public class ShareController : Controller
             Name = video.Name,
             Duration = video.Duration,
             RecordedDateTime = video.RecordedDateTime,
-            CommentVisibility = video.CommentVisibility,
+            CommentVisibility = (int)video.CommentVisibility,
             AllowCommentsOnThisLink = link.AllowComments,
             AllowAnonymousCommentsOnThisLink = link.AllowAnonymousComments
         };
 
         return Ok(response);
+    }
+
+    private async Task<Domain.Entities.SharedLink?> GetSharedLinkWithVideo(string linkId, CancellationToken cancellationToken)
+    {
+        return await sharedLinkService.GetSharedLinkAsync(linkId, cancellationToken);
     }
 
     /// <summary>
@@ -168,7 +173,7 @@ public class ShareController : Controller
         [FromRoute] string linkId,
         CancellationToken cancellationToken)
     {
-        var video = await getVideoBySharedLinkQuery.HandleAsync(new GetVideoBySharedLinkQuery(linkId), cancellationToken);
+        var video = await sharedLinkService.GetVideoBySharedLinkAsync(linkId, cancellationToken);
 
         if (video == null)
         {
@@ -180,7 +185,7 @@ public class ShareController : Controller
             return NotFound(new { error = "Video file not available." });
         }
 
-        var stream = await openVideoStreamQuery.HandleAsync(new OpenVideoStreamQuery(video.BlobId), cancellationToken);
+        var stream = await videoService.OpenStream(video.BlobId, cancellationToken);
         return File(stream, "video/mp4", enableRangeProcessing: true);
     }
 }

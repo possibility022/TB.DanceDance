@@ -1,18 +1,22 @@
+﻿using Application.Features.Groups;
+using Domain.Entities;
+using Infrastructure.Data;
 using TB.DanceDance.Tests.TestsFixture;
-using TB.DanceDance.Videos.Contracts;
 
 namespace TB.DanceDance.Tests.Features.Groups;
 
-/// <summary>
-/// Group video listing (<see cref="ViewVideosFromGroupQuery"/> / <see cref="ViewVideosFromAllGroupsQuery"/>,
-/// Videos module). Membership and join date come from Access via the mediator; only videos recorded
-/// after the user joined the group are returned. The queries now return bare <see cref="VideoDto"/>
-/// rows (no group id/name), so assertions are on the returned video ids.
-/// </summary>
 public class GroupServiceTests : BaseTestClass
 {
+    private GroupService groupService = null!;
+
     public GroupServiceTests(DanceDbFixture dbContextFixture) : base(dbContextFixture)
     {
+    }
+
+    protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
+    {
+        groupService = new GroupService(runtimeDbContext);
+        return ValueTask.CompletedTask;
     }
 
     // G1: Returns videos for specific group when user is a member
@@ -25,16 +29,17 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).ShareWithGroup(group, user).Build();
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
-        SeedAccessContext.AddRange(user, group, membership);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(v);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, membership, v, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Single(result);
-        Assert.Equal(v.Id, result.Single().Id);
+        Assert.Equal(group.Id, result.Single().GroupId);
+        Assert.Equal(group.Name, result.Single().GroupName);
+        Assert.Equal(v.Id, result.Single().Video.Id);
     }
 
     // G2: Excludes videos recorded before user joined the group
@@ -47,14 +52,13 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(-5)).ShareWithGroup(group, user).Build();
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(-5)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
-        SeedAccessContext.AddRange(user, group, membership);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(v);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, membership, v, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -69,14 +73,13 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membershipA = userB.AssignTo(groupA, joinedAt);
 
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).ShareWithGroup(groupB, user).Build();
+        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var shareB = new SharedWith { Id = Guid.NewGuid(), VideoId = vB.Id, UserId = user.Id, GroupId = groupB.Id };
 
-        SeedAccessContext.AddRange(user, groupA, groupB, membershipA);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(vB);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, groupA, groupB, membershipA, vB, shareB);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, groupA.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForGroup(user.Id, groupA.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -90,14 +93,13 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).ShareWithUser(user).Build();
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var directShare = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id };
 
-        SeedAccessContext.AddRange(user, group, membership);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(v);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, membership, v, directShare);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
         Assert.Empty(result);
     }
 
@@ -111,17 +113,21 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v1 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(1)).ShareWithGroup(group, user).Build();
-        var v2 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(3)).ShareWithGroup(group, user).Build();
-        var v3 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(2)).ShareWithGroup(group, user).Build();
+        var v1 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(1)).Build();
+        var v2 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(3)).Build();
+        var v3 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(2)).Build();
 
-        SeedAccessContext.AddRange(user, group, membership);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.AddRange(v1, v2, v3);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, membership, v1, v2, v3);
+        SeedDbContext.AddRange(
+            new SharedWith { Id = Guid.NewGuid(), VideoId = v1.Id, UserId = user.Id, GroupId = group.Id },
+            new SharedWith { Id = Guid.NewGuid(), VideoId = v2.Id, UserId = user.Id, GroupId = group.Id },
+            new SharedWith { Id = Guid.NewGuid(), VideoId = v3.Id, UserId = user.Id, GroupId = group.Id }
+        );
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
-        Assert.Equal(new[] { v2.Id, v3.Id, v1.Id }, result.Select(r => r.Id).ToArray());
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.Equal(new[] { v2.Id, v3.Id, v1.Id }, result.Select(r => r.Video.Id).ToArray());
     }
 
     // G6: Duplicate shares produce duplicate results (document current behavior)
@@ -133,17 +139,19 @@ public class GroupServiceTests : BaseTestClass
         var group = new GroupDataBuilder().Build();
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1))
-            .ShareWithGroup(group, user).ShareWithGroup(group, user).Build();
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
 
-        SeedAccessContext.AddRange(user, group, membership);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(v);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, membership, v);
+        SeedDbContext.AddRange(
+            new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id },
+            new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id }
+        );
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
-        Assert.Equal(2, result.Count);
-        Assert.All(result, r => Assert.Equal(v.Id, r.Id));
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.Equal(2, result.Length);
+        Assert.All(result, r => Assert.Equal(v.Id, r.Video.Id));
     }
 
     // G7: No membership -> no videos
@@ -152,14 +160,14 @@ public class GroupServiceTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var group = new GroupDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).ShareWithGroup(group, user).Build();
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
-        SeedAccessContext.AddRange(user, group);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(v);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, v, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(result);
     }
 
@@ -173,14 +181,14 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt).ShareWithGroup(group, user).Build();
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
-        SeedAccessContext.AddRange(user, group, membership);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.Add(v);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, group, membership, v, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromGroupQuery(user.Id, group.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForGroup(user.Id, group.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(result);
     }
 
@@ -196,18 +204,23 @@ public class GroupServiceTests : BaseTestClass
         var memA = userB.AssignTo(groupA, joinedAt);
         var memB = userB.AssignTo(groupB, joinedAt);
 
-        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).ShareWithGroup(groupA, user).Build();
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(2)).ShareWithGroup(groupB, user).Build();
+        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(2)).Build();
 
-        SeedAccessContext.AddRange(user, groupA, groupB, memA, memB);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.AddRange(vA, vB);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, groupA, groupB, memA, memB, vA, vB);
+        SeedDbContext.AddRange(
+            new SharedWith { Id = Guid.NewGuid(), VideoId = vA.Id, UserId = user.Id, GroupId = groupA.Id },
+            new SharedWith { Id = Guid.NewGuid(), VideoId = vB.Id, UserId = user.Id, GroupId = groupB.Id }
+        );
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromAllGroupsQuery(user.Id), TestContext.Current.CancellationToken);
-        Assert.Equal(2, result.Count);
+        var result = await groupService.GetUserVideosForAllGroups(user.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.Equal(2, result.Length);
         // Ordered by recorded desc
-        Assert.Equal(new[] { vB.Id, vA.Id }, result.Select(r => r.Id).ToArray());
+        Assert.Equal(new[] { vB.Id, vA.Id }, result.Select(r => r.Video.Id).ToArray());
+        Assert.Contains(result, r => r.GroupId == groupA.Id && r.Video.Id == vA.Id);
+        Assert.Contains(result, r => r.GroupId == groupB.Id && r.Video.Id == vB.Id);
     }
 
     // G10: All groups query excludes groups without membership
@@ -221,16 +234,19 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var memA = userB.AssignTo(groupA, joinedAt);
 
-        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).ShareWithGroup(groupA, user).Build();
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(2)).ShareWithGroup(groupB, user).Build();
+        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(2)).Build();
 
-        SeedAccessContext.AddRange(user, groupA, groupB, memA);
-        await SeedAccessContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        SeedVideosContext.AddRange(vA, vB);
-        await SeedVideosContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.AddRange(user, groupA, groupB, memA, vA, vB);
+        SeedDbContext.AddRange(
+            new SharedWith { Id = Guid.NewGuid(), VideoId = vA.Id, UserId = user.Id, GroupId = groupA.Id },
+            new SharedWith { Id = Guid.NewGuid(), VideoId = vB.Id, UserId = user.Id, GroupId = groupB.Id }
+        );
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await Send(new ViewVideosFromAllGroupsQuery(user.Id), TestContext.Current.CancellationToken);
+        var result = await groupService.GetUserVideosForAllGroups(user.Id, TestContext.Current.CancellationToken);
         Assert.Single(result);
-        Assert.Equal(vA.Id, result.Single().Id);
+        Assert.Equal(vA.Id, result.Single().Video.Id);
+        Assert.Equal(groupA.Id, result.Single().GroupId);
     }
 }

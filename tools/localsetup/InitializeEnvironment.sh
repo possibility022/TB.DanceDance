@@ -79,8 +79,7 @@ fi
 echo "Executing migration scripts."
 psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "auth-identity-migrations.sql"
 psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "auth-openiddict-migrations.sql"
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "access-migrations.sql"
-psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "videos-migrations.sql"
+psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "danceDb-migrations.sql"
 
 echo "Executing seed scripts."
 psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$AUTH_DBNAME" -f "identity-data-seed.sql"
