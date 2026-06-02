@@ -1,16 +1,19 @@
-using TB.DanceDance.Access.Contracts;
-using TB.DanceDance.API.Contracts.Features.AccessManagement;
+﻿using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Contracts.Features.Videos;
-using TB.DanceDance.Videos.Contracts;
-using ApiEvent = TB.DanceDance.API.Contracts.Models.Event;
-using ApiGroup = TB.DanceDance.API.Contracts.Models.Group;
-using ApiRequestedAccess = TB.DanceDance.API.Contracts.Models.RequestedAccess;
+using TB.DanceDance.API.Contracts.Models;
+using TB.DanceDance.API.Extensions;
 
 namespace TB.DanceDance.API.Mappers;
 
 public class ContractMappers
 {
-    public static VideoInformationResponse MapToVideoInformation(VideoDto video)
+    public static VideoInformationModel MapToVideoInformation(Domain.Entities.VideoFromGroupInfo info)
+    {
+        return MapToVideoInformation(info.Video);
+    }
+
+    public static VideoInformationResponse MapToVideoInformation(Domain.Entities.Video video)
     {
         return new VideoInformationResponse()
         {
@@ -20,13 +23,13 @@ public class ContractMappers
             Name = video.Name,
             RecordedDateTime = video.RecordedDateTime,
             Converted = video.Converted,
-            CommentVisibility = video.CommentVisibility
+            CommentVisibility = (int)video.CommentVisibility
         };
     }
 
-    public static ApiGroup MapToGroupContract(GroupDto group)
+    public static TB.DanceDance.API.Contracts.Models.Group MapToGroupContract(Domain.Entities.Group group)
     {
-        return new ApiGroup()
+        return new TB.DanceDance.API.Contracts.Models.Group()
         {
             Id = group.Id,
             Name = group.Name,
@@ -35,29 +38,45 @@ public class ContractMappers
         };
     }
 
-    public static ApiEvent MapToEventContract(EventDto @event)
+    public static Event MapToEventContract(Domain.Entities.Event @event)
     {
-        return new ApiEvent()
+        return new Event()
         {
             Date = @event.Date,
             Id = @event.Id,
             Name = @event.Name,
+            //Type = MapEventType(@event.Type),
+        };
+    }
+    public static Domain.Entities.Event MapFromNewEventRequestToEvent(CreateNewEventRequest request, System.Security.Claims.ClaimsPrincipal user)
+    {
+        return new Domain.Entities.Event()
+        {
+            Date = request.Event.Date.ToUniversalTime(),
+            Name = request.Event.Name,
+            Type = Domain.Entities.EventType.Unknown,
+            Owner = user.GetSubject(),
+            //Type = MapFromEventType(request.Event.Type)
         };
     }
 
-    public static RequestedAccessesResponse MapToAccessRequests(IReadOnlyCollection<RequestedAccess> accessRequests)
+    public static RequestedAccessesResponse MapToAccessRequests(ICollection<Domain.Models.RequestedAccess> accessRequests)
     {
         return new RequestedAccessesResponse()
         {
-            AccessRequests = accessRequests.Select(r => new ApiRequestedAccess()
+            AccessRequests = accessRequests.Select(r =>
             {
-                Name = r.Name,
-                IsGroup = r.IsGroup,
-                RequestId = r.RequestId,
-                RequestorFirstName = r.RequestorFirstName,
-                RequestorLastName = r.RequestorLastName,
-                WhenJoined = r.WhenJoined,
+                return new RequestedAccess()
+                {
+                    Name = r.Name,
+                    IsGroup = r.IsGroup,
+                    RequestId = r.RequestId,
+                    RequestorFirstName = r.RequestorFirstName,
+                    RequestorLastName = r.RequestorLastName,
+                    WhenJoined = r.WhenJoined,
+                };
             }).ToList(),
         };
     }
+
 }

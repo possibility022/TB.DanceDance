@@ -1,31 +1,25 @@
+using Application.Features.AccessManagement;
+using Application.Features.Events;
+using Domain.Services;
 using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TB.DanceDance.Access.Contracts;
-using TB.DanceDance.Access.Features.Events;
 using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Extensions;
 using TB.DanceDance.API.Mappers;
-using TB.DanceDance.Utilities.Mediating;
-using TB.DanceDance.Videos.Contracts;
-using ApiEvent = TB.DanceDance.API.Contracts.Models.Event;
 
 namespace TB.DanceDance.API.Features.Events;
 
 [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
 public class EventsController : Controller
 {
-    private readonly IRequestHandler<CreateEventCommand, Guid> createEventCommand;
-    private readonly IRequestHandler<ViewVideosFromEventQuery, IReadOnlyCollection<VideoDto>> viewVideosFromEventQuery;
-    private readonly IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWithQuery;
+    private readonly IAccessService accessService;
+    private readonly IEventService eventService;
 
-    public EventsController(IRequestHandler<CreateEventCommand, Guid> createEventCommand,
-        IRequestHandler<ViewVideosFromEventQuery, IReadOnlyCollection<VideoDto>> viewVideosFromEventQuery,
-        IRequestHandler<DoesUserHasAccessToSharedWith, bool> doesUserHasAccessToSharedWithQuery)
+    public EventsController(IAccessService accessService, IEventService eventService)
     {
-        this.createEventCommand = createEventCommand;
-        this.viewVideosFromEventQuery = viewVideosFromEventQuery;
-        this.doesUserHasAccessToSharedWithQuery = doesUserHasAccessToSharedWithQuery;
+        this.accessService = accessService;
+        this.eventService = eventService;
     }
 
     [HttpPost]
@@ -35,20 +29,16 @@ public class EventsController : Controller
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var ownerId = User.GetSubject();
-        var date = request.Event.Date.ToUniversalTime();
 
-        var eventId = await createEventCommand.HandleAsync(
-            new CreateEventCommand(request.Event.Name, date, ownerId), token);
+        var @event = ContractMappers.MapFromNewEventRequestToEvent(request, User);
 
-        var created = new ApiEvent()
-        {
-            Id = eventId,
-            Name = request.Event.Name,
-            Date = date,
-        };
+        if (!ModelState.IsValid)
+            return BadRequest();
 
-        return Created("", created);
+        var createdEvent = await eventService.CreateEventAsync(@event, token);
+
+
+        return Created("", createdEvent); //todo
     }
 
     [HttpGet]
@@ -56,23 +46,18 @@ public class EventsController : Controller
     public async Task<IActionResult> GetEventVideos([FromRoute] Guid eventId, CancellationToken token)
     {
         var userId = User.GetSubject();
-        var videos = await viewVideosFromEventQuery.HandleAsync(new ViewVideosFromEventQuery(userId, eventId), token);
+        var videos = await eventService
+            .GetVideos(eventId, userId, token);
 
-        if (videos.Count == 0)
+        if (videos.Length == 0)
         {
-            var isAssigned = await doesUserHasAccessToSharedWithQuery.HandleAsync(new DoesUserHasAccessToSharedWith
-            {
-                UserId = userId,
-                SharedToId = eventId,
-                SharedWithType = SharedWithByType.Event,
-            }, token);
-
+            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId, token);
             if (!isAssigned)
                 return Unauthorized();
         }
 
         var results = videos
-            .Select(ContractMappers.MapToVideoInformation)
+            .Select(r => ContractMappers.MapToVideoInformation(r))
             .ToList();
 
         return Ok(results);

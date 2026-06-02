@@ -1,5 +1,5 @@
-using TB.DanceDance.Access.Domain.Entities;
-using TB.DanceDance.Videos.Domain.Entities;
+﻿using System.Linq;
+using Domain.Entities;
 
 namespace TB.DanceDance.Tests;
 
@@ -7,8 +7,7 @@ public static class TestDataFactory
 {
     /// <summary>
     /// Scenario (a): One User assigned to one Group, and the Group has one video (shared with the group).
-    /// Returns all created entities and linking records. User/Group/membership belong to the Access
-    /// module; Video/SharedWith belong to the Videos module — seed each into its own DbContext.
+    /// Returns all created entities and linking records.
     /// </summary>
     public static (User user, Group group, AssignedToGroup membership, Video video, SharedWith groupShare)
         OneUserAssignedToOneGroup_WithOneVideo()
@@ -24,20 +23,19 @@ public static class TestDataFactory
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        // Create one video uploaded by the user and share it with the group (recorded after join)
+        // Create one video uploaded by the user and share it with the group
         var videoB = new VideoDataBuilder()
             .UploadedBy(user)
-            .RecordedAt(joinedAt.AddMinutes(1))
-            .ShareWithGroup(group, user);
+            .SharedAt(joinedAt.AddMinutes(1));
         var video = videoB.Build();
-        var groupShare = video.SharedWith.Single();
+        var groupShare = videoB.ShareWithGroup(group, user).BuildShares().Single();
 
         return (user, group, membership, video, groupShare);
     }
 
     /// <summary>
     /// Scenario (b): One User assigned to one Group, the Group has two videos.
-    /// The first video was recorded BEFORE the user joined the group; the second AFTER.
+    /// The first video was shared BEFORE the user joined the group; the second AFTER.
     /// Returns the created entities, membership, and both videos with their share links.
     /// </summary>
     public static (
@@ -61,21 +59,19 @@ public static class TestDataFactory
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        // Video recorded BEFORE join
-        var videoBefore = new VideoDataBuilder()
+        // Video shared BEFORE join
+        var videoBeforeB = new VideoDataBuilder()
             .UploadedBy(user)
-            .RecordedAt(joinedAt.AddMinutes(-10))
-            .ShareWithGroup(group, user)
-            .Build();
-        var shareBefore = videoBefore.SharedWith.Single();
+            .SharedAt(joinedAt.AddMinutes(-10));
+        var videoBefore = videoBeforeB.Build();
+        var shareBefore = videoBeforeB.ShareWithGroup(group, user).BuildShares().Single();
 
-        // Video recorded AFTER join
-        var videoAfter = new VideoDataBuilder()
+        // Video shared AFTER join
+        var videoAfterB = new VideoDataBuilder()
             .UploadedBy(user)
-            .RecordedAt(joinedAt.AddMinutes(10))
-            .ShareWithGroup(group, user)
-            .Build();
-        var shareAfter = videoAfter.SharedWith.Single();
+            .SharedAt(joinedAt.AddMinutes(10));
+        var videoAfter = videoAfterB.Build();
+        var shareAfter = videoAfterB.ShareWithGroup(group, user).BuildShares().Single();
 
         return (user, group, membership, videoBefore, shareBefore, videoAfter, shareAfter);
     }
@@ -101,10 +97,9 @@ public static class TestDataFactory
         // Create one video uploaded by the user and share it with the event
         var videoB = new VideoDataBuilder()
             .UploadedBy(user)
-            .RecordedAt(DateTime.UtcNow.AddMinutes(1))
-            .ShareWithEvent(evt, user);
+            .SharedAt(DateTime.UtcNow.AddMinutes(1));
         var video = videoB.Build();
-        var eventShare = video.SharedWith.Single();
+        var eventShare = videoB.ShareWithEvent(evt, user).BuildShares().Single();
 
         return (user, owner, evt, participation, video, eventShare);
     }

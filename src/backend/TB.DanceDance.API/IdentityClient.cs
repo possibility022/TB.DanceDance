@@ -1,3 +1,4 @@
+using Domain.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -5,7 +6,7 @@ namespace TB.DanceDance.API;
 
 public class IdentityClient : IIdentityClient
 {
-    public Task<IdentityUserInfo> GetNameAsync(string accessToken, CancellationToken token)
+    public Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(accessToken))
         {
@@ -49,7 +50,7 @@ public class IdentityClient : IIdentityClient
 
         var email = GetClaimValue(jwtToken, "email", ClaimTypes.Email);
 
-        var user = new IdentityUserInfo
+        var user = new Domain.Entities.User
         {
             Id = subject,
             FirstName = firstName ?? preferredUsername ?? "User",
@@ -81,14 +82,5 @@ public class IdentityClient : IIdentityClient
 public interface IIdentityClient
 {
     // Returns user data resolved from access token claims.
-    Task<IdentityUserInfo> GetNameAsync(string accessToken, CancellationToken token);
-}
-
-/// <summary>User identity details resolved from the bearer token claims.</summary>
-public record IdentityUserInfo
-{
-    public required string Id { get; init; }
-    public required string FirstName { get; init; }
-    public required string LastName { get; init; }
-    public required string Email { get; init; }
+    Task<Domain.Entities.User> GetNameAsync(string accessToken, CancellationToken token);
 }
