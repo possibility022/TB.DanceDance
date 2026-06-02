@@ -7,7 +7,7 @@ namespace TB.DanceDance.Tests;
 public static class TestDataBuilder
 {
     public static string RandomEmail(string? prefix = null) => $"{prefix ?? Random.Shared.Next(10000).ToString()}user@test{Random.Shared.Next(10000)}.com";
-    public static string RandomUserId() => Random.Shared.Next(100000, 999999).ToString();
+    public static string RandomUserId() => Guid.NewGuid().ToString("N");
     public static string RandomName(string prefix = "Name") => $"{prefix}-{Guid.NewGuid():N}";
     public static Guid NewGuid() => Guid.NewGuid();
     public static DateTime UtcNow => DateTime.UtcNow;
