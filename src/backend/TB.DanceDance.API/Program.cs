@@ -1,4 +1,5 @@
 using Application;
+using Application.Features.AccessManagement;
 using Domain.Exceptions;
 using Infrastructure;
 using Infrastructure.Identity.IdentityResources;
@@ -146,8 +147,6 @@ builder.Services.AddAuthorization(o =>
         policy.RequireAssertion(context => HasScope(context.User, DanceDanceResources.WestCoastSwing.Scopes.WriteConvert));
     });
 });
-
-builder.Services.AddScoped<IIdentityClient, IdentityClient>();
 
 var app = builder.Build();
 app.UseCors();

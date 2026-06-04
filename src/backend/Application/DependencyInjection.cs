@@ -18,6 +18,7 @@ public static class DependencyInjection
 
             services
                 .AddScoped<ICommentService, CommentService>()
+                .AddScoped<IIdentityClient, IdentityClient>()
                 .AddScoped<ISharedLinkService, SharedLinkService>();
 
             services.AddCommentsFeature();
