@@ -1,10 +1,10 @@
 ﻿using Application.Features.AccessManagement;
+using Application.Features.Videos.Endpoints.Videos;
 using Domain;
 using Domain.Entities;
 using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos;
 

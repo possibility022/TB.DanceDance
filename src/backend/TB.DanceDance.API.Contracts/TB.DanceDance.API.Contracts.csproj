@@ -9,4 +9,13 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApiResources\" />
+    <Folder Include="Features\AccessManagement\" />
+    <Folder Include="Features\Conversion\" />
+    <Folder Include="Features\Events\" />
+    <Folder Include="Features\Groups\" />
+    <Folder Include="Features\Videos\" />
+  </ItemGroup>
+
 </Project>

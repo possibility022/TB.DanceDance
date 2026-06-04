@@ -1,6 +1,6 @@
-﻿using Domain.Entities;
+﻿using Application.Features.Videos.Endpoints.Videos;
+using Domain.Entities;
 using Domain.Models;
-using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos;
 

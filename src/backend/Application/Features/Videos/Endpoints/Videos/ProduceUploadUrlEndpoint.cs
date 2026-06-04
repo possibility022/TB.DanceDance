@@ -2,10 +2,8 @@
 using Application.Features.AccessManagement;
 using Application.Features.Videos.Models;
 using FastEndpoints;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
-using TB.DanceDance.API.Contracts.Features.Videos;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;
@@ -149,8 +147,7 @@ public class ProduceUploadUrlEndpoint : Endpoint<ProduceUploadUrlRequest, Produc
             user,
             req.NameOfVideo,
             req.FileName,
-            //req.SharingWithType, 
-            TB.DanceDance.API.Contracts.Features.Videos.SharingWithType.NotSpecified, // todo
+            req.SharingWithType,
             req.SharedWith,
             ct);
 
