@@ -2,7 +2,7 @@
 
 namespace TB.DanceDance.API.Contracts.Models
 {
-    public class RequestedAccess
+    public class RequestedAccessModel
     {
         public string Name { get; set; } = null!;
         public string RequestorFirstName { get; set; } = null!;

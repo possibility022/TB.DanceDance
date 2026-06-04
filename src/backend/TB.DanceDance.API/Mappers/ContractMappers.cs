@@ -67,7 +67,7 @@ public class ContractMappers
         {
             AccessRequests = accessRequests.Select(r =>
             {
-                return new RequestedAccess()
+                return new RequestedAccessModel()
                 {
                     Name = r.Name,
                     IsGroup = r.IsGroup,

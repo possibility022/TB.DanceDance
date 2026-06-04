@@ -6,6 +6,6 @@ namespace TB.DanceDance.API.Contracts.Features.AccessManagement
 {
     public class RequestedAccessesResponse
     {
-        public IReadOnlyCollection<RequestedAccess> AccessRequests { get; set; } = Array.Empty<RequestedAccess>();
+        public IReadOnlyCollection<RequestedAccessModel> AccessRequests { get; set; } = Array.Empty<RequestedAccessModel>();
     }
 }

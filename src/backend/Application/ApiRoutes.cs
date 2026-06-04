@@ -41,4 +41,14 @@ public static class ApiRoutes
         public const string Upload = $"{Base}/videos/{{videoId}}/publish";
         public const string GetPublishSas = $"{Base}/videos/{{videoId}}/sas";
     }
+
+    public static class Access
+    {
+        private const string Base = $"{ApiBase}/videos/accesses";
+
+        public const string GetAll = Base;
+        public const string GetUserAccess = $"{Base}/my";
+        public const string RequestAccess = $"{Base}/request";
+        public const string ManageAccessRequests = $"{Base}/requests";
+    }
 }
