@@ -34,7 +34,6 @@ builder.Services.Configure<Application.AppOptions>(builder.Configuration.GetSect
 builder.Services.RegisterApplicationServices();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
 
-builder.Services.AddControllersWithViews();
 builder.Services.AddCors(setup =>
 {
     setup.AddDefaultPolicy(c =>
