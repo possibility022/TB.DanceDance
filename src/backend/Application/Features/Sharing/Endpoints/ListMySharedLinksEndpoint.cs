@@ -1,49 +1,44 @@
 using Application.Extensions;
 using FastEndpoints;
 using Microsoft.Extensions.Options;
-using SharedLinkResponse = TB.DanceDance.API.Contracts.Features.Sharing.SharedLinkResponse;
 
-namespace Application.Features.Sharing.Endpoints;
-
-public record ListMySharedLinksResponse
+namespace Application.Features.Sharing.Endpoints
 {
-    public required IReadOnlyCollection<SharedLinkResponse> Links { get; init; }
-}
-
-/// <summary>
-/// Gets all shared links created by the user or for videos owned by the user. Requires authentication.
-/// </summary>
-public class ListMySharedLinksEndpoint : EndpointWithoutRequest<ListMySharedLinksResponse>
-{
-    private readonly ISharedLinkService sharedLinkService;
-    private readonly IOptions<AppOptions> appOptions;
-
-    public ListMySharedLinksEndpoint(ISharedLinkService sharedLinkService, IOptions<AppOptions> appOptions)
+    /// <summary>
+    /// Gets all shared links created by the user or for videos owned by the user. Requires authentication.
+    /// </summary>
+    public class ListMySharedLinksEndpoint : EndpointWithoutRequest<ListMySharedLinksResponse>
     {
-        this.sharedLinkService = sharedLinkService;
-        this.appOptions = appOptions;
-    }
+        private readonly ISharedLinkService sharedLinkService;
+        private readonly IOptions<AppOptions> appOptions;
 
-    public override void Configure()
-    {
-        Get(ApiRoutes.Share.ListMy);
-        Policies(ApiScopes.Read);
-    }
-
-    public override async Task HandleAsync(CancellationToken ct)
-    {
-        var userId = User.GetSubject();
-
-        var links = await sharedLinkService.GetUserSharedLinksAsync(userId, ct);
-        var origin = appOptions.Value.AppWebsiteOrigin;
-
-        var response = new ListMySharedLinksResponse
+        public ListMySharedLinksEndpoint(ISharedLinkService sharedLinkService, IOptions<AppOptions> appOptions)
         {
-            Links = links
-                .Select(link => ShareMapper.MapToSharedLinkResponse(link, origin))
-                .ToArray(),
-        };
+            this.sharedLinkService = sharedLinkService;
+            this.appOptions = appOptions;
+        }
 
-        await Send.OkAsync(response, ct);
+        public override void Configure()
+        {
+            Get(ApiRoutes.Share.ListMy);
+            Policies(ApiScopes.Read);
+        }
+
+        public override async Task HandleAsync(CancellationToken ct)
+        {
+            var userId = User.GetSubject();
+
+            var links = await sharedLinkService.GetUserSharedLinksAsync(userId, ct);
+            var origin = appOptions.Value.AppWebsiteOrigin;
+
+            var response = new ListMySharedLinksResponse
+            {
+                Links = links
+                    .Select(link => ShareMapper.MapToSharedLinkResponse(link, origin))
+                    .ToArray(),
+            };
+
+            await Send.OkAsync(response, ct);
+        }
     }
 }

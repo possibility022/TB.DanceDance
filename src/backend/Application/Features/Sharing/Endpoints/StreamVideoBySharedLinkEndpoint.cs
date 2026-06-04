@@ -1,51 +1,46 @@
 using Application.Features.Videos;
 using FastEndpoints;
 
-namespace Application.Features.Sharing.Endpoints;
-
-public record StreamVideoBySharedLinkRequest
+namespace Application.Features.Sharing.Endpoints
 {
-    /// <summary>The shared link id (bound from the route).</summary>
-    public string LinkId { get; set; } = null!;
-}
-
-/// <summary>
-/// Streams a video by shared link id. Anonymous access allowed.
-/// </summary>
-public class StreamVideoBySharedLinkEndpoint : Endpoint<StreamVideoBySharedLinkRequest>
-{
-    private readonly ISharedLinkService sharedLinkService;
-    private readonly IVideoService videoService;
-
-    public StreamVideoBySharedLinkEndpoint(ISharedLinkService sharedLinkService, IVideoService videoService)
+    /// <summary>
+    /// Streams a video by shared link id. Anonymous access allowed.
+    /// </summary>
+    public class StreamVideoBySharedLinkEndpoint : Endpoint<StreamVideoBySharedLinkRequest>
     {
-        this.sharedLinkService = sharedLinkService;
-        this.videoService = videoService;
-    }
+        private readonly ISharedLinkService sharedLinkService;
+        private readonly IVideoService videoService;
 
-    public override void Configure()
-    {
-        Get(ApiRoutes.Share.GetStream);
-        AllowAnonymous();
-    }
-
-    public override async Task HandleAsync(StreamVideoBySharedLinkRequest req, CancellationToken ct)
-    {
-        var video = await sharedLinkService.GetVideoBySharedLinkAsync(req.LinkId, ct);
-
-        if (video == null)
+        public StreamVideoBySharedLinkEndpoint(ISharedLinkService sharedLinkService, IVideoService videoService)
         {
-            await Send.NotFoundAsync(ct);
-            return;
+            this.sharedLinkService = sharedLinkService;
+            this.videoService = videoService;
         }
 
-        if (string.IsNullOrEmpty(video.BlobId))
+        public override void Configure()
         {
-            await Send.NotFoundAsync(ct);
-            return;
+            Get(ApiRoutes.Share.GetStream);
+            AllowAnonymous();
         }
 
-        var stream = await videoService.OpenStream(video.BlobId, ct);
-        await Send.StreamAsync(stream, contentType: "video/mp4", enableRangeProcessing: true, cancellation: ct);
+        public override async Task HandleAsync(StreamVideoBySharedLinkRequest req, CancellationToken ct)
+        {
+            var video = await sharedLinkService.GetVideoBySharedLinkAsync(req.LinkId, ct);
+
+            if (video == null)
+            {
+                await Send.NotFoundAsync(ct);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(video.BlobId))
+            {
+                await Send.NotFoundAsync(ct);
+                return;
+            }
+
+            var stream = await videoService.OpenStream(video.BlobId, ct);
+            await Send.StreamAsync(stream, contentType: "video/mp4", enableRangeProcessing: true, cancellation: ct);
+        }
     }
 }
