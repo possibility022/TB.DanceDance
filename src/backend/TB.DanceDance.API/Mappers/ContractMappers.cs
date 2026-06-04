@@ -1,4 +1,5 @@
-﻿using TB.DanceDance.API.Contracts.Features.AccessManagement;
+﻿using Application.Domain.Models;
+using TB.DanceDance.API.Contracts.Features.AccessManagement;
 using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
@@ -8,7 +9,7 @@ namespace TB.DanceDance.API.Mappers;
 
 public class ContractMappers
 {
-    public static VideoInformationModel MapToVideoInformation(Domain.Entities.VideoFromGroupInfo info)
+    public static VideoInformationModel MapToVideoInformation(VideoFromGroupInfo info)
     {
         return MapToVideoInformation(info.Video);
     }

@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities;
+﻿using Domain.Entities;
+
+namespace Application.Domain.Models;
 
 /// <summary>
 /// Represents a video that is shared with given group
