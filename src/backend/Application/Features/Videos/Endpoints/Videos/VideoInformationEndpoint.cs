@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 

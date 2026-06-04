@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using TB.DanceDance.API.Contracts.Models;
 
-namespace Application.Features.Events.Endpoints
+namespace TB.DanceDance.API.Contracts.Features.Events
 {
     public class ListEventVideosRequest
     {

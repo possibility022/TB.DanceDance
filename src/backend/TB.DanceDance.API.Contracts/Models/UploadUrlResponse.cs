@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Application.Features.Videos.Models
+namespace TB.DanceDance.API.Contracts.Models
 {
     public class UploadUrlResponse
     {

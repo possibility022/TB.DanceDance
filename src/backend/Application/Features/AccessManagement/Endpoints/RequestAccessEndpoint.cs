@@ -1,6 +1,7 @@
 using Application.Extensions;
 using Domain.Exceptions;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.AccessManagement;
 
 namespace Application.Features.AccessManagement.Endpoints;
 

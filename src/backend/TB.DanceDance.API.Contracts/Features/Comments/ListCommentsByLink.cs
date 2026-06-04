@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using TB.DanceDance.API.Contracts.Features.Comments;
 
-namespace Application.Features.Comments.Endpoints
+namespace TB.DanceDance.API.Contracts.Features.Comments
 {
     public class ListCommentsByLink
     {

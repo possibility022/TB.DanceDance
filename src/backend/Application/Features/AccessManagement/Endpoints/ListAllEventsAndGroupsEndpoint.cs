@@ -1,6 +1,7 @@
 using Application.Features.Events;
 using Application.Features.Groups;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.AccessManagement;
 
 namespace Application.Features.AccessManagement.Endpoints;
 

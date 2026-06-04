@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
 
-namespace Application.Features.AccessManagement.Endpoints
+namespace TB.DanceDance.API.Contracts.Features.AccessManagement
 {
     public class RequestAccessRequest
     {

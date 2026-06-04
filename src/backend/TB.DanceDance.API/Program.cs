@@ -2,10 +2,10 @@ using Application;
 using Application.Features.AccessManagement;
 using Domain.Exceptions;
 using Infrastructure;
-using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using TB.DanceDance.API;
+using TB.DanceDance.API.Contracts.ApiResources;
 
 var builder = WebApplication.CreateBuilder(args);
 

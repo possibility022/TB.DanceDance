@@ -2,6 +2,7 @@
 using Application.Features.AccessManagement;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;

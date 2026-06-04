@@ -1,7 +1,7 @@
-﻿using Application.Features.Groups.Models;
-using System;
+﻿using System;
+using TB.DanceDance.API.Contracts.Models;
 
-namespace Application.Features.Groups.Endpoints
+namespace TB.DanceDance.API.Contracts.Features.Groups
 {
     public class ListGroupVideosRequest
     {

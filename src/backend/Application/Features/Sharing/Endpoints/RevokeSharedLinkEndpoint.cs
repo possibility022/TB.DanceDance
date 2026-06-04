@@ -1,5 +1,6 @@
 using Application.Extensions;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Sharing;
 
 namespace Application.Features.Sharing.Endpoints
 {

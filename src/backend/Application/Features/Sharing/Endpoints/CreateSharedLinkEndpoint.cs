@@ -2,6 +2,7 @@ using Application.Extensions;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TB.DanceDance.API.Contracts.Features.Sharing;
 using SharedLinkResponse = TB.DanceDance.API.Contracts.Features.Sharing.SharedLinkResponse;
 
 namespace Application.Features.Sharing.Endpoints

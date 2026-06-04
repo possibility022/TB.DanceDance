@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
+using TB.DanceDance.API.Contracts.Features.Comments;
 
 namespace Application.Features.Comments.Endpoints;
 

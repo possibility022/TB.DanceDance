@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Application.Features.Videos.Endpoints.Converter
+namespace TB.DanceDance.API.Contracts.Features.Videos.Converter
 {
     public class GetPublishSasRequest
     {

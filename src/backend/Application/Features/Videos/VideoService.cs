@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos;
 

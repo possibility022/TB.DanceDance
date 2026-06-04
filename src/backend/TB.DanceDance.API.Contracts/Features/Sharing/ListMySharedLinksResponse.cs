@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using TB.DanceDance.API.Contracts.Features.Sharing;
 
-namespace Application.Features.Sharing.Endpoints
+namespace TB.DanceDance.API.Contracts.Features.Sharing
 {
     public class ListMySharedLinksResponse
     {

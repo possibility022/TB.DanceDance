@@ -2,6 +2,7 @@
 using Application.Features.AccessManagement;
 using Domain.Entities;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Events.Endpoints;

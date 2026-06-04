@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Application.Features.Sharing.Endpoints
+namespace TB.DanceDance.API.Contracts.Features.Sharing
 {
     public class CreateSharedLinkRequest
     {

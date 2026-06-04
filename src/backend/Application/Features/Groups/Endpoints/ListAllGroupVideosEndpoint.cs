@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Groups;
 
 namespace Application.Features.Groups.Endpoints;
 

@@ -1,4 +1,6 @@
-﻿namespace Application.Features.AccessManagement.Endpoints
+﻿using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
+
+namespace TB.DanceDance.API.Contracts.Features.AccessManagement
 {
     public class GetUserAccessResponse
     {

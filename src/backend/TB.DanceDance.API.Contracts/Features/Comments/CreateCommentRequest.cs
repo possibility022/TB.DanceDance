@@ -1,4 +1,4 @@
-﻿namespace Application.Features.Comments.Endpoints
+﻿namespace TB.DanceDance.API.Contracts.Features.Comments
 {
     public class CreateCommentRequest
     {

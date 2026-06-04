@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Identity.IdentityResources
+﻿namespace TB.DanceDance.API.Contracts.ApiResources
 {
     public static class DanceDanceResources
     {

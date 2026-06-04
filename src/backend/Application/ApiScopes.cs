@@ -1,4 +1,4 @@
-using Infrastructure.Identity.IdentityResources;
+using TB.DanceDance.API.Contracts.ApiResources;
 
 namespace Application;
 

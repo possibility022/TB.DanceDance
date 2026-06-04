@@ -2,6 +2,8 @@ using Application.Extensions;
 using Application.Features.Events;
 using Application.Features.Groups;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
 
 namespace Application.Features.AccessManagement.Endpoints;
 

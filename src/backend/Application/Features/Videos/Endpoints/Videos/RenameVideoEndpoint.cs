@@ -1,6 +1,7 @@
 ﻿using Application.Extensions;
 using Application.Features.AccessManagement;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;

@@ -1,7 +1,6 @@
 ﻿using System;
-using TB.DanceDance.API.Contracts.Models;
 
-namespace Application.Features.Groups.Models
+namespace TB.DanceDance.API.Contracts.Models
 {
     public class VideoFromGroupInformation : VideoInformation
     {

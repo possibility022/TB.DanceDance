@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.Features.Videos.Endpoints.Videos
+namespace TB.DanceDance.API.Contracts.Features.Videos
 {
     public class UpdateCommentSettingsRequest
     {
