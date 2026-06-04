@@ -3,7 +3,7 @@ using SharedVideoInfoResponse = TB.DanceDance.API.Contracts.Features.Sharing.Sha
 
 namespace Application.Features.Sharing.Endpoints;
 
-public record GetVideoInfoBySharedLinkRequest
+public record VideoInfoBySharedLinkRequest
 {
     /// <summary>The shared link id (bound from the route).</summary>
     public string LinkId { get; set; } = null!;
@@ -12,7 +12,7 @@ public record GetVideoInfoBySharedLinkRequest
 /// <summary>
 /// Gets video information by shared link id. Anonymous access allowed.
 /// </summary>
-public class GetVideoInfoBySharedLinkEndpoint : Endpoint<GetVideoInfoBySharedLinkRequest, SharedVideoInfoResponse>
+public class GetVideoInfoBySharedLinkEndpoint : Endpoint<VideoInfoBySharedLinkRequest, SharedVideoInfoResponse>
 {
     private readonly ISharedLinkService sharedLinkService;
 
@@ -27,7 +27,7 @@ public class GetVideoInfoBySharedLinkEndpoint : Endpoint<GetVideoInfoBySharedLin
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(GetVideoInfoBySharedLinkRequest req, CancellationToken ct)
+    public override async Task HandleAsync(VideoInfoBySharedLinkRequest req, CancellationToken ct)
     {
         var link = await sharedLinkService.GetSharedLinkAsync(req.LinkId, ct);
 

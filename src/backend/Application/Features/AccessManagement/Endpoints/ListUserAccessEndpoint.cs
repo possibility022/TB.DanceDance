@@ -60,7 +60,7 @@ public class GetUserAccessEndpoint : EndpointWithoutRequest<GetUserAccessRespons
                     .Select(ContractMappers.MapToGroupContract)
                     .ToArray(),
             },
-            Pending = new GetUserAccessPending
+            Pending = new ListUserAccessPending
             {
                 Events = myPendingRequests.Events,
                 Groups = myPendingRequests.Groups,

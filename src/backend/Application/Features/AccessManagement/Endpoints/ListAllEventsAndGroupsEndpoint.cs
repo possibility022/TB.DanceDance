@@ -4,7 +4,7 @@ using FastEndpoints;
 
 namespace Application.Features.AccessManagement.Endpoints;
 
-public class GetAllEventsAndGroupsEndpoint : EndpointWithoutRequest<GetAllEventsAndGroupsResponse>
+public class GetAllEventsAndGroupsEndpoint : EndpointWithoutRequest<ListAllEventsAndGroupsResponse>
 {
     private readonly IEventService eventService;
     private readonly IGroupService groupService;
@@ -26,7 +26,7 @@ public class GetAllEventsAndGroupsEndpoint : EndpointWithoutRequest<GetAllEvents
         var listOfEvents = await eventService.GetAllEvents(ct);
         var listOfGroups = await groupService.GetAllGroups(ct);
 
-        var response = new GetAllEventsAndGroupsResponse
+        var response = new ListAllEventsAndGroupsResponse
         {
             Events = listOfEvents.Select(ContractMappers.MapToEventContract).ToArray(),
             Groups = listOfGroups.Select(ContractMappers.MapToGroupContract).ToArray(),

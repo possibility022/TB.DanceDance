@@ -3,7 +3,7 @@ using FastEndpoints;
 
 namespace Application.Features.AccessManagement.Endpoints;
 
-public class GetAccessRequestsEndpoint : EndpointWithoutRequest<GetAccessRequestsResponse>
+public class GetAccessRequestsEndpoint : EndpointWithoutRequest<ListAccessRequestsResponse>
 {
     private readonly IAccessManagementService accessManagementService;
 
@@ -24,7 +24,7 @@ public class GetAccessRequestsEndpoint : EndpointWithoutRequest<GetAccessRequest
 
         var accessRequests = await accessManagementService.GetAccessRequestsToApproveAsync(userId, ct);
 
-        var response = new GetAccessRequestsResponse
+        var response = new ListAccessRequestsResponse
         {
             AccessRequests = accessRequests
                 .Select(ContractMappers.MapToRequestedAccess)
