@@ -43,16 +43,7 @@ public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, ListEven
 
     private VideoInformation[] MapVideos(IReadOnlyCollection<Video> videos)
     {
-        return videos.Select(video => new VideoInformation()
-        {
-            BlobId = video.BlobId ?? string.Empty,
-            Duration = video.Duration,
-            VideoId = video.Id,
-            Name = video.Name,
-            RecordedDateTime = video.RecordedDateTime,
-            Converted = video.Converted,
-            CommentVisibility = (int)video.CommentVisibility
-        }).ToArray();
+        return videos.Select(ContractMappers.MapToVideoInformation).ToArray();
     }
 }
 
