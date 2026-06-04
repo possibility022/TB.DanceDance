@@ -115,20 +115,6 @@ builder.Services
         };
     });
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        return Task.CompletedTask;
-    };
-
-    options.Events.OnRedirectToAccessDenied = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        return Task.CompletedTask;
-    };
-});
 
 builder.Services.AddAuthorization(o =>
 {
@@ -162,7 +148,6 @@ if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.Or
 #endif
 
 
-app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseApplicationEndpoints();
