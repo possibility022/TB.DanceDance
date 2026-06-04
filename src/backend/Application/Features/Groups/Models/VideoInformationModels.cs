@@ -1,9 +1,5 @@
 ﻿namespace Application.Features.Groups.Models;
 
-public record ListGroupVideosResponse
-{
-    public VideoFromGroupInformation[] Videos { get; set; }
-}
 public record VideoFromGroupInformation : VideoInformation
 {
     public Guid GroupId { get; set; }
