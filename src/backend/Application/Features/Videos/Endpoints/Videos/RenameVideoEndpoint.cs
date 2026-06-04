@@ -5,8 +5,6 @@ using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 
-public record RenameVideoRequest(Guid VideoId, string NewName);
-
 public class RenameVideoEndpoint : Endpoint<RenameVideoRequest, EmptyResponse>
 {
     private readonly IAccessService accessService;

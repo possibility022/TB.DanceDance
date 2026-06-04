@@ -1,10 +1,7 @@
 ﻿using Application.Extensions;
-using Application.Features.Groups.Models;
 using FastEndpoints;
 
 namespace Application.Features.Groups.Endpoints;
-
-public record ListGroupVideosRequest(Guid GroupId);
 
 public class ListGroupVideosEndpoint : Endpoint<ListGroupVideosRequest, ListGroupVideosResponse>
 {

@@ -1,17 +1,7 @@
-using Application.Extensions;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Comments.Endpoints;
-
-public record ReportCommentRequest
-{
-    /// <summary>The comment id (bound from the route).</summary>
-    public Guid CommentId { get; set; }
-
-    /// <summary>The reason for reporting this comment.</summary>
-    public string Reason { get; set; } = null!;
-}
 
 /// <summary>
 /// Reports a comment as inappropriate. Anonymous access allowed.

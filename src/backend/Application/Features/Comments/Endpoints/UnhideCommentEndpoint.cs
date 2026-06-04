@@ -3,12 +3,6 @@ using FastEndpoints;
 
 namespace Application.Features.Comments.Endpoints;
 
-public record UnhideCommentRequest
-{
-    /// <summary>The comment id (bound from the route).</summary>
-    public Guid CommentId { get; set; }
-}
-
 /// <summary>
 /// Unhides a comment. Only the video owner can unhide comments.
 /// </summary>

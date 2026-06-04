@@ -1,12 +1,10 @@
 ﻿using Application.Extensions;
 using Application.Features.AccessManagement;
-using Application.Features.Groups.Models;
 using Domain.Entities;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Events.Endpoints;
-
-public record ListEventVideosRequest(Guid EventId);
 
 public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, ListEventVideosResponse>
 {
@@ -51,9 +49,4 @@ public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, ListEven
     {
         return videos.Select(ContractMappers.MapToVideoInformation).ToArray();
     }
-}
-
-public record ListEventVideosResponse
-{
-    public required IReadOnlyCollection<VideoInformation> Videos { get; init; }
 }

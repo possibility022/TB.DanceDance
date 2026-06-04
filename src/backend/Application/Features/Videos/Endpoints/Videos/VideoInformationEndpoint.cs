@@ -1,11 +1,7 @@
 ﻿using Application.Extensions;
-using Application.Features.Groups.Models;
 using FastEndpoints;
 
 namespace Application.Features.Videos.Endpoints.Videos;
-
-public record VideoInformationRequest(string BlobId);
-public record VideoInformationResponse(VideoInformation VideoInformation);
 
 public class VideoInformationEndpoint : Endpoint<VideoInformationRequest, VideoInformationResponse>
 {
@@ -33,7 +29,10 @@ public class VideoInformationEndpoint : Endpoint<VideoInformationRequest, VideoI
         else
         {
             var results = ContractMappers.MapToVideoInformation(info);
-            await Send.OkAsync(new VideoInformationResponse(results), ct);
+            await Send.OkAsync(new VideoInformationResponse
+            {
+                VideoInformation = results
+            }, ct);
         }   
     }
 }

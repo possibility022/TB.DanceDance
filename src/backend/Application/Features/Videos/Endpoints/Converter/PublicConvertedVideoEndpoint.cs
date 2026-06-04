@@ -3,14 +3,6 @@ using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Converter;
 
-
-public record PublicConvertedVideoRequest(Guid VideoId);
-
-public record PublicConvertedVideoResponse
-{
-    public Guid VideoId { get; set; }
-}
-
 public class PublicConvertedVideoEndpoint : Endpoint<PublicConvertedVideoRequest, PublicConvertedVideoResponse>
 {
     private readonly IVideoUploaderService videoUploaderService;

@@ -1,5 +1,4 @@
-﻿using Application.Features.Groups.Models;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Models;
 using TB.DanceDance.API.Contracts.Models;
 using Event = Domain.Entities.Event;

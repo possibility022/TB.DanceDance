@@ -1,20 +1,8 @@
 using Application.Extensions;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
-using CommentResponse = TB.DanceDance.API.Contracts.Features.Comments.CommentResponse;
 
 namespace Application.Features.Comments.Endpoints;
-
-public record ListCommentsForVideoRequest
-{
-    /// <summary>The video id (bound from the route).</summary>
-    public Guid VideoId { get; set; }
-}
-
-public record ListCommentsForVideoResponse
-{
-    public required IReadOnlyCollection<CommentResponse> Comments { get; init; }
-}
 
 /// <summary>
 /// Gets comments for a video the authenticated user has access to.

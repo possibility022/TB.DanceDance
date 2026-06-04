@@ -1,16 +1,8 @@
 using Application.Features.Events;
 using Application.Features.Groups;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Models;
-using Group = TB.DanceDance.API.Contracts.Models.Group;
 
 namespace Application.Features.AccessManagement.Endpoints;
-
-public record GetAllEventsAndGroupsResponse
-{
-    public required ICollection<Event> Events { get; init; }
-    public required ICollection<Group> Groups { get; init; }
-}
 
 public class GetAllEventsAndGroupsEndpoint : EndpointWithoutRequest<GetAllEventsAndGroupsResponse>
 {

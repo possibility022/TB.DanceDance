@@ -5,8 +5,6 @@ using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 
-public record StreamVideoRequest(string BlobId);
-
 public class StreamVideoEndpoint : Endpoint<StreamVideoRequest, EmptyResponse>
 {
     private readonly IAccessService accessService;

@@ -1,28 +1,13 @@
 using Application.Extensions;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
-using CommentResponse = TB.DanceDance.API.Contracts.Features.Comments.CommentResponse;
 
 namespace Application.Features.Comments.Endpoints;
-
-public record ListCommentsByLinkRequest
-{
-    /// <summary>Shared link id (bound from the route).</summary>
-    public string LinkId { get; set; } = null!;
-
-    /// <summary>Anonymous id (bound from the query string); falls back to the request header.</summary>
-    public string? AnonymousId { get; set; }
-}
-
-public record ListCommentsByLinkResponse
-{
-    public required IReadOnlyCollection<CommentResponse> Comments { get; init; }
-}
 
 /// <summary>
 /// Gets comments for a video accessed through a shared link. Anonymous access allowed.
 /// </summary>
-public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLinkRequest, ListCommentsByLinkResponse>
+public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLink, ListCommentsByLinkResponse>
 {
     private readonly ICommentService commentService;
 
@@ -37,7 +22,7 @@ public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLinkRequest, Li
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(ListCommentsByLinkRequest req, CancellationToken ct)
+    public override async Task HandleAsync(ListCommentsByLink req, CancellationToken ct)
     {
         var userId = User.TryGetSubject();
         var anonymousId = CommentMapper.ResolveAnonymousId(req.AnonymousId, HttpContext.Request);

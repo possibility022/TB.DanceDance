@@ -1,23 +1,7 @@
 ﻿using FastEndpoints;
-using System.ComponentModel.DataAnnotations;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Converter;
-
-public record  UpdateVideoInfoRequest
-{
-    [Required]
-    public Guid VideoId { get; set; }
-
-    [Required]
-    public DateTime RecordedDateTime { get; set; }
-
-    [Required]
-    public TimeSpan Duration { get; set; }
-
-    [Required]
-    public byte[]? Metadata { get; set; }
-}
 
 public class UpdateVideoInfoEndpoint : Endpoint<UpdateVideoInfoRequest, EmptyResponse>
 {

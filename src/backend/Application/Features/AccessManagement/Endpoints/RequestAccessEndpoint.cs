@@ -4,18 +4,6 @@ using FastEndpoints;
 
 namespace Application.Features.AccessManagement.Endpoints;
 
-public record RequestAccessRequest
-{
-    public ICollection<Guid>? Events { get; set; }
-    public ICollection<RequestAccessGroup>? Groups { get; set; }
-}
-
-public record RequestAccessGroup
-{
-    public Guid Id { get; set; }
-    public DateTime JoinedDate { get; set; }
-}
-
 public class RequestAccessEndpoint : Endpoint<RequestAccessRequest>
 {
     private readonly IAccessManagementService accessManagementService;

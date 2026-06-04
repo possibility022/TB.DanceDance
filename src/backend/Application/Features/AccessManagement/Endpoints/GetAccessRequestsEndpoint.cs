@@ -1,13 +1,7 @@
 using Application.Extensions;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.AccessManagement.Endpoints;
-
-public record GetAccessRequestsResponse
-{
-    public required IReadOnlyCollection<RequestedAccessModel> AccessRequests { get; init; }
-}
 
 public class GetAccessRequestsEndpoint : EndpointWithoutRequest<GetAccessRequestsResponse>
 {

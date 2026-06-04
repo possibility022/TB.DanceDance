@@ -1,14 +1,8 @@
 ﻿using Application.Extensions;
 using Application.Features.AccessManagement;
-using Application.Features.Groups.Models;
 using FastEndpoints;
 
 namespace Application.Features.Videos.Endpoints.Videos;
-
-public record MyVideosResponse
-{
-    public required ICollection<VideoInformation> VideoInformation { get; set; }
-}
 
 public class ListMyVideosEndpoint : EndpointWithoutRequest<MyVideosResponse>
 {

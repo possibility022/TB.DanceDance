@@ -1,19 +1,9 @@
 ﻿using Application.Extensions;
 using Application.Features.AccessManagement;
-using Application.Features.Videos.Models;
 using FastEndpoints;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;
-
-public record RefreshUploadUrlRequest
-{
-    public Guid VideoId { get; init; }
-}
-
-public record RefreshUploadUrlResponse : UploadUrlResponse
-{
-}
 
 public class RefreshUploadUrlEndpoint : Endpoint<RefreshUploadUrlRequest, RefreshUploadUrlResponse>
 {

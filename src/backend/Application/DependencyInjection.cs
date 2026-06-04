@@ -4,7 +4,6 @@ using Application.Features.Sharing;
 using Application.Features.Videos;
 ﻿using Application.Features.Groups;
 ﻿using Application.Features.Comments;
-using Domain.Services;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

@@ -11,11 +11,6 @@
 
   <ItemGroup>
     <Folder Include="ApiResources\" />
-    <Folder Include="Features\AccessManagement\" />
-    <Folder Include="Features\Conversion\" />
-    <Folder Include="Features\Events\" />
-    <Folder Include="Features\Groups\" />
-    <Folder Include="Features\Videos\" />
   </ItemGroup>
 
 </Project>

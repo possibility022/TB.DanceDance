@@ -9,7 +9,7 @@ namespace TB.DanceDance.API.Contracts.Models
         public string RequestorLastName { get; set; } = null!;
         
         /// <summary>
-        /// When joined to group. Required for group. Not required for event.
+        /// When joined to group. Required for group. Not for event.
         /// </summary>
         public DateTime? WhenJoined { get; set; }
         public Guid RequestId { get; set; }

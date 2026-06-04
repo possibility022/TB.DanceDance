@@ -2,29 +2,8 @@ using Application.Extensions;
 using Application.Features.Events;
 using Application.Features.Groups;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Models;
-using Group = TB.DanceDance.API.Contracts.Models.Group;
 
 namespace Application.Features.AccessManagement.Endpoints;
-
-public record GetUserAccessResponse
-{
-    public required GetUserAccessSet Assigned { get; init; }
-    public required GetUserAccessSet Available { get; init; }
-    public required GetUserAccessPending Pending { get; init; }
-}
-
-public record GetUserAccessSet
-{
-    public required ICollection<Event> Events { get; init; }
-    public required ICollection<Group> Groups { get; init; }
-}
-
-public record GetUserAccessPending
-{
-    public required IReadOnlyCollection<Guid> Events { get; init; }
-    public required IReadOnlyCollection<Guid> Groups { get; init; }
-}
 
 public class GetUserAccessEndpoint : EndpointWithoutRequest<GetUserAccessResponse>
 {

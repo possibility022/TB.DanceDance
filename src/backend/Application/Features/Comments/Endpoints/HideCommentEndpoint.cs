@@ -3,12 +3,6 @@ using FastEndpoints;
 
 namespace Application.Features.Comments.Endpoints;
 
-public record HideCommentRequest
-{
-    /// <summary>The comment id (bound from the route).</summary>
-    public Guid CommentId { get; set; }
-}
-
 /// <summary>
 /// Hides a comment. Only the video owner can hide comments.
 /// </summary>

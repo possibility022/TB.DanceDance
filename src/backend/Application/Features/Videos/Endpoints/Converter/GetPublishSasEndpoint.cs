@@ -2,13 +2,6 @@
 
 namespace Application.Features.Videos.Endpoints.Converter;
 
-public record GetPublishSasRequest(Guid VideoId);
-
-public record GetPublishSasResponse
-{
-    public required string Sas { get; init; }
-}
-
 public class GetPublishSasEndpoint : Endpoint<GetPublishSasRequest, GetPublishSasResponse>
 {
     private readonly IVideoUploaderService videoUploaderService;

@@ -3,13 +3,6 @@ using FastEndpoints;
 
 namespace Application.Features.AccessManagement.Endpoints;
 
-public record ApproveAccessRequestRequest
-{
-    public Guid RequestId { get; set; }
-    public bool IsGroup { get; set; }
-    public bool IsApproved { get; set; }
-}
-
 public class ApproveAccessRequestEndpoint : Endpoint<ApproveAccessRequestRequest>
 {
     private readonly IAccessManagementService accessManagementService;

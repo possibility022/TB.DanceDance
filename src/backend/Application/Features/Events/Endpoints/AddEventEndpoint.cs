@@ -1,6 +1,7 @@
 ﻿using Application.Extensions;
 using Domain.Entities;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Events;
 
 namespace Application.Features.Events.Endpoints;
 
