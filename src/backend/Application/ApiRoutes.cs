@@ -51,4 +51,18 @@ public static class ApiRoutes
         public const string RequestAccess = $"{Base}/request";
         public const string ManageAccessRequests = $"{Base}/requests";
     }
+
+    public static class Comments
+    {
+        private const string Base = $"{ApiBase}/comments";
+
+        public const string ListCommentsForVideo = $"{Base}/video/{{videoId:guid}}";
+        public const string Create = $"{ApiBase}/share/{{linkId}}/comments";
+        public const string ListByLink = $"{ApiBase}/share/{{linkId}}/comments";
+        public const string Update = $"{Base}/{{commentId:guid}}";
+        public const string Delete = $"{Base}/{{commentId:guid}}";
+        public const string Hide = $"{Base}/{{commentId:guid}}/hide";
+        public const string Unhide = $"{Base}/{{commentId:guid}}/unhide";
+        public const string Report = $"{Base}/{{commentId:guid}}/report";
+    }
 }

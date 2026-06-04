@@ -1,0 +1,73 @@
+using Application.Extensions;
+using FastEndpoints;
+using Microsoft.Extensions.Logging;
+
+namespace Application.Features.Comments.Endpoints;
+
+public record UpdateCommentRequest
+{
+    /// <summary>The comment id (bound from the route).</summary>
+    public Guid CommentId { get; set; }
+
+    /// <summary>The new comment content.</summary>
+    public string Content { get; set; } = null!;
+
+    /// <summary>Anonymous id, used to authorize edits to anonymously-posted comments.</summary>
+    public string? AnonymousId { get; set; }
+
+    /// <summary>Display name used when posting as anonymous.</summary>
+    public string? AuthorName { get; set; }
+}
+
+/// <summary>
+/// Updates a comment. Only the authenticated comment author (or the matching anonymous author) can update.
+/// </summary>
+public class UpdateCommentEndpoint : Endpoint<UpdateCommentRequest>
+{
+    private readonly ICommentService commentService;
+
+    public UpdateCommentEndpoint(ICommentService commentService)
+    {
+        this.commentService = commentService;
+    }
+
+    public override void Configure()
+    {
+        Put(ApiRoutes.Comments.Update);
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(UpdateCommentRequest req, CancellationToken ct)
+    {
+        var userId = User.TryGetSubject();
+
+        // Authenticated users edit by identity, never by anonymous id.
+        if (userId is not null)
+            req.AnonymousId = null;
+
+        try
+        {
+            var result = await commentService.UpdateCommentAsync(
+                req.CommentId,
+                userId,
+                req.AnonymousId,
+                req.AuthorName,
+                req.Content,
+                ct);
+
+            if (!result)
+            {
+                await Send.NotFoundAsync(ct);
+                return;
+            }
+
+            await Send.NoContentAsync(ct);
+        }
+        catch (ArgumentException ex)
+        {
+            Logger.LogWarning(ex, "Failed to update comment {CommentId}", req.CommentId);
+            AddError(ex.Message);
+            await Send.ErrorsAsync(400, ct);
+        }
+    }
+}
