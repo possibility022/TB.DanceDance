@@ -30,7 +30,7 @@ public class UpdateVideoInfoEndpoint : Endpoint<UpdateVideoInfoRequest, EmptyRes
 
     public override void Configure()
     {
-        Post(ApiRoutes.Converter.Upload);
+        Post(ApiRoutes.Converter.Videos);
         Policies(ApiScopes.Convert);
     }
     
