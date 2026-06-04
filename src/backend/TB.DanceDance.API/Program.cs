@@ -4,6 +4,7 @@ using Domain.Exceptions;
 using FastEndpoints.ClientGen;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using NJsonSchema.CodeGeneration.TypeScript;
 using System.Security.Claims;
 using TB.DanceDance.API;
 using TB.DanceDance.API.Contracts.ApiResources;
@@ -165,6 +166,30 @@ var swaggerOutputPath = app.Configuration["swaggerOutputPath"] ?? Directory.GetC
 if (app.Configuration["exportswaggerjson"] == "true")
     Directory.CreateDirectory(swaggerOutputPath);
 await app.ExportSwaggerJsonAndExitAsync(documentName: "v1", destinationPath: swaggerOutputPath);
+
+// Generates a single TypeScript file of all request/response model interfaces (no client class)
+// and exits — only when run with
+//   dotnet run --generateclients true [--clientsOutputPath <dir>] [--clientsFileName <name>]
+// On a normal startup this is a no-op.
+var clientsOutputPath = app.Configuration["clientsOutputPath"] ?? Directory.GetCurrentDirectory();
+var clientsFileName = app.Configuration["clientsFileName"] ?? "apiModels";
+if (app.Configuration["generateclients"] == "true")
+    Directory.CreateDirectory(clientsOutputPath);
+await app.GenerateClientsAndExitAsync(
+    documentName: "v1",
+    destinationPath: clientsOutputPath,
+    csSettings: null,
+    tsSettings: s =>
+    {
+        s.ClassName = clientsFileName;          // becomes "<clientsFileName>.ts"
+        s.GenerateClientClasses = false;        // DTO interfaces only, no HTTP client
+        s.GenerateDtoTypes = true;
+        s.TypeScriptGeneratorSettings.Namespace = "";   // top-level ES module exports, no namespace wrapper
+        s.TypeScriptGeneratorSettings.TypeStyle = TypeScriptTypeStyle.Interface;
+        s.TypeScriptGeneratorSettings.DateTimeType = TypeScriptDateTimeType.Date;
+        s.TypeScriptGeneratorSettings.EnumStyle = TypeScriptEnumStyle.Enum;
+        s.TypeScriptGeneratorSettings.TypeScriptVersion = 5.0m;
+    });
 
 app.Run();
 

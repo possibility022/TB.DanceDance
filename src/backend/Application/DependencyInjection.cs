@@ -40,6 +40,9 @@ public static class DependencyInjection
                 // The JWT bearer security scheme is added automatically (matches our Bearer auth).
                 .SwaggerDocument(o =>
                 {
+                    // Use short (unqualified) type names as schema ids so generated client/model
+                    // names are e.g. "MyVideosResponse" rather than the full namespace-flattened name.
+                    o.ShortSchemaNames = true;
                     o.DocumentSettings = s =>
                     {
                         s.DocumentName = "v1";
