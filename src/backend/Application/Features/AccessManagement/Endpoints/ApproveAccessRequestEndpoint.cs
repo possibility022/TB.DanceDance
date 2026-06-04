@@ -22,7 +22,7 @@ public class ApproveAccessRequestEndpoint : Endpoint<ApproveAccessRequestRequest
     public override void Configure()
     {
         Post(ApiRoutes.Access.ManageAccessRequests);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(ApproveAccessRequestRequest req, CancellationToken ct)

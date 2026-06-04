@@ -27,7 +27,7 @@ public class ListMySharedLinksEndpoint : EndpointWithoutRequest<ListMySharedLink
     public override void Configure()
     {
         Get(ApiRoutes.Share.ListMy);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

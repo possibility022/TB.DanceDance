@@ -18,6 +18,7 @@ public class ListGroupVideosEndpoint : Endpoint<ListGroupVideosRequest, ListGrou
     public override void Configure()
     {
         Get(ApiRoutes.Groups.VideosForGroup);
+        Policies(ApiScopes.Read);
     }
     
     public override async Task HandleAsync(ListGroupVideosRequest request, CancellationToken ct)

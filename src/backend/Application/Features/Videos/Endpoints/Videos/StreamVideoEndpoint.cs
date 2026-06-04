@@ -21,6 +21,7 @@ public class StreamVideoEndpoint : Endpoint<StreamVideoRequest, EmptyResponse>
     public override void Configure()
     {
         Get(ApiRoutes.Video.GetStream);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task<Void> HandleAsync(StreamVideoRequest req, CancellationToken ct)

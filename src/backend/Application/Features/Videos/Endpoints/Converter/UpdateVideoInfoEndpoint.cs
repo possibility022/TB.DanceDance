@@ -31,6 +31,7 @@ public class UpdateVideoInfoEndpoint : Endpoint<UpdateVideoInfoRequest, EmptyRes
     public override void Configure()
     {
         Post(ApiRoutes.Converter.Upload);
+        Policies(ApiScopes.Convert);
     }
     
     public override async Task<Void> HandleAsync(UpdateVideoInfoRequest req, CancellationToken ct)

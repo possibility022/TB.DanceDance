@@ -18,6 +18,7 @@ public class AddEventEndpoint : Endpoint<CreateNewEventRequest, CreateNewEventRe
     public override void Configure()
     {
         Post(ApiRoutes.Events.AddEvent);
+        Policies(ApiScopes.Read);
     }
     
     public override async Task HandleAsync(CreateNewEventRequest req, CancellationToken ct)

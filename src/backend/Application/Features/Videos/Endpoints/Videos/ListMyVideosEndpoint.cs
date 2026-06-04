@@ -22,6 +22,7 @@ public class ListMyVideosEndpoint : EndpointWithoutRequest<MyVideosResponse>
     public override void Configure()
     {
         Get(ApiRoutes.Video.MyVideos);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

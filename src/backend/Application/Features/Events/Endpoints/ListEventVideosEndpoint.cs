@@ -19,6 +19,12 @@ public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, ListEven
         this.accessService = accessService;
     }
     
+    public override void Configure()
+    {
+        Get(ApiRoutes.Events.Videos);
+        Policies(ApiScopes.Read);
+    }
+
     public override async Task HandleAsync(ListEventVideosRequest req, CancellationToken ct)
     {
         var userId = User.GetSubject();

@@ -68,6 +68,7 @@ public class ProduceUploadUrlEndpoint : Endpoint<ProduceUploadUrlRequest, Produc
     public override void Configure()
     {
         Post(ApiRoutes.Video.GetUploadUrl);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task<Void> HandleAsync(ProduceUploadUrlRequest req, CancellationToken ct)

@@ -19,6 +19,7 @@ public class VideoInformationEndpoint : Endpoint<VideoInformationRequest, VideoI
     public override void Configure()
     {
         Get(ApiRoutes.Video.GetSingle);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(VideoInformationRequest req, CancellationToken ct)

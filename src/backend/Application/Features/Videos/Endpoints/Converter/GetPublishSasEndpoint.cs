@@ -21,6 +21,7 @@ public class GetPublishSasEndpoint : Endpoint<GetPublishSasRequest, GetPublishSa
     public override void Configure()
     {
         Get(ApiRoutes.Converter.GetPublishSas);
+        Policies(ApiScopes.Convert);
     }
 
     public override async Task HandleAsync(GetPublishSasRequest req, CancellationToken ct)

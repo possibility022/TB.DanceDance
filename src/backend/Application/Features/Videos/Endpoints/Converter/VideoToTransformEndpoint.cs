@@ -24,6 +24,7 @@ public class VideoToTransformEndpoint : EndpointWithoutRequest<VideoToTransformR
     public override void Configure()
     {
         Get(ApiRoutes.Converter.Videos);
+        Policies(ApiScopes.Convert);
     }
     
     public override async Task<Void> HandleAsync(CancellationToken ct)

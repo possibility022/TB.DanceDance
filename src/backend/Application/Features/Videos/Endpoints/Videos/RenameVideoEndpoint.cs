@@ -21,6 +21,7 @@ public class RenameVideoEndpoint : Endpoint<RenameVideoRequest, EmptyResponse>
     public override void Configure()
     {
         Post(ApiRoutes.Video.Rename);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task<Void> HandleAsync(RenameVideoRequest req, CancellationToken ct)

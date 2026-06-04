@@ -29,6 +29,7 @@ public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsReque
     public override void Configure()
     {
         Post(ApiRoutes.Video.UpdateCommentSettings);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(UpdateCommentSettingsRequest req, CancellationToken ct)

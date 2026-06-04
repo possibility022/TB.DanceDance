@@ -24,7 +24,7 @@ public class UnhideCommentEndpoint : Endpoint<UnhideCommentRequest>
     public override void Configure()
     {
         Put(ApiRoutes.Comments.Unhide);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(UnhideCommentRequest req, CancellationToken ct)

@@ -16,6 +16,7 @@ public class ListAllGroupVideosEndpoint : EndpointWithoutRequest<ListGroupVideos
     public override void Configure()
     {
         Get(ApiRoutes.Groups.Videos);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

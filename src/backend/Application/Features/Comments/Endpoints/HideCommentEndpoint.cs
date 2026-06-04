@@ -24,7 +24,7 @@ public class HideCommentEndpoint : Endpoint<HideCommentRequest>
     public override void Configure()
     {
         Put(ApiRoutes.Comments.Hide);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(HideCommentRequest req, CancellationToken ct)

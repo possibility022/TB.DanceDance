@@ -24,7 +24,7 @@ public class RevokeSharedLinkEndpoint : Endpoint<RevokeSharedLinkRequest>
     public override void Configure()
     {
         Delete(ApiRoutes.Share.Revoke);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(RevokeSharedLinkRequest req, CancellationToken ct)

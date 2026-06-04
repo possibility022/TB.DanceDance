@@ -38,7 +38,7 @@ public class CreateSharedLinkEndpoint : Endpoint<CreateSharedLinkRequest, Shared
     public override void Configure()
     {
         Post(ApiRoutes.Share.Create);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(CreateSharedLinkRequest req, CancellationToken ct)

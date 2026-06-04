@@ -29,7 +29,7 @@ if (builder.Environment.IsEnvironment("QA"))
 
 OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 
-builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
+builder.Services.Configure<Application.AppOptions>(builder.Configuration.GetSection(Application.AppOptions.Position));
 
 builder.Services.RegisterApplicationServices();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
@@ -166,7 +166,7 @@ if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.Or
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.UseApplicationEndpoints();
 app.MapGet("policy/dancedanceapp", (IConfiguration config) =>
 {
     var authority = config["Authentication:Authority"]?.TrimEnd('/') ?? string.Empty;

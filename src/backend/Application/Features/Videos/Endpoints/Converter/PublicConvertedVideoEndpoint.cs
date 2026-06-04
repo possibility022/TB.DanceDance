@@ -23,6 +23,7 @@ public class PublicConvertedVideoEndpoint : Endpoint<PublicConvertedVideoRequest
     public override void Configure()
     {
         Post(ApiRoutes.Converter.Upload);
+        Policies(ApiScopes.Convert);
     }
 
     public override async Task<Void> HandleAsync(PublicConvertedVideoRequest req, CancellationToken ct)

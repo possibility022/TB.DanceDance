@@ -29,6 +29,7 @@ public class RefreshUploadUrlEndpoint : Endpoint<RefreshUploadUrlRequest, Refres
     public override void Configure()
     {
         Get(ApiRoutes.Video.RefreshUploadUrl);
+        Policies(ApiScopes.Read);
     }
 
     public override async Task<Void> HandleAsync(RefreshUploadUrlRequest req, CancellationToken ct)

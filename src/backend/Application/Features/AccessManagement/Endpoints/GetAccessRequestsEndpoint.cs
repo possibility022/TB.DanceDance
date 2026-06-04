@@ -21,7 +21,7 @@ public class GetAccessRequestsEndpoint : EndpointWithoutRequest<GetAccessRequest
     public override void Configure()
     {
         Get(ApiRoutes.Access.ManageAccessRequests);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(CancellationToken ct)

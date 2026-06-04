@@ -31,7 +31,7 @@ public class ListCommentsForVideoEndpoint : Endpoint<ListCommentsForVideoRequest
     public override void Configure()
     {
         Get(ApiRoutes.Comments.ListCommentsForVideo);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(ListCommentsForVideoRequest req, CancellationToken ct)

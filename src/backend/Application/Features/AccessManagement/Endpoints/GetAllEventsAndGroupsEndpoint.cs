@@ -26,7 +26,7 @@ public class GetAllEventsAndGroupsEndpoint : EndpointWithoutRequest<GetAllEvents
     public override void Configure()
     {
         Get(ApiRoutes.Access.GetAll);
-        // TODO: original [Authorize(DanceDanceResources.WestCoastSwing.Scopes.ReadScope)]
+        Policies(ApiScopes.Read);
     }
 
     public override async Task HandleAsync(CancellationToken ct)
