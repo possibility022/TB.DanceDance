@@ -1,6 +1,7 @@
 using Application;
 using Application.Features.AccessManagement;
 using Domain.Exceptions;
+using FastEndpoints.ClientGen;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
@@ -156,6 +157,14 @@ app.MapGet("policy/dancedanceapp", (IConfiguration config) =>
     var authority = config["Authentication:Authority"]?.TrimEnd('/') ?? string.Empty;
     return Results.Redirect($"{authority}/policy/dancedanceapp", permanent: true);
 });
+
+// Exports the OpenAPI spec to "<dir>/v1.json" and exits — only when run with
+//   dotnet run --exportswaggerjson true [--swaggerOutputPath <dir>]
+// On a normal startup this is a no-op. Default output dir is the current working directory.
+var swaggerOutputPath = app.Configuration["swaggerOutputPath"] ?? Directory.GetCurrentDirectory();
+if (app.Configuration["exportswaggerjson"] == "true")
+    Directory.CreateDirectory(swaggerOutputPath);
+await app.ExportSwaggerJsonAndExitAsync(documentName: "v1", destinationPath: swaggerOutputPath);
 
 app.Run();
 
