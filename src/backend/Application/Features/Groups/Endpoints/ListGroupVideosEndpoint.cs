@@ -6,11 +6,11 @@ namespace Application.Features.Groups.Endpoints;
 
 public record ListGroupVideosRequest(Guid GroupId);
 
-public class ListGroupVideos : Endpoint<ListGroupVideosRequest, ListGroupVideosResponse>
+public class ListGroupVideosEndpoint : Endpoint<ListGroupVideosRequest, ListGroupVideosResponse>
 {
     private readonly IGroupService groupService;
 
-    public ListGroupVideos(IGroupService groupService)
+    public ListGroupVideosEndpoint(IGroupService groupService)
     {
         this.groupService = groupService;
     }

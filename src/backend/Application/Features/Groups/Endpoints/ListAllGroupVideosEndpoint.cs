@@ -4,11 +4,11 @@ using FastEndpoints;
 
 namespace Application.Features.Groups.Endpoints;
 
-public class ListAllGroupVideos : EndpointWithoutRequest<ListGroupVideosResponse>
+public class ListAllGroupVideosEndpoint : EndpointWithoutRequest<ListGroupVideosResponse>
 {
     private readonly IGroupService groupService;
 
-    public ListAllGroupVideos(IGroupService groupService)
+    public ListAllGroupVideosEndpoint(IGroupService groupService)
     {
         this.groupService = groupService;
     }
