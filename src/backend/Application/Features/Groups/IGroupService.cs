@@ -1,4 +1,5 @@
 ﻿using Application.Domain.Models;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Models;
 using Group = Domain.Entities.Group;
 

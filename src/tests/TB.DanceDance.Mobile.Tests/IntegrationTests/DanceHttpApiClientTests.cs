@@ -1,6 +1,7 @@
 ﻿using NSubstitute;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.Events.Models;
 using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Videos;
@@ -64,9 +65,9 @@ public class DanceHttpApiClientTests : IDisposable
         {
             Assigned = new EventsAndGroups
             {
-                Events = new List<Event>
+                Events = new List<EventModel>
                 {
-                    new Event { Id = Guid.NewGuid(), Name = "E", Date = DateTime.UtcNow }
+                    new EventModel { Id = Guid.NewGuid(), Name = "E", Date = DateTime.UtcNow }
                 }
             }
         };

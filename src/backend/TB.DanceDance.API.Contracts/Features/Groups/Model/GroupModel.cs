@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace TB.DanceDance.API.Contracts.Models
+namespace TB.DanceDance.API.Contracts.Features.Groups.Model
 {
-    public class Group
+    public class GroupModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;

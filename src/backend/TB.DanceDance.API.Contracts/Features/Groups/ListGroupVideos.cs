@@ -1,4 +1,5 @@
 ﻿using System;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Models;
 
 namespace TB.DanceDance.API.Contracts.Features.Groups

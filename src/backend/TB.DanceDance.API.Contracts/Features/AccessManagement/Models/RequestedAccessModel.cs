@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TB.DanceDance.API.Contracts.Models
+namespace TB.DanceDance.API.Contracts.Features.AccessManagement.Models
 {
     public class RequestedAccessModel
     {

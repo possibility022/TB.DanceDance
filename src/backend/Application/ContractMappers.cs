@@ -1,5 +1,8 @@
 ﻿using Domain.Entities;
 using Domain.Models;
+using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
+using TB.DanceDance.API.Contracts.Features.Events.Models;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Models;
 using Event = Domain.Entities.Event;
 using Group = Domain.Entities.Group;
@@ -22,9 +25,9 @@ public static class ContractMappers
         };
     }
 
-    public static TB.DanceDance.API.Contracts.Models.Event MapToEventContract(Event @event)
+    public static EventModel MapToEventContract(Event @event)
     {
-        return new TB.DanceDance.API.Contracts.Models.Event()
+        return new EventModel()
         {
             Id = @event.Id,
             Name = @event.Name,
@@ -32,9 +35,9 @@ public static class ContractMappers
         };
     }
 
-    public static TB.DanceDance.API.Contracts.Models.Group MapToGroupContract(Group group)
+    public static GroupModel MapToGroupContract(Group group)
     {
-        return new TB.DanceDance.API.Contracts.Models.Group()
+        return new GroupModel()
         {
             Id = group.Id,
             Name = group.Name,

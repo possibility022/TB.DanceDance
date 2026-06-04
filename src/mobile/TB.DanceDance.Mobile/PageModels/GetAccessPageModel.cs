@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.Events.Models;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -131,26 +133,26 @@ public partial class GetAccessPageModel : ObservableObject, IAppearingAware
         Accesses = list;
     }
     
-    private AccessModel MapFromEvent(Event @event, bool hasAccess, IReadOnlyCollection<Guid> pendingEvents)
+    private AccessModel MapFromEvent(EventModel eventModel, bool hasAccess, IReadOnlyCollection<Guid> pendingEvents)
     {
-        return new AccessModel(hasAccess, pendingEvents.Contains(@event.Id))
+        return new AccessModel(hasAccess, pendingEvents.Contains(eventModel.Id))
         {
-            Id = @event.Id,
+            Id = eventModel.Id,
             DateTime = null,
-            Name = @event.Name,
+            Name = eventModel.Name,
             Type = SharingWithType.Event
         };
     }
 
-    private AccessModel MapFromGroup(Group group, bool hasAccess, IReadOnlyCollection<Guid> pendingGroups)
+    private AccessModel MapFromGroup(GroupModel groupModel, bool hasAccess, IReadOnlyCollection<Guid> pendingGroups)
     {
-        return new AccessModel(hasAccess, pendingGroups.Contains(group.Id))
+        return new AccessModel(hasAccess, pendingGroups.Contains(groupModel.Id))
         {
-            Id = group.Id,
+            Id = groupModel.Id,
             DateTime = null,
-            Name = group.Name,
+            Name = groupModel.Name,
             Type = SharingWithType.Group,
-            Season = $"{group.SeasonStart.Year} - {group.SeasonEnd.Year}",
+            Season = $"{groupModel.SeasonStart.Year} - {groupModel.SeasonEnd.Year}",
         };
     }
 }

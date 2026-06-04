@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace TB.DanceDance.API.Contracts.Models
+namespace TB.DanceDance.API.Contracts.Features.Events.Models
 {
-    public class Event
+    public class EventModel
     {
         public Guid Id { get; set; }
 

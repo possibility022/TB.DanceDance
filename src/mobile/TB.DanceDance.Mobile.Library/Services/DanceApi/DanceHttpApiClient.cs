@@ -7,6 +7,7 @@ using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.Auth;
+using EventModel = TB.DanceDance.API.Contracts.Features.Events.Models.EventModel;
 
 namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
@@ -130,7 +131,7 @@ public class DanceHttpApiClient : IDanceHttpApiClient
 
     public async Task CreateEvent(string eventName, DateTime eventDate)
     {
-        var body = new CreateNewEventRequest() { Event = new Event() { Date = eventDate, Name = eventName } };
+        var body = new CreateNewEventRequest() { Event = new EventModel() { Date = eventDate, Name = eventName } };
         var res = await httpClient.PostAsJsonAsync($"/api/events", body);
 
         res.EnsureSuccessStatusCode();
