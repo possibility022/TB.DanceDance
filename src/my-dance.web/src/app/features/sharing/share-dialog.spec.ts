@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ShareDialog } from './share-dialog';
 import { SharingService } from '../../core/api/sharing.service';
@@ -170,6 +170,36 @@ describe('ShareDialog', () => {
 
       expect(component.copiedLinkId()).toBeNull();
       expect(emitted).toBe(true);
+    });
+  });
+
+  describe('resilience', () => {
+    it('empties the list when loading links fails', () => {
+      const { fixture, component } = createFixture({
+        getMySharedLinks: vi.fn(() => throwError(() => new Error('x'))),
+      });
+      open(fixture);
+      expect(component.links()).toEqual([]);
+    });
+
+    it('clears the creating flag when creation fails', () => {
+      const { fixture, component } = createFixture({
+        createSharedLink: vi.fn(() => throwError(() => new Error('x'))),
+      });
+      open(fixture);
+      component.create();
+      expect(component.creating()).toBe(false);
+    });
+
+    it('clears the updating flag when a visibility change fails', () => {
+      const { fixture, component } = createFixture({
+        updateCommentSettings: vi.fn(() => throwError(() => new Error('x'))),
+      });
+      open(fixture, 'v1', 0);
+      component.selectedVisibility.set(2);
+      component.applyVisibility();
+      expect(component.updatingVisibility()).toBe(false);
+      expect(component.savedVisibility()).toBe(0); // unchanged on failure
     });
   });
 });

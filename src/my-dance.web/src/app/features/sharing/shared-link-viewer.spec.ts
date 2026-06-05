@@ -130,6 +130,15 @@ describe('SharedLinkViewer', () => {
         anonymousId: undefined,
       });
     });
+
+    it('clears the submitting flag when posting fails', () => {
+      const addCommentByLink = vi.fn(() => throwError(() => new Error('x')));
+      const { component } = createFixture({ authed: true, addCommentByLink });
+
+      component.onCreate({ content: 'hello' });
+
+      expect(component.submitting()).toBe(false);
+    });
   });
 
   describe('moderation passthrough', () => {

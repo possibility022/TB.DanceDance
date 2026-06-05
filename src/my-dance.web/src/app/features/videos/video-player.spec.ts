@@ -108,6 +108,12 @@ describe('VideoPlayer', () => {
       const { component } = createFixture({});
       expect(component.siblings()).toEqual([]);
     });
+
+    it('leaves siblings empty when the sibling request fails', () => {
+      const getVideosForGroup = vi.fn(() => throwError(() => new Error('x')));
+      const { component } = createFixture({ groupId: 'g1', getVideosForGroup });
+      expect(component.siblings()).toEqual([]);
+    });
   });
 
   describe('rename', () => {
@@ -138,6 +144,16 @@ describe('VideoPlayer', () => {
       component.nameDraft.set('   ');
       component.saveRename();
       expect(videos.renameVideo).not.toHaveBeenCalled();
+    });
+
+    it('saveRename clears the in-flight flag when the request fails', () => {
+      const renameVideo = vi.fn(() => throwError(() => new Error('x')));
+      const { component } = createFixture({ renameVideo });
+      component.startRename();
+      component.nameDraft.set('New');
+      component.saveRename();
+      expect(component.renaming()).toBe(false);
+      expect(component.info()?.name).toBe('Tango'); // unchanged on failure
     });
 
     it('cancelRename closes the editor', () => {

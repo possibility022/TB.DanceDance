@@ -99,5 +99,15 @@ describe('AccessRequests', () => {
 
       expect(access.approveAccessRequest).toHaveBeenCalledTimes(1);
     });
+
+    it('clears the processing flag when the decision fails', () => {
+      const approveAccessRequest = vi.fn(() => throwError(() => new Error('x')));
+      const { component, access } = createFixture({ approveAccessRequest });
+
+      component.decide({ requestId: 'r1', isGroup: true }, true);
+
+      expect(component.processingId()).toBeNull();
+      expect(access.listAccessRequests).toHaveBeenCalledTimes(1); // no reload on failure
+    });
   });
 });

@@ -57,6 +57,12 @@ describe('Upload', () => {
     expect(component.targetsLoading()).toBe(false);
   });
 
+  it('stops the targets spinner even when access loading fails', () => {
+    const { component } = createFixture({ getMyAccess: vi.fn(() => throwError(() => new Error('x'))) });
+    expect(component.targetsLoading()).toBe(false);
+    expect(component.targets()).toEqual([]);
+  });
+
   it('tracks selected files and derived flags', () => {
     const { component } = createFixture({});
     expect(component.canSubmit()).toBe(false);

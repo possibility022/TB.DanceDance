@@ -115,5 +115,18 @@ describe('RequestAccess', () => {
       expect(component.checkedGroups().size).toBe(0);
       expect(access.getMyAccess).toHaveBeenCalledTimes(2);
     });
+
+    it('clears the submitting flag when the request fails', () => {
+      const { component, access } = createFixture({
+        requestAccess: vi.fn(() => throwError(() => new Error('x'))),
+      });
+      component.toggleEvent('e1');
+      component.submit();
+
+      expect(component.submitting()).toBe(false);
+      // Selection is preserved so the user can retry.
+      expect(component.checkedEvents().has('e1')).toBe(true);
+      expect(access.getMyAccess).toHaveBeenCalledTimes(1);
+    });
   });
 });

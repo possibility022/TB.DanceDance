@@ -95,4 +95,14 @@ describe('Events', () => {
     // load() ran once on init and once after creating.
     expect(access.getMyAccess).toHaveBeenCalledTimes(2);
   });
+
+  it('createEvent() clears the creating flag when the request fails', () => {
+    const createEvent = vi.fn(() => throwError(() => new Error('x')));
+    const { component } = createEventsFixture({ createEvent });
+
+    component.form.setValue({ name: 'Winter Ball', date: '2026-02-14' });
+    component.createEvent();
+
+    expect(component.creating()).toBe(false);
+  });
 });
