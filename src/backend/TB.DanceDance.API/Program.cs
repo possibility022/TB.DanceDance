@@ -1,10 +1,13 @@
 using Application;
+using Application.Features.AccessManagement;
 using Domain.Exceptions;
+using FastEndpoints.ClientGen;
 using Infrastructure;
-using Infrastructure.Identity.IdentityResources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using NJsonSchema.CodeGeneration.TypeScript;
 using System.Security.Claims;
 using TB.DanceDance.API;
+using TB.DanceDance.API.Contracts.ApiResources;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,12 +31,11 @@ if (builder.Environment.IsEnvironment("QA"))
 
 OtelConfiguration.ConfigureOpenTelemetryAndLogging(builder);
 
-builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.Position));
+builder.Services.Configure<Application.AppOptions>(builder.Configuration.GetSection(Application.AppOptions.Position));
 
 builder.Services.RegisterApplicationServices();
 builder.Services.RegisterInfrastructureServices(builder.Configuration);
 
-builder.Services.AddControllersWithViews();
 builder.Services.AddCors(setup =>
 {
     setup.AddDefaultPolicy(c =>
@@ -115,20 +117,6 @@ builder.Services
         };
     });
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        return Task.CompletedTask;
-    };
-
-    options.Events.OnRedirectToAccessDenied = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        return Task.CompletedTask;
-    };
-});
 
 builder.Services.AddAuthorization(o =>
 {
@@ -147,8 +135,6 @@ builder.Services.AddAuthorization(o =>
     });
 });
 
-builder.Services.AddScoped<IIdentityClient, IdentityClient>();
-
 var app = builder.Build();
 app.UseCors();
 #if DEBUG
@@ -164,15 +150,46 @@ if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.Or
 #endif
 
 
-app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.UseApplicationEndpoints();
 app.MapGet("policy/dancedanceapp", (IConfiguration config) =>
 {
     var authority = config["Authentication:Authority"]?.TrimEnd('/') ?? string.Empty;
     return Results.Redirect($"{authority}/policy/dancedanceapp", permanent: true);
 });
+
+// Exports the OpenAPI spec to "<dir>/v1.json" and exits — only when run with
+//   dotnet run --exportswaggerjson true [--swaggerOutputPath <dir>]
+// On a normal startup this is a no-op. Default output dir is the current working directory.
+var swaggerOutputPath = app.Configuration["swaggerOutputPath"] ?? Directory.GetCurrentDirectory();
+if (app.Configuration["exportswaggerjson"] == "true")
+    Directory.CreateDirectory(swaggerOutputPath);
+await app.ExportSwaggerJsonAndExitAsync(documentName: "v1", destinationPath: swaggerOutputPath);
+
+// Generates a single TypeScript file of all request/response model interfaces (no client class)
+// and exits — only when run with
+//   dotnet run --generateclients true [--clientsOutputPath <dir>] [--clientsFileName <name>]
+// On a normal startup this is a no-op.
+var clientsOutputPath = app.Configuration["clientsOutputPath"] ?? Directory.GetCurrentDirectory();
+var clientsFileName = app.Configuration["clientsFileName"] ?? "apiModels";
+if (app.Configuration["generateclients"] == "true")
+    Directory.CreateDirectory(clientsOutputPath);
+await app.GenerateClientsAndExitAsync(
+    documentName: "v1",
+    destinationPath: clientsOutputPath,
+    csSettings: null,
+    tsSettings: s =>
+    {
+        s.ClassName = clientsFileName;          // becomes "<clientsFileName>.ts"
+        s.GenerateClientClasses = false;        // DTO interfaces only, no HTTP client
+        s.GenerateDtoTypes = true;
+        s.TypeScriptGeneratorSettings.Namespace = "";   // top-level ES module exports, no namespace wrapper
+        s.TypeScriptGeneratorSettings.TypeStyle = TypeScriptTypeStyle.Interface;
+        s.TypeScriptGeneratorSettings.DateTimeType = TypeScriptDateTimeType.Date;
+        s.TypeScriptGeneratorSettings.EnumStyle = TypeScriptEnumStyle.Enum;
+        s.TypeScriptGeneratorSettings.TypeScriptVersion = 5.0m;
+    });
 
 app.Run();
 

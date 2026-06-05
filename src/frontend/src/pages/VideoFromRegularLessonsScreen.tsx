@@ -3,36 +3,69 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { VideoList } from '../components/Videos/VideoList';
 import { VideoInfoService } from '../services/VideoInfoService';
-import { IGroupWithVideosResponse } from '../types/ApiModels/GroupsWithVideosResponse';
-import VideoInformation from '../types/ApiModels/VideoInformation';
-import { GroupId } from "../types/ApiModels/TypeIds";
-import {formatDateToPlDate, formatDateToYearOnly} from "../extensions/DateExtensions";
+import { VideoFromGroupInformation } from '../types/ApiModels/dancedance/apiModels';
+import {formatDateToYearOnly} from "../extensions/DateExtensions";
 
+
+type GroupInfo = {
+    groupId: string
+    groupName: string
+    seasonStart?: Date
+    seasonEnd?: Date
+    videos: VideoFromGroupInformation[]
+}
 
 const videoService = new VideoInfoService()
 
 export function VideoFromRegularLessonsScreen() {
 
-    const [groups, setGroups] = useState<Array<IGroupWithVideosResponse>>([])
-    const [videos, setVideos] = useState<Array<VideoInformation>>([])
+    const [groups, setGroups] = useState<GroupInfo[]>([])
+    const [videos, setVideos] = useState<VideoFromGroupInformation[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [weHaveAnyVideos, setWeHaveAnyVideos] = useState<boolean>(true)
-    const [activeGroup, setActiveGroup] = useState<GroupId | null>(null)
-    const [renderedList, setRenderedList] = useState<Array<JSX.Element>>([])
+    const [activeGroup, setActiveGroup] = useState<string | null>(null)
+    const [renderedList, setRenderedList] = useState<JSX.Element[]>([])
 
     const navigate = useNavigate()
 
     useEffect(() => {
         setIsLoading(true)
-        videoService.GetVideosFromGroups()
-            .then(v => {
-                setGroups(v)
-                setWeHaveAnyVideos(v.length > 0)
-                if (v.length > 0) {
-                    setActiveGroup(v[0].groupId)
+
+        Promise.all([
+            videoService.GetVideosFromGroups(),
+            videoService.GetUserEventsAndGroups()
+        ])
+            .then(([flatVideos, userAccess]) => {
+                const allGroups = [
+                    ...(userAccess.assigned?.groups ?? []),
+                    ...(userAccess.available?.groups ?? [])
+                ]
+                const seasonMap = new Map(allGroups.map(g => [g.id!, g]))
+
+                const grouped = new Map<string, GroupInfo>()
+                for (const video of flatVideos) {
+                    if (!video.groupId) continue
+                    if (!grouped.has(video.groupId)) {
+                        const seasonInfo = seasonMap.get(video.groupId)
+                        grouped.set(video.groupId, {
+                            groupId: video.groupId,
+                            groupName: video.groupName ?? '',
+                            seasonStart: seasonInfo?.seasonStart,
+                            seasonEnd: seasonInfo?.seasonEnd,
+                            videos: []
+                        })
+                    }
+                    grouped.get(video.groupId)!.videos.push(video)
                 }
 
-                setRenderedList(renderListOfGroups(v, v[0].groupId))
+                const groupsArray = Array.from(grouped.values())
+                setGroups(groupsArray)
+                setWeHaveAnyVideos(groupsArray.length > 0)
+                if (groupsArray.length > 0) {
+                    setActiveGroup(groupsArray[0].groupId)
+                    setVideos(groupsArray[0].videos)
+                    setRenderedList(renderListOfGroups(groupsArray, groupsArray[0].groupId))
+                }
             })
             .catch(e => console.log(e))
             .finally(() => setIsLoading(false))
@@ -59,16 +92,21 @@ export function VideoFromRegularLessonsScreen() {
 
     useEffect(() => {
         if (activeGroup != null) {
-            const vid = groups.find(r => r.groupId == activeGroup)?.videos ?? []
-            setVideos(vid)
+            const group = groups.find(r => r.groupId == activeGroup)
+            setVideos(group?.videos ?? [])
             setRenderedList(renderListOfGroups(groups, activeGroup))
         }
     }, [activeGroup])
 
-    const renderListOfGroups = (groups: Array<IGroupWithVideosResponse>, activeGroup: string) => {
+    const renderListOfGroups = (groups: GroupInfo[], activeGroupId: string) => {
         if (groups?.length > 0) {
             return groups.map(r => {
-                return <li key={r.groupId} className={r.groupId == activeGroup ? 'is-active' : ''}><a onClick={() => {setActiveGroup(r.groupId)}}>{r.groupName} ({formatDateToYearOnly(r.seasonStart)} - {formatDateToYearOnly(r.seasonEnd)})</a></li>
+                const label = r.seasonStart && r.seasonEnd
+                    ? `${r.groupName} (${formatDateToYearOnly(r.seasonStart)} - ${formatDateToYearOnly(r.seasonEnd)})`
+                    : r.groupName
+                return <li key={r.groupId} className={r.groupId == activeGroupId ? 'is-active' : ''}>
+                    <a onClick={() => { setActiveGroup(r.groupId) }}>{label}</a>
+                </li>
             })
         }
         return []

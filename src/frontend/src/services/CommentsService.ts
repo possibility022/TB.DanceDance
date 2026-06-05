@@ -1,6 +1,5 @@
-﻿import httpApiClient from "./HttpApiClient";
-import {CommentResponse} from "../types/ApiModels/Comments/CommentResponse";
-import CreateCommentRequest from "../types/ApiModels/Comments/AddCommentRequest";
+import httpApiClient from "./HttpApiClient";
+import {CommentResponse, CreateCommentRequest, ListCommentsByLinkResponse, ListCommentsForVideoResponse} from "../types/ApiModels/dancedance/apiModels";
 import appStorage from "../providers/AppStorage";
 import {AxiosRequestConfig} from "axios";
 
@@ -15,15 +14,15 @@ class CommentsService {
     }
 
     async getCommentsByLink(linkId: string) {
-        const response = await httpApiClient.get<CommentResponse[]>(
+        const response = await httpApiClient.get<ListCommentsByLinkResponse>(
             `/api/share/${linkId}/comments`,
             this.getConfigWithAnonymousHeader())
-        return response.data
+        return response.data.comments ?? []
     }
 
-    async getCommentsByVideoId(videoBlobId: string) {
-        const response = await httpApiClient.get<CommentResponse[]>(`/api/comments/video/${videoBlobId}`)
-        return response.data
+    async getCommentsByVideoId(videoId: string) {
+        const response = await httpApiClient.get<ListCommentsForVideoResponse>(`/api/comments/video/${videoId}`)
+        return response.data.comments ?? []
     }
 
     async addCommentAsync(linkId: string, comment: string) {

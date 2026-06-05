@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
 using TB.DanceDance.API.Contracts.Features.Events;
-using TB.DanceDance.API.Contracts.Features.Sharing;
+using TB.DanceDance.API.Contracts.Features.Events.Models;
 using TB.DanceDance.API.Contracts.Features.Groups;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
+using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.Auth;
@@ -16,7 +19,7 @@ public class DanceHttpApiClient : IDanceHttpApiClient
     private readonly HttpClient httpClient;
 
     public DanceHttpApiClient(IHttpClientFactory httpClientFactory,
-        
+
         [FromKeyedServices(TokenStorage.PrimaryStorageKey)]ITokenProviderService primaryTokenProviderService)
     {
         this.primaryTokenProviderService = primaryTokenProviderService;
@@ -25,48 +28,53 @@ public class DanceHttpApiClient : IDanceHttpApiClient
 
     public async Task RenameVideoAsync(Guid videoId, string newName)
     {
-        var request = new VideoRenameRequest() { NewName = newName };
+        var request = new RenameVideoRequest() { NewName = newName };
         var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/rename", request);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<UserEventsAndGroupsResponse> GetUserAccesses()
+    public async Task<GetUserAccessResponse> GetUserAccesses()
     {
         var response = await httpClient.GetAsync("/api/videos/accesses/my");
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<UserEventsAndGroupsResponse>();
-        return content ?? new UserEventsAndGroupsResponse();;
+        var content = await response.Content.ReadFromJsonAsync<GetUserAccessResponse>();
+        return content ?? new GetUserAccessResponse
+        {
+            Assigned  = new GetUserAccessSet(),
+            Available = new GetUserAccessSet(),
+            Pending   = new ListUserAccessPending()
+        };
     }
 
-    public async Task RequestAccess(RequestAssigmentModelRequest accessRequest)
+    public async Task RequestAccess(RequestAccessRequest accessRequest)
     {
         var response = await httpClient.PostAsJsonAsync("/api/videos/accesses/request", accessRequest);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<IReadOnlyCollection<GroupWithVideosResponse>?> GetVideosFromGroups()
+    public async Task<IReadOnlyCollection<VideoFromGroupInformation>?> GetVideosFromGroups()
     {
         var response = await httpClient.GetAsync("/api/groups/videos");
         response.EnsureSuccessStatusCode();
-        
-        var content = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<GroupWithVideosResponse>>();
 
-        return content;
+        var content = await response.Content.ReadFromJsonAsync<ListGroupVideosResponse>();
+
+        return content?.Videos;
     }
 
-    public async Task<IReadOnlyCollection<VideoInformationResponse>> GetVideosForEvent(Guid eventId)
+    public async Task<IReadOnlyCollection<VideoInformation>> GetVideosForEvent(Guid eventId)
     {
         try
         {
             var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<VideoInformationResponse>>();
+            var content = await response.Content.ReadFromJsonAsync<ListEventVideosResponse>();
             if (content == null)
-                return Array.Empty<VideoInformationResponse>();
+                return Array.Empty<VideoInformation>();
 
-            return content;
+            return content.Videos;
         }
         catch (Exception ex)
         {
@@ -75,16 +83,16 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         }
     }
 
-    public async Task<UploadVideoInformationResponse> RefreshUploadUrl(Guid videoId)
+    public async Task<RefreshUploadUrlResponse> RefreshUploadUrl(Guid videoId)
     {
         var response = await httpClient.GetAsync($"/api/videos/upload/{videoId}");
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<UploadVideoInformationResponse>();
+        var content = await response.Content.ReadFromJsonAsync<RefreshUploadUrlResponse>();
         return content!;
     }
 
-    public async Task<UploadVideoInformationResponse?> GetUploadInformation(
+    public async Task<ProduceUploadUrlResponse?> GetUploadInformation(
         string fileName,
         string nameOfVideo,
         SharingWithType sharingWith,
@@ -92,7 +100,7 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         DateTime recordedTimeUtc
         )
     {
-        SharedVideoInformationRequest request = new()
+        ProduceUploadUrlRequest request = new()
         {
             SharingWithType = sharingWith,
             FileName = fileName,
@@ -100,11 +108,11 @@ public class DanceHttpApiClient : IDanceHttpApiClient
             NameOfVideo = nameOfVideo,
             RecordedTimeUtc = recordedTimeUtc
         };
-        
+
         var response = await httpClient.PostAsJsonAsync("/api/videos/upload", request);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<UploadVideoInformationResponse>();
+        var content = await response.Content.ReadFromJsonAsync<ProduceUploadUrlResponse>();
         return content;
     }
 
@@ -130,22 +138,22 @@ public class DanceHttpApiClient : IDanceHttpApiClient
 
     public async Task CreateEvent(string eventName, DateTime eventDate)
     {
-        var body = new CreateNewEventRequest() { Event = new Event() { Date = eventDate, Name = eventName } };
+        var body = new CreateNewEventRequest() { Event = new EventModel() { Date = eventDate, Name = eventName } };
         var res = await httpClient.PostAsJsonAsync($"/api/events", body);
 
         res.EnsureSuccessStatusCode();
     }
 
-    public async Task<IReadOnlyCollection<VideoInformationResponse>> GetMyVideos()
+    public async Task<IReadOnlyCollection<VideoInformation>> GetMyVideos()
     {
         var response = await httpClient.GetAsync("/api/videos/my", CancellationToken.None);
         response.EnsureSuccessStatusCode();
 
-        var videos = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<VideoInformationResponse>>();
+        var videos = await response.Content.ReadFromJsonAsync<MyVideosResponse>();
         if (videos == null)
-            videos = Array.Empty<VideoInformationResponse>();
+            return Array.Empty<VideoInformation>();
 
-        return videos;
+        return videos.VideoInformation.ToList();
     }
 
     public async Task<SharedLinkResponse?> GetSharingLinkAsync(Guid videoId, CancellationToken token = default)

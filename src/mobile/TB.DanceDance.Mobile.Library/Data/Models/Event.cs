@@ -1,4 +1,6 @@
-﻿namespace TB.DanceDance.Mobile.Library.Data.Models;
+﻿using TB.DanceDance.API.Contracts.Features.Events.Models;
+
+namespace TB.DanceDance.Mobile.Library.Data.Models;
 
 public record Event
 {
@@ -6,7 +8,7 @@ public record Event
     public DateTime When { get; set; }
     public Guid Id { get; set; }
 
-    public static Event MapFromApiEvent(TB.DanceDance.API.Contracts.Models.Event r)
+    public static Event MapFromApiEvent(EventModel r)
     {
         return new Event() { Name = r.Name, When = r.Date, Id = r.Id };
     }

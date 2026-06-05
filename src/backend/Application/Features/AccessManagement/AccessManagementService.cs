@@ -51,7 +51,7 @@ public class AccessManagementService : IAccessManagementService
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public Task AddOrUpdateUserAsync(Domain.Entities.User user, CancellationToken cancellationToken)
+    public Task AddOrUpdateUserAsync(User user, CancellationToken cancellationToken)
     {
         var record = dbContext.Users.Find(user.Id);
         if (record != null)

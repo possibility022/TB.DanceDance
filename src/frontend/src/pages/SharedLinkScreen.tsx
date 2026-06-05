@@ -1,7 +1,7 @@
 ﻿import React, {useEffect, useState} from 'react';
 import {useParams} from "react-router-dom";
 import sharingService from "../services/SharingService";
-import SharedVideoInfoResponse from "../types/ApiModels/Sharing/SharedVideoInfoResponse";
+import { SharedVideoInfoResponse } from "../types/ApiModels/dancedance/apiModels";
 import VideoPlayerComponent from "../components/Videos/VideoPlayerComponent";
 import CommentsComponent from "../components/Comments/CommentsComponent";
 import {authService} from "../providers/AuthProvider";
@@ -31,9 +31,9 @@ function SharedLinkScreen() {
                     return
 
                 if (authService.isAuthenticated()) {
-                    setAllowAdding(res.data.allowCommentsOnThisLink)
+                    setAllowAdding(res.data.allowCommentsOnThisLink ?? false)
                 } else {
-                    setAllowAdding(res.data.allowAnonymousCommentsOnThisLink)
+                    setAllowAdding(res.data.allowAnonymousCommentsOnThisLink ?? false)
                 }
             })
             .catch(error => {
@@ -55,7 +55,7 @@ function SharedLinkScreen() {
 
         return <div>
             <VideoPlayerComponent videoId={undefined} sharedScope={undefined} videoList={[]} url={url}/>
-            <CommentsComponent videoId={videoInfo!.videoId} allowAdding={allowAdding} linkId={params.linkId as string}/>
+            <CommentsComponent videoId={videoInfo!.videoId!} allowAdding={allowAdding} linkId={params.linkId as string}/>
         </div>
     }
 

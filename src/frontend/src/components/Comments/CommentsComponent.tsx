@@ -1,6 +1,6 @@
 ﻿import React, {useEffect, useState} from 'react';
 import commentsService from "../../services/CommentsService";
-import {CommentResponse} from "../../types/ApiModels/Comments/CommentResponse";
+import {CommentResponse} from "../../types/ApiModels/dancedance/apiModels";
 import {CommentsContext} from "./CommentsContext";
 import CommentsList from "./CommentsList";
 import AddComment from "./AddComment";

@@ -1,12 +1,11 @@
-﻿import React from 'react';
+import React from 'react';
 import ReactPlayer from "react-player";
 import {VideoList} from "./VideoList";
-import {BlobId} from "../../types/ApiModels/TypeIds";
-import VideoInformation from "../../types/ApiModels/VideoInformation";
+import { VideoInformation } from "../../types/ApiModels/dancedance/apiModels";
 import {SharedScope} from "../../types/appTypes";
 
 export interface VideoPlayerComponentProps {
-    videoId: BlobId | undefined;
+    videoId: string | undefined;
     sharedScope: SharedScope | undefined;
     videoList: VideoInformation[];
     url: string | undefined;

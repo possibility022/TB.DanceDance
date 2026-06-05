@@ -1,5 +1,4 @@
-﻿using Infrastructure.Identity;
-using TB.Auth.Web.Identity;
+﻿using TB.Auth.Web.Identity;
 using Testcontainers.PostgreSql;
 
 namespace TB.DanceDance.Tests.TestsFixture;

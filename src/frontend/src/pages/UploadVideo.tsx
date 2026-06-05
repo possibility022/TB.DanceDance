@@ -4,7 +4,7 @@ import { Dropdown } from '../components/Dropdown';
 
 
 import videoInfoService from '../services/VideoInfoService'
-import SharingWithType from "../types/ApiModels/SharingWithType";
+import { SharingWithType } from "../types/ApiModels/dancedance/apiModels";
 import { UploadVideoComponent } from '../components/Videos/UploadVideoComponent';
 
 interface IToAssign {
@@ -34,11 +34,11 @@ export function UploadVideo() {
 
         const availableGroups = new Array<IToAssign>()
 
-        for (const el of v.assigned.groups)
+        for (const el of v.assigned?.groups ?? [])
           availableGroups.push({
-            id: el.id,
+            id: el.id!,
             isEvent: false,
-            name: el.name
+            name: el.name!
           })
 
         setAvailableGroups(availableGroups)

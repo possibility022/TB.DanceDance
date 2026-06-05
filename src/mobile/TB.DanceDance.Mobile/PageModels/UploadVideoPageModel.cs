@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.PageModels.Intents;
@@ -25,7 +26,7 @@ public partial class UploadVideoPageModel : ObservableObject,
 
     [ObservableProperty] private ICollection<FileResult> selectedFiles = [];
 
-    [ObservableProperty] private List<Group> groups = new();
+    [ObservableProperty] private List<GroupModel> groups = new();
 
     [ObservableProperty] private int selectedGroupIndex = -1;
     [ObservableProperty] private bool uploadButtonEnabled = false;

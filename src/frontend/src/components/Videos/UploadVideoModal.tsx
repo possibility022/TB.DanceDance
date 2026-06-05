@@ -1,7 +1,6 @@
 import * as React from 'react';
-import {Event} from '../../types/ApiModels/EventsAndGroups';
+import { EventModel2 as Event, SharingWithType } from '../../types/ApiModels/dancedance/apiModels';
 import {UploadVideoComponent} from './UploadVideoComponent';
-import SharingWithType from '../../types/ApiModels/SharingWithType';
 
 export interface IUploadVideoModalProps {
     sharingWith: SharingWithType.Event | SharingWithType.Private;

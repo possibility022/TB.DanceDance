@@ -1,6 +1,6 @@
 using System.Security.Cryptography.X509Certificates;
-using Infrastructure.Identity.IdentityResources;
 using OpenIddict.Abstractions;
+using TB.DanceDance.API.Contracts.ApiResources;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TB.Auth.Web;

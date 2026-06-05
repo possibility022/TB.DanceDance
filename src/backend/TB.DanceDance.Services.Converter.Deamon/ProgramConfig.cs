@@ -16,6 +16,12 @@ internal class ProgramConfig
 
     public int DelayInMinutes { get; set; } = 5;
 
+    // When set, replaces the scheme/host/port of all blob SAS URLs before the converter
+    // accesses them. Needed in Docker: the API generates SAS URLs with 127.0.0.1 (correct
+    // for the browser on the host), but inside a container 127.0.0.1 is the container
+    // itself. Set to the internal Docker service endpoint, e.g. http://azuriteStorage:10000.
+    public string? BlobEndpointOverride { get; set; }
+
     public void ConfigureFfmpeg()
     {
         if (!string.IsNullOrEmpty(FFMPGDefaultFolder))

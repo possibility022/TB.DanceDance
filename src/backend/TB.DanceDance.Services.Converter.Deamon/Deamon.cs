@@ -53,13 +53,15 @@ internal sealed class Deamon : BackgroundService
         var converter = scope.ServiceProvider.GetRequiredService<IFFmpegClientConverter>();
 
         Log.Information("Getting next video.");
-        var nextVideoToConvert = await client.GetNextVideoToConvertAsync(token);
+        var response = await client.GetNextVideoToConvertAsync(token);
 
-        if (nextVideoToConvert == null)
+        if (response.VideoExists is false)
         {
             Log.Information("Nothing to convert.");
             return false;
         }
+
+        var nextVideoToConvert = response.VideoToTransform!;
 
         Log.Information("Video to convert {0}", nextVideoToConvert.Id);
 
@@ -76,7 +78,7 @@ internal sealed class Deamon : BackgroundService
         Log.Information("Getting video information.");
         var info = await converter.GetInfoAsync(inputVideo);
         Log.Information("Updating video informations.");
-        await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Features.Conversion.UpdateVideoInfoRequest()
+        await client.UploadVideoToTransformInformation(new TB.DanceDance.API.Contracts.Features.Videos.Converter.UpdateVideoInfoRequest()
         {
             Duration = info.Value.Item2,
             RecordedDateTime = info.Value.Item1,

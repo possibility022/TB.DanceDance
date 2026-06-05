@@ -1,0 +1,33 @@
+﻿using Application.Extensions;
+using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Groups;
+
+namespace Application.Features.Groups.Endpoints;
+
+public class ListAllGroupVideosEndpoint : EndpointWithoutRequest<ListGroupVideosResponse>
+{
+    private readonly IGroupService groupService;
+
+    public ListAllGroupVideosEndpoint(IGroupService groupService)
+    {
+        this.groupService = groupService;
+    }
+
+    public override void Configure()
+    {
+        Get(ApiRoutes.Groups.Videos);
+        Policies(ApiScopes.Read);
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        var userId = User.GetSubject();
+
+        var videos = await groupService
+            .GetAllVideos(userId, ct);
+
+        var response = new ListGroupVideosResponse() { Videos = videos };
+
+        await Send.OkAsync(response, ct);
+    }
+}

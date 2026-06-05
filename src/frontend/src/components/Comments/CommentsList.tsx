@@ -1,4 +1,4 @@
-﻿import React, {useContext} from 'react';
+import React, {useContext} from 'react';
 import Comment from "./Comment";
 import {CommentsContext} from "./CommentsContext";
 
@@ -18,10 +18,10 @@ function CommentsList() {
         <div>
             {commentsContext.comments!.map((comment, index) => (
                 <Comment key={comment.id}
-                         onReportAsync={(why) => commentsContext.reportCommentAsync(comment.id, why)}
-                         onDeleteAsync={() => commentsContext.deleteCommentAsync(comment.id)}
-                         onEditAsync={(newContent, authorName) => commentsContext.editCommentAsync(comment.id, newContent, authorName)}
-                         onHideSwitchAsync={(hide) => commentsContext.hideCommentAsync(comment.id, hide)}
+                         onReportAsync={(why) => commentsContext.reportCommentAsync(comment.id!, why)}
+                         onDeleteAsync={() => commentsContext.deleteCommentAsync(comment.id!)}
+                         onEditAsync={(newContent, authorName) => commentsContext.editCommentAsync(comment.id!, newContent, authorName)}
+                         onHideSwitchAsync={(hide) => commentsContext.hideCommentAsync(comment.id!, hide)}
                          comment={comment}/>
             ))}
         </div>

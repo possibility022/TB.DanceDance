@@ -1,7 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using System.Net.Http.Json;
 using System.Text.Json;
-using TB.DanceDance.API.Contracts.Features.Conversion;
+using TB.DanceDance.API.Contracts.Features.Videos.Converter;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
 
 namespace TB.DanceDance.Services.Converter.Deamon;
@@ -9,23 +9,31 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
 {
     private readonly ApiHttpClient apiClient;
     private readonly HttpClient blobClient;
+    private readonly ProgramConfig config;
     private readonly JsonSerializerOptions serializationOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public DanceDanceApiClient(ApiHttpClient apiClient, HttpClient blobClient)
+    public DanceDanceApiClient(ApiHttpClient apiClient, HttpClient blobClient, ProgramConfig config)
     {
         this.apiClient = apiClient;
         this.blobClient = blobClient;
+        this.config = config;
     }
 
-    public async Task<VideoToTransformResponse?> GetNextVideoToConvertAsync(CancellationToken token)
+    private Uri RewriteBlobUrl(Uri url)
+    {
+        if (string.IsNullOrEmpty(config.BlobEndpointOverride))
+            return url;
+        var target = new Uri(config.BlobEndpointOverride);
+        var builder = new UriBuilder(url) { Scheme = target.Scheme, Host = target.Host, Port = target.Port };
+        return builder.Uri;
+    }
+
+    public async Task<VideoToTransformResponse> GetNextVideoToConvertAsync(CancellationToken token)
     {
         var response = await apiClient.GetAsync("/api/converter/videos", token);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            return null;
 
         response.EnsureSuccessStatusCode();
 
@@ -48,7 +56,11 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
             throw new ArgumentNullException(nameof(videoUrl));
 
 
-        var blobResponse = await blobClient.GetAsync(videoUrl, HttpCompletionOption.ResponseHeadersRead, token);
+        // SAS URLs from the API embed the blob endpoint hostname configured on the API side,
+        // which is 127.0.0.1 in development. Inside Docker, 127.0.0.1 is the container
+        // itself, not Azurite. BlobEndpointOverride lets docker-compose remap to the
+        // internal Docker service name (e.g. azuriteStorage) without changing the SAS signature.
+        var blobResponse = await blobClient.GetAsync(RewriteBlobUrl(videoUrl), HttpCompletionOption.ResponseHeadersRead, token);
         blobResponse.EnsureSuccessStatusCode();
         var videoContent = await blobResponse.Content.ReadAsStreamAsync(token);
         await videoContent.CopyToAsync(target, token);
@@ -57,7 +69,12 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
     public async Task UploadVideoToTransformInformation(UpdateVideoInfoRequest updateVideoInfoRequest, CancellationToken token)
     {
         var res = await apiClient.PostAsJsonAsync("/api/converter/videos", updateVideoInfoRequest, token);
-        res.EnsureSuccessStatusCode();
+        
+        if (res.IsSuccessStatusCode)
+            return;
+        
+        var responseContent = await res.Content.ReadAsStringAsync(token);
+        throw new Exception("Failed to update video info: " + responseContent + "HTTP Code:" + res.StatusCode);
     }
 
     public async Task UploadContent(Guid videoId, Stream content, CancellationToken token)
@@ -72,7 +89,9 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
         if (body == null)
             throw new NullReferenceException("Deserialized body is null.");
 
-        var cloudBlockBlob = new BlobClient(new Uri(body.Sas));
+        // Same host rewrite as in GetVideoToConvertAsync — SAS upload URL may also contain
+        // 127.0.0.1 from the API's development blob connection string.
+        var cloudBlockBlob = new BlobClient(RewriteBlobUrl(new Uri(body.Sas)));
         await cloudBlockBlob.UploadAsync(content, token);
     }
 

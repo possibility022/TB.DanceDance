@@ -1,0 +1,56 @@
+using Application.Extensions;
+using FastEndpoints;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using TB.DanceDance.API.Contracts.Features.Sharing;
+using SharedLinkResponse = TB.DanceDance.API.Contracts.Features.Sharing.SharedLinkResponse;
+
+namespace Application.Features.Sharing.Endpoints
+{
+    /// <summary>
+    /// Creates a shared link for a video. Requires authentication.
+    /// </summary>
+    public class CreateSharedLinkEndpoint : Endpoint<CreateSharedLinkRequest, SharedLinkResponse>
+    {
+        private readonly ISharedLinkService sharedLinkService;
+        private readonly IOptions<AppOptions> appOptions;
+
+        public CreateSharedLinkEndpoint(ISharedLinkService sharedLinkService, IOptions<AppOptions> appOptions)
+        {
+            this.sharedLinkService = sharedLinkService;
+            this.appOptions = appOptions;
+        }
+
+        public override void Configure()
+        {
+            Post(ApiRoutes.Share.Create);
+            Policies(ApiScopes.Read);
+        }
+
+        public override async Task HandleAsync(CreateSharedLinkRequest req, CancellationToken ct)
+        {
+            var userId = User.GetSubject();
+            var videoId = Route<Guid>("videoId");
+
+            try
+            {
+                var link = await sharedLinkService.CreateSharedLinkAsync(
+                    videoId,
+                    userId,
+                    req.ExpirationDays,
+                    req.AllowComments,
+                    req.AllowAnonymousComments,
+                    ct);
+
+                var response = ShareMapper.MapToSharedLinkResponse(link, appOptions.Value.AppWebsiteOrigin);
+                await Send.OkAsync(response, ct);
+            }
+            catch (ArgumentException ex)
+            {
+                Logger.LogWarning(ex, "Failed to create shared link for video {VideoId} by user {UserId}", videoId, userId);
+                AddError(ex.Message);
+                await Send.ErrorsAsync(400, ct);
+            }
+        }
+    }
+}

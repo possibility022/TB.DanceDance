@@ -6,7 +6,7 @@ import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 import { Dropdown } from '../Dropdown';
 import { IItemToSelect, SelectableList } from './SelectableList';
-import { Event, Group } from '../../types/ApiModels/EventsAndGroups';
+import { EventModel2 as Event, GroupModel as Group, RequestAccessGroupModel } from '../../types/ApiModels/dancedance/apiModels';
 import {formatDateToYearOnly} from "../../extensions/DateExtensions";
 interface IRequestState {
     wasSend: boolean
@@ -53,7 +53,7 @@ export function AccessToVideoRequestForm() {
 
     const mapToItemToSelect = (item: Event) => {
         const itemToSelect: IItemToSelect<string> = {
-            key: item.id,
+            key: item.id!,
             text: item.name,
         }
 
@@ -65,16 +65,16 @@ export function AccessToVideoRequestForm() {
             .then(userGroupAndEvents => {
 
                 setAllSharingScopes({
-                    events: userGroupAndEvents.available.events,
-                    groups: userGroupAndEvents.available.groups
+                    events: userGroupAndEvents.available?.events ?? [],
+                    groups: userGroupAndEvents.available?.groups ?? []
                 })
 
                 const eventsToSet = new Array<IItemToSelect<string>>()
 
-                setAlreadyAssignedEvents(userGroupAndEvents.assigned.events.map(e => eventToDisplayName(e)))
-                setAlreadyAssignedGroups(userGroupAndEvents.assigned.groups.map(g => groupToDisplayName(g)))
+                setAlreadyAssignedEvents((userGroupAndEvents.assigned?.events ?? []).map(e => eventToDisplayName(e)))
+                setAlreadyAssignedGroups((userGroupAndEvents.assigned?.groups ?? []).map(g => groupToDisplayName(g)))
 
-                for (const el of userGroupAndEvents.available.events) {
+                for (const el of userGroupAndEvents.available?.events ?? []) {
                     const mapped = mapToItemToSelect(el)
                     eventsToSet.push(mapped)
                 }
@@ -82,15 +82,15 @@ export function AccessToVideoRequestForm() {
                 setEvents(eventsToSet)
 
                 setAvailableGroupNames(
-                    userGroupAndEvents.available.groups.map(g => groupToDisplayName(g)))
+                    (userGroupAndEvents.available?.groups ?? []).map(g => groupToDisplayName(g)))
             })
             .catch(e => console.error(e))
     }, [])
 
-    const eventToDisplayName = (event: Event) => event.name;
+    const eventToDisplayName = (event: Event) => event.name ?? '';
 
     const groupToDisplayName = (group: Group) =>
-        group.name + " (" + formatDateToYearOnly(group.seasonStart) + "-" + formatDateToYearOnly(group.seasonEnd) + ")";
+        (group.name ?? '') + " (" + formatDateToYearOnly(group.seasonStart ?? new Date()) + "-" + formatDateToYearOnly(group.seasonEnd ?? new Date()) + ")";
 
     const onGroupSelected = (selectedItem: string, selectedIndex: number) => {
         if (selectedIndex >= 0) {
@@ -168,7 +168,7 @@ export function AccessToVideoRequestForm() {
                 events.push(eventId)
         })
 
-        let groups: Array<GroupAssigmentModel> | undefined = undefined
+        let groups: Array<RequestAccessGroupModel> | undefined = undefined
         if (selectedGroup) {
 
             const res = Date.parse(date)

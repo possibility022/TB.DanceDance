@@ -1,7 +1,8 @@
 ﻿using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
-using TB.DanceDance.API.Contracts.Features.Conversion;
 using System.Text.Json;
+using TB.DanceDance.API.Contracts.Features.Videos.Converter;
+using TB.DanceDance.API.Contracts.Features.Videos.Models;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -39,7 +40,7 @@ public class DanceDanceApiClientTests : IDisposable
         };
         
         blobHttpClient = new HttpClient();
-        danceApiClient = new DanceDanceApiClient(apiHttpClient, blobHttpClient);
+        danceApiClient = new DanceDanceApiClient(apiHttpClient, blobHttpClient, new ProgramConfig());
     }
 
     private void StubToken()
@@ -54,30 +55,19 @@ public class DanceDanceApiClientTests : IDisposable
     }
 
     [Fact]
-    public async Task GetNextVideoToConvertAsync_ReturnsNull_On404()
-    {
-        StubToken();
-
-        server
-            .Given(Request.Create().WithPath("/api/converter/videos").UsingGet())
-            .RespondWith(Response.Create().WithStatusCode(404));
-
-        var res = await danceApiClient.GetNextVideoToConvertAsync(CancellationToken.None);
-        Assert.Null(res);
-    }
-
-    [Fact]
     public async Task GetNextVideoToConvertAsync_ReturnsObject_On200()
     {
         StubToken();
-        var obj = new VideoToTransformResponse
+        var videoToTransformModel = new VideoToTransformModel
         {
             Id = Guid.NewGuid(),
             FileName = "video.mp4",
             Sas = server.Url + "/blob/video.mp4"
         };
 
-        var json = JsonSerializer.Serialize(obj, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var content = new VideoToTransformResponse() { VideoExists = true, VideoToTransform = videoToTransformModel };
+
+        var json = JsonSerializer.Serialize(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         server
             .Given(Request.Create().WithPath("/api/converter/videos").UsingGet())
             .RespondWith(Response.Create()
@@ -87,9 +77,9 @@ public class DanceDanceApiClientTests : IDisposable
 
         var res = await danceApiClient.GetNextVideoToConvertAsync(CancellationToken.None);
         Assert.NotNull(res);
-        Assert.Equal(obj.Id, res!.Id);
-        Assert.Equal(obj.FileName, res.FileName);
-        Assert.Equal(obj.Sas, res.Sas);
+        Assert.Equal(videoToTransformModel.Id, res.VideoToTransform!.Id);
+        Assert.Equal(videoToTransformModel.FileName, res.VideoToTransform!.FileName);
+        Assert.Equal(videoToTransformModel.Sas, res.VideoToTransform!.Sas);
     }
 
     [Fact]

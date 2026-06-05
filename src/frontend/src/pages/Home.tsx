@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import LoginButton from '../components/LoginLogoutComponents/LoginButton';
 import { AuthContext } from '../providers/AuthProvider';
 import videoInfoService from '../services/VideoInfoService';
-import VideoInformation from '../types/ApiModels/VideoInformation';
-import { Event } from '../types/ApiModels/EventsAndGroups';
-import { IGroupWithVideosResponse } from '../types/ApiModels/GroupsWithVideosResponse';
+import { VideoInformation, VideoFromGroupInformation, EventModel2 as Event } from '../types/ApiModels/dancedance/apiModels';
 import { Button } from '../components/Button';
 import { formatDateToPlDate } from '../extensions/DateExtensions';
 
@@ -15,7 +13,7 @@ const Home = () => {
     const navigate = useNavigate();
     const authContext = useContext(AuthContext)
 
-    const [groupVideos, setGroupVideos] = useState<IGroupWithVideosResponse[]>([])
+    const [groupVideos, setGroupVideos] = useState<VideoFromGroupInformation[]>([])
     const [events, setEvents] = useState<Event[]>([])
     const [privateVideos, setPrivateVideos] = useState<VideoInformation[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -34,17 +32,13 @@ const Home = () => {
             ])
             .then(([groups, eventsData, privateVids]) => {
                 setGroupVideos(groups)
-                setEvents(eventsData.assigned.events)
+                setEvents(eventsData.assigned?.events ?? [])
                 setPrivateVideos(privateVids)
 
-                // Collect recent videos from all sources
-                const allVideos: VideoInformation[] = []
-                groups.forEach(g => allVideos.push(...g.videos))
-                allVideos.push(...privateVids)
+                const allVideos: VideoInformation[] = [...groups, ...privateVids]
 
-                // Sort by date and take the 5 most recent
                 const sorted = allVideos
-                    .sort((a, b) => new Date(b.recordedDateTime).getTime() - new Date(a.recordedDateTime).getTime())
+                    .sort((a, b) => new Date(b.recordedDateTime!).getTime() - new Date(a.recordedDateTime!).getTime())
                     .slice(0, 5)
                 setRecentVideos(sorted)
             })
@@ -53,24 +47,10 @@ const Home = () => {
         }
     }, [authContext])
 
-    const getTotalVideoCount = (groups: IGroupWithVideosResponse[]) => {
-        return groups.reduce((sum, group) => sum + group.videos.length, 0)
-    }
-
-    const getLatestVideoDate = (groups: IGroupWithVideosResponse[]) => {
-        const allVideos = groups.flatMap(g => g.videos)
-        if (allVideos.length === 0) return null
-
-        const latest = allVideos.reduce((latest, video) =>
-            new Date(video.recordedDateTime) > new Date(latest.recordedDateTime) ? video : latest
-        )
-        return latest.recordedDateTime
-    }
-
-    const getLatestPrivateVideoDate = (videos: VideoInformation[]) => {
+    const getLatestVideoDate = (videos: VideoInformation[]) => {
         if (videos.length === 0) return null
         const latest = videos.reduce((latest, video) =>
-            new Date(video.recordedDateTime) > new Date(latest.recordedDateTime) ? video : latest
+            new Date(video.recordedDateTime!) > new Date(latest.recordedDateTime!) ? video : latest
         )
         return latest.recordedDateTime
     }
@@ -102,7 +82,7 @@ const Home = () => {
                                     <div className="content">
                                         <p className="title is-4">📹 Nagrania z Zajęć</p>
                                         <p className="subtitle is-5">
-                                            {getTotalVideoCount(groupVideos)} nagrań
+                                            {groupVideos.length} nagrań
                                         </p>
                                         {getLatestVideoDate(groupVideos) && (
                                             <p className="is-size-7">
@@ -154,12 +134,12 @@ const Home = () => {
                                         <p className="subtitle is-5">
                                             {privateVideos.length} nagrań
                                         </p>
-                                        {getLatestPrivateVideoDate(privateVideos) && (
+                                        {getLatestVideoDate(privateVideos) && (
                                             <p className="is-size-7">
-                                                Ostatnie: {formatDateToPlDate(getLatestPrivateVideoDate(privateVideos)!)}
+                                                Ostatnie: {formatDateToPlDate(getLatestVideoDate(privateVideos)!)}
                                             </p>
                                         )}
-                                        {!getLatestPrivateVideoDate(privateVideos) && (
+                                        {!getLatestVideoDate(privateVideos) && (
                                             <p className="is-size-7">Brak prywatnych nagran</p>
                                         )}
                                         <p className="mt-3">
@@ -202,7 +182,7 @@ const Home = () => {
                                     <tbody>
                                         {recentVideos.map(video => (
                                             <tr
-                                                key={video.id}
+                                                key={video.videoId}
                                                 onClick={() => navigate(`/videos/${video.blobId}`)}
                                                 style={{ cursor: 'pointer' }}
                                             >

@@ -2,9 +2,8 @@
 import axios from 'axios';
 import sharingService from "../../services/SharingService";
 import videoInfoService from "../../services/VideoInfoService";
-import SharedLinkResponse from "../../types/ApiModels/Sharing/SharedLinkResponse";
+import { SharedLinkResponse, VideoInformation } from "../../types/ApiModels/dancedance/apiModels";
 import ViewSharedLink from "./ViewSharedLink";
-import VideoInformation from "../../types/ApiModels/VideoInformation";
 import {CommentsVisibilityOptions} from "../../extensions/CommentsVisibilityOptions";
 
 interface IShareVideoModalProps {
@@ -21,8 +20,8 @@ function ShareVideoModal(props: IShareVideoModalProps) {
     const abortControllerRef = React.useRef<AbortController | null>(null)
     const [allowComments, setAllowComments] = useState(true)
     const [allowCommentsAnonymous, setAllowCommentsAnonymous] = useState(false)
-    const [selectedCommentsVisibility, setSelectedCommentsVisibility] = useState(props.videoInfo.commentVisibility.toString());
-    const [currentVisibilityOptions, setCurrentVisibilityOptions] = useState(props.videoInfo.commentVisibility)
+    const [selectedCommentsVisibility, setSelectedCommentsVisibility] = useState((props.videoInfo.commentVisibility ?? 0).toString());
+    const [currentVisibilityOptions, setCurrentVisibilityOptions] = useState(props.videoInfo.commentVisibility ?? 0)
 
     useEffect(() => {
         return () => {
@@ -36,7 +35,7 @@ function ShareVideoModal(props: IShareVideoModalProps) {
 
         setUpdatingVisibilityInProgress(true)
         const visibility = Number.parseInt(selectedCommentsVisibility)
-        videoInfoService.ChangeCommentsVisibility(props.videoInfo.id, visibility)
+        videoInfoService.ChangeCommentsVisibility(props.videoInfo.videoId!, visibility)
             .then(() => {
                 setCurrentVisibilityOptions(Number.parseInt(selectedCommentsVisibility))
                 props.videoInfo.commentVisibility = visibility
@@ -61,7 +60,7 @@ function ShareVideoModal(props: IShareVideoModalProps) {
         }
         abortControllerRef.current = new AbortController()
 
-        sharingService.shareVideo(props.videoInfo.id, allowComments, allowCommentsAnonymous, undefined, abortControllerRef.current.signal)
+        sharingService.shareVideo(props.videoInfo.videoId!, allowComments, allowCommentsAnonymous, undefined, abortControllerRef.current.signal)
             .then((res) => setSharedLink(res.data))
             .catch(error => {
                 if (error.name === 'CanceledError' || error.name === 'AbortError' || axios.isCancel?.(error)) {
@@ -99,7 +98,7 @@ function ShareVideoModal(props: IShareVideoModalProps) {
     function renderContent() {
         if (sharedLink) {
             const link = window.location.origin + '/shared/' + sharedLink.linkId
-            return <ViewSharedLink title={props.videoInfo.name} link={link}/>
+            return <ViewSharedLink title={props.videoInfo.name ?? ''} link={link}/>
         } else
             return <div className="content">
                 <p>
