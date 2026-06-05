@@ -2,13 +2,14 @@ using Application.Features.AccessManagement;
 using Application.Features.Events;
 using Application.Features.Sharing;
 using Application.Features.Videos;
-﻿using Application.Features.Groups;
-﻿using Application.Features.Comments;
+using Application.Features.Groups;
+using Application.Features.Comments;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Application;
 
@@ -66,6 +67,20 @@ public static class DependencyInjection
         {
             // Our *Routes constants already include the "api/" prefix, so don't let FE add another.
             c.Endpoints.RoutePrefix = null;
+
+            c.Errors.ResponseBuilder = (failures, ctx, statusCode) =>
+            {
+                var logger = ctx.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("FastEndpoints.Validation");
+                logger.LogWarning(
+                    "Validation failed ({Count} error(s)) for {Method} {Path}: {Errors}",
+                    failures.Count,
+                    ctx.Request.Method,
+                    ctx.Request.Path,
+                    string.Join("; ", failures.Select(f => $"{f.PropertyName}: {f.ErrorMessage}")));
+                return new ErrorResponse(failures, statusCode);
+            };
         });
 
         // Serve the Swagger/OpenAPI UI + JSON only in Development.
