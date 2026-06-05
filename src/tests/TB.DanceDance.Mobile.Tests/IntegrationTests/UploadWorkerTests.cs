@@ -109,7 +109,7 @@ public class UploadWorkerTests
         db.VideosToUpload.Add(v);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var refreshed = new UploadVideoInformationResponse
+        var refreshed = new RefreshUploadUrlResponse
         {
             VideoId = id, Sas = "https://example/new-sas", ExpireAt = DateTimeOffset.UtcNow.AddHours(3)
         };
@@ -149,7 +149,7 @@ public class UploadWorkerTests
             .Returns(ci => Task.FromException(new RequestFailedException(403, "Forbidden")),
                 ci => Task.CompletedTask);
 
-        var refreshed = new UploadVideoInformationResponse
+        var refreshed = new RefreshUploadUrlResponse
         {
             VideoId = id, Sas = "sas2", ExpireAt = DateTimeOffset.UtcNow.AddHours(3)
         };

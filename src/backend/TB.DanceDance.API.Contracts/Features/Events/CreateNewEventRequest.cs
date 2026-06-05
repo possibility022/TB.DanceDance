@@ -1,5 +1,5 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using TB.DanceDance.API.Contracts.Features.Events.Models;
 
 namespace TB.DanceDance.API.Contracts.Features.Events
 {
@@ -7,17 +7,5 @@ namespace TB.DanceDance.API.Contracts.Features.Events
     {
         [Required]
         public EventModel Event { get; set; }
-    }
-
-    public class EventModel
-    {
-        public Guid Id { get; set; }
-
-        [Required]
-        [MinLength(5)]
-        public string Name { get; set; } = null!;
-
-        [Required]
-        public DateTime Date { get; set; }
     }
 }

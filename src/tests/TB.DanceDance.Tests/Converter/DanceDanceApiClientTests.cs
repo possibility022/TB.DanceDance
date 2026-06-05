@@ -1,7 +1,7 @@
 ﻿using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.OAuthClient;
-using TB.DanceDance.API.Contracts.Features.Conversion;
 using System.Text.Json;
+using TB.DanceDance.API.Contracts.Features.Videos.Converter;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;

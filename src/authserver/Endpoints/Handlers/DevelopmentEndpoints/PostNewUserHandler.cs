@@ -1,4 +1,3 @@
-using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using TB.Auth.Web.Identity;
 

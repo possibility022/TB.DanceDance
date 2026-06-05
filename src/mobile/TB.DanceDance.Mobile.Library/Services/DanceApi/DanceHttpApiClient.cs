@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
 using TB.DanceDance.API.Contracts.Features.Events;
+using TB.DanceDance.API.Contracts.Features.Events.Models;
 using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Features.Sharing;
@@ -37,7 +39,12 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadFromJsonAsync<GetUserAccessResponse>();
-        return content ?? new GetUserAccessResponse();
+        return content ?? new GetUserAccessResponse
+        {
+            Assigned  = new GetUserAccessSet(),
+            Available = new GetUserAccessSet(),
+            Pending   = new ListUserAccessPending()
+        };
     }
 
     public async Task RequestAccess(RequestAccessRequest accessRequest)

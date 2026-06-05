@@ -3,7 +3,6 @@ using Microsoft.Maui.Devices;
 using NSubstitute;
 using System.Threading.Channels;
 using TB.DanceDance.API.Contracts.Features.Videos;
-using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -41,13 +40,13 @@ public class VideoUploaderTests
         try
         {
             var groupId = Guid.NewGuid();
-            var uploadInfo = new UploadVideoInformationResponse
+            var uploadInfo = new ProduceUploadUrlResponse
             {
                 Sas = "https://example/sas", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(2)
             };
             api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Group, groupId,
                     Arg.Any<DateTime>())
-                .Returns(Task.FromResult<UploadVideoInformationResponse?>(uploadInfo));
+                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(uploadInfo));
 
             // Act
             await uploader.AddToUploadList(null, temp, groupId, CancellationToken.None);
@@ -110,14 +109,14 @@ public class VideoUploaderTests
         try
         {
             var groupId = Guid.NewGuid();
-            var uploadInfo = new UploadVideoInformationResponse
+            var uploadInfo = new ProduceUploadUrlResponse
             {
                 Sas = "https://example/sas", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
             };
 
             api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Group, groupId,
                     Arg.Any<DateTime>())
-                .Returns(Task.FromResult<UploadVideoInformationResponse?>(uploadInfo));
+                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(uploadInfo));
 
             await uploader.UploadVideoToGroup(temp, groupId, CancellationToken.None);
 
@@ -138,14 +137,14 @@ public class VideoUploaderTests
         try
         {
             var eventId = Guid.NewGuid();
-            var uploadInfo = new UploadVideoInformationResponse
+            var uploadInfo = new ProduceUploadUrlResponse
             {
                 Sas = "https://example/sas", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
             };
 
             api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Event, eventId,
                     Arg.Any<DateTime>())
-                .Returns(Task.FromResult<UploadVideoInformationResponse?>(uploadInfo));
+                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(uploadInfo));
 
             await uploader.UploadVideoToEvent(temp, eventId, CancellationToken.None);
 
@@ -168,7 +167,7 @@ public class VideoUploaderTests
             var groupId = Guid.NewGuid();
             api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Group, groupId,
                     Arg.Any<DateTime>())
-                .Returns(Task.FromResult<UploadVideoInformationResponse?>(null));
+                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(null));
 
             await Assert.ThrowsAsync<Exception>(() =>
                 uploader.AddToUploadList("n", temp, groupId, CancellationToken.None));
