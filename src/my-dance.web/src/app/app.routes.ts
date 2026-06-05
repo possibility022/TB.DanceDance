@@ -44,7 +44,8 @@ export const routes: Routes = [
   },
   {
     // Keep below the static `videos/*` paths so they aren't captured as ids.
-    path: 'videos/:videoId',
+    // Param is the blob id — the key the stream/info endpoints use.
+    path: 'videos/:blobId',
     title: 'Watch · Dance Dance',
     canActivate: [authGuard],
     loadComponent: () => import('./features/videos/video-player').then((m) => m.VideoPlayer),

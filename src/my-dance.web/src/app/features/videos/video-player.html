@@ -1,0 +1,37 @@
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading recording">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load this recording.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else if (info(); as video) {
+  <header class="block">
+    <h1 class="title">{{ video.name }}</h1>
+    <p class="subtitle is-6 has-text-grey">
+      {{ video.recordedDateTime | longDate }}
+      @if (video.duration) {
+        · {{ video.duration }}
+      }
+    </p>
+  </header>
+
+  @if (streamUrl(); as src) {
+    <video
+      class="is-block"
+      style="width: 100%; max-height: 70vh; background: #000;"
+      controls
+      preload="metadata"
+      [src]="src"
+      [attr.aria-label]="'Recording: ' + video.name"
+    >
+      Your browser doesn’t support embedded video.
+    </video>
+  } @else {
+    <div class="notification is-warning is-light">
+      This recording is still processing and isn’t playable yet. Check back shortly.
+    </div>
+  }
+} @else {
+  <p class="has-text-grey">Recording not found.</p>
+}

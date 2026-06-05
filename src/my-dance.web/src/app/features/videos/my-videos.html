@@ -1,0 +1,18 @@
+<header class="block">
+  <h1 class="title">My recordings</h1>
+  <p class="subtitle">Your private library and shareable links.</p>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading recordings">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load your recordings.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else {
+  <app-video-list
+    [videos]="items()"
+    emptyMessage="You haven’t uploaded any recordings yet."
+  />
+}

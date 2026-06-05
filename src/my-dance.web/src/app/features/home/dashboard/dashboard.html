@@ -1,0 +1,70 @@
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading your dashboard">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load your dashboard.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else {
+  <header class="block">
+    <h1 class="title">Your dashboard</h1>
+  </header>
+
+  <div class="columns">
+    <div class="column">
+      <a class="box" routerLink="/videos">
+        <h2 class="title is-5">Lesson recordings</h2>
+        <p class="title is-2">{{ groupCount() }}</p>
+        @if (groupLatest(); as latest) {
+          <p class="is-size-7 has-text-grey">Latest {{ latest | longDate }}</p>
+        }
+      </a>
+    </div>
+    <div class="column">
+      <a class="box" routerLink="/events">
+        <h2 class="title is-5">Events</h2>
+        <p class="title is-2">{{ eventCount() }}</p>
+      </a>
+    </div>
+    <div class="column">
+      <a class="box" routerLink="/videos/my">
+        <h2 class="title is-5">My recordings</h2>
+        <p class="title is-2">{{ myCount() }}</p>
+        @if (myLatest(); as latest) {
+          <p class="is-size-7 has-text-grey">Latest {{ latest | longDate }}</p>
+        }
+      </a>
+    </div>
+  </div>
+
+  <div class="buttons block">
+    <a class="button is-primary" routerLink="/videos/upload">Upload a recording</a>
+    <a class="button is-light" routerLink="/videos/requestassignment">Request access</a>
+  </div>
+
+  <section class="block">
+    <h2 class="title is-5">Recent activity</h2>
+    @if (recent().length === 0) {
+      <p class="has-text-grey">No recordings yet.</p>
+    } @else {
+      <ul class="menu-list">
+        @for (video of recent(); track video.videoId ?? video.blobId ?? $index) {
+          <li>
+            @if (video.converted && video.blobId) {
+              <a [routerLink]="['/videos', video.blobId]">
+                {{ video.name }}
+                <span class="has-text-grey is-size-7">· {{ video.recordedDateTime | longDate }}</span>
+              </a>
+            } @else {
+              <span class="is-flex is-align-items-center">
+                {{ video.name }}
+                <span class="has-text-grey is-size-7 ml-1">· {{ video.recordedDateTime | longDate }}</span>
+                <span class="tag is-warning is-light ml-2">Pending</span>
+              </span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}
