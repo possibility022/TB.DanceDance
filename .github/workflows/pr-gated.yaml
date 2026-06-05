@@ -33,9 +33,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: src/my-dance.web/package-lock.json
       - name: Install frontend dependencies
         working-directory: ./src/my-dance.web
         run: npm ci
+
+      - name: Run frontend unit tests
+        working-directory: ./src/my-dance.web
+        run: npm run test:ci
 
       - name: Build frontend project
         working-directory: ./src/my-dance.web
