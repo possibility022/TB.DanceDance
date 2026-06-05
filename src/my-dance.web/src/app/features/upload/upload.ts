@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { HttpEventType } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { switchMap } from 'rxjs';
@@ -115,14 +114,9 @@ export class Upload {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (httpEvent) => {
-          if (httpEvent.type === HttpEventType.UploadProgress && httpEvent.total) {
-            this.progress.set(Math.round((100 * httpEvent.loaded) / httpEvent.total));
-          } else if (httpEvent.type === HttpEventType.Response) {
-            this.stage.set('done');
-          }
-        },
+        next: (percent) => this.progress.set(percent),
         error: () => this.stage.set('error'),
+        complete: () => this.stage.set('done'),
       });
   }
 
