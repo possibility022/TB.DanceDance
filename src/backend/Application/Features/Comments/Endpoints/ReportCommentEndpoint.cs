@@ -24,9 +24,11 @@ public class ReportCommentEndpoint : Endpoint<ReportCommentRequest>
 
     public override async Task HandleAsync(ReportCommentRequest req, CancellationToken ct)
     {
+        var commentId = Route<Guid>("commentId");
+        
         try
         {
-            var result = await commentService.ReportCommentAsync(req.CommentId, req.Reason, ct);
+            var result = await commentService.ReportCommentAsync(commentId, req.Reason, ct);
 
             if (!result)
             {
@@ -38,7 +40,7 @@ public class ReportCommentEndpoint : Endpoint<ReportCommentRequest>
         }
         catch (ArgumentException ex)
         {
-            Logger.LogWarning(ex, "Failed to report comment {CommentId}", req.CommentId);
+            Logger.LogWarning(ex, "Failed to report comment {CommentId}", commentId);
             AddError(ex.Message);
             await Send.ErrorsAsync(400, ct);
         }

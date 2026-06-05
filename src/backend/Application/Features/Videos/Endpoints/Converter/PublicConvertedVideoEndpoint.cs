@@ -4,7 +4,7 @@ using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Converter;
 
-public class PublicConvertedVideoEndpoint : Endpoint<PublicConvertedVideoRequest, PublicConvertedVideoResponse>
+public class PublicConvertedVideoEndpoint : EndpointWithoutRequest<PublicConvertedVideoResponse>
 {
     private readonly IVideoUploaderService videoUploaderService;
 
@@ -19,9 +19,10 @@ public class PublicConvertedVideoEndpoint : Endpoint<PublicConvertedVideoRequest
         Policies(ApiScopes.Convert);
     }
 
-    public override async Task<Void> HandleAsync(PublicConvertedVideoRequest req, CancellationToken ct)
+    public override async Task<Void> HandleAsync(CancellationToken ct)
     {
-        var newId = await videoUploaderService.UploadConvertedVideoAsync(req.VideoId, ct);
+        var videoId = Route<Guid>("videoId");
+        var newId = await videoUploaderService.UploadConvertedVideoAsync(videoId, ct);
         if (newId == null)
             return await Send.ErrorsAsync(cancellation: ct);
 

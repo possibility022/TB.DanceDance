@@ -1,13 +1,12 @@
 using Application.Extensions;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Features.Comments;
 
 namespace Application.Features.Comments.Endpoints;
 
 /// <summary>
 /// Deletes a comment. Can be deleted by the author or the video owner. Anonymous access allowed.
 /// </summary>
-public class DeleteCommentEndpoint : Endpoint<DeleteCommentRequest>
+public class DeleteCommentEndpoint : EndpointWithoutRequest
 {
     private readonly ICommentService commentService;
 
@@ -22,15 +21,17 @@ public class DeleteCommentEndpoint : Endpoint<DeleteCommentRequest>
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(DeleteCommentRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.TryGetSubject();
-        var anonymousId = CommentMapper.ResolveAnonymousId(req.AnonymousId, HttpContext.Request);
+        var commendId = Route<Guid>("commendId");
+        
+        var anonymousId = CommentMapper.ResolveAnonymousId(HttpContext.Request);
 
         try
         {
             var result = await commentService.DeleteCommentAsync(
-                req.CommentId,
+                commendId,
                 userId,
                 anonymousId,
                 ct);
@@ -48,6 +49,6 @@ public class DeleteCommentEndpoint : Endpoint<DeleteCommentRequest>
             return;
         }
 
-        await Send.OkAsync(ct);
+        await Send.NoContentAsync(ct);
     }
 }

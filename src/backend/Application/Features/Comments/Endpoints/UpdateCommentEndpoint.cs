@@ -26,17 +26,20 @@ public class UpdateCommentEndpoint : Endpoint<UpdateCommentRequest>
     public override async Task HandleAsync(UpdateCommentRequest req, CancellationToken ct)
     {
         var userId = User.TryGetSubject();
-
+        var commentId = Route<Guid>("commentId");
+        
+        var anonymousId = CommentMapper.ResolveAnonymousId(HttpContext.Request);
+        
         // Authenticated users edit by identity, never by anonymous id.
         if (userId is not null)
-            req.AnonymousId = null;
+            anonymousId = null;
 
         try
         {
             var result = await commentService.UpdateCommentAsync(
-                req.CommentId,
+                commentId,
                 userId,
-                req.AnonymousId,
+                anonymousId,
                 req.AuthorName,
                 req.Content,
                 ct);
@@ -51,7 +54,7 @@ public class UpdateCommentEndpoint : Endpoint<UpdateCommentRequest>
         }
         catch (ArgumentException ex)
         {
-            Logger.LogWarning(ex, "Failed to update comment {CommentId}", req.CommentId);
+            Logger.LogWarning(ex, "Failed to update comment {CommentId}", commentId);
             AddError(ex.Message);
             await Send.ErrorsAsync(400, ct);
         }

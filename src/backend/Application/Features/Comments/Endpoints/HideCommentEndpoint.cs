@@ -7,7 +7,7 @@ namespace Application.Features.Comments.Endpoints;
 /// <summary>
 /// Hides a comment. Only the video owner can hide comments.
 /// </summary>
-public class HideCommentEndpoint : Endpoint<HideCommentRequest>
+public class HideCommentEndpoint : EndpointWithoutRequest
 {
     private readonly ICommentService commentService;
 
@@ -22,11 +22,12 @@ public class HideCommentEndpoint : Endpoint<HideCommentRequest>
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(HideCommentRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetSubject();
+        var commentId = Route<Guid>("commentId");
 
-        var result = await commentService.HideCommentAsync(req.CommentId, userId, ct);
+        var result = await commentService.HideCommentAsync(commentId, userId, ct);
 
         if (!result)
         {

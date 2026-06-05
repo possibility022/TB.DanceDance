@@ -7,7 +7,7 @@ using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Events.Endpoints;
 
-public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, ListEventVideosResponse>
+public class ListEventVideosEndpoint : EndpointWithoutRequest<ListEventVideosResponse>
 {
     private readonly IEventService eventService;
     private readonly IAccessService accessService;
@@ -24,15 +24,16 @@ public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, ListEven
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(ListEventVideosRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
+        var eventId = Route<Guid>("eventId");
         var userId = User.GetSubject();
         var videos = await eventService
-            .GetVideos(req.EventId, userId, ct);
+            .GetVideos(eventId, userId, ct);
 
         if (videos.Length == 0)
         {
-            var isAssigned = await accessService.DoesUserHasAccessToEvent(req.EventId, userId, ct);
+            var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId, ct);
             if (!isAssigned)
                 await Send.UnauthorizedAsync(ct);
         }

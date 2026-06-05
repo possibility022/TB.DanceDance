@@ -4,7 +4,7 @@ using TB.DanceDance.API.Contracts.Features.Groups;
 
 namespace Application.Features.Groups.Endpoints;
 
-public class ListGroupVideosEndpoint : Endpoint<ListGroupVideosRequest, ListGroupVideosResponse>
+public class ListGroupVideosEndpoint : EndpointWithoutRequest<ListGroupVideosResponse>
 {
     private readonly IGroupService groupService;
 
@@ -19,10 +19,11 @@ public class ListGroupVideosEndpoint : Endpoint<ListGroupVideosRequest, ListGrou
         Policies(ApiScopes.Read);
     }
     
-    public override async Task HandleAsync(ListGroupVideosRequest request, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
+        var groupId = Route<Guid>("groupId");
         var userId = User.GetSubject();
-        var videos = await groupService.GetAllVideos(userId, request.GroupId, ct);
+        var videos = await groupService.GetAllVideos(userId, groupId, ct);
 
         var response = new ListGroupVideosResponse() { Videos = videos };
         

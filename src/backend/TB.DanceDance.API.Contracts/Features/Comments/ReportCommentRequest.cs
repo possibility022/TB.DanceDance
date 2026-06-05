@@ -1,12 +1,7 @@
-﻿using System;
-
-namespace TB.DanceDance.API.Contracts.Features.Comments
+﻿namespace TB.DanceDance.API.Contracts.Features.Comments
 {
     public class ReportCommentRequest
     {
-        /// <summary>The comment id (bound from the route).</summary>
-        public Guid CommentId { get; set; }
-
         /// <summary>The reason for reporting this comment.</summary>
         public string Reason { get; set; } = null!;
     }

@@ -1,12 +1,7 @@
-﻿using System;
-
-namespace TB.DanceDance.API.Contracts.Features.Sharing
+﻿namespace TB.DanceDance.API.Contracts.Features.Sharing
 {
     public class CreateSharedLinkRequest
     {
-        /// <summary>The video to share (bound from the route).</summary>
-        public Guid VideoId { get; set; }
-
         /// <summary>Number of days until the link expires (1-365). Default 7.</summary>
         public int ExpirationDays { get; set; } = 7;
 

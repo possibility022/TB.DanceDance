@@ -8,7 +8,7 @@ namespace Application.Features.Comments.Endpoints;
 /// <summary>
 /// Gets comments for a video the authenticated user has access to.
 /// </summary>
-public class ListCommentsForVideoEndpoint : Endpoint<ListCommentsForVideoRequest, ListCommentsForVideoResponse>
+public class ListCommentsForVideoEndpoint : EndpointWithoutRequest<ListCommentsForVideoResponse>
 {
     private readonly ICommentService commentService;
 
@@ -23,16 +23,16 @@ public class ListCommentsForVideoEndpoint : Endpoint<ListCommentsForVideoRequest
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(ListCommentsForVideoRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetSubject();
+        var videoId = Route<Guid>("videoId");
 
         try
         {
-            // For an authenticated video view the anonymous id only comes from the header.
-            var anonymousId = CommentMapper.ResolveAnonymousId(null, HttpContext.Request);
+            var anonymousId = CommentMapper.ResolveAnonymousId(HttpContext.Request);
 
-            var comments = await commentService.GetCommentsForVideoAsync(userId, anonymousId, req.VideoId, ct);
+            var comments = await commentService.GetCommentsForVideoAsync(userId, anonymousId, videoId, ct);
 
             var shaOfAnonymousId = CommentMapper.ComputeSha256(anonymousId);
 
@@ -47,12 +47,12 @@ public class ListCommentsForVideoEndpoint : Endpoint<ListCommentsForVideoRequest
         }
         catch (UnauthorizedAccessException ex)
         {
-            Logger.LogWarning(ex, "Failed to get comments for video {VideoId}. User unauthorized", req.VideoId);
+            Logger.LogWarning(ex, "Failed to get comments for video {VideoId}. User unauthorized", videoId);
             await Send.UnauthorizedAsync(ct);
         }
         catch (ArgumentException ex)
         {
-            Logger.LogWarning(ex, "Failed to get comments for video {VideoId}", req.VideoId);
+            Logger.LogWarning(ex, "Failed to get comments for video {VideoId}", videoId);
             AddError(ex.Message);
             await Send.ErrorsAsync(400, ct);
         }

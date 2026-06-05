@@ -30,11 +30,12 @@ namespace Application.Features.Sharing.Endpoints
         public override async Task HandleAsync(CreateSharedLinkRequest req, CancellationToken ct)
         {
             var userId = User.GetSubject();
+            var videoId = Route<Guid>("videoId");
 
             try
             {
                 var link = await sharedLinkService.CreateSharedLinkAsync(
-                    req.VideoId,
+                    videoId,
                     userId,
                     req.ExpirationDays,
                     req.AllowComments,
@@ -46,7 +47,7 @@ namespace Application.Features.Sharing.Endpoints
             }
             catch (ArgumentException ex)
             {
-                Logger.LogWarning(ex, "Failed to create shared link for video {VideoId} by user {UserId}", req.VideoId, userId);
+                Logger.LogWarning(ex, "Failed to create shared link for video {VideoId} by user {UserId}", videoId, userId);
                 AddError(ex.Message);
                 await Send.ErrorsAsync(400, ct);
             }

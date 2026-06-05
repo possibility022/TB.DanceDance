@@ -3,7 +3,7 @@ using TB.DanceDance.API.Contracts.Features.Videos.Converter;
 
 namespace Application.Features.Videos.Endpoints.Converter;
 
-public class GetPublishSasEndpoint : Endpoint<GetPublishSasRequest, GetPublishSasResponse>
+public class GetPublishSasEndpoint : EndpointWithoutRequest<GetPublishSasResponse>
 {
     private readonly IVideoUploaderService videoUploaderService;
 
@@ -18,9 +18,10 @@ public class GetPublishSasEndpoint : Endpoint<GetPublishSasRequest, GetPublishSa
         Policies(ApiScopes.Convert);
     }
 
-    public override async Task HandleAsync(GetPublishSasRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var shared = await videoUploaderService.GetSasForConvertedVideoAsync(req.VideoId, ct);
+        var videoId = Route<Guid>("videoId");
+        var shared = await videoUploaderService.GetSasForConvertedVideoAsync(videoId, ct);
         
         if (shared == null)
             throw new InvalidOperationException("Failed to retrieve SAS for converted video");

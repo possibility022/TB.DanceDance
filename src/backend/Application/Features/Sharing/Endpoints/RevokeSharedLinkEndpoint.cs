@@ -7,7 +7,7 @@ namespace Application.Features.Sharing.Endpoints
     /// <summary>
     /// Revokes a shared link. Requires authentication. Only the link creator or video owner can revoke.
     /// </summary>
-    public class RevokeSharedLinkEndpoint : Endpoint<RevokeSharedLinkRequest>
+    public class RevokeSharedLinkEndpoint : EndpointWithoutRequest
     {
         private readonly ISharedLinkService sharedLinkService;
 
@@ -22,11 +22,12 @@ namespace Application.Features.Sharing.Endpoints
             Policies(ApiScopes.Read);
         }
 
-        public override async Task HandleAsync(RevokeSharedLinkRequest req, CancellationToken ct)
+        public override async Task HandleAsync(CancellationToken ct)
         {
             var userId = User.GetSubject();
+            var linkId = Route<string>("linkId") ?? string.Empty;
 
-            var result = await sharedLinkService.RevokeSharedLinkAsync(req.LinkId, userId, ct);
+            var result = await sharedLinkService.RevokeSharedLinkAsync(linkId, userId, ct);
 
             if (!result)
             {

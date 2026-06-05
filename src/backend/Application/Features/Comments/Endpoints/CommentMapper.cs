@@ -30,10 +30,18 @@ internal static class CommentMapper
     /// Resolves the anonymous id, preferring the query-string value and falling back to the
     /// <see cref="AnonymousHeaderId"/> request header.
     /// </summary>
-    public static string? ResolveAnonymousId(string? anonymousIdFromQuery, HttpRequest request)
+    public static string? ResolveAnonymousId(HttpRequest request)
     {
-        if (!string.IsNullOrEmpty(anonymousIdFromQuery))
-            return anonymousIdFromQuery;
+        var res = request.Query.TryGetValue("anonymousId", out var anonymousIdFromQueryQuery);
+        
+        if (res && anonymousIdFromQueryQuery.Count > 0)
+        {
+            var firstOne = anonymousIdFromQueryQuery.First();
+            if (!string.IsNullOrEmpty(firstOne))
+            {
+                return firstOne;
+            }
+        }
 
         return request.Headers[AnonymousHeaderId].FirstOrDefault();
     }

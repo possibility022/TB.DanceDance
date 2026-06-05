@@ -8,7 +8,7 @@ namespace Application.Features.Comments.Endpoints;
 /// <summary>
 /// Gets comments for a video accessed through a shared link. Anonymous access allowed.
 /// </summary>
-public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLink, ListCommentsByLinkResponse>
+public class ListCommentsByLinkEndpoint : EndpointWithoutRequest<ListCommentsByLinkResponse>
 {
     private readonly ICommentService commentService;
 
@@ -23,17 +23,19 @@ public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLink, ListComme
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(ListCommentsByLink req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.TryGetSubject();
-        var anonymousId = CommentMapper.ResolveAnonymousId(req.AnonymousId, HttpContext.Request);
+        var linkId = Route<string>("linkId") ?? string.Empty;
+        
+        var anonymousId = CommentMapper.ResolveAnonymousId(HttpContext.Request);
 
         try
         {
             var comments = await commentService.GetCommentsForVideoAsync(
                 userId,
                 anonymousId,
-                req.LinkId,
+                linkId,
                 ct);
 
             var shaOfAnonymousId = CommentMapper.ComputeSha256(anonymousId);
@@ -49,7 +51,7 @@ public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLink, ListComme
         }
         catch (ArgumentException ex)
         {
-            Logger.LogWarning(ex, "Failed to get comments for link {LinkId}", req.LinkId);
+            Logger.LogWarning(ex, "Failed to get comments for link {LinkId}", linkId);
             AddError(ex.Message);
             await Send.ErrorsAsync(400, ct);
         }

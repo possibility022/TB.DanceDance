@@ -6,7 +6,7 @@ namespace Application.Features.Sharing.Endpoints
     /// <summary>
     /// Gets video information by shared link id. Anonymous access allowed.
     /// </summary>
-    public class GetVideoInfoBySharedLinkEndpoint : Endpoint<VideoInfoBySharedLinkRequest, SharedVideoInfoResponse>
+    public class GetVideoInfoBySharedLinkEndpoint : EndpointWithoutRequest<SharedVideoInfoResponse>
     {
         private readonly ISharedLinkService sharedLinkService;
 
@@ -21,9 +21,10 @@ namespace Application.Features.Sharing.Endpoints
             AllowAnonymous();
         }
 
-        public override async Task HandleAsync(VideoInfoBySharedLinkRequest req, CancellationToken ct)
+        public override async Task HandleAsync(CancellationToken ct)
         {
-            var link = await sharedLinkService.GetSharedLinkAsync(req.LinkId, ct);
+            var linkId = Route<string>("linkId") ?? string.Empty;
+            var link = await sharedLinkService.GetSharedLinkAsync(linkId, ct);
 
             if (link == null || link.Video == null)
             {

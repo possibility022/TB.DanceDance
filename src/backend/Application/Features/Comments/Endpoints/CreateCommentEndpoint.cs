@@ -28,12 +28,13 @@ public class CreateCommentEndpoint : Endpoint<CreateCommentRequest, CommentRespo
     {
         // userId is present for authenticated users, null for anonymous.
         var userId = User.TryGetSubject();
+        var linkId = Route<string>("linkId") ?? string.Empty;
 
         try
         {
             var comment = await commentService.CreateCommentAsync(
                 userId,
-                req.LinkId,
+                linkId,
                 req.Content,
                 req.AuthorName,
                 req.AnonymousId,
@@ -44,7 +45,7 @@ public class CreateCommentEndpoint : Endpoint<CreateCommentRequest, CommentRespo
         }
         catch (ArgumentException ex)
         {
-            Logger.LogWarning(ex, "Failed to create comment through link {LinkId}", req.LinkId);
+            Logger.LogWarning(ex, "Failed to create comment through link {LinkId}", linkId);
             AddError(ex.Message);
             await Send.ErrorsAsync(400, ct);
         }

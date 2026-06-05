@@ -2,9 +2,6 @@
 {
     public class CreateCommentRequest
     {
-        /// <summary>Shared link id (bound from the route) the comment is posted through.</summary>
-        public string LinkId { get; set; } = null!;
-
         /// <summary>The comment content.</summary>
         public string Content { get; set; } = null!;
 

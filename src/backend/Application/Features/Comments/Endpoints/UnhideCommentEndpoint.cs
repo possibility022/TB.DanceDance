@@ -1,13 +1,12 @@
 using Application.Extensions;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Features.Comments;
 
 namespace Application.Features.Comments.Endpoints;
 
 /// <summary>
 /// Unhides a comment. Only the video owner can unhide comments.
 /// </summary>
-public class UnhideCommentEndpoint : Endpoint<UnhideCommentRequest>
+public class UnhideCommentEndpoint : EndpointWithoutRequest
 {
     private readonly ICommentService commentService;
 
@@ -22,11 +21,12 @@ public class UnhideCommentEndpoint : Endpoint<UnhideCommentRequest>
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(UnhideCommentRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.GetSubject();
+        var commentId = Route<Guid>("commentId");
 
-        var result = await commentService.UnhideCommentAsync(req.CommentId, userId, ct);
+        var result = await commentService.UnhideCommentAsync(commentId, userId, ct);
 
         if (!result)
         {

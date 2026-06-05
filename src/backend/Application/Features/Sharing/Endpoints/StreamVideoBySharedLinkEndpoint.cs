@@ -1,13 +1,12 @@
 using Application.Features.Videos;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Features.Sharing;
 
 namespace Application.Features.Sharing.Endpoints
 {
     /// <summary>
     /// Streams a video by shared link id. Anonymous access allowed.
     /// </summary>
-    public class StreamVideoBySharedLinkEndpoint : Endpoint<StreamVideoBySharedLinkRequest>
+    public class StreamVideoBySharedLinkEndpoint : EndpointWithoutRequest
     {
         private readonly ISharedLinkService sharedLinkService;
         private readonly IVideoService videoService;
@@ -24,9 +23,10 @@ namespace Application.Features.Sharing.Endpoints
             AllowAnonymous();
         }
 
-        public override async Task HandleAsync(StreamVideoBySharedLinkRequest req, CancellationToken ct)
+        public override async Task HandleAsync(CancellationToken ct)
         {
-            var video = await sharedLinkService.GetVideoBySharedLinkAsync(req.LinkId, ct);
+            var linkId = Route<string>("linkId") ?? string.Empty;
+            var video = await sharedLinkService.GetVideoBySharedLinkAsync(linkId, ct);
 
             if (video == null)
             {
