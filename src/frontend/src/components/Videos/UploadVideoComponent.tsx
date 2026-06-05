@@ -2,8 +2,7 @@ import { faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as React from 'react';
 import {JSX, useState} from 'react';
-import ISharedVideoInformation from '../../types/ApiModels/SharedVideoInformation';
-import SharingWithType from '../../types/ApiModels/SharingWithType';
+import { ProduceUploadUrlRequest as ISharedVideoInformation, SharingWithType } from '../../types/ApiModels/dancedance/apiModels';
 import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 

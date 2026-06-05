@@ -1,7 +1,7 @@
 import * as React from 'react';
 import videoInfoService from '../services/VideoInfoService';
 import { useEffect, useState } from 'react';
-import { RequestedAccess } from '../types/ApiModels/RequestedAccessesResponse';
+import { RequestedAccessModel as RequestedAccess } from '../types/ApiModels/dancedance/apiModels';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 import { ApproveAndRejectButtons } from '../components/ApproveAndRejectsButtons';
@@ -11,7 +11,7 @@ export function AdministrateAccessRequestsScreen() {
   useEffect(() => {
     videoInfoService.GetAccessRequests()
       .then(res => {
-        setRequestedAccesses(res.accessRequests)
+        setRequestedAccesses(res.accessRequests ?? [])
       }).catch(res => {
         console.error(res)
       })

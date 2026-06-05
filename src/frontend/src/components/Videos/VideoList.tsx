@@ -1,7 +1,6 @@
-import VideoInformation from '../../types/ApiModels/VideoInformation';
+import { VideoInformation } from '../../types/ApiModels/dancedance/apiModels';
 import { useNavigate } from 'react-router-dom';
 import { SharedScope } from '../../types/appTypes';
-import { BlobId } from "../../types/ApiModels/TypeIds";
 import {formatDateToPlDate} from "../../extensions/DateExtensions";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faShare} from "@fortawesome/free-solid-svg-icons";
@@ -11,11 +10,11 @@ import ShareVideoModal from "../Sharing/ShareVideoModal";
 export interface ListOfVideos {
     videos: VideoInformation[]
     sharedScope?: SharedScope
-    selectedVideo?: BlobId
+    selectedVideo?: string
     enableShare: boolean
 }
 
-const getIsSelectedIndicator = (videoInfo: VideoInformation, selected?: BlobId)=>
+const getIsSelectedIndicator = (videoInfo: VideoInformation, selected?: string)=>
 {
     if (videoInfo == null || selected == null)
         return ''
@@ -47,11 +46,11 @@ export function VideoList(props: ListOfVideos) {
     const goToVideo = (vid: VideoInformation) => {
         if (!vid.converted)
             return
-        
+
         const url = '/videos/' + vid.blobId
         void navigate(url, { state: props.sharedScope })
     }
-    
+
     const getNameColumn = (vid: VideoInformation) => {
         if (vid.converted){
             return <td>{vid.name}</td>
@@ -79,7 +78,7 @@ export function VideoList(props: ListOfVideos) {
     const list = props.videos.map(video => {
 
         return (
-            <tr key={video.id} onClick={() => goToVideo(video)} className={getIsSelectedIndicator(video, props.selectedVideo)}>
+            <tr key={video.videoId} onClick={() => goToVideo(video)} className={getIsSelectedIndicator(video, props.selectedVideo)}>
                 {getNameColumn(video)}
                 <td>{formatDateToPlDate(video.recordedDateTime)}</td>
                 {getShareColumn(video)}

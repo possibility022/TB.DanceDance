@@ -1,16 +1,14 @@
-﻿import { AxiosRequestConfig } from "axios";
+import { AxiosRequestConfig } from "axios";
 import httpApiClient from "./HttpApiClient";
-import CreateSharedLinkRequest from "../types/ApiModels/Sharing/CreateSharedLinkRequest";
-import SharedLinkResponse from "../types/ApiModels/Sharing/SharedLinkResponse";
-import SharedVideoInfoResponse from "../types/ApiModels/Sharing/SharedVideoInfoResponse";
+import { CreateSharedLinkRequest, SharedLinkResponse, SharedVideoInfoResponse } from "../types/ApiModels/dancedance/apiModels";
 import AppApiClient from "./HttpApiClient";
 
 class SharingService {
     shareVideo(videoId: string, allowComments: boolean, allowAnonymousComments: boolean, expirationDays?: number, signal?: AbortSignal){
         const body: CreateSharedLinkRequest = {
-            ExpirationDays: expirationDays ?? 7,
-            AllowAnonymousComments: allowAnonymousComments,
-            AllowComments: allowComments,
+            expirationDays: expirationDays ?? 7,
+            allowAnonymousComments: allowAnonymousComments,
+            allowComments: allowComments,
         }
 
         const config: AxiosRequestConfig = {

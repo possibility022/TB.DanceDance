@@ -1,10 +1,9 @@
-﻿import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {VideoList} from "../components/Videos/VideoList";
 import videoInfoService from "../services/VideoInfoService";
-import VideoInformation from "../types/ApiModels/VideoInformation";
+import { VideoInformation, SharingWithType } from "../types/ApiModels/dancedance/apiModels";
 import {Button} from "../components/Button";
 import {UploadVideoModal} from "../components/Videos/UploadVideoModal";
-import SharingWithType from "../types/ApiModels/SharingWithType";
 
 
 function PrivateVideosScreen() {

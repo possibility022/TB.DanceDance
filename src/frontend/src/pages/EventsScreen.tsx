@@ -2,10 +2,9 @@ import {useEffect, useRef, useState} from 'react';
 import {Button} from '../components/Button';
 import {CreateNewEvent} from '../components/Events/CreateNewEvent';
 import {EventsList} from '../components/Events/EventsList';
-import {Event, IEventBase} from '../types/ApiModels/EventsAndGroups';
+import { EventModel2 as Event, EventModel, SharingWithType } from '../types/ApiModels/dancedance/apiModels';
 import videoInfoService from '../services/VideoInfoService';
 import {UploadVideoModal} from '../components/Videos/UploadVideoModal';
-import SharingWithType from "../types/ApiModels/SharingWithType";
 
 const EventsScreen = () => {
 
@@ -15,7 +14,7 @@ const EventsScreen = () => {
     useEffect(() => {
         videoInfoService.GetUserEventsAndGroups()
             .then((resp) => {
-                setEvents(resp.assigned.events)
+                setEvents(resp.assigned?.events ?? [])
             })
             .catch((e) => console.error(e))
     }, [])
@@ -45,15 +44,14 @@ const EventsScreen = () => {
         setSelectedEvent(event)
     }
 
-    const submitNewEvent = (newEvent: IEventBase) => {
-        videoInfoService.CreateEvent({
-            event: newEvent
-        })
+    const submitNewEvent = (newEventModel: EventModel) => {
+        videoInfoService.CreateEvent({ event: newEventModel })
             .then(added => {
+                const newEventObj: Event = { id: added.id, name: newEventModel.name, date: newEventModel.date }
                 const newArray = new Array<Event>(...events)
-                newArray.push(added.eventObject)
+                newArray.push(newEventObj)
                 const sorted = newArray.sort((a, b) => {
-                    if (a.date > b.date)
+                    if ((a.date ?? 0) > (b.date ?? 0))
                         return -1
                     else return 1
                 })

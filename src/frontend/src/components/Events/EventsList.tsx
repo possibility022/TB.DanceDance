@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Event } from '../../types/ApiModels/EventsAndGroups';
+import { EventModel2 as Event } from '../../types/ApiModels/dancedance/apiModels';
 import { EventCard } from './EventCard';
 
 export interface IEventsListProps {

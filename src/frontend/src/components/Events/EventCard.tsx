@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { Event } from '../../types/ApiModels/EventsAndGroups';
+import { EventModel2 as Event, VideoInformation } from '../../types/ApiModels/dancedance/apiModels';
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale';
 import './EventCard.css'
 import { VideoList } from '../Videos/VideoList';
-import VideoInformation from '../../types/ApiModels/VideoInformation';
 import videoInfoService from '../../services/VideoInfoService';
 import { Button } from '../Button';
 
@@ -37,7 +36,7 @@ export function EventCard(props: IEventCardProps) {
 
         setIsLoading(true)
 
-        videoInfoService.GetVideosForEvent(props.event.id)
+        videoInfoService.GetVideosForEvent(props.event.id!)
             .then((results) => {
                 setVideos(results)
             })
@@ -53,14 +52,14 @@ export function EventCard(props: IEventCardProps) {
     }
 
     return (
-        <div key={props.event.id} className="card m-2" onClick={() => props.onSelected(props.event.id)}>
+        <div key={props.event.id} className="card m-2" onClick={() => props.onSelected(props.event.id!)}>
             <header className="card-header eventCard" onClick={loadContent}>
                 <p className="card-header-title">
                     {props.event.name}
                 </p>
                 <button className="card-header-icon" aria-label="more options">
                     <span className="bd-notification is-primary">
-                        <p className="bd-notification is-primary"><time>{formatDate(props.event.date)}</time></p>
+                        <p className="bd-notification is-primary"><time>{formatDate(props.event.date!)}</time></p>
                     </span>
                 </button>
             </header>
@@ -70,13 +69,13 @@ export function EventCard(props: IEventCardProps) {
                            enableShare={false}
                            sharedScope={{
                     groupId: null,
-                    eventId: props.event.id,
+                    eventId: props.event.id ?? null,
                 }}/>
             </div>
             <div hidden={contentIsHidden}>
                 <footer className="card-footer">
                     <p className="card-footer-item">
-                        <Button onClick={() => props.onUploadClick(props.event.id)}>Wyślij nagranie</Button>
+                        <Button onClick={() => props.onUploadClick(props.event.id!)}>Wyślij nagranie</Button>
                     </p>
                 </footer>
             </div>

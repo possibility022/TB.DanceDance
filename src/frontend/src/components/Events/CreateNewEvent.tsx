@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Button } from '../Button';
-import { IEventBase } from '../../types/ApiModels/EventsAndGroups';
-import { EventType } from '../../types/EventType';
+import { EventModel } from '../../types/ApiModels/dancedance/apiModels';
 
 export interface ICreateNewEventProps {
     onCancel(): void
-    onSubmit(newEvent: IEventBase): void
+    onSubmit(newEvent: EventModel): void
 }
 
 export function CreateNewEvent(props: ICreateNewEventProps) {
@@ -13,11 +12,10 @@ export function CreateNewEvent(props: ICreateNewEventProps) {
     const [name, setName] = React.useState("")
     const [date, setDate] = React.useState("")
 
-    const getEvent = (): IEventBase => {
+    const getEvent = (): EventModel => {
         return {
             date: new Date(Date.parse(date)),
             name: name,
-            eventType: EventType.PointedEvent
         }
     }
 

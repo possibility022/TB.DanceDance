@@ -2,11 +2,10 @@ import {useState, useContext, useEffect} from 'react'
 import {useLocation, useParams} from 'react-router-dom';
 import {AuthContext} from '../providers/AuthProvider';
 import videoInfoService from '../services/VideoInfoService';
-import VideoInformation from '../types/ApiModels/VideoInformation';
+import { VideoInformation } from '../types/ApiModels/dancedance/apiModels';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCancel, faCheck, faEdit} from '@fortawesome/free-solid-svg-icons';
 import {SharedScope} from '../types/appTypes';
-import {BlobId} from "../types/ApiModels/TypeIds";
 import VideoPlayerComponent from "../components/Videos/VideoPlayerComponent";
 import CommentsComponent from "../components/Comments/CommentsComponent";
 
@@ -26,9 +25,9 @@ export function VideoPlayerScreen() {
     const [sharedScope, setSharedScope] = useState<SharedScope>()
 
     const useEffectAsyncBody = async () => {
-        const videoId = params.videoId as BlobId
+        const videoId = params.videoId as string
 
-        if (videoId == videoInfo?.id)
+        if (videoId == videoInfo?.blobId)
             return
 
         const passedSharedScope = location.state as SharedScope
@@ -38,8 +37,7 @@ export function VideoPlayerScreen() {
             let videos: VideoInformation[] = [];
 
             if (passedSharedScope.groupId) {
-                const groupWithVideos = await videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
-                videos = groupWithVideos.videos
+                videos = await videoInfoService.GetVideosForGroup(passedSharedScope.groupId)
             } else if (passedSharedScope.eventId) {
                 videos = await videoInfoService.GetVideosForEvent(passedSharedScope.eventId)
             }
@@ -78,7 +76,7 @@ export function VideoPlayerScreen() {
 
     function onRenameConfirm() {
         if (videoInfo) {
-            void videoInfoService.RenameVideo(videoInfo.id, videoNameToSet)
+            void videoInfoService.RenameVideo(videoInfo.videoId!, videoNameToSet)
                 .then(results => {
                     if (results) {
                         setVideoInfo({
@@ -122,7 +120,7 @@ export function VideoPlayerScreen() {
                 </div>
             </div>
             <VideoPlayerComponent videoId={params.videoId} sharedScope={sharedScope} videoList={videoList} url={url}/>
-            {videoInfo && <CommentsComponent allowAdding={false} videoId={videoInfo.id}/>}
+            {videoInfo && <CommentsComponent allowAdding={false} videoId={videoInfo.videoId!}/>}
         </div>
     )
 

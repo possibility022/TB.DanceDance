@@ -2,7 +2,7 @@
 import {formatDateToPlDate} from "../../extensions/DateExtensions";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTrash, faEdit, faEyeSlash, faFontAwesomeFlag} from "@fortawesome/free-solid-svg-icons";
-import {CommentResponse} from "../../types/ApiModels/Comments/CommentResponse";
+import {CommentResponse} from "../../types/ApiModels/dancedance/apiModels";
 import AddComment from "./AddComment";
 
 interface ICommentProps {
@@ -87,7 +87,7 @@ function Comment(props: ICommentProps) {
             <div className="message-body">
                 {renderComment()}
                 <small
-                    className="has-text-grey">{formatDateToPlDate(props.comment.updatedAt ?? props.comment.createdAt)}</small>
+                    className="has-text-grey">{formatDateToPlDate(props.comment.updatedAt ?? props.comment.createdAt ?? new Date())}</small>
             </div>
         </article>
     )

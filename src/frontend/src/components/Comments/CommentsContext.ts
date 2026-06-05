@@ -1,4 +1,4 @@
-﻿import {CommentResponse} from "../../types/ApiModels/Comments/CommentResponse";
+﻿import {CommentResponse} from "../../types/ApiModels/dancedance/apiModels";
 import React from "react";
 
 export interface ICommentsContext {
