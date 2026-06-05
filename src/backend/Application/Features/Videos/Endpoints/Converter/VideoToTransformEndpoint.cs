@@ -1,5 +1,6 @@
 ﻿using FastEndpoints;
 using TB.DanceDance.API.Contracts.Features.Videos.Converter;
+using TB.DanceDance.API.Contracts.Features.Videos.Models;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Converter;
@@ -24,15 +25,19 @@ public class VideoToTransformEndpoint : EndpointWithoutRequest<VideoToTransformR
         var video = await videoUploaderService.GetNextVideoToTransformAsync(ct);
 
         if (video == null)
-            return await Send.NotFoundAsync(ct);
+            return await Send.OkAsync(new VideoToTransformResponse() { VideoExists = false, VideoToTransform = null }, ct);
 
         var sas = videoUploaderService.GetVideoSas(video.SourceBlobId);
 
         return await Send.OkAsync(new VideoToTransformResponse()
         {
-            Id = video.Id,
-            FileName = video.FileName,
-            Sas = sas.ToString(),
+            VideoExists = true,
+            VideoToTransform = new VideoToTransformModel()
+            {
+                Id = video.Id,
+                FileName = video.FileName,
+                Sas = sas.ToString(),
+            }
         }, ct);
     }
 }

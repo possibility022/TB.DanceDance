@@ -31,12 +31,9 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
         return builder.Uri;
     }
 
-    public async Task<VideoToTransformResponse?> GetNextVideoToConvertAsync(CancellationToken token)
+    public async Task<VideoToTransformResponse> GetNextVideoToConvertAsync(CancellationToken token)
     {
         var response = await apiClient.GetAsync("/api/converter/videos", token);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            return null;
 
         response.EnsureSuccessStatusCode();
 

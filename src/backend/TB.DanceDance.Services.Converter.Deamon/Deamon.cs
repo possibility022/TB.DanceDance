@@ -53,13 +53,15 @@ internal sealed class Deamon : BackgroundService
         var converter = scope.ServiceProvider.GetRequiredService<IFFmpegClientConverter>();
 
         Log.Information("Getting next video.");
-        var nextVideoToConvert = await client.GetNextVideoToConvertAsync(token);
+        var response = await client.GetNextVideoToConvertAsync(token);
 
-        if (nextVideoToConvert == null)
+        if (response.VideoExists is false)
         {
             Log.Information("Nothing to convert.");
             return false;
         }
+
+        var nextVideoToConvert = response.VideoToTransform!;
 
         Log.Information("Video to convert {0}", nextVideoToConvert.Id);
 

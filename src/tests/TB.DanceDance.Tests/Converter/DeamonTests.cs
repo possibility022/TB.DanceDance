@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using TB.DanceDance.API.Contracts.Features.Videos.Converter;
+using TB.DanceDance.API.Contracts.Features.Videos.Models;
 using TB.DanceDance.Services.Converter.Deamon;
 using TB.DanceDance.Services.Converter.Deamon.FFmpegClient;
 
@@ -60,16 +61,18 @@ public class DeamonTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        var video = new VideoToTransformResponse
+        var response = new VideoToTransformResponse()
         {
-            Id = id,
-            FileName = "video.mp4",
-            Sas = "https://example/blob"
+            VideoExists = true,
+            VideoToTransform = new VideoToTransformModel()
+            {
+                Id = id, FileName = "video.mp4", Sas = "https://example/blob"
+            }
         };
 
         // First call returns a video, second returns null so loop will go to delay and we cancel
         api.GetNextVideoToConvertAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<VideoToTransformResponse?>(video), Task.FromResult<VideoToTransformResponse?>(null));
+            .Returns(Task.FromResult<VideoToTransformResponse?>(response)!, Task.FromResult<VideoToTransformResponse?>(null)!);
 
         // Download writes the input file content
         api.GetVideoToConvertAsync(Arg.Any<Stream>(), Arg.Any<Uri>(), Arg.Any<CancellationToken>())
