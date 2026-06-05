@@ -1,0 +1,113 @@
+<section class="block">
+  <h2 class="title is-5">Comments</h2>
+
+  @if (canCompose()) {
+    <form [formGroup]="composer" (ngSubmit)="submitNew()" class="block">
+      @if (requireSignature()) {
+        <div class="field">
+          <label class="label" for="comment-author">Your name</label>
+          <div class="control">
+            <input
+              id="comment-author"
+              class="input"
+              type="text"
+              formControlName="authorName"
+              [maxlength]="signatureMax"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+      }
+
+      <div class="field">
+        <label class="label" for="comment-content">Add a comment</label>
+        <div class="control">
+          <textarea
+            id="comment-content"
+            class="textarea"
+            formControlName="content"
+            [maxlength]="contentMax"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="field is-flex is-align-items-center is-justify-content-space-between">
+        <button type="submit" class="button is-primary" [disabled]="composer.invalid || submitting()">
+          Post comment
+        </button>
+        <span class="is-size-7 has-text-grey">{{ composer.controls.content.value.length }}/{{ contentMax }}</span>
+      </div>
+    </form>
+  }
+
+  @if (comments().length === 0) {
+    <p class="has-text-grey">No comments yet.</p>
+  } @else {
+    @for (comment of comments(); track comment.id ?? $index) {
+      <article class="box" [class.has-background-light]="comment.isHidden">
+        <div class="is-flex is-align-items-center">
+          <strong>{{ authorLabel(comment) }}</strong>
+          <span class="is-size-7 has-text-grey ml-2">{{ comment.createdAt | date: 'dd MMM yyyy, HH:mm' }}</span>
+          @if (comment.updatedAt) {
+            <span class="is-size-7 has-text-grey ml-1">(edited)</span>
+          }
+          @if (comment.isHidden) {
+            <span class="tag is-light ml-2">Hidden</span>
+          }
+          @if (comment.isReported) {
+            <span class="tag is-danger is-light ml-2">Reported</span>
+          }
+        </div>
+
+        @if (editingId() === comment.id) {
+          <div class="field mt-2">
+            <div class="control">
+              <textarea class="textarea" [formControl]="editControl" [maxlength]="contentMax" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="buttons are-small">
+            <button type="button" class="button is-primary" [disabled]="editControl.invalid" (click)="saveEditing(comment)">
+              Save
+            </button>
+            <button type="button" class="button" (click)="cancelEditing()">Cancel</button>
+          </div>
+        } @else {
+          <p class="mt-2" style="white-space: pre-wrap;">{{ comment.content }}</p>
+
+          <div class="buttons are-small mt-2">
+            @if (comment.isOwn) {
+              <button type="button" class="button is-text" (click)="startEditing(comment)">Edit</button>
+            }
+            @if (comment.isOwn || comment.canModerate) {
+              <button type="button" class="button is-text has-text-danger" (click)="remove.emit(comment.id!)">
+                Delete
+              </button>
+            }
+            @if (comment.canModerate && !comment.isHidden) {
+              <button type="button" class="button is-text" (click)="hide.emit(comment.id!)">Hide</button>
+            }
+            @if (comment.canModerate && comment.isHidden) {
+              <button type="button" class="button is-text" (click)="unhide.emit(comment.id!)">Unhide</button>
+            }
+            @if (!comment.isOwn) {
+              <button type="button" class="button is-text" (click)="startReport(comment)">Report</button>
+            }
+          </div>
+
+          @if (reportingId() === comment.id) {
+            <div class="field mt-1">
+              <div class="control">
+                <input class="input is-small" [formControl]="reportControl" placeholder="Reason (optional)" maxlength="200" />
+              </div>
+            </div>
+            <div class="buttons are-small">
+              <button type="button" class="button is-danger is-small" (click)="submitReport(comment)">Submit report</button>
+              <button type="button" class="button is-small" (click)="cancelReport()">Cancel</button>
+            </div>
+          }
+        }
+      </article>
+    }
+  }
+</section>
