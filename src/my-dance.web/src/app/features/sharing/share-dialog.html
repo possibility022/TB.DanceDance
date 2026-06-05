@@ -1,0 +1,82 @@
+<div class="modal" [class.is-active]="open()">
+  <div class="modal-background" (click)="close()"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Share “{{ videoName() }}”</p>
+      <button type="button" class="delete" aria-label="close" (click)="close()"></button>
+    </header>
+
+    <section class="modal-card-body">
+      <form [formGroup]="form" (ngSubmit)="create()">
+        <div class="field">
+          <label class="label" for="share-expiration">Link expires after (days)</label>
+          <div class="control">
+            <input
+              id="share-expiration"
+              class="input"
+              type="number"
+              formControlName="expirationDays"
+              min="1"
+              max="365"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" formControlName="allowComments" />
+            Allow comments
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" formControlName="allowAnonymousComments" />
+            Allow comments from people who aren’t logged in
+          </label>
+        </div>
+
+        <div class="field">
+          <button type="submit" class="button is-primary" [disabled]="form.invalid || creating()">
+            Create link
+          </button>
+        </div>
+      </form>
+
+      <hr />
+
+      <h3 class="title is-6">Existing links</h3>
+      @if (links().length === 0) {
+        <p class="has-text-grey">No links for this recording yet.</p>
+      } @else {
+        @for (link of links(); track link.linkId) {
+          <div class="box">
+            <div class="field has-addons">
+              <div class="control is-expanded">
+                <input class="input is-small" type="text" readonly [value]="shareUrl(link)" />
+              </div>
+              <div class="control">
+                <button type="button" class="button is-small" (click)="copy(link)">
+                  {{ copiedLinkId() === link.linkId ? 'Copied' : 'Copy' }}
+                </button>
+              </div>
+            </div>
+            <div class="is-flex is-align-items-center is-justify-content-space-between">
+              <span class="is-size-7 has-text-grey">
+                @if (link.isRevoked) {
+                  <span class="tag is-danger is-light">Revoked</span>
+                } @else {
+                  Expires {{ link.expireAt | longDate }}
+                }
+              </span>
+              @if (!link.isRevoked) {
+                <button type="button" class="button is-small is-text has-text-danger" (click)="revoke(link)">
+                  Revoke
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

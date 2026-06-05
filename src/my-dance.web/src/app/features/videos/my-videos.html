@@ -14,5 +14,14 @@
   <app-video-list
     [videos]="items()"
     emptyMessage="You haven’t uploaded any recordings yet."
+    [shareable]="true"
+    (share)="openShare($event)"
   />
 }
+
+<app-share-dialog
+  [videoId]="shareTarget()?.videoId ?? ''"
+  [videoName]="shareTarget()?.name ?? ''"
+  [open]="shareOpen()"
+  (closed)="closeShare()"
+/>

@@ -95,6 +95,13 @@ export class CommentsSection {
       content: content.trim(),
       authorName: this.requireSignature() ? authorName.trim() : undefined,
     });
+    // Host calls resetComposer() once the create is confirmed, so the typed
+    // text survives a failed submit.
+  }
+
+  /** Clears the composer content, keeping any entered signature name. */
+  resetComposer(): void {
+    const authorName = this.composer.controls.authorName.value;
     this.composer.reset({ authorName: this.requireSignature() ? authorName : '', content: '' });
   }
 
