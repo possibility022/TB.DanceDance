@@ -1,37 +1,5 @@
 @if (isAuthenticated()) {
-  <header class="block">
-    <h1 class="title">Your dashboard</h1>
-    <p class="subtitle">A personalized overview of your recordings will appear here.</p>
-  </header>
-  <div class="columns">
-    <div class="column">
-      <a class="box" routerLink="/videos">
-        <h2 class="title is-5">Lesson recordings</h2>
-        <p>Browse recordings from your regular groups.</p>
-      </a>
-    </div>
-    <div class="column">
-      <a class="box" routerLink="/events">
-        <h2 class="title is-5">Events</h2>
-        <p>Workshops, competitions and showcases.</p>
-      </a>
-    </div>
-    <div class="column">
-      <a class="box" routerLink="/videos/my">
-        <h2 class="title is-5">My recordings</h2>
-        <p>Your private library and shareable links.</p>
-      </a>
-    </div>
-  </div>
+  <app-dashboard />
 } @else {
-  <section class="hero">
-    <div class="hero-body">
-      <h1 class="title">Dance Dance</h1>
-      <p class="subtitle">
-        A home for your dance recordings — group lessons, events, and a private archive you can
-        share with expiring links.
-      </p>
-      <button type="button" class="button is-primary is-medium" (click)="login()">Log in</button>
-    </div>
-  </section>
+  <app-landing />
 }
