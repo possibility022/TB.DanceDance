@@ -4,18 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TB.DanceDance is a multi-platform video management and sharing application focused on dance instruction/practice videos. It consists of a .NET 10 backend API, an OpenIddict-based auth server, a React SPA, a video converter daemon, a .NET MAUI mobile app, and a PostgreSQL database.
+TB.DanceDance is a multi-platform video management and sharing application focused on dance instruction/practice videos. It consists of a .NET 10 backend API, an OpenIddict-based auth server, an Angular SPA (`src/my-dance.web`, replacing the legacy React SPA in `src/frontend`), a video converter daemon, a .NET MAUI mobile app, and a PostgreSQL database.
 
 ## Commands
 
 ### Local Development (Docker)
 ```bash
-# Start the full local stack (PostgreSQL, Azurite, authserver, API, frontend, converter)
+# Start the full local stack (PostgreSQL, Azurite, authserver, API, web app, converter)
 docker compose -f local_environment.dockercompose.yaml up
 
 # Wait for seed data before using the app
 docker logs tbdanceInitializer   # wait for "Data initialized"
+
+# Frontend hot-reload dev: run the backend WITHOUT the web container, then `npm start`
+docker compose -f local_environment.dockercompose.yaml up --scale frontendspa=0
 ```
+The web app is served at `http://localhost:3000` (required: matches the auth server's
+registered OIDC redirect and the API/auth CORS allowlist).
 
 ### Backend (.NET)
 ```bash
@@ -26,14 +31,16 @@ dotnet test src/tests/TB.DanceDance.Tests/TB.DanceDance.Tests.csproj   # integra
 dotnet test src/tests/TB.DanceDance.Mobile.Tests/TB.DanceDance.Mobile.Tests.csproj
 ```
 
-### Frontend (React)
+### Frontend (Angular — `src/my-dance.web`)
 ```bash
-cd src/frontend
+cd src/my-dance.web
 npm install
-npm start        # dev server
-npm run build
-npm test
+npm start        # dev server on http://localhost:3000
+npm run build    # -> dist/my-dance.web/browser
+npm test         # Vitest
 ```
+Requires Node `^22.22.3 || ^24.15.0 || >=26`. See `src/my-dance.web/README.md` for the
+full local-dev guide. The legacy React app under `src/frontend` is being retired.
 
 ### Mobile (MAUI)
 ```bash
@@ -95,7 +102,16 @@ The backend follows a strict layered architecture under `src/backend/`:
 - EF Core migrations live in `src/backend/Infrastructure/Data/Migrations/`.
 - Integration tests use **Testcontainers** (spins up real PostgreSQL and Azurite containers).
 
-### Frontend
+### Frontend (`src/my-dance.web`)
+
+Angular 22, standalone components, signals, zoneless, OnPush. See `src/my-dance.web/.claude/CLAUDE.md` for the in-project Angular conventions.
+
+- OIDC is configured in `src/app/core/auth/` via `angular-auth-oidc-client` (Authorization Code + PKCE, refresh-token renew); the bearer token is attached by the library's `authInterceptor` (secureRoutes = API base URL).
+- `src/app/core/api/` holds the typed API layer: `ApiClient` (base URL from runtime config) plus one service per capability area (videos, groups, events, comments, sharing, access, upload). Models mirror the backend schema in `api-models.ts`.
+- Per-environment config is loaded at runtime from `config.json` (`ConfigService` + `APP_INITIALIZER`); localhost defaults apply when absent.
+- Routing is in `src/app/app.routes.ts` (lazy, functional guards). Stable URLs: `/callback` and `/shared/:linkId`.
+
+### Frontend (legacy React — `src/frontend`, being retired)
 
 - OIDC authentication is bootstrapped in `src/frontend/src/providers/AuthProvider.ts` using `oidc-client-ts`.
 - `src/frontend/src/services/AppClient.ts` is the central API client; individual service files (VideoInfoService, CommentsService, etc.) wrap it.
@@ -112,7 +128,8 @@ The backend follows a strict layered architecture under `src/backend/`:
 - `local_environment.dockercompose.yaml` — defines all local services and their environment variables.
 - `src/backend/TB.DanceDance.API/appsettings.json` + `appsettings.Local.json` — API config.
 - `src/authserver/appsettings.Local.json` — auth server config (clients, scopes, signing keys).
-- `src/frontend/src/constants/` — frontend API base URLs and OIDC settings per environment.
+- `src/my-dance.web/public/config.json` — Angular runtime config (API base URL, auth URL, redirect URI); overridden at container start by `src/my-dance.web/docker-entrypoint.sh`.
+- `src/frontend/src/constants/` — legacy React API base URLs and OIDC settings per environment.
 
 ## Testing Notes
 

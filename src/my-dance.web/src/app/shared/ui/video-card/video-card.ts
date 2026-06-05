@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Params, RouterLink } from '@angular/router';
 
 import { VideoInformation } from '../../../core/api/api-models';
 import { LongDatePipe } from '../../format/long-date.pipe';
@@ -10,7 +10,7 @@ import { LongDatePipe } from '../../format/long-date.pipe';
   imports: [RouterLink, LongDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="card">
+    <div class="card" [class.has-background-link-light]="selected()">
       <div class="card-content">
         <h3 class="title is-6 mb-1">{{ video().name }}</h3>
         <p class="is-size-7 has-text-grey">
@@ -22,7 +22,9 @@ import { LongDatePipe } from '../../format/long-date.pipe';
 
         <div class="buttons are-small mt-3">
           @if (video().converted && video().blobId) {
-            <a class="button is-primary" [routerLink]="['/videos', video().blobId]">Watch</a>
+            <a class="button is-primary" [routerLink]="['/videos', video().blobId]" [queryParams]="queryParams()">
+              Watch
+            </a>
           } @else {
             <span class="tag is-warning is-light">Processing…</span>
           }
@@ -38,5 +40,9 @@ export class VideoCard {
   readonly video = input.required<VideoInformation>();
   /** Show the Share action (e.g. in the user's own library). */
   readonly shareable = input(false);
+  /** Query params carried to the player to preserve the group/event scope. */
+  readonly queryParams = input<Params>({});
+  /** Highlight this card as the currently-playing recording. */
+  readonly selected = input(false);
   readonly share = output<VideoInformation>();
 }

@@ -1,51 +1,62 @@
 <header class="block">
   <h1 class="title">Upload a recording</h1>
-  <p class="subtitle">Add a new recording to a group, event, or your private library.</p>
+  <p class="subtitle">Add recordings to a group, event, or your private library.</p>
 </header>
 
 @switch (stage()) {
   @case ('done') {
     <div class="notification is-success is-light">
-      <p class="block">Your recording was uploaded and is now being processed. It’ll appear once conversion finishes.</p>
-      <button type="button" class="button is-success" (click)="reset()">Upload another</button>
+      <p class="block">
+        {{ total() }} recording{{ total() === 1 ? '' : 's' }} uploaded and now being processed. They’ll
+        appear once conversion finishes.
+      </p>
+      <button type="button" class="button is-success" (click)="reset()">Upload more</button>
     </div>
   }
   @case ('error') {
     <div class="notification is-danger is-light" role="alert">
-      <p class="block">The upload failed. Please try again.</p>
+      <p class="block">The upload failed (file {{ currentIndex() }} of {{ total() }}). Please try again.</p>
       <button type="button" class="button is-danger" (click)="reset()">Start over</button>
     </div>
   }
   @case ('uploading') {
     <div class="block">
-      <p class="block">Uploading… {{ progress() }}%</p>
+      <p class="block">Uploading file {{ currentIndex() }} of {{ total() }} — {{ progress() }}%</p>
       <progress class="progress is-primary" [value]="progress()" max="100">{{ progress() }}%</progress>
     </div>
   }
   @default {
     <form [formGroup]="form" (ngSubmit)="submit()" class="box">
       <div class="field">
-        <label class="label" for="upload-name">Name</label>
+        <label class="label" for="upload-file">Video file(s)</label>
         <div class="control">
-          <input id="upload-name" class="input" type="text" formControlName="name" maxlength="200" />
+          <input id="upload-file" class="input" type="file" accept="video/*" multiple (change)="onFilesSelected($event)" />
         </div>
-      </div>
-
-      <div class="field">
-        <label class="label" for="upload-file">Video file</label>
-        <div class="control">
-          <input id="upload-file" class="input" type="file" accept="video/*" (change)="onFileSelected($event)" />
-        </div>
-        @if (file(); as selected) {
-          <p class="help">{{ selected.name }}</p>
+        @if (files().length > 0) {
+          <ul class="help">
+            @for (file of files(); track file.name) {
+              <li>{{ file.name }}</li>
+            }
+          </ul>
         }
       </div>
 
+      @if (singleFile()) {
+        <div class="field">
+          <label class="label" for="upload-name">Name <span class="has-text-grey is-size-7">(optional)</span></label>
+          <div class="control">
+            <input id="upload-name" class="input" type="text" formControlName="name" maxlength="200" />
+          </div>
+          <p class="help">Defaults to the file name.</p>
+        </div>
+      }
+
       <div class="field">
-        <label class="label" for="upload-date">Recorded date</label>
+        <label class="label" for="upload-date">Recorded date <span class="has-text-grey is-size-7">(optional)</span></label>
         <div class="control">
           <input id="upload-date" class="input" type="date" formControlName="recordedDate" [max]="today" />
         </div>
+        <p class="help">Defaults to each file’s last-modified date.</p>
       </div>
 
       <div class="field">

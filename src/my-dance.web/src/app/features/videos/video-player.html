@@ -7,7 +7,39 @@
   </div>
 } @else if (info(); as video) {
   <header class="block">
-    <h1 class="title">{{ video.name }}</h1>
+    @if (editingName()) {
+      <div class="field has-addons">
+        <div class="control is-expanded">
+          <input
+            class="input"
+            type="text"
+            aria-label="Recording name"
+            [value]="nameDraft()"
+            (input)="nameDraft.set($any($event.target).value)"
+          />
+        </div>
+        <div class="control">
+          <button type="button" class="button is-primary" [disabled]="renaming()" (click)="saveRename()">
+            Save
+          </button>
+        </div>
+        <div class="control">
+          <button type="button" class="button" (click)="cancelRename()">Cancel</button>
+        </div>
+      </div>
+    } @else {
+      <h1 class="title">
+        {{ video.name }}
+        <button
+          type="button"
+          class="button is-small is-text ml-2"
+          aria-label="Rename recording"
+          (click)="startRename()"
+        >
+          Rename
+        </button>
+      </h1>
+    }
     <p class="subtitle is-6 has-text-grey">
       {{ video.recordedDateTime | longDate }}
       @if (video.duration) {
@@ -16,33 +48,49 @@
     </p>
   </header>
 
-  @if (streamUrl(); as src) {
-    <video
-      class="is-block"
-      style="width: 100%; max-height: 70vh; background: #000;"
-      controls
-      preload="metadata"
-      [src]="src"
-      [attr.aria-label]="'Recording: ' + video.name"
-    >
-      Your browser doesn’t support embedded video.
-    </video>
-  } @else {
-    <div class="notification is-warning is-light">
-      This recording is still processing and isn’t playable yet. Check back shortly.
-    </div>
-  }
+  <div class="columns">
+    <div class="column">
+      @if (streamUrl(); as src) {
+        <video
+          class="is-block"
+          style="width: 100%; max-height: 70vh; background: #000;"
+          controls
+          preload="metadata"
+          [src]="src"
+          [attr.aria-label]="'Recording: ' + video.name"
+        >
+          Your browser doesn’t support embedded video.
+        </video>
+      } @else {
+        <div class="notification is-warning is-light">
+          This recording is still processing and isn’t playable yet. Check back shortly.
+        </div>
+      }
 
-  <app-comments-section
-    class="block mt-5"
-    [comments]="commentList()"
-    [canCompose]="false"
-    (saveEdit)="onSaveEdit($event)"
-    (remove)="onRemove($event)"
-    (hide)="onHide($event)"
-    (unhide)="onUnhide($event)"
-    (report)="onReport($event)"
-  />
+      <app-comments-section
+        class="block mt-5"
+        [comments]="commentList()"
+        [canCompose]="false"
+        (saveEdit)="onSaveEdit($event)"
+        (remove)="onRemove($event)"
+        (hide)="onHide($event)"
+        (unhide)="onUnhide($event)"
+        (report)="onReport($event)"
+      />
+    </div>
+
+    @if (siblings().length > 0) {
+      <div class="column is-one-third">
+        <h2 class="title is-6">More from this @if (groupId()) { group } @else { event }</h2>
+        <app-video-list
+          [videos]="siblings()"
+          [scopeGroupId]="groupId()"
+          [scopeEventId]="eventId()"
+          [selectedBlobId]="blobId()"
+        />
+      </div>
+    }
+  </div>
 } @else {
   <p class="has-text-grey">Recording not found.</p>
 }

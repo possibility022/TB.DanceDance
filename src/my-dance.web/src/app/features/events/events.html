@@ -76,7 +76,11 @@
           <button type="button" class="button is-danger" (click)="select(event)">Try again</button>
         </div>
       } @else {
-        <app-video-list [videos]="videos()" emptyMessage="No recordings for this event yet." />
+        <app-video-list
+          [videos]="videos()"
+          [scopeEventId]="event.id ?? ''"
+          emptyMessage="No recordings for this event yet."
+        />
       }
     } @else {
       <p class="has-text-grey">Select an event to see its recordings.</p>

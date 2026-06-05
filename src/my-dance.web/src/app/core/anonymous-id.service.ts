@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
-const STORAGE_KEY = 'dd.anonymousId';
+// Same key the previous app used, so anonymous comment ownership carries over.
+const STORAGE_KEY = 'anonymousId';
 
 /**
  * Stable per-browser identifier for attributing anonymous activity (commenting

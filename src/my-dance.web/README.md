@@ -1,59 +1,78 @@
-# MyDanceWeb
+# my-dance.web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.14.
+Angular 22 web app for TB.DanceDance (replaces the React app in `src/frontend`).
 
-## Development server
+## Prerequisites
 
-To start a local development server, run:
+- **Node** `^22.22.3 || ^24.15.0 || >=26` (the repo is developed on Node 24).
+- **Docker** (for the backend stack: API, auth server, PostgreSQL, Azurite, converter).
+- **Trusted ASP.NET dev cert** — the API (`https://localhost:7068`) and auth server
+  (`https://localhost:7259`) use a dev cert. Trust it once so the browser accepts it:
+  ```bash
+  dotnet dev-certs https --trust
+  ```
 
-```bash
-ng serve
-```
+## Port 3000 matters
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+The app **must** be served on `http://localhost:3000` locally, because:
 
-## Code scaffolding
+- the auth server has `http://localhost:3000/callback` registered as the OIDC redirect, and
+- the API and auth server only allow CORS from `http://localhost:3000`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Both `npm start` (dev server) and the Docker image are configured for port 3000.
 
-```bash
-ng generate component component-name
-```
+## Running
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Frontend development (hot reload) — recommended
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Start the backend **without** the web container, then run the dev server:
 
 ```bash
-ng build
+# from the repo root
+docker compose -f local_environment.dockercompose.yaml up --scale frontendspa=0
+docker logs tbdanceInitializer   # wait for "Data initialized"
+
+# in another terminal
+cd src/my-dance.web
+npm install
+npm start                         # http://localhost:3000  (hot reload)
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Full stack (production-like, Dockerized frontend)
 
 ```bash
-ng test
+docker compose -f local_environment.dockercompose.yaml up
+# app served at http://localhost:3000 by nginx
 ```
 
-## Running end-to-end tests
+## Configuration
 
-For end-to-end (e2e) testing, run:
+Runtime config is loaded from `config.json` at startup (no rebuild per environment):
+
+| Key | Local default | Source |
+|-----|---------------|--------|
+| `apiBaseUrl` | `https://localhost:7068` | `public/config.json` (dev) / entrypoint env (Docker) |
+| `authUrl` | `https://localhost:7259` | same |
+| `redirectUri` | `window.origin + /callback` | computed when blank |
+
+- **Dev server** serves `public/config.json` as-is (defaults already point at localhost).
+- **Docker image** generates `config.json` at container start from `API_BASE_URL` /
+  `AUTH_URL` / `REDIRECT_URI` env vars (see `docker-entrypoint.sh`).
+
+## Commands
 
 ```bash
-ng e2e
+npm start            # dev server on :3000
+npm run build        # production build -> dist/my-dance.web/browser
+npm test             # unit tests (Vitest)
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Project layout
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```
+src/app/
+  core/      config, auth (OIDC), API services + models
+  shared/    reusable UI (video-card/list), formatting pipes, enums
+  layout/    navbar, cookie-consent
+  features/  home, videos, comments, sharing, events, access, upload, auth pages
+```

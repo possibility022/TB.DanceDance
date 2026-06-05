@@ -11,12 +11,22 @@
     <button type="button" class="button is-danger" (click)="load()">Try again</button>
   </div>
 } @else if (sections().length === 0) {
-  <p class="has-text-grey">No group recordings are available to you yet.</p>
+  <div class="notification is-info is-light">
+    <p class="block">It looks like you don’t have access to any group recordings yet.</p>
+    <a class="button is-info" routerLink="/videos/requestassignment">Request access</a>
+  </div>
 } @else {
   @for (section of sections(); track section.groupId) {
     <section class="block">
-      <h2 class="title is-4">{{ section.groupName }}</h2>
-      <app-video-list [videos]="section.videos" />
+      <h2 class="title is-4">
+        {{ section.groupName }}
+        @if (section.seasonStart) {
+          <span class="subtitle is-6 has-text-grey ml-2">
+            {{ section.seasonStart | season: section.seasonEnd }}
+          </span>
+        }
+      </h2>
+      <app-video-list [videos]="section.videos" [scopeGroupId]="section.groupId" />
     </section>
   }
 }

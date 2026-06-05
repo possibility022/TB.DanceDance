@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { Params } from '@angular/router';
 
 import { VideoInformation } from '../../../core/api/api-models';
 import { VideoCard } from '../video-card/video-card';
@@ -15,7 +16,13 @@ import { VideoCard } from '../video-card/video-card';
       <div class="columns is-multiline">
         @for (video of videos(); track video.videoId ?? video.blobId ?? $index) {
           <div class="column is-one-third-desktop is-half-tablet">
-            <app-video-card [video]="video" [shareable]="shareable()" (share)="share.emit($event)" />
+            <app-video-card
+              [video]="video"
+              [shareable]="shareable()"
+              [queryParams]="queryParams()"
+              [selected]="!!selectedBlobId() && video.blobId === selectedBlobId()"
+              (share)="share.emit($event)"
+            />
           </div>
         }
       </div>
@@ -26,5 +33,20 @@ export class VideoList {
   readonly videos = input.required<readonly VideoInformation[]>();
   readonly emptyMessage = input('No recordings yet.');
   readonly shareable = input(false);
+  /** Scope carried to the player so it can show a sibling playlist. */
+  readonly scopeGroupId = input<string>('');
+  readonly scopeEventId = input<string>('');
+  /** Highlight the currently-playing recording (blob id). */
+  readonly selectedBlobId = input<string>('');
   readonly share = output<VideoInformation>();
+
+  readonly queryParams = computed<Params>(() => {
+    if (this.scopeGroupId()) {
+      return { groupId: this.scopeGroupId() };
+    }
+    if (this.scopeEventId()) {
+      return { eventId: this.scopeEventId() };
+    }
+    return {};
+  });
 }

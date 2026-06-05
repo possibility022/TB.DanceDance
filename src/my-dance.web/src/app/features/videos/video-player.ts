@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  OnInit,
+  effect,
   inject,
   input,
   signal,
@@ -12,22 +12,30 @@ import { Observable, forkJoin } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { CommentsService } from '../../core/api/comments.service';
+import { GroupsService } from '../../core/api/groups.service';
+import { EventsService } from '../../core/api/events.service';
 import { VideosService } from '../../core/api/videos.service';
 import { CommentResponse, VideoInformation } from '../../core/api/api-models';
 import { CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
+import { VideoList } from '../../shared/ui/video-list/video-list';
 
 @Component({
   selector: 'app-video-player',
-  imports: [LongDatePipe, CommentsSection],
+  imports: [LongDatePipe, CommentsSection, VideoList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './video-player.html',
 })
-export class VideoPlayer implements OnInit {
+export class VideoPlayer {
   /** Bound from the route `:blobId` param via withComponentInputBinding(). */
   readonly blobId = input.required<string>();
+  /** Optional scope (query params) — drives the sibling "playlist". */
+  readonly groupId = input<string>('');
+  readonly eventId = input<string>('');
 
   private readonly videos = inject(VideosService);
+  private readonly groups = inject(GroupsService);
+  private readonly events = inject(EventsService);
   private readonly comments = inject(CommentsService);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
@@ -40,8 +48,24 @@ export class VideoPlayer implements OnInit {
   readonly commentList = signal<readonly CommentResponse[]>([]);
   private readonly videoId = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.load();
+  readonly siblings = signal<readonly VideoInformation[]>([]);
+
+  readonly editingName = signal(false);
+  readonly nameDraft = signal('');
+  readonly renaming = signal(false);
+
+  constructor() {
+    // Reload when the recording changes (incl. navigating between siblings,
+    // which reuses this component instance).
+    effect(() => {
+      this.blobId();
+      this.load();
+    });
+    effect(() => {
+      this.groupId();
+      this.eventId();
+      this.loadSiblings();
+    });
   }
 
   load(): void {
@@ -73,6 +97,51 @@ export class VideoPlayer implements OnInit {
           this.failed.set(true);
           this.loading.set(false);
         },
+      });
+  }
+
+  private loadSiblings(): void {
+    const request$ = this.groupId()
+      ? this.groups.getVideosForGroup(this.groupId())
+      : this.eventId()
+        ? this.events.getEventVideos(this.eventId())
+        : null;
+    if (!request$) {
+      this.siblings.set([]);
+      return;
+    }
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (response) => this.siblings.set(response.videos ?? []),
+      error: () => this.siblings.set([]),
+    });
+  }
+
+  startRename(): void {
+    this.nameDraft.set(this.info()?.name ?? '');
+    this.editingName.set(true);
+  }
+
+  cancelRename(): void {
+    this.editingName.set(false);
+  }
+
+  saveRename(): void {
+    const videoId = this.info()?.videoId;
+    const name = this.nameDraft().trim();
+    if (!videoId || !name || this.renaming()) {
+      return;
+    }
+    this.renaming.set(true);
+    this.videos
+      .renameVideo(videoId, { newName: name })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.info.update((video) => (video ? { ...video, name } : video));
+          this.renaming.set(false);
+          this.editingName.set(false);
+        },
+        error: () => this.renaming.set(false),
       });
   }
 

@@ -1,18 +1,19 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { switchMap } from 'rxjs';
+import { concatMap, defer, from, switchMap, tap } from 'rxjs';
 
 import { AccessService } from '../../core/api/access.service';
 import { BlobUploadService } from '../../core/api/blob-upload.service';
 import { UploadService } from '../../core/api/upload.service';
-import { SharingWithType } from '../../core/api/api-models';
+import { ProduceUploadUrlRequest, SharingWithType } from '../../core/api/api-models';
 
 interface UploadTarget {
   readonly key: string;
   readonly label: string;
   readonly type: SharingWithType;
-  readonly sharedWith: string;
+  /** Group/event id; undefined for the private library. */
+  readonly sharedWith?: string;
 }
 
 type Stage = 'form' | 'uploading' | 'done' | 'error';
@@ -36,16 +37,19 @@ export class Upload {
   readonly targets = signal<readonly UploadTarget[]>([]);
 
   readonly stage = signal<Stage>('form');
+  readonly files = signal<readonly File[]>([]);
+  readonly total = signal(0);
+  readonly currentIndex = signal(0);
   readonly progress = signal(0);
-  readonly file = signal<File | null>(null);
 
   readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(200)]],
-    recordedDate: ['', [Validators.required]],
+    name: ['', [Validators.maxLength(200)]],
+    recordedDate: [''],
     targetKey: ['private', [Validators.required]],
   });
 
-  readonly canSubmit = computed(() => this.file() !== null);
+  readonly singleFile = computed(() => this.files().length === 1);
+  readonly canSubmit = computed(() => this.files().length > 0);
 
   constructor() {
     this.loadTargets();
@@ -71,7 +75,7 @@ export class Upload {
             sharedWith: event.id ?? '',
           }));
           this.targets.set([
-            { key: 'private', label: 'Private library', type: SharingWithType.Private, sharedWith: '' },
+            { key: 'private', label: 'Private library', type: SharingWithType.Private },
             ...groups,
             ...events,
           ]);
@@ -81,40 +85,47 @@ export class Upload {
       });
   }
 
-  onFileSelected(event: Event): void {
+  onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.file.set(input.files?.[0] ?? null);
+    this.files.set(input.files ? Array.from(input.files) : []);
   }
 
   submit(): void {
-    const file = this.file();
-    if (this.form.invalid || !file || this.stage() === 'uploading') {
+    const files = this.files();
+    if (files.length === 0 || this.form.invalid || this.stage() === 'uploading') {
       return;
     }
 
-    const { name, recordedDate, targetKey } = this.form.getRawValue();
+    const { name, targetKey } = this.form.getRawValue();
     const target = this.targets().find((option) => option.key === targetKey);
     if (!target) {
       return;
     }
 
+    // When a single file is selected, the optional name applies; for a batch,
+    // each recording is named after its file.
+    const explicitName = files.length === 1 ? name.trim() : '';
+
     this.stage.set('uploading');
+    this.total.set(files.length);
+    this.currentIndex.set(0);
     this.progress.set(0);
 
-    this.uploads
-      .produceUploadUrl({
-        nameOfVideo: name.trim(),
-        fileName: file.name,
-        recordedTimeUtc: new Date(recordedDate),
-        sharedWith: target.sharedWith,
-        sharingWithType: target.type,
-      })
+    from(files)
       .pipe(
-        switchMap((response) => this.blob.upload(response.sas ?? '', file)),
+        concatMap((file, index) =>
+          defer(() => {
+            this.currentIndex.set(index + 1);
+            this.progress.set(0);
+            return this.uploads.produceUploadUrl(this.buildRequest(file, target, explicitName)).pipe(
+              switchMap((response) => this.blob.upload(response.sas ?? '', file)),
+              tap((percent) => this.progress.set(percent)),
+            );
+          }),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (percent) => this.progress.set(percent),
         error: () => this.stage.set('error'),
         complete: () => this.stage.set('done'),
       });
@@ -123,7 +134,21 @@ export class Upload {
   reset(): void {
     this.stage.set('form');
     this.progress.set(0);
-    this.file.set(null);
+    this.currentIndex.set(0);
+    this.total.set(0);
+    this.files.set([]);
     this.form.reset({ name: '', recordedDate: '', targetKey: 'private' });
+  }
+
+  private buildRequest(file: File, target: UploadTarget, explicitName: string): ProduceUploadUrlRequest {
+    const recordedDate = this.form.getRawValue().recordedDate;
+    return {
+      nameOfVideo: explicitName || file.name,
+      fileName: file.name,
+      recordedTimeUtc: recordedDate ? new Date(recordedDate) : new Date(file.lastModified),
+      sharingWithType: target.type,
+      // Omitted for the private library (no group/event target).
+      sharedWith: target.sharedWith as string,
+    };
   }
 }

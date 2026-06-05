@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from '../config/config.service';
 
 export interface RequestOptions {
   params?: HttpParams | Record<string, string | number | boolean | readonly string[]>;
+  headers?: HttpHeaders | Record<string, string | string[]>;
 }
 
 /**

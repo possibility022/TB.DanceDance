@@ -44,6 +44,37 @@
 
       <hr />
 
+      <div class="field">
+        <label class="label" for="share-visibility">Who can see comments</label>
+        <div class="field has-addons">
+          <div class="control is-expanded">
+            <div class="select is-fullwidth">
+              <select
+                id="share-visibility"
+                [value]="selectedVisibility()"
+                (change)="selectedVisibility.set(+$any($event.target).value)"
+              >
+                @for (option of visibilityOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <button
+              type="button"
+              class="button is-warning"
+              [disabled]="updatingVisibility() || selectedVisibility() === savedVisibility()"
+              (click)="applyVisibility()"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
       <h3 class="title is-6">Existing links</h3>
       @if (links().length === 0) {
         <p class="has-text-grey">No links for this recording yet.</p>

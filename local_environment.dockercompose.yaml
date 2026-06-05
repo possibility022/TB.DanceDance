@@ -84,14 +84,24 @@ services:
       - "10001:10001"
       - "10002:10002"
 
+  # Angular web app (src/my-dance.web). For frontend hot-reload development run
+  # the backend without this container and use `npm start` instead:
+  #   docker compose -f local_environment.dockercompose.yaml up --scale frontendspa=0
+  #   cd src/my-dance.web && npm start      # serves on http://localhost:3000
   frontendspa:
-    image: ddfrontend:latest
+    image: ddwebapp:latest
     container_name: tbdancefrontend
     depends_on:
       - api
     build:
       dockerfile: Dockerfile
-      context: src/frontend
+      context: src/my-dance.web
+    environment:
+      # Browser-reachable hosts (host-published ports). redirectUri defaults to
+      # window.origin + /callback (http://localhost:3000/callback), which matches
+      # the auth server's registered redirect — so it's left unset here.
+      - API_BASE_URL=https://localhost:7068
+      - AUTH_URL=https://localhost:7259
     ports:
       - "3000:80"
 
