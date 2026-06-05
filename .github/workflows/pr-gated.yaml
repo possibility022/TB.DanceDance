@@ -30,15 +30,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
       - name: Install frontend dependencies
-        working-directory: ./src/frontend
-        run: npm install
-        
+        working-directory: ./src/my-dance.web
+        run: npm ci
+
       - name: Build frontend project
-        working-directory: ./src/frontend
+        working-directory: ./src/my-dance.web
         run: npm run build
         
         
