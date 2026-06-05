@@ -113,6 +113,9 @@ services:
       - tb_dancedance_converter_ConverterConfig__TokenProviderOptions__ClientId=tbdancedanceconverter
       - tb_dancedance_converter_ConverterConfig__TokenProviderOptions__Scope=tbdancedanceapi.convert
       - tb_dancedance_converter_ConverterConfig__DelayInMinutes=1
+      # API SAS URLs embed 127.0.0.1 (Azurite's host-published port, fine for the browser),
+      # but 127.0.0.1 is unreachable from inside Docker. Remap to the internal service name.
+      - tb_dancedance_converter_ConverterConfig__BlobEndpointOverride=http://azuriteStorage:10000
 
   initializator:
     image: initializator:latest
