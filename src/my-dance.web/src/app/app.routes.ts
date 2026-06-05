@@ -1,3 +1,89 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+import { adminGuard, authGuard } from './core/auth/auth.guard';
+
+export const routes: Routes = [
+  // --- Public ---
+  {
+    path: '',
+    title: 'Dance Dance',
+    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+  },
+  {
+    // Stable public URL — shared links are handed out to other people.
+    path: 'shared/:linkId',
+    title: 'Shared recording · Dance Dance',
+    loadComponent: () =>
+      import('./features/sharing/shared-link-viewer').then((m) => m.SharedLinkViewer),
+  },
+
+  // --- Authenticated ---
+  {
+    path: 'videos',
+    title: 'Lesson recordings · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/videos/group-videos').then((m) => m.GroupVideos),
+  },
+  {
+    path: 'videos/my',
+    title: 'My recordings · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/videos/my-videos').then((m) => m.MyVideos),
+  },
+  {
+    path: 'videos/upload',
+    title: 'Upload · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/upload/upload').then((m) => m.Upload),
+  },
+  {
+    path: 'videos/requestassignment',
+    title: 'Request access · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/access/request-access').then((m) => m.RequestAccess),
+  },
+  {
+    // Keep below the static `videos/*` paths so they aren't captured as ids.
+    path: 'videos/:videoId',
+    title: 'Watch · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/videos/video-player').then((m) => m.VideoPlayer),
+  },
+  {
+    path: 'events',
+    title: 'Events · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/events/events').then((m) => m.Events),
+  },
+  {
+    path: 'access/requestedaccesses',
+    title: 'Access requests · Dance Dance',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./features/access/access-requests').then((m) => m.AccessRequests),
+  },
+
+  // --- OIDC plumbing (public) ---
+  {
+    path: 'callback',
+    loadComponent: () => import('./features/auth/callback').then((m) => m.Callback),
+  },
+  {
+    path: 'logout',
+    loadComponent: () => import('./features/auth/logout').then((m) => m.Logout),
+  },
+  {
+    path: 'logout/callback',
+    loadComponent: () => import('./features/auth/logout-callback').then((m) => m.LogoutCallback),
+  },
+  {
+    path: 'silentrenew',
+    loadComponent: () => import('./features/auth/silent-renew').then((m) => m.SilentRenew),
+  },
+
+  // --- Fallback ---
+  {
+    path: '**',
+    title: 'Not found · Dance Dance',
+    loadComponent: () => import('./features/not-found/not-found').then((m) => m.NotFound),
+  },
+];

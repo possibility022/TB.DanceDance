@@ -1,0 +1,80 @@
+<nav class="navbar is-primary" aria-label="main navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item has-text-weight-bold is-size-5" routerLink="/" (click)="closeMenu()">
+        Dance Dance
+      </a>
+
+      <button
+        type="button"
+        class="navbar-burger"
+        [class.is-active]="menuOpen()"
+        aria-label="menu"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="navbar-menu"
+        (click)="toggleMenu()"
+      >
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <div id="navbar-menu" class="navbar-menu" [class.is-active]="menuOpen()">
+      <div class="navbar-start">
+        @if (isAuthenticated()) {
+          <a class="navbar-item" routerLink="/events" routerLinkActive="is-active" (click)="closeMenu()">
+            Events
+          </a>
+          <a class="navbar-item" routerLink="/videos" routerLinkActive="is-active" (click)="closeMenu()">
+            Lesson recordings
+          </a>
+          <a class="navbar-item" routerLink="/videos/my" routerLinkActive="is-active" (click)="closeMenu()">
+            My recordings
+          </a>
+          <a class="navbar-item" routerLink="/videos/upload" routerLinkActive="is-active" (click)="closeMenu()">
+            Upload
+          </a>
+
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link">Access</a>
+            <div class="navbar-dropdown">
+              <a
+                class="navbar-item"
+                routerLink="/videos/requestassignment"
+                routerLinkActive="is-active"
+                (click)="closeMenu()"
+              >
+                Request access
+              </a>
+              <a
+                class="navbar-item"
+                routerLink="/access/requestedaccesses"
+                routerLinkActive="is-active"
+                (click)="closeMenu()"
+              >
+                Manage access requests
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="navbar-end">
+        <a class="navbar-item" [href]="privacyUrl()" target="_blank" rel="noopener">
+          Privacy policy
+        </a>
+        <div class="navbar-item">
+          <div class="buttons">
+            @if (isAuthenticated()) {
+              <button type="button" class="button is-light" (click)="logout()">Log out</button>
+            } @else {
+              <button type="button" class="button is-light" (click)="login()">Log in</button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
