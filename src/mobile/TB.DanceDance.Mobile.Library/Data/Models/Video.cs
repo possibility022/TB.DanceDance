@@ -1,5 +1,5 @@
-﻿using TB.DanceDance.API.Contracts.Features.Groups;
-using TB.DanceDance.API.Contracts.Features.Videos;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace TB.DanceDance.Mobile.Library.Data.Models;
 
@@ -20,47 +20,32 @@ public record Video
     public bool Converted { get; set; } = false;
 
 
-    public static List<Video> MapFromApiResponse(IReadOnlyCollection<GroupWithVideosResponse>? videosResponse)
+    public static List<Video> MapFromApiResponse(IReadOnlyCollection<VideoFromGroupInformation>? videosResponse)
     {
         if (videosResponse == null)
             return new List<Video>();
 
-        var list = new List<Video>();
-
-        foreach (var groupWithVideosResponse in videosResponse)
+        return videosResponse.Select(v => new Video()
         {
-            if (groupWithVideosResponse?.Videos != null)
-            {
-                foreach (var videoInformationModel in groupWithVideosResponse.Videos)
-                {
-                    list.Add(new Video()
-                    {
-                        Id = videoInformationModel.Id,
-                        Name = videoInformationModel.Name,
-                        GroupName = groupWithVideosResponse.GroupName,
-                        When = videoInformationModel.RecordedDateTime,
-                        GroupId = groupWithVideosResponse.GroupId,
-                        BlobId = videoInformationModel.BlobId,
-                        Converted = videoInformationModel.Converted,
-                    });
-                }
-            }
-        }
-
-        return list;
+            Id = v.VideoId,
+            Name = v.Name,
+            GroupName = v.GroupName,
+            When = v.RecordedDateTime,
+            GroupId = v.GroupId,
+            BlobId = v.BlobId,
+            Converted = v.Converted,
+        }).ToList();
     }
 
-    public static List<Video> MapFromApiResponse(IReadOnlyCollection<VideoInformationResponse> videosForEvent)
+    public static List<Video> MapFromApiResponse(IReadOnlyCollection<VideoInformation> videosForEvent)
     {
-        var list = videosForEvent.Select(r => new Video()
+        return videosForEvent.Select(r => new Video()
         {
-            Id = r.Id, 
-            Name = r.Name, 
-            When = r.RecordedDateTime, 
+            Id = r.VideoId,
+            Name = r.Name,
+            When = r.RecordedDateTime,
             BlobId = r.BlobId,
             Converted = r.Converted,
         }).ToList();
-
-        return list;
     }
 }

@@ -98,7 +98,7 @@ public class VideoUploader : IVideoUploader
 #endif
     }
 
-    private static VideosToUpload MapToEntity(FileInfo fileInfo, UploadVideoInformationResponse uploadInformation)
+    private static VideosToUpload MapToEntity(FileInfo fileInfo, ProduceUploadUrlResponse uploadInformation)
     {
         return new VideosToUpload()
         {

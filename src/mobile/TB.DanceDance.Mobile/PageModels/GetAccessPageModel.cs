@@ -3,10 +3,10 @@ using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
+using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
 using TB.DanceDance.API.Contracts.Features.Events.Models;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Features.Videos;
-using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.PageModels;
@@ -77,12 +77,12 @@ public partial class GetAccessPageModel : ObservableObject, IAppearingAware
 
             if (toRequest.Any())
             {
-                RequestAssigmentModelRequest request = new RequestAssigmentModelRequest()
+                RequestAccessRequest request = new RequestAccessRequest()
                 {
                     Events = toRequest.Where(r => r.Type == SharingWithType.Event)
                         .Select(r => r.Id).ToArray(),
                     Groups = toRequest.Where(r => r.Type == SharingWithType.Group)
-                        .Select(group => new GroupAssignmentModel() { Id = group.Id, JoinedDate = DateTime.Now })
+                        .Select(group => new RequestAccessGroupModel() { Id = group.Id, JoinedDate = DateTime.Now })
                         .ToArray()
                 };
 
