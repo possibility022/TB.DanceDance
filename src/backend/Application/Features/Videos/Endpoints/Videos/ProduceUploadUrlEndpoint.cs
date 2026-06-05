@@ -1,11 +1,45 @@
 ﻿using Application.Extensions;
 using Application.Features.AccessManagement;
 using FastEndpoints;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;
+
+public class ProduceUploadUrlValidator : Validator<ProduceUploadUrlRequest>
+{
+    public ProduceUploadUrlValidator()
+    {
+        RuleFor(x => x.NameOfVideo)
+            .NotEmpty().WithMessage("NameOfVideo is required.")
+            .MinimumLength(5)
+            .MaximumLength(100);
+
+        RuleFor(x => x.FileName)
+            .NotEmpty().WithMessage("FileName is required.");
+
+        RuleFor(x => x.SharingWithType)
+            .IsInEnum()
+            .NotEqual(SharingWithType.NotSpecified)
+            .WithMessage("A valid sharing type (Group, Event or Private) is required.");
+
+        When(x => x.SharingWithType is SharingWithType.Group or SharingWithType.Event, () =>
+        {
+            RuleFor(x => x.SharedWith)
+                .NotNull()
+                .WithMessage("SharedWith is required for Group and Event sharing types.");
+        });
+
+        When(x => x.SharingWithType == SharingWithType.Private, () =>
+        {
+            RuleFor(x => x.SharedWith)
+                .Null()
+                .WithMessage("SharedWith must be null for Private sharing type.");
+        });
+    }
+}
 
 public class ProduceUploadUrlEndpoint : Endpoint<ProduceUploadUrlRequest, ProduceUploadUrlResponse>
 {
@@ -28,27 +62,18 @@ public class ProduceUploadUrlEndpoint : Endpoint<ProduceUploadUrlRequest, Produc
 
     public override async Task<Void> HandleAsync(ProduceUploadUrlRequest req, CancellationToken ct)
     {
-        string? user = null;
+        // Request shape is guaranteed by ProduceUploadUrlValidator: SharingWithType is one of
+        // Group/Event/Private, and SharedWith is non-null for Group/Event and null for Private.
+
+        // Storage quota is enforced at VIEW/STREAM time, not upload time. Users can always upload
+        // regardless of quota status; they manage storage later by deleting old videos if needed.
+
+        var user = User.GetSubject();
         var sharedWith = req.SharedWith;
 
-        // TODO: Storage quota is enforced at VIEW/STREAM time, not upload time
-        // Users can always upload videos regardless of quota status
-        // Quota enforcement happens when trying to view/stream the video
-        // This allows users to upload first, then manage storage by deleting old videos if needed
-
-        user = User.GetSubject();
-
-        // Handle different sharing types
         if (req.SharingWithType == SharingWithType.Group)
         {
-            if (sharedWith == null)
-            {
-                // todo, move to validation
-                // ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "SharedWith is required for Group sharing type.");
-                // return BadRequest(ModelState);
-            }
-
-            var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith.Value, ct);
+            var canUploadToGroup = await accessService.CanUserUploadToGroupAsync(user, sharedWith!.Value, ct);
 
             if (!canUploadToGroup)
             {
@@ -60,13 +85,6 @@ public class ProduceUploadUrlEndpoint : Endpoint<ProduceUploadUrlRequest, Produc
         }
         else if (req.SharingWithType == SharingWithType.Event)
         {
-            if (sharedWith == null)
-            {
-                // todo, move to validation
-                // ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "SharedWith is required for Event sharing type.");
-                // return BadRequest(ModelState);
-            }
-
             var canUploadToEvent = await accessService.CanUserUploadToEventAsync(user, sharedWith!.Value, ct);
 
             if (!canUploadToEvent)
@@ -77,28 +95,7 @@ public class ProduceUploadUrlEndpoint : Endpoint<ProduceUploadUrlRequest, Produc
                 return await Send.UnauthorizedAsync(ct);
             }
         }
-        else if (req.SharingWithType == SharingWithType.Private)
-        {
-            // Private videos: no group/event access check needed
-            // SharedWith should be null for private videos
-            if (sharedWith != null)
-            {
-                // todo, move to validation
-                // ModelState.AddModelError(nameof(sharedVideoInformation.SharedWith), "SharedWith must be null for Private sharing type.");
-                // return BadRequest(ModelState);
-            }
-        }
-        else
-        {
-            logger.LogWarning("Invalid sharing type: {0}", req.SharingWithType);
-            return await Send.ErrorsAsync(cancellation: ct);
-        }
-        
-        // todo, move to validation
-        // if (!ModelState.IsValid)
-        // {
-        //     return BadRequest(ModelState);
-        // }
+        // Private: no group/event access check needed.
 
         var sharedBlob = await videoService.GetSharingLink(
             user,

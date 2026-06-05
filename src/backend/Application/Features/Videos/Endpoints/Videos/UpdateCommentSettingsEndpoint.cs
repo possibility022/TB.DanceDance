@@ -1,9 +1,20 @@
 ﻿using Application.Extensions;
 using Domain.Entities;
 using FastEndpoints;
+using FluentValidation;
 using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos.Endpoints.Videos;
+
+public class UpdateCommentSettingsValidator : Validator<UpdateCommentSettingsRequest>
+{
+    public UpdateCommentSettingsValidator()
+    {
+        RuleFor(x => x.CommentVisibility)
+            .InclusiveBetween(0, 2)
+            .WithMessage("CommentVisibility must be 0 (Public), 1 (AuthenticatedOnly) or 2 (OwnerOnly).");
+    }
+}
 
 public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsRequest>
 {
@@ -25,7 +36,8 @@ public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsReque
         var userId = User.GetSubject();
         var videoId = Route<Guid>("videoId");
 
-        // todo, move validation/authorization to service?
+        // CommentVisibility range is enforced by UpdateCommentSettingsValidator; the service performs
+        // the ownership authorization check and returns false (→ 404) when the user may not update it.
         var result = await videoService.UpdateCommentVisibilityAsync(
             videoId,
             userId,

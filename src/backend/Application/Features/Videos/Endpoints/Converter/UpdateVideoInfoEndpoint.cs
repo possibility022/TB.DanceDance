@@ -1,8 +1,27 @@
 ﻿using FastEndpoints;
+using FluentValidation;
 using TB.DanceDance.API.Contracts.Features.Videos.Converter;
 using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Converter;
+
+public class UpdateVideoInfoValidator : Validator<UpdateVideoInfoRequest>
+{
+    public UpdateVideoInfoValidator()
+    {
+        RuleFor(x => x.VideoId)
+            .NotEmpty().WithMessage("VideoId is required.");
+
+        RuleFor(x => x.RecordedDateTime)
+            .NotEmpty().WithMessage("RecordedDateTime is required.");
+
+        RuleFor(x => x.Duration)
+            .GreaterThan(TimeSpan.Zero).WithMessage("Duration must be greater than zero.");
+
+        RuleFor(x => x.Metadata)
+            .NotEmpty().WithMessage("Metadata is required.");
+    }
+}
 
 public class UpdateVideoInfoEndpoint : Endpoint<UpdateVideoInfoRequest, EmptyResponse>
 {
@@ -21,10 +40,7 @@ public class UpdateVideoInfoEndpoint : Endpoint<UpdateVideoInfoRequest, EmptyRes
     
     public override async Task<Void> HandleAsync(UpdateVideoInfoRequest req, CancellationToken ct)
     {
-        // todo, validation
-        // if (!ModelState.IsValid)
-        //     return BadRequest();
-
+        // Request is validated by UpdateVideoInfoValidator before this runs.
         var res = await videoUploaderService.UpdateVideoInformation(
             req.VideoId,
             req.Duration,
