@@ -24,7 +24,7 @@ public class DeleteCommentEndpoint : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = User.TryGetSubject();
-        var commendId = Route<Guid>("commendId");
+        var commendId = Route<Guid>("commentId");
         
         var anonymousId = CommentMapper.ResolveAnonymousId(HttpContext.Request);
 
