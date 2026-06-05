@@ -17,9 +17,6 @@ public class UpdateVideoInfoValidator : Validator<UpdateVideoInfoRequest>
 
         RuleFor(x => x.Duration)
             .GreaterThan(TimeSpan.Zero).WithMessage("Duration must be greater than zero.");
-
-        RuleFor(x => x.Metadata)
-            .NotEmpty().WithMessage("Metadata is required.");
     }
 }
 
