@@ -1,11 +1,9 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TB.DanceDance.API.Contracts.Features.Videos
 {
     public class UpdateCommentSettingsRequest
     {
-        public Guid VideoId { get; set; }
         /// <summary>
         /// Controls who can see comments on this video.
         /// 0 = Public (anyone with link), 1 = AuthenticatedOnly, 2 = OwnerOnly

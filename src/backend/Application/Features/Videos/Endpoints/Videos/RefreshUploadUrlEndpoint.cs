@@ -6,7 +6,7 @@ using Void = FastEndpoints.Void;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 
-public class RefreshUploadUrlEndpoint : Endpoint<RefreshUploadUrlRequest, RefreshUploadUrlResponse>
+public class RefreshUploadUrlEndpoint : EndpointWithoutRequest<RefreshUploadUrlResponse>
 {
     private readonly IAccessService accessService;
     private readonly IVideoService videoService;
@@ -23,14 +23,16 @@ public class RefreshUploadUrlEndpoint : Endpoint<RefreshUploadUrlRequest, Refres
         Policies(ApiScopes.Read);
     }
 
-    public override async Task<Void> HandleAsync(RefreshUploadUrlRequest req, CancellationToken ct)
+    public override async Task<Void> HandleAsync(CancellationToken ct)
     {
+        var videoId = Route<Guid>("videoId");
+        
         string user  = User.GetSubject();
-        var hasAccess = await accessService.DoesUserHasAccessAsync(req.VideoId, user, ct);
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, user, ct);
         if (!hasAccess)
             return await Send.UnauthorizedAsync(ct);
 
-        var sharedBlob = await videoService.GetSharingLink(req.VideoId, ct);
+        var sharedBlob = await videoService.GetSharingLink(videoId, ct);
         
         if (sharedBlob == null)
             return await Send.NotFoundAsync(ct);

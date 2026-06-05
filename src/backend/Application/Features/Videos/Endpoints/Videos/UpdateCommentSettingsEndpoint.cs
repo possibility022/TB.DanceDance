@@ -5,7 +5,7 @@ using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 
-public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsRequest, EmptyResponse>
+public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsRequest>
 {
     private readonly IVideoService videoService;
 
@@ -23,10 +23,11 @@ public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsReque
     public override async Task HandleAsync(UpdateCommentSettingsRequest req, CancellationToken ct)
     {
         var userId = User.GetSubject();
+        var videoId = Route<Guid>("videoId");
 
         // todo, move validation/authorization to service?
         var result = await videoService.UpdateCommentVisibilityAsync(
-            req.VideoId,
+            videoId,
             userId,
             (CommentVisibility)req.CommentVisibility,
             ct);

@@ -4,7 +4,7 @@ using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 
-public class VideoInformationEndpoint : Endpoint<VideoInformationRequest, VideoInformationResponse>
+public class VideoInformationEndpoint : EndpointWithoutRequest<VideoInformationResponse>
 {
     private readonly IVideoService videoService;
 
@@ -19,11 +19,13 @@ public class VideoInformationEndpoint : Endpoint<VideoInformationRequest, VideoI
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(VideoInformationRequest req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
         string user = User.GetSubject();
+        
+        var blobId = Route<string>("blobId") ?? string.Empty;
 
-        var info = await videoService.GetVideoByBlobAsync(user, req.BlobId, ct);
+        var info = await videoService.GetVideoByBlobAsync(user, blobId, ct);
 
         if (info == null)
             await Send.NotFoundAsync(cancellation: ct);

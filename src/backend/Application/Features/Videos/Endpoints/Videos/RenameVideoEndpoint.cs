@@ -25,10 +25,12 @@ public class RenameVideoEndpoint : Endpoint<RenameVideoRequest, EmptyResponse>
 
     public override async Task<Void> HandleAsync(RenameVideoRequest req, CancellationToken ct)
     {
-        var hasAccess = await accessService.DoesUserHasAccessAsync(req.VideoId, User.GetSubject(), ct);
+        var videoId = Route<Guid>("videoId");
+        
+        var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, User.GetSubject(), ct);
         if (!hasAccess)
             return await Send.UnauthorizedAsync(ct);
-        var res = await videoService.RenameVideoAsync(req.VideoId, req.NewName, ct);
+        var res = await videoService.RenameVideoAsync(videoId, req.NewName, ct);
 
         if (res == false)
             return await Send.ErrorsAsync(cancellation: ct);
