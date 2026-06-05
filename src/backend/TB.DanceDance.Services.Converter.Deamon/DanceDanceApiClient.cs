@@ -72,7 +72,12 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
     public async Task UploadVideoToTransformInformation(UpdateVideoInfoRequest updateVideoInfoRequest, CancellationToken token)
     {
         var res = await apiClient.PostAsJsonAsync("/api/converter/videos", updateVideoInfoRequest, token);
-        res.EnsureSuccessStatusCode();
+        
+        if (res.IsSuccessStatusCode)
+            return;
+        
+        var responseContent = await res.Content.ReadAsStringAsync(token);
+        throw new Exception("Failed to update video info: " + responseContent + "HTTP Code:" + res.StatusCode);
     }
 
     public async Task UploadContent(Guid videoId, Stream content, CancellationToken token)
