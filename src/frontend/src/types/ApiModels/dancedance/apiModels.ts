@@ -35,9 +35,9 @@ export interface ProduceUploadUrlResponse extends UploadUrlResponse {
 export interface ProduceUploadUrlRequest {
     nameOfVideo: string;
     fileName: string;
-    recordedTimeUtc: Date;
-    sharedWith?: string | undefined;
-    sharingWithType: SharingWithType;
+    recordedTimeUtc?: Date;
+    sharedWith: string;
+    sharingWithType?: SharingWithType;
     videoId?: string | undefined;
 }
 
@@ -48,52 +48,52 @@ export enum SharingWithType {
     Private = 3,
 }
 
-export interface RefreshUploadUrlResponse extends UploadUrlResponse {
+/** the dto used to send an error response to the client */
+export interface ErrorResponse {
+    /** the http status code sent to the client. default is 400. */
+    statusCode?: number;
+    /** the message for the error response */
+    message?: string;
+    /** the collection of errors for the current context */
+    errors?: { [key: string]: string[]; };
 }
 
-export interface RefreshUploadUrlRequest {
+export interface RefreshUploadUrlResponse extends UploadUrlResponse {
 }
 
 export interface RenameVideoRequest {
     newName?: string;
 }
 
-export interface StreamVideoRequest {
-}
-
 export interface UpdateCommentSettingsRequest {
-    commentVisibility: number;
+    commentVisibility?: number;
 }
 
 export interface VideoInformationResponse {
     videoInformation?: VideoInformation;
 }
 
-export interface VideoInformationRequest {
-}
-
 export interface GetPublishSasResponse {
     sas?: string;
-}
-
-export interface GetPublishSasRequest {
 }
 
 export interface PublicConvertedVideoResponse {
     videoId?: string;
 }
 
-export interface PublicConvertedVideoRequest {
-}
-
 export interface UpdateVideoInfoRequest {
     videoId: string;
     recordedDateTime: Date;
-    duration: string;
-    metadata: string;
+    duration?: string;
+    metadata?: string | undefined;
 }
 
 export interface VideoToTransformResponse {
+    videoExists?: boolean;
+    videoToTransform?: VideoToTransformModel | undefined;
+}
+
+export interface VideoToTransformModel {
     id?: string;
     fileName?: string;
     sas?: string;
@@ -131,15 +131,6 @@ export interface SharedVideoInfoResponse {
     allowAnonymousCommentsOnThisLink?: boolean;
 }
 
-export interface VideoInfoBySharedLinkRequest {
-}
-
-export interface RevokeSharedLinkRequest {
-}
-
-export interface StreamVideoBySharedLinkRequest {
-}
-
 export interface ListGroupVideosResponse {
     videos?: VideoFromGroupInformation[];
 }
@@ -147,9 +138,6 @@ export interface ListGroupVideosResponse {
 export interface VideoFromGroupInformation extends VideoInformation {
     groupId?: string;
     groupName?: string;
-}
-
-export interface ListGroupVideosRequest {
 }
 
 export interface CreateNewEventResponse {
@@ -168,9 +156,6 @@ export interface EventModel {
 
 export interface ListEventVideosResponse {
     videos?: VideoInformation[];
-}
-
-export interface ListEventVideosRequest {
 }
 
 export interface CommentResponse {
@@ -194,37 +179,20 @@ export interface CreateCommentRequest {
     authorName?: string | undefined;
 }
 
-export interface DeleteCommentRequest {
-    anonymousId?: string | undefined;
-}
-
-export interface HideCommentRequest {
-}
-
 export interface ListCommentsByLinkResponse {
     comments?: CommentResponse[];
-}
-
-export interface ListCommentsByLink {
 }
 
 export interface ListCommentsForVideoResponse {
     comments?: CommentResponse[];
 }
 
-export interface ListCommentsForVideoRequest {
-}
-
 export interface ReportCommentRequest {
     reason?: string;
 }
 
-export interface UnhideCommentRequest {
-}
-
 export interface UpdateCommentRequest {
     content?: string;
-    anonymousId?: string | undefined;
     authorName?: string | undefined;
 }
 
@@ -248,14 +216,8 @@ export interface RequestedAccessModel {
 }
 
 export interface ListAllEventsAndGroupsResponse {
-    events?: EventModel2[];
+    events?: EventModel[];
     groups?: GroupModel[];
-}
-
-export interface EventModel2 {
-    id?: string;
-    name: string;
-    date: Date;
 }
 
 export interface GroupModel {
@@ -272,7 +234,7 @@ export interface GetUserAccessResponse {
 }
 
 export interface GetUserAccessSet {
-    events?: EventModel2[];
+    events?: EventModel[];
     groups?: GroupModel[];
 }
 
