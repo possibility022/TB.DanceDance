@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { Upload } from './upload';
 import { UploadService } from '../../core/api/upload.service';
@@ -7,8 +7,12 @@ import { BlobUploadService } from '../../core/api/blob-upload.service';
 import { AccessService } from '../../core/api/access.service';
 import { SharingWithType } from '../../core/api/api-models';
 
-function file(name: string): File {
-  return new File([new Uint8Array(1)], name, { type: 'video/mp4' });
+function file(name: string, lastModified?: number): File {
+  const options: FilePropertyBag = { type: 'video/mp4' };
+  if (lastModified !== undefined) {
+    options.lastModified = lastModified;
+  }
+  return new File([new Uint8Array(1)], name, options);
 }
 
 function createFixture(overrides: {
@@ -70,8 +74,60 @@ describe('Upload', () => {
     component.onFilesSelected({ target: { files: [file('a.mp4')] } } as unknown as Event);
 
     expect(component.files()).toHaveLength(1);
+    expect(component.fileRows()).toEqual([
+      expect.objectContaining({ fileName: 'a.mp4', recordedDate: '' }),
+    ]);
     expect(component.canSubmit()).toBe(true);
     expect(component.singleFile()).toBe(true);
+  });
+
+  it('applies one recorded date to every selected file', () => {
+    const { component } = createFixture({});
+    component.onFilesSelected({ target: { files: [file('one.mp4'), file('two.mp4')] } } as unknown as Event);
+
+    component.form.patchValue({ recordedDate: '2026-05-01' });
+    component.applyRecordedDateToAll();
+
+    expect(component.fileRows()).toEqual([
+      expect.objectContaining({ fileName: 'one.mp4', recordedDate: '2026-05-01' }),
+      expect.objectContaining({ fileName: 'two.mp4', recordedDate: '2026-05-01' }),
+    ]);
+  });
+
+  it('uses per-file recorded date overrides when uploading a batch', () => {
+    const { component, uploads } = createFixture({});
+    component.onFilesSelected({ target: { files: [file('one.mp4'), file('two.mp4')] } } as unknown as Event);
+
+    component.form.patchValue({ recordedDate: '2026-05-01' });
+    component.applyRecordedDateToAll();
+    component.onRecordedDateSelected(1, { target: { value: '2026-05-02' } } as unknown as Event);
+
+    component.submit();
+
+    expect(uploads.produceUploadUrl).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ fileName: 'one.mp4', recordedTimeUtc: new Date('2026-05-01') }),
+    );
+    expect(uploads.produceUploadUrl).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ fileName: 'two.mp4', recordedTimeUtc: new Date('2026-05-02') }),
+    );
+  });
+
+  it('falls back to the file modified date when an individual recorded date is blank', () => {
+    const modified = Date.UTC(2026, 4, 3);
+    const { component, uploads } = createFixture({});
+    component.onFilesSelected({ target: { files: [file('one.mp4', modified)] } } as unknown as Event);
+
+    component.form.patchValue({ recordedDate: '2026-05-01' });
+    component.applyRecordedDateToAll();
+    component.onRecordedDateSelected(0, { target: { value: '' } } as unknown as Event);
+
+    component.submit();
+
+    expect(uploads.produceUploadUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ fileName: 'one.mp4', recordedTimeUtc: new Date(modified) }),
+    );
   });
 
   it('does nothing on submit without files', () => {
@@ -99,6 +155,9 @@ describe('Upload', () => {
     expect(blob.upload).toHaveBeenCalledWith('sas-url', f);
     expect(component.stage()).toBe('done');
     expect(component.progress()).toBe(100);
+    expect(component.uploadItems()).toEqual([
+      expect.objectContaining({ fileName: 'lesson.mp4', progress: 100, status: 'done' }),
+    ]);
     expect(component.total()).toBe(1);
     expect(component.currentIndex()).toBe(1);
   });
@@ -125,6 +184,45 @@ describe('Upload', () => {
     expect(uploads.produceUploadUrl).toHaveBeenCalledTimes(2);
     expect(uploads.produceUploadUrl).toHaveBeenNthCalledWith(1, expect.objectContaining({ nameOfVideo: 'one.mp4' }));
     expect(uploads.produceUploadUrl).toHaveBeenNthCalledWith(2, expect.objectContaining({ nameOfVideo: 'two.mp4' }));
+    expect(component.stage()).toBe('done');
+  });
+
+  it('keeps progress state for every selected file while uploading sequentially', () => {
+    const firstUpload = new Subject<number>();
+    const secondUpload = new Subject<number>();
+    const upload = vi.fn().mockReturnValueOnce(firstUpload).mockReturnValueOnce(secondUpload);
+    const { fixture, component } = createFixture({ upload });
+    component.files.set([file('one.mp4'), file('two.mp4')]);
+
+    component.submit();
+    fixture.detectChanges();
+
+    expect(component.uploadItems()).toEqual([
+      expect.objectContaining({ fileName: 'one.mp4', progress: 0, status: 'uploading' }),
+      expect.objectContaining({ fileName: 'two.mp4', progress: 0, status: 'pending' }),
+    ]);
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('progress')).toHaveLength(2);
+
+    firstUpload.next(35);
+
+    expect(component.uploadItems()[0]).toEqual(
+      expect.objectContaining({ fileName: 'one.mp4', progress: 35, status: 'uploading' }),
+    );
+
+    firstUpload.complete();
+
+    expect(component.uploadItems()).toEqual([
+      expect.objectContaining({ fileName: 'one.mp4', progress: 100, status: 'done' }),
+      expect.objectContaining({ fileName: 'two.mp4', progress: 0, status: 'uploading' }),
+    ]);
+
+    secondUpload.next(60);
+    secondUpload.complete();
+
+    expect(component.uploadItems()).toEqual([
+      expect.objectContaining({ fileName: 'one.mp4', progress: 100, status: 'done' }),
+      expect.objectContaining({ fileName: 'two.mp4', progress: 100, status: 'done' }),
+    ]);
     expect(component.stage()).toBe('done');
   });
 
@@ -161,7 +259,9 @@ describe('Upload', () => {
 
     expect(component.stage()).toBe('form');
     expect(component.files()).toEqual([]);
+    expect(component.fileRows()).toEqual([]);
     expect(component.progress()).toBe(0);
+    expect(component.uploadItems()).toEqual([]);
     expect(component.total()).toBe(0);
     expect(component.form.getRawValue()).toEqual({ name: '', recordedDate: '', targetKey: 'private' });
   });

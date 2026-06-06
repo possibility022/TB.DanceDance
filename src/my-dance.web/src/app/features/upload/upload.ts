@@ -16,6 +16,12 @@ interface UploadTarget {
   readonly sharedWith?: string;
 }
 
+interface FileRow {
+  readonly id: string;
+  readonly fileName: string;
+  readonly recordedDate: string;
+}
+
 type Stage = 'form' | 'uploading' | 'done' | 'error';
 type UploadItemStatus = 'pending' | 'uploading' | 'done' | 'error';
 
@@ -46,6 +52,7 @@ export class Upload {
 
   readonly stage = signal<Stage>('form');
   readonly files = signal<readonly File[]>([]);
+  readonly fileRows = signal<readonly FileRow[]>([]);
   readonly uploadItems = signal<readonly UploadItem[]>([]);
   readonly total = signal(0);
   readonly currentIndex = signal(0);
@@ -96,8 +103,23 @@ export class Upload {
 
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.files.set(input.files ? Array.from(input.files) : []);
+    const files = input.files ? Array.from(input.files) : [];
+    const recordedDate = this.form.getRawValue().recordedDate;
+    this.files.set(files);
+    this.fileRows.set(files.map((file, index) => this.toFileRow(file, index, recordedDate)));
     this.uploadItems.set([]);
+  }
+
+  applyRecordedDateToAll(): void {
+    const recordedDate = this.form.getRawValue().recordedDate;
+    this.fileRows.update((rows) => rows.map((row) => ({ ...row, recordedDate })));
+  }
+
+  onRecordedDateSelected(index: number, event: Event): void {
+    const recordedDate = (event.target as HTMLInputElement).value;
+    this.fileRows.update((rows) =>
+      rows.map((row, rowIndex) => (rowIndex === index ? { ...row, recordedDate } : row)),
+    );
   }
 
   submit(): void {
@@ -136,7 +158,7 @@ export class Upload {
             this.currentIndex.set(index + 1);
             this.progress.set(0);
             this.updateUploadItem(index, { progress: 0, status: 'uploading' });
-            return this.uploads.produceUploadUrl(this.buildRequest(file, target, explicitName)).pipe(
+            return this.uploads.produceUploadUrl(this.buildRequest(file, target, explicitName, index)).pipe(
               switchMap((response) => this.blob.upload(response.sas ?? '', file)),
               tap({
                 next: (percent) => {
@@ -163,6 +185,7 @@ export class Upload {
     this.currentIndex.set(0);
     this.total.set(0);
     this.files.set([]);
+    this.fileRows.set([]);
     this.uploadItems.set([]);
     this.form.reset({ name: '', recordedDate: '', targetKey: 'private' });
   }
@@ -173,8 +196,22 @@ export class Upload {
     );
   }
 
-  private buildRequest(file: File, target: UploadTarget, explicitName: string): ProduceUploadUrlRequest {
-    const recordedDate = this.form.getRawValue().recordedDate;
+  private toFileRow(file: File, index: number, recordedDate: string): FileRow {
+    return {
+      id: `${index}:${file.name}:${file.lastModified}:${file.size}`,
+      fileName: file.name,
+      recordedDate,
+    };
+  }
+
+  private buildRequest(
+    file: File,
+    target: UploadTarget,
+    explicitName: string,
+    index: number,
+  ): ProduceUploadUrlRequest {
+    const fileRow = this.fileRows()[index];
+    const recordedDate = fileRow ? fileRow.recordedDate : this.form.getRawValue().recordedDate;
     return {
       nameOfVideo: explicitName || file.name,
       fileName: file.name,
