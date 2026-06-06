@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { concatMap, defer, distinctUntilChanged, filter, from, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, concatMap, defer, distinctUntilChanged, filter, from, switchMap, tap } from 'rxjs';
 
 import { AccessService } from '../../core/api/access.service';
 import { BlobUploadService } from '../../core/api/blob-upload.service';
@@ -201,6 +201,7 @@ export class UploadDialog {
                   error: () => this.updateUploadItem(index, { status: 'error' }),
                   complete: () => this.updateUploadItem(index, { progress: 100, status: 'done' }),
                 }),
+                catchError(() => EMPTY),
               );
           }),
         ),

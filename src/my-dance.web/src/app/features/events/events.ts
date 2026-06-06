@@ -305,6 +305,9 @@ function groupEventsBySeason(events: readonly EventModel[]): readonly EventSeaso
   >();
 
   for (const event of events) {
+    if (!event.date) {
+      continue;
+    }
     const date = toDate(event.date);
     const year = date.getFullYear();
     const season = seasonForMonth(date.getMonth());
