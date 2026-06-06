@@ -1,0 +1,5 @@
+{
+  "apiBaseUrl": "https://localhost:7068",
+  "authUrl": "https://localhost:7259",
+  "redirectUri": ""
+}

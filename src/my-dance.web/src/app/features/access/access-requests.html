@@ -1,0 +1,63 @@
+<header class="block">
+  <h1 class="title">Manage access requests</h1>
+  <p class="subtitle">Approve or reject pending access requests.</p>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading requests">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load the access requests.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else if (requests().length === 0) {
+  <p class="has-text-grey">No pending requests.</p>
+} @else {
+  <div class="table-container">
+    <table class="table is-fullwidth is-striped">
+      <thead>
+        <tr>
+          <th>Requestor</th>
+          <th>Type</th>
+          <th>Name</th>
+          <th>Joined</th>
+          <th class="has-text-right">Decision</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (request of requests(); track request.requestId ?? $index) {
+          <tr>
+            <td>{{ requestorName(request) }}</td>
+            <td>
+              <span class="tag" [class.is-link]="request.isGroup" [class.is-info]="!request.isGroup">
+                {{ request.isGroup ? 'Group' : 'Event' }}
+              </span>
+            </td>
+            <td>{{ request.name }}</td>
+            <td>{{ request.whenJoined ? (request.whenJoined | longDate) : '—' }}</td>
+            <td class="has-text-right">
+              <div class="buttons are-small is-justify-content-flex-end">
+                <button
+                  type="button"
+                  class="button is-success"
+                  [disabled]="processingId() !== null"
+                  (click)="decide(request, true)"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  class="button is-danger is-light"
+                  [disabled]="processingId() !== null"
+                  (click)="decide(request, false)"
+                >
+                  Reject
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

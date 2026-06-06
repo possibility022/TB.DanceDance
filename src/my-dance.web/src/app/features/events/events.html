@@ -1,0 +1,89 @@
+<header class="block">
+  <h1 class="title">Events</h1>
+  <p class="subtitle">Workshops, competitions and showcases — and their recordings.</p>
+</header>
+
+<div class="columns">
+  <div class="column is-one-third">
+    <section class="box">
+      <h2 class="title is-5">Create an event</h2>
+      <form [formGroup]="form" (ngSubmit)="createEvent()">
+        <div class="field">
+          <label class="label" for="event-name">Name</label>
+          <div class="control">
+            <input id="event-name" class="input" type="text" formControlName="name" maxlength="200" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="event-date">Date</label>
+          <div class="control">
+            <input id="event-date" class="input" type="date" formControlName="date" />
+          </div>
+        </div>
+        <div class="field">
+          <button type="submit" class="button is-primary" [disabled]="form.invalid || creating()">
+            Create event
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="block">
+      <h2 class="title is-5">Your events</h2>
+      @if (loading()) {
+        <progress class="progress is-primary" max="100" aria-label="Loading events">Loading…</progress>
+      } @else if (failed()) {
+        <div class="notification is-danger is-light" role="alert">
+          <p class="block">We couldn’t load your events.</p>
+          <button type="button" class="button is-danger" (click)="load()">Try again</button>
+        </div>
+      } @else if (items().length === 0) {
+        <p class="has-text-grey">You don’t have access to any events yet.</p>
+      } @else {
+        <ul>
+          @for (event of items(); track event.id ?? $index) {
+            <li class="mb-1">
+              <button
+                type="button"
+                class="button is-fullwidth is-justify-content-flex-start"
+                [class.is-link]="selected()?.id === event.id"
+                [class.is-light]="selected()?.id === event.id"
+                [attr.aria-pressed]="selected()?.id === event.id"
+                (click)="select(event)"
+              >
+                <span>
+                  {{ event.name }}
+                  <span class="is-size-7 has-text-grey">· {{ event.date | longDate }}</span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+
+  <div class="column">
+    @if (selected(); as event) {
+      <h2 class="title is-4">{{ event.name }}</h2>
+      <p class="subtitle is-6 has-text-grey">{{ event.date | longDate }}</p>
+
+      @if (videosLoading()) {
+        <progress class="progress is-primary" max="100" aria-label="Loading recordings">Loading…</progress>
+      } @else if (videosFailed()) {
+        <div class="notification is-danger is-light" role="alert">
+          <p class="block">We couldn’t load this event’s recordings.</p>
+          <button type="button" class="button is-danger" (click)="select(event)">Try again</button>
+        </div>
+      } @else {
+        <app-video-list
+          [videos]="videos()"
+          [scopeEventId]="event.id ?? ''"
+          emptyMessage="No recordings for this event yet."
+        />
+      }
+    } @else {
+      <p class="has-text-grey">Select an event to see its recordings.</p>
+    }
+  </div>
+</div>

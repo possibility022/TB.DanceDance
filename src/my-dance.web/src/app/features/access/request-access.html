@@ -1,0 +1,104 @@
+<header class="block">
+  <h1 class="title">Request access</h1>
+  <p class="subtitle">Ask to be granted access to groups and events.</p>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading access">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load your access.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else {
+  @if (pendingCount() > 0) {
+    <div class="notification is-info is-light">
+      You have {{ pendingCount() }} request(s) awaiting approval.
+    </div>
+  }
+
+  <div class="columns">
+    <div class="column">
+      <section class="box">
+        <h2 class="title is-5">Groups</h2>
+        @if (availableGroups().length === 0) {
+          <p class="has-text-grey">No groups available to request.</p>
+        } @else {
+          @for (group of availableGroups(); track group.id ?? $index) {
+            <div class="field">
+              <label class="checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="checkedGroups().has(group.id ?? '')"
+                  (change)="toggleGroup(group.id)"
+                />
+                {{ group.name }}
+                <span class="is-size-7 has-text-grey">({{ group.seasonStart | season: group.seasonEnd }})</span>
+              </label>
+              @if (checkedGroups().has(group.id ?? '')) {
+                <div class="field mt-1">
+                  <label class="label is-small" [attr.for]="'joined-' + group.id">When did you join?</label>
+                  <div class="control">
+                    <input
+                      [id]="'joined-' + group.id"
+                      class="input is-small"
+                      type="date"
+                      [max]="today"
+                      [value]="groupDates()[group.id ?? ''] ?? today"
+                      (change)="setGroupDate(group.id ?? '', $any($event.target).value)"
+                    />
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </section>
+    </div>
+
+    <div class="column">
+      <section class="box">
+        <h2 class="title is-5">Events</h2>
+        @if (availableEvents().length === 0) {
+          <p class="has-text-grey">No events available to request.</p>
+        } @else {
+          @for (event of availableEvents(); track event.id ?? $index) {
+            <div class="field">
+              <label class="checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="checkedEvents().has(event.id ?? '')"
+                  (change)="toggleEvent(event.id)"
+                />
+                {{ event.name }}
+                <span class="is-size-7 has-text-grey">· {{ event.date | longDate }}</span>
+              </label>
+            </div>
+          }
+        }
+      </section>
+    </div>
+  </div>
+
+  <div class="block">
+    <button type="button" class="button is-primary" [disabled]="!canSubmit() || submitting()" (click)="submit()">
+      Submit request
+    </button>
+  </div>
+
+  @if (assignedGroups().length > 0 || assignedEvents().length > 0) {
+    <section class="box">
+      <h2 class="title is-5">You already have access to</h2>
+      <div class="content">
+        <ul>
+          @for (group of assignedGroups(); track group.id ?? $index) {
+            <li>{{ group.name }} <span class="has-text-grey">({{ group.seasonStart | season: group.seasonEnd }})</span></li>
+          }
+          @for (event of assignedEvents(); track event.id ?? $index) {
+            <li>{{ event.name }} <span class="has-text-grey">· {{ event.date | longDate }}</span></li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
+}

@@ -1,0 +1,48 @@
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading recording">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">This shared link isn’t available. It may have expired or been revoked.</p>
+  </div>
+} @else if (info(); as video) {
+  <header class="block">
+    <h1 class="title">{{ video.name }}</h1>
+    <p class="subtitle is-6 has-text-grey">
+      {{ video.recordedDateTime | longDate }}
+      @if (video.duration) {
+        · {{ video.duration }}
+      }
+    </p>
+  </header>
+
+  @if (streamUrl(); as src) {
+    <video
+      class="is-block"
+      style="width: 100%; max-height: 70vh; background: #000;"
+      controls
+      preload="metadata"
+      [src]="src"
+      [attr.aria-label]="'Recording: ' + video.name"
+    >
+      Your browser doesn’t support embedded video.
+    </video>
+  }
+
+  @if (video.allowCommentsOnThisLink) {
+    <app-comments-section
+      class="block mt-5"
+      [comments]="commentList()"
+      [canCompose]="canCompose()"
+      [requireSignature]="requireSignature()"
+      [submitting]="submitting()"
+      (create)="onCreate($event)"
+      (saveEdit)="onSaveEdit($event)"
+      (remove)="onRemove($event)"
+      (hide)="onHide($event)"
+      (unhide)="onUnhide($event)"
+      (report)="onReport($event)"
+    />
+  }
+} @else {
+  <p class="has-text-grey">Recording not found.</p>
+}
