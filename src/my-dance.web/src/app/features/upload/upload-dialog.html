@@ -1,0 +1,195 @@
+<div class="modal" [class.is-active]="open()" role="dialog" aria-modal="true" aria-labelledby="upload-dialog-title">
+  <div class="modal-background" (click)="close()"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title" id="upload-dialog-title">Upload a recording</p>
+      <button
+        type="button"
+        class="delete"
+        aria-label="Close dialog"
+        [disabled]="stage() === 'uploading'"
+        (click)="close()"
+      ></button>
+    </header>
+
+    @switch (stage()) {
+      @case ('uploading') {
+        <section class="modal-card-body">
+          <p class="block">Uploading file {{ currentIndex() }} of {{ total() }}</p>
+          @for (item of uploadItems(); track item.id) {
+            <div class="box">
+              <div class="level is-mobile mb-2">
+                <div class="level-left">
+                  <p class="level-item has-text-weight-semibold">{{ item.fileName }}</p>
+                </div>
+                <div class="level-right">
+                  <p class="level-item is-size-7 has-text-grey">{{ item.progress }}%</p>
+                </div>
+              </div>
+              <progress
+                class="progress"
+                [class.is-primary]="item.status === 'uploading'"
+                [class.is-success]="item.status === 'done'"
+                [class.is-danger]="item.status === 'error'"
+                [value]="item.progress"
+                max="100"
+              >{{ item.progress }}%</progress>
+            </div>
+          }
+        </section>
+        <footer class="modal-card-foot upload-dialog__footer"></footer>
+      }
+      @case ('done') {
+        <section class="modal-card-body">
+          <div class="notification is-success is-light">
+            {{ total() }} recording{{ total() === 1 ? '' : 's' }} uploaded and now being processed.
+            They'll appear once conversion finishes.
+          </div>
+        </section>
+        <footer class="modal-card-foot upload-dialog__footer">
+          <button type="button" class="button is-light" (click)="retryUpload()">Upload more</button>
+          <button type="button" class="button is-success" (click)="close()">Close</button>
+        </footer>
+      }
+      @case ('error') {
+        <section class="modal-card-body">
+          <div class="notification is-danger is-light" role="alert">
+            The upload failed (file {{ currentIndex() }} of {{ total() }}). Please try again.
+          </div>
+        </section>
+        <footer class="modal-card-foot upload-dialog__footer">
+          <button type="button" class="button is-light" (click)="retryUpload()">Try again</button>
+          <button type="button" class="button is-danger" (click)="close()">Close</button>
+        </footer>
+      }
+      @default {
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <section class="modal-card-body">
+            <div class="field">
+              <label class="label" for="upload-dialog-file">Video file(s)</label>
+              <div class="control">
+                <input
+                  id="upload-dialog-file"
+                  class="input"
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  (change)="onFilesSelected($event)"
+                />
+              </div>
+              @if (files().length > 0) {
+                <ul class="help">
+                  @for (file of files(); track file.name) {
+                    <li>{{ file.name }}</li>
+                  }
+                </ul>
+              }
+            </div>
+
+            @if (singleFile()) {
+              <div class="field">
+                <label class="label" for="upload-dialog-name">
+                  Name <span class="has-text-grey is-size-7">(optional)</span>
+                </label>
+                <div class="control">
+                  <input
+                    id="upload-dialog-name"
+                    class="input"
+                    type="text"
+                    formControlName="name"
+                    maxlength="200"
+                  />
+                </div>
+                <p class="help">Defaults to the file name.</p>
+              </div>
+            }
+
+            <div class="field">
+              <label class="label" for="upload-dialog-date">
+                Recorded date for all videos
+                <span class="has-text-grey is-size-7">(optional)</span>
+              </label>
+              <div class="field has-addons">
+                <div class="control is-expanded">
+                  <input
+                    id="upload-dialog-date"
+                    class="input"
+                    type="date"
+                    formControlName="recordedDate"
+                    [max]="today"
+                    (change)="applyRecordedDateToAll()"
+                  />
+                </div>
+                <div class="control">
+                  <button
+                    type="button"
+                    class="button is-light"
+                    [disabled]="files().length === 0"
+                    (click)="applyRecordedDateToAll()"
+                  >
+                    Apply to all
+                  </button>
+                </div>
+              </div>
+              <p class="help">Use this to set every selected video, or edit individual dates below.</p>
+            </div>
+
+            @if (fileRows().length > 0) {
+              <div class="field">
+                <label class="label">Recorded date per video</label>
+                <div class="box">
+                  @for (file of fileRows(); track file.id; let index = $index) {
+                    <div class="columns is-vcentered is-mobile">
+                      <div class="column">
+                        <p class="has-text-weight-semibold">{{ file.fileName }}</p>
+                      </div>
+                      <div class="column is-narrow">
+                        <input
+                          class="input"
+                          type="date"
+                          [value]="file.recordedDate"
+                          [max]="today"
+                          [attr.aria-label]="'Recorded date for ' + file.fileName"
+                          (change)="onRecordedDateSelected(index, $event)"
+                        />
+                      </div>
+                    </div>
+                  }
+                </div>
+                <p class="help">Blank dates default to each file's last-modified date.</p>
+              </div>
+            }
+
+            <div class="field">
+              <label class="label" for="upload-dialog-target">Upload to</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select
+                    id="upload-dialog-target"
+                    formControlName="targetKey"
+                    [disabled]="targetsLoading()"
+                  >
+                    @for (target of targets(); track target.key) {
+                      <option [value]="target.key">{{ target.label }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <footer class="modal-card-foot upload-dialog__footer">
+            <button type="button" class="button" (click)="close()">Cancel</button>
+            <button
+              type="submit"
+              class="button is-primary"
+              [disabled]="form.invalid || !canSubmit()"
+            >
+              Upload
+            </button>
+          </footer>
+        </form>
+      }
+    }
+  </div>
+</div>
