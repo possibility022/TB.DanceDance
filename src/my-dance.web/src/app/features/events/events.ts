@@ -14,6 +14,7 @@ import { EventsService } from '../../core/api/events.service';
 import { EventModel, VideoInformation } from '../../core/api/api-models';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 import { VideoList } from '../../shared/ui/video-list/video-list';
+import { UploadDialog } from '../upload/upload-dialog';
 
 interface EventSeasonGroup {
   readonly key: string;
@@ -25,7 +26,7 @@ type Season = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
 
 @Component({
   selector: 'app-events',
-  imports: [ReactiveFormsModule, LongDatePipe, VideoList],
+  imports: [ReactiveFormsModule, LongDatePipe, VideoList, UploadDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './events.html',
   styles: `
@@ -123,6 +124,13 @@ type Season = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
       gap: 0.5rem;
     }
 
+    .events-page__detail-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
     @media (max-width: 768px) {
       .events-page__header,
       .events-page__panel-header,
@@ -134,6 +142,12 @@ type Season = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
       .events-page__detail-header .button,
       .events-page__detail-header .tag {
         margin-top: 0.75rem;
+      }
+
+      .events-page__detail-meta {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
       }
     }
   `,
@@ -153,6 +167,12 @@ export class Events {
   readonly videos = signal<readonly VideoInformation[]>([]);
   readonly videosLoading = signal(false);
   readonly videosFailed = signal(false);
+
+  readonly uploadModalOpen = signal(false);
+  readonly uploadTargetKey = computed(() => {
+    const event = this.selected();
+    return event?.id ? `e:${event.id}` : undefined;
+  });
 
   readonly creating = signal(false);
   readonly createModalOpen = signal(false);
@@ -210,10 +230,19 @@ export class Events {
   }
 
   clearSelection(): void {
+    this.uploadModalOpen.set(false);
     this.selected.set(null);
     this.videos.set([]);
     this.videosLoading.set(false);
     this.videosFailed.set(false);
+  }
+
+  openUploadDialog(): void {
+    this.uploadModalOpen.set(true);
+  }
+
+  closeUploadDialog(): void {
+    this.uploadModalOpen.set(false);
   }
 
   openCreateModal(): void {

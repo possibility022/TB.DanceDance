@@ -6,6 +6,8 @@ import { Events } from './events';
 import { AccessService } from '../../core/api/access.service';
 import { EventsService } from '../../core/api/events.service';
 import { EventModel } from '../../core/api/api-models';
+import { UploadService } from '../../core/api/upload.service';
+import { BlobUploadService } from '../../core/api/blob-upload.service';
 
 const GALA: EventModel = { id: 'e1', name: 'Gala', date: new Date(2026, 0, 1) };
 const WORKSHOP: EventModel = { id: 'e2', name: 'Workshop', date: new Date(2099, 5, 1) };
@@ -22,6 +24,8 @@ function createEventsFixture(overrides: {
     getEventVideos: overrides.getEventVideos ?? vi.fn(() => of({ videos: [] })),
     createEvent: overrides.createEvent ?? vi.fn(() => of({ id: 'new' })),
   };
+  const uploads = { produceUploadUrl: vi.fn(() => of({ sas: '', videoId: 'v' })) };
+  const blob = { upload: vi.fn(() => of(100)) };
 
   TestBed.configureTestingModule({
     imports: [Events],
@@ -29,6 +33,8 @@ function createEventsFixture(overrides: {
       provideRouter([]),
       { provide: AccessService, useValue: access },
       { provide: EventsService, useValue: events },
+      { provide: UploadService, useValue: uploads },
+      { provide: BlobUploadService, useValue: blob },
     ],
   });
 
@@ -137,8 +143,9 @@ describe('Events', () => {
     });
     expect(component.creating()).toBe(false);
     expect(component.createModalOpen()).toBe(false);
-    // load() ran once on init and once after creating.
-    expect(access.getMyAccess).toHaveBeenCalledTimes(2);
+    // Events.load() ran once on init and once after creating;
+    // UploadDialog.loadTargets() also calls getMyAccess once on init.
+    expect(access.getMyAccess).toHaveBeenCalledTimes(3);
   });
 
   it('createEvent() clears the creating flag when the request fails', () => {
@@ -165,5 +172,36 @@ describe('Events', () => {
 
     expect(component.createModalOpen()).toBe(false);
     expect(component.form.getRawValue()).toEqual({ name: '', date: '' });
+  });
+
+  it('openUploadDialog() and closeUploadDialog() toggle the upload modal', () => {
+    const { component } = createEventsFixture({});
+
+    expect(component.uploadModalOpen()).toBe(false);
+    component.openUploadDialog();
+    expect(component.uploadModalOpen()).toBe(true);
+    component.closeUploadDialog();
+    expect(component.uploadModalOpen()).toBe(false);
+  });
+
+  it('uploadTargetKey returns undefined with no selection and the event key when one is selected', () => {
+    const { component } = createEventsFixture({});
+
+    expect(component.uploadTargetKey()).toBeUndefined();
+
+    component.select(GALA);
+    expect(component.uploadTargetKey()).toBe('e:e1');
+  });
+
+  it('clearSelection() also closes the upload dialog', () => {
+    const { component } = createEventsFixture({});
+    component.select(GALA);
+    component.openUploadDialog();
+    expect(component.uploadModalOpen()).toBe(true);
+
+    component.clearSelection();
+
+    expect(component.uploadModalOpen()).toBe(false);
+    expect(component.selected()).toBeNull();
   });
 });

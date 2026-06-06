@@ -25,7 +25,12 @@
         <h2 class="title is-4 mb-1">{{ event.name }}</h2>
         <p class="subtitle is-6 has-text-grey">{{ event.date | longDate }}</p>
       </div>
-      <span class="tag is-info is-light">Recordings</span>
+      <div class="events-page__detail-meta">
+        <span class="tag is-info is-light">Recordings</span>
+        <button type="button" class="button is-primary is-small" (click)="openUploadDialog()">
+          Upload
+        </button>
+      </div>
     </div>
 
     @if (videosLoading()) {
@@ -84,6 +89,12 @@
     }
   </section>
 }
+
+<app-upload-dialog
+  [open]="uploadModalOpen()"
+  [preselectedTargetKey]="uploadTargetKey()"
+  (closed)="closeUploadDialog()"
+/>
 
 <div class="modal" [class.is-active]="createModalOpen()">
   <div class="modal-background" (click)="closeCreateModal()"></div>

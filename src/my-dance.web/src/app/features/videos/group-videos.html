@@ -1,7 +1,15 @@
-<header class="block">
-  <h1 class="title">Lesson recordings</h1>
-  <p class="subtitle">Recordings from your regular groups, newest first.</p>
+<header class="group-videos__header">
+  <div>
+    <h1 class="title">Lesson recordings</h1>
+    <p class="subtitle">Recordings from your regular groups, newest first.</p>
+  </div>
+  <button type="button" class="button is-primary" (click)="openUploadDialog()">Upload</button>
 </header>
+
+<app-upload-dialog
+  [open]="uploadModalOpen()"
+  (closed)="closeUploadDialog()"
+/>
 
 @if (loading()) {
   <progress class="progress is-primary" max="100" aria-label="Loading recordings">Loading…</progress>

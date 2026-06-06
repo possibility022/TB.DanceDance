@@ -4,6 +4,9 @@ import { Observable, of, throwError } from 'rxjs';
 
 import { GroupVideos } from './group-videos';
 import { GroupsService } from '../../core/api/groups.service';
+import { AccessService } from '../../core/api/access.service';
+import { UploadService } from '../../core/api/upload.service';
+import { BlobUploadService } from '../../core/api/blob-upload.service';
 import { ListGroupVideosResponse } from '../../core/api/api-models';
 
 async function setup(opts: {
@@ -14,6 +17,9 @@ async function setup(opts: {
     providers: [
       provideRouter([]),
       { provide: GroupsService, useValue: { getGroupVideos: () => opts.videos ?? of({ videos: [] }) } },
+      { provide: AccessService, useValue: { getMyAccess: vi.fn(() => of({ assigned: { groups: [], events: [] } })) } },
+      { provide: UploadService, useValue: { produceUploadUrl: vi.fn(() => of({ sas: '', videoId: 'v' })) } },
+      { provide: BlobUploadService, useValue: { upload: vi.fn(() => of(100)) } },
     ],
   }).compileComponents();
 
@@ -77,5 +83,15 @@ describe('GroupVideos', () => {
     const c = (await setup({ videos: throwError(() => new Error('boom')) })).componentInstance;
     expect(c.failed()).toBe(true);
     expect(c.loading()).toBe(false);
+  });
+
+  it('openUploadDialog() and closeUploadDialog() toggle the upload modal', async () => {
+    const component = (await setup({})).componentInstance;
+
+    expect(component.uploadModalOpen()).toBe(false);
+    component.openUploadDialog();
+    expect(component.uploadModalOpen()).toBe(true);
+    component.closeUploadDialog();
+    expect(component.uploadModalOpen()).toBe(false);
   });
 });

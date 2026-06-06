@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { GroupsService } from '../../core/api/groups.service';
 import { VideoFromGroupInformation } from '../../core/api/api-models';
 import { VideoCard } from '../../shared/ui/video-card/video-card';
+import { UploadDialog } from '../upload/upload-dialog';
 
 function recordedTime(video: VideoFromGroupInformation): number {
   if (!video.recordedDateTime) {
@@ -17,9 +18,27 @@ function recordedTime(video: VideoFromGroupInformation): number {
 
 @Component({
   selector: 'app-group-videos',
-  imports: [RouterLink, VideoCard],
+  imports: [RouterLink, VideoCard, UploadDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './group-videos.html',
+  styles: `
+    .group-videos__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .group-videos__header {
+        display: block;
+      }
+      .group-videos__header .button {
+        margin-top: 0.75rem;
+      }
+    }
+  `,
 })
 export class GroupVideos {
   private readonly groups = inject(GroupsService);
@@ -27,6 +46,7 @@ export class GroupVideos {
 
   readonly loading = signal(true);
   readonly failed = signal(false);
+  readonly uploadModalOpen = signal(false);
   private readonly items = signal<readonly VideoFromGroupInformation[]>([]);
 
   /** All lesson recordings, newest first; undated recordings sink to the end. */
@@ -36,6 +56,14 @@ export class GroupVideos {
 
   constructor() {
     this.load();
+  }
+
+  openUploadDialog(): void {
+    this.uploadModalOpen.set(true);
+  }
+
+  closeUploadDialog(): void {
+    this.uploadModalOpen.set(false);
   }
 
   load(): void {
