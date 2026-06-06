@@ -111,7 +111,7 @@ describe('UploadDialog', () => {
       );
     });
 
-    it('enters the error stage when the upload fails', () => {
+    it('marks the item as error and completes the batch when the upload fails', () => {
       const { component } = createFixture({
         produceUploadUrl: vi.fn(() => throwError(() => new Error('fail'))),
       });
@@ -119,7 +119,8 @@ describe('UploadDialog', () => {
 
       component.submit();
 
-      expect(component.stage()).toBe('error');
+      expect(component.uploadItems()[0]).toMatchObject({ status: 'error' });
+      expect(component.stage()).toBe('done');
     });
   });
 
@@ -205,7 +206,7 @@ describe('UploadDialog', () => {
 
       component.files.set([file('video.mp4')]);
       component.submit();
-      expect(component.stage()).toBe('error');
+      expect(component.stage()).toBe('done');
 
       component.retryUpload();
 

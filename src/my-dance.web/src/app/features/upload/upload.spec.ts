@@ -238,7 +238,7 @@ describe('Upload', () => {
     );
   });
 
-  it('enters the error stage when an upload fails', () => {
+  it('marks the item as error and completes the batch when an upload fails', () => {
     const { component } = createFixture({
       produceUploadUrl: vi.fn(() => throwError(() => new Error('nope'))),
     });
@@ -246,7 +246,8 @@ describe('Upload', () => {
 
     component.submit();
 
-    expect(component.stage()).toBe('error');
+    expect(component.uploadItems()[0]).toMatchObject({ status: 'error' });
+    expect(component.stage()).toBe('done');
   });
 
   it('reset returns to the form with cleared state', () => {
