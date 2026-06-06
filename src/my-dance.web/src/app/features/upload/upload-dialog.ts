@@ -1,7 +1,16 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { EMPTY, catchError, concatMap, defer, from, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, concatMap, defer, distinctUntilChanged, filter, from, switchMap, tap } from 'rxjs';
 
 import { AccessService } from '../../core/api/access.service';
 import { BlobUploadService } from '../../core/api/blob-upload.service';
@@ -12,7 +21,6 @@ interface UploadTarget {
   readonly key: string;
   readonly label: string;
   readonly type: SharingWithType;
-  /** Group/event id; undefined for the private library. */
   readonly sharedWith?: string;
 }
 
@@ -33,17 +41,28 @@ interface UploadItem {
 }
 
 @Component({
-  selector: 'app-upload',
+  selector: 'app-upload-dialog',
   imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './upload.html',
+  templateUrl: './upload-dialog.html',
+  styles: `
+    .upload-dialog__footer {
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+  `,
 })
-export class Upload {
+export class UploadDialog {
   private readonly uploads = inject(UploadService);
   private readonly blob = inject(BlobUploadService);
   private readonly access = inject(AccessService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly open = input(false);
+  /** Pre-select a target on open, e.g. 'e:<eventId>' or 'g:<groupId>'. */
+  readonly preselectedTargetKey = input<string | undefined>(undefined);
+  readonly closed = output<void>();
 
   readonly today = new Date().toISOString().slice(0, 10);
 
@@ -69,6 +88,17 @@ export class Upload {
 
   constructor() {
     this.loadTargets();
+
+    toObservable(this.open)
+      .pipe(
+        distinctUntilChanged(),
+        filter((isOpen) => isOpen),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.resetToForm();
+        this.applyPreselectedKey();
+      });
   }
 
   loadTargets(): void {
@@ -96,6 +126,9 @@ export class Upload {
             ...events,
           ]);
           this.targetsLoading.set(false);
+          if (this.open()) {
+            this.applyPreselectedKey();
+          }
         },
         error: () => this.targetsLoading.set(false),
       });
@@ -134,8 +167,6 @@ export class Upload {
       return;
     }
 
-    // When a single file is selected, the optional name applies; for a batch,
-    // each recording is named after its file.
     const explicitName = files.length === 1 ? name.trim() : '';
 
     this.stage.set('uploading');
@@ -147,7 +178,7 @@ export class Upload {
         id: `${index}:${file.name}:${file.lastModified}:${file.size}`,
         fileName: file.name,
         progress: 0,
-        status: 'pending',
+        status: 'pending' as UploadItemStatus,
       })),
     );
 
@@ -158,18 +189,20 @@ export class Upload {
             this.currentIndex.set(index + 1);
             this.progress.set(0);
             this.updateUploadItem(index, { progress: 0, status: 'uploading' });
-            return this.uploads.produceUploadUrl(this.buildRequest(file, target, explicitName, index)).pipe(
-              switchMap((response) => this.blob.upload(response.sas ?? '', file)),
-              tap({
-                next: (percent) => {
-                  this.progress.set(percent);
-                  this.updateUploadItem(index, { progress: percent });
-                },
-                error: () => this.updateUploadItem(index, { status: 'error' }),
-                complete: () => this.updateUploadItem(index, { progress: 100, status: 'done' }),
-              }),
-              catchError(() => EMPTY),
-            );
+            return this.uploads
+              .produceUploadUrl(this.buildRequest(file, target, explicitName, index))
+              .pipe(
+                switchMap((response) => this.blob.upload(response.sas ?? '', file)),
+                tap({
+                  next: (percent) => {
+                    this.progress.set(percent);
+                    this.updateUploadItem(index, { progress: percent });
+                  },
+                  error: () => this.updateUploadItem(index, { status: 'error' }),
+                  complete: () => this.updateUploadItem(index, { progress: 100, status: 'done' }),
+                }),
+                catchError(() => EMPTY),
+              );
           }),
         ),
         takeUntilDestroyed(this.destroyRef),
@@ -180,7 +213,27 @@ export class Upload {
       });
   }
 
-  reset(): void {
+  close(): void {
+    if (this.stage() === 'uploading') {
+      return;
+    }
+    this.resetToForm();
+    this.closed.emit();
+  }
+
+  retryUpload(): void {
+    this.resetToForm();
+    this.applyPreselectedKey();
+  }
+
+  private applyPreselectedKey(): void {
+    const key = this.preselectedTargetKey();
+    if (key && this.targets().some((t) => t.key === key)) {
+      this.form.controls.targetKey.setValue(key);
+    }
+  }
+
+  private resetToForm(): void {
     this.stage.set('form');
     this.progress.set(0);
     this.currentIndex.set(0);
@@ -218,7 +271,6 @@ export class Upload {
       fileName: file.name,
       recordedTimeUtc: recordedDate ? new Date(recordedDate) : new Date(file.lastModified),
       sharingWithType: target.type,
-      // Omitted for the private library (no group/event target).
       sharedWith: target.sharedWith as string,
     };
   }

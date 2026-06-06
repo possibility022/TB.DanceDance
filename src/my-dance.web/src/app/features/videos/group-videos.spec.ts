@@ -5,18 +5,21 @@ import { Observable, of, throwError } from 'rxjs';
 import { GroupVideos } from './group-videos';
 import { GroupsService } from '../../core/api/groups.service';
 import { AccessService } from '../../core/api/access.service';
-import { ListGroupVideosResponse, GetUserAccessResponse } from '../../core/api/api-models';
+import { UploadService } from '../../core/api/upload.service';
+import { BlobUploadService } from '../../core/api/blob-upload.service';
+import { ListGroupVideosResponse } from '../../core/api/api-models';
 
 async function setup(opts: {
   videos?: Observable<ListGroupVideosResponse>;
-  access?: Observable<GetUserAccessResponse>;
 }): Promise<ComponentFixture<GroupVideos>> {
   await TestBed.configureTestingModule({
     imports: [GroupVideos],
     providers: [
       provideRouter([]),
       { provide: GroupsService, useValue: { getGroupVideos: () => opts.videos ?? of({ videos: [] }) } },
-      { provide: AccessService, useValue: { getMyAccess: () => opts.access ?? of({}) } },
+      { provide: AccessService, useValue: { getMyAccess: vi.fn(() => of({ assigned: { groups: [], events: [] } })) } },
+      { provide: UploadService, useValue: { produceUploadUrl: vi.fn(() => of({ sas: '', videoId: 'v' })) } },
+      { provide: BlobUploadService, useValue: { upload: vi.fn(() => of(100)) } },
     ],
   }).compileComponents();
 
@@ -25,49 +28,70 @@ async function setup(opts: {
   return fixture;
 }
 
+function d(y: number, m: number, day: number): Date {
+  return new Date(y, m, day);
+}
+
 describe('GroupVideos', () => {
-  it('buckets videos by group in first-seen order and attaches seasons', async () => {
-    const seasonStart = new Date(2023, 8, 1);
-    const seasonEnd = new Date(2024, 4, 1);
+  it('flattens videos and sorts by recordedDateTime descending across groups', async () => {
     const c = (
       await setup({
         videos: of({
           videos: [
-            { videoId: 'v1', groupId: 'g1', groupName: 'Salsa' },
-            { videoId: 'v2', groupId: 'g2', groupName: 'Bachata' },
-            { videoId: 'v3', groupId: 'g1', groupName: 'Salsa' },
+            { videoId: 'v1', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 0, 10) },
+            { videoId: 'v2', groupId: 'g2', groupName: 'Bachata', recordedDateTime: d(2026, 2, 1) },
+            { videoId: 'v3', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 1, 15) },
           ],
-        }),
-        access: of({
-          assigned: { groups: [{ id: 'g1', seasonStart, seasonEnd }] },
-          available: { groups: [{ id: 'g2', seasonStart: new Date(2022, 8, 1) }] },
         }),
       })
     ).componentInstance;
 
-    const sections = c.sections();
-    expect(sections.map((s) => s.groupId)).toEqual(['g1', 'g2']);
-    expect(sections[0].videos).toHaveLength(2);
-    expect(sections[0].seasonStart).toEqual(seasonStart);
-    expect(sections[0].seasonEnd).toEqual(seasonEnd);
-    expect(sections[1].videos).toHaveLength(1);
+    expect(c.sortedVideos().map((v) => v.videoId)).toEqual(['v2', 'v3', 'v1']);
   });
 
-  it('falls back to "unknown" group id and "Group" name for ungrouped videos', async () => {
+  it('sinks videos without a recordedDateTime to the end of the list', async () => {
     const c = (
-      await setup({ videos: of({ videos: [{ videoId: 'v1' }] }) })
+      await setup({
+        videos: of({
+          videos: [
+            { videoId: 'no-date' },
+            { videoId: 'old', recordedDateTime: d(2024, 5, 1) },
+            { videoId: 'new', recordedDateTime: d(2026, 5, 1) },
+          ],
+        }),
+      })
     ).componentInstance;
 
-    const sections = c.sections();
-    expect(sections).toHaveLength(1);
-    expect(sections[0].groupId).toBe('unknown');
-    expect(sections[0].groupName).toBe('Group');
-    expect(sections[0].seasonStart).toBeUndefined();
+    expect(c.sortedVideos().map((v) => v.videoId)).toEqual(['new', 'old', 'no-date']);
+  });
+
+  it('keeps group identity on each video so the card can render a badge and group-scoped link', async () => {
+    const c = (
+      await setup({
+        videos: of({
+          videos: [{ videoId: 'v1', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 5, 1) }],
+        }),
+      })
+    ).componentInstance;
+
+    const [video] = c.sortedVideos();
+    expect(video.groupId).toBe('g1');
+    expect(video.groupName).toBe('Salsa');
   });
 
   it('enters the failed state on error', async () => {
     const c = (await setup({ videos: throwError(() => new Error('boom')) })).componentInstance;
     expect(c.failed()).toBe(true);
     expect(c.loading()).toBe(false);
+  });
+
+  it('openUploadDialog() and closeUploadDialog() toggle the upload modal', async () => {
+    const component = (await setup({})).componentInstance;
+
+    expect(component.uploadModalOpen()).toBe(false);
+    component.openUploadDialog();
+    expect(component.uploadModalOpen()).toBe(true);
+    component.closeUploadDialog();
+    expect(component.uploadModalOpen()).toBe(false);
   });
 });

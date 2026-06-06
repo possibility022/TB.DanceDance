@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -52,50 +51,10 @@ public static class ConnectAuthorizeHandler
             return Results.BadRequest("Authenticated user was not found in identity store.");
         }
 
-        var userClaims = await userManager.GetClaimsAsync(user);
+        var principalToIssue = await UserTokenIdentityFactory.BuildAsync(
+            user, userManager, await ResolveScopesAsync(context), scopeManager);
 
-        var identity = new ClaimsIdentity(
-            authenticationType: TokenValidationParameters.DefaultAuthenticationType,
-            nameType: Claims.Name,
-            roleType: Claims.Role);
-
-        identity.AddClaim(
-            new Claim(Claims.Subject, user.Id).SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
-
-        var username = user.UserName ?? user.Email ?? user.Id;
-        identity.AddClaim(
-            new Claim(Claims.PreferredUsername, username).SetDestinations(Destinations.AccessToken,
-                Destinations.IdentityToken));
-
-        var name = userClaims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value ?? username;
-        identity.AddClaim(
-            new Claim(Claims.Name, name).SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
-
-        var email = userClaims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email)?.Value ?? user.Email;
-        if (!string.IsNullOrWhiteSpace(email))
-        {
-            identity.AddClaim(
-                new Claim(Claims.Email, email).SetDestinations(Destinations.AccessToken, Destinations.IdentityToken));
-        }
-
-        var givenName = userClaims.FirstOrDefault(claim => claim.Type == ClaimTypes.GivenName)?.Value;
-        if (!string.IsNullOrWhiteSpace(givenName))
-        {
-            identity.AddClaim(new Claim(Claims.GivenName, givenName).SetDestinations(Destinations.AccessToken,
-                Destinations.IdentityToken));
-        }
-
-        var familyName = userClaims.FirstOrDefault(claim => claim.Type == ClaimTypes.Surname)?.Value;
-        if (!string.IsNullOrWhiteSpace(familyName))
-        {
-            identity.AddClaim(new Claim(Claims.FamilyName, familyName).SetDestinations(Destinations.AccessToken,
-                Destinations.IdentityToken));
-        }
-
-        identity.SetScopes(await ResolveScopesAsync(context));
-        identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
-
-        return Results.SignIn(new ClaimsPrincipal(identity), properties: null,
+        return Results.SignIn(principalToIssue, properties: null,
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 

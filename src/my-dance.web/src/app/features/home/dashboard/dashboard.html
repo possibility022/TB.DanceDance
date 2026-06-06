@@ -45,26 +45,31 @@
   <section class="block">
     <h2 class="title is-5">Recent activity</h2>
     @if (recent().length === 0) {
-      <p class="has-text-grey">No recordings yet.</p>
+      <div class="notification is-light">
+        <p>No recordings yet. <a routerLink="/videos/upload">Upload your first one</a> to get started.</p>
+      </div>
     } @else {
-      <ul class="menu-list">
+      <nav class="panel" aria-label="Recent recordings">
         @for (video of recent(); track video.videoId ?? video.blobId ?? $index) {
-          <li>
-            @if (video.converted && video.blobId) {
-              <a [routerLink]="['/videos', video.blobId]">
-                {{ video.name }}
-                <span class="has-text-grey is-size-7">· {{ video.recordedDateTime | longDate }}</span>
-              </a>
-            } @else {
-              <span class="is-flex is-align-items-center">
-                {{ video.name }}
-                <span class="has-text-grey is-size-7 ml-1">· {{ video.recordedDateTime | longDate }}</span>
-                <span class="tag is-warning is-light ml-2">Pending</span>
+          @if (video.converted && video.blobId) {
+            <a class="panel-block" [routerLink]="['/videos', video.blobId]">
+              <span class="is-flex is-flex-direction-column is-flex-grow-1 mr-3">
+                <span class="has-text-weight-medium">{{ video.name }}</span>
+                <span class="is-size-7 has-text-grey">{{ video.recordedDateTime | longDate }}</span>
               </span>
-            }
-          </li>
+              <span class="tag is-link is-light">Watch</span>
+            </a>
+          } @else {
+            <div class="panel-block">
+              <span class="is-flex is-flex-direction-column is-flex-grow-1 mr-3">
+                <span class="has-text-weight-medium has-text-grey-dark">{{ video.name }}</span>
+                <span class="is-size-7 has-text-grey">{{ video.recordedDateTime | longDate }}</span>
+              </span>
+              <span class="tag is-warning is-light">Processing</span>
+            </div>
+          }
         }
-      </ul>
+      </nav>
     }
   </section>
 }

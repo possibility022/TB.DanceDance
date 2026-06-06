@@ -1,15 +1,21 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using TB.Auth.Web.Identity;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace TB.Auth.Web.Endpoints.Handlers;
 
 public static class TokenHandler
 {
-    public static async Task<IResult> HandleAsync(HttpContext context, IOpenIddictScopeManager scopeManager)
+    public static async Task<IResult> HandleAsync(
+        HttpContext context,
+        IOpenIddictScopeManager scopeManager,
+        UserManager<User> userManager,
+        AuthServerOptions authOptions)
     {
         var form = context.Request.HasFormContentType
             ? await context.Request.ReadFormAsync()
@@ -58,6 +64,40 @@ public static class TokenHandler
             identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
 
             return Results.SignIn(new ClaimsPrincipal(identity), properties: null,
+                OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        // Dev-only: Resource Owner Password Credentials grant. Lets any seeded user obtain a
+        // token via a single REST call. The flow itself is only registered when
+        // AllowWeakPasswords is true (see Configuration.AddServerWithConfiguration); the guard
+        // below is defense in depth.
+        if (string.Equals(grantType, GrantTypes.Password, StringComparison.Ordinal) &&
+            authOptions.AllowWeakPasswords)
+        {
+            var login = form?["username"].ToString().Trim();
+            var password = form?["password"].ToString();
+
+            if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+            {
+                return Results.BadRequest("Username and password are required.");
+            }
+
+            var user = await userManager.FindByNameAsync(login);
+            if (user is null && login.Contains('@'))
+            {
+                user = await userManager.FindByEmailAsync(login);
+            }
+
+            if (user is null || !await userManager.CheckPasswordAsync(user, password))
+            {
+                return Results.Forbid(
+                    authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
+            }
+
+            var principal = await UserTokenIdentityFactory.BuildAsync(
+                user, userManager, ScopeParser.ParseScopes(form?["scope"].ToString()), scopeManager);
+
+            return Results.SignIn(principal, properties: null,
                 OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 

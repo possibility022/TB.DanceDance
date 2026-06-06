@@ -21,8 +21,30 @@
   }
   @case ('uploading') {
     <div class="block">
-      <p class="block">Uploading file {{ currentIndex() }} of {{ total() }} — {{ progress() }}%</p>
-      <progress class="progress is-primary" [value]="progress()" max="100">{{ progress() }}%</progress>
+      <p class="block">Uploading file {{ currentIndex() }} of {{ total() }}</p>
+
+      @for (item of uploadItems(); track item.id) {
+        <div class="box">
+          <div class="level is-mobile mb-2">
+            <div class="level-left">
+              <p class="level-item has-text-weight-semibold">{{ item.fileName }}</p>
+            </div>
+            <div class="level-right">
+              <p class="level-item is-size-7 has-text-grey">{{ item.progress }}%</p>
+            </div>
+          </div>
+          <progress
+            class="progress"
+            [class.is-primary]="item.status === 'uploading'"
+            [class.is-success]="item.status === 'done'"
+            [class.is-danger]="item.status === 'error'"
+            [value]="item.progress"
+            max="100"
+          >
+            {{ item.progress }}%
+          </progress>
+        </div>
+      }
     </div>
   }
   @default {
@@ -52,12 +74,54 @@
       }
 
       <div class="field">
-        <label class="label" for="upload-date">Recorded date <span class="has-text-grey is-size-7">(optional)</span></label>
-        <div class="control">
-          <input id="upload-date" class="input" type="date" formControlName="recordedDate" [max]="today" />
+        <label class="label" for="upload-date">
+          Recorded date for all videos <span class="has-text-grey is-size-7">(optional)</span>
+        </label>
+        <div class="field has-addons">
+          <div class="control is-expanded">
+            <input
+              id="upload-date"
+              class="input"
+              type="date"
+              formControlName="recordedDate"
+              [max]="today"
+              (change)="applyRecordedDateToAll()"
+            />
+          </div>
+          <div class="control">
+            <button type="button" class="button is-light" [disabled]="files().length === 0" (click)="applyRecordedDateToAll()">
+              Apply to all
+            </button>
+          </div>
         </div>
-        <p class="help">Defaults to each file’s last-modified date.</p>
+        <p class="help">Use this to set every selected video, or edit individual dates below.</p>
       </div>
+
+      @if (fileRows().length > 0) {
+        <div class="field">
+          <label class="label">Recorded date per video</label>
+          <div class="box">
+            @for (file of fileRows(); track file.id; let index = $index) {
+              <div class="columns is-vcentered is-mobile">
+                <div class="column">
+                  <p class="has-text-weight-semibold">{{ file.fileName }}</p>
+                </div>
+                <div class="column is-narrow">
+                  <input
+                    class="input"
+                    type="date"
+                    [value]="file.recordedDate"
+                    [max]="today"
+                    [attr.aria-label]="'Recorded date for ' + file.fileName"
+                    (change)="onRecordedDateSelected(index, $event)"
+                  />
+                </div>
+              </div>
+            }
+          </div>
+          <p class="help">Blank dates default to each file's last-modified date.</p>
+        </div>
+      }
 
       <div class="field">
         <label class="label" for="upload-target">Upload to</label>

@@ -1,7 +1,15 @@
-<header class="block">
-  <h1 class="title">Lesson recordings</h1>
-  <p class="subtitle">Recordings from your regular groups.</p>
+<header class="group-videos__header">
+  <div>
+    <h1 class="title">Lesson recordings</h1>
+    <p class="subtitle">Recordings from your regular groups, newest first.</p>
+  </div>
+  <button type="button" class="button is-primary" (click)="openUploadDialog()">Upload</button>
 </header>
+
+<app-upload-dialog
+  [open]="uploadModalOpen()"
+  (closed)="closeUploadDialog()"
+/>
 
 @if (loading()) {
   <progress class="progress is-primary" max="100" aria-label="Loading recordings">Loading…</progress>
@@ -10,23 +18,21 @@
     <p class="block">We couldn’t load the recordings.</p>
     <button type="button" class="button is-danger" (click)="load()">Try again</button>
   </div>
-} @else if (sections().length === 0) {
+} @else if (sortedVideos().length === 0) {
   <div class="notification is-info is-light">
     <p class="block">It looks like you don’t have access to any group recordings yet.</p>
     <a class="button is-info" routerLink="/videos/requestassignment">Request access</a>
   </div>
 } @else {
-  @for (section of sections(); track section.groupId) {
-    <section class="block">
-      <h2 class="title is-4">
-        {{ section.groupName }}
-        @if (section.seasonStart) {
-          <span class="subtitle is-6 has-text-grey ml-2">
-            {{ section.seasonStart | season: section.seasonEnd }}
-          </span>
-        }
-      </h2>
-      <app-video-list [videos]="section.videos" [scopeGroupId]="section.groupId" />
-    </section>
-  }
+  <div class="columns is-multiline">
+    @for (video of sortedVideos(); track video.videoId ?? video.blobId ?? $index) {
+      <div class="column is-one-third-desktop is-half-tablet">
+        <app-video-card
+          [video]="video"
+          [badge]="video.groupName ?? ''"
+          [queryParams]="video.groupId ? { groupId: video.groupId } : {}"
+        />
+      </div>
+    }
+  </div>
 }

@@ -41,8 +41,25 @@ When you see "Data initialized", the application is ready to use.
 Once the environment is up, you can access the frontend at `http://localhost:3000`.
 
 Test credentials:
-- **Login:** testemail@email.com
-- **Password:** 1234
+- **Login:** testemail@email.com — **Password:** 1234 (full access: all groups and events)
+- **Login:** testemail2@email.com — **Password:** 1234 (limited access: only the "Środy 18:00" group)
+
+## Get a token via REST (dev only)
+
+In local development the auth server enables the OAuth2 password grant, so you can obtain a
+user token with a single REST call (no browser login). This is gated by
+`AuthServer:AllowWeakPasswords=true` and is **never** enabled outside development.
+
+```bash
+curl -k -X POST https://localhost:7259/connect/token \
+  -d grant_type=password -d client_id=tbdancedancehttpclient \
+  -d username=testemail@email.com -d password=1234 \
+  -d "scope=openid profile tbdancedanceapi.read"
+```
+
+The response JSON contains `access_token`. Send it to the API as a bearer token:
+`Authorization: Bearer <access_token>`. A ready-to-run sample lives in
+`src/backend/Application/httpRequests/token.http`.
 
 ## Mobile App
 

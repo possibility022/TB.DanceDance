@@ -29,6 +29,11 @@ public static class Configuration
                     .AllowRefreshTokenFlow()
                     .AllowClientCredentialsFlow();
 
+                // Dev-only: enable the OAuth2 password grant so any seeded user can mint a
+                // token via a single REST call. Gated by the same flag that enables /dev/*.
+                if (authOptions.AllowWeakPasswords)
+                    options.AllowPasswordFlow();
+
                 var signingCert = LoadCertIfPresent(
                     authOptions.ServerSigningCertificateBase64,
                     authOptions.ServerSigningCertificatePassword);
