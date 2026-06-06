@@ -19,7 +19,12 @@
           />
         </div>
         <div class="control">
-          <button type="button" class="button is-primary" [disabled]="renaming()" (click)="saveRename()">
+          <button
+            type="button"
+            class="button is-primary"
+            [disabled]="renaming()"
+            (click)="saveRename()"
+          >
             Save
           </button>
         </div>
@@ -51,11 +56,13 @@
   @if (streamUrl(); as src) {
     <video
       class="is-block"
-      style="width: 100%; max-height: 70vh; background: #000;"
+      style="width: 100%; max-height: 70vh; background: #000"
       controls
+      controlsList="nodownload"
       preload="metadata"
       [src]="src"
       [attr.aria-label]="'Recording: ' + video.name"
+      (contextmenu)="$event.preventDefault()"
     >
       Your browser doesn’t support embedded video.
     </video>
@@ -80,7 +87,12 @@
               (keydown.enter)="setTab('recordings')"
               (keydown.space)="$event.preventDefault(); setTab('recordings')"
             >
-              More from this @if (groupId()) { group } @else { event }
+              More from this
+              @if (groupId()) {
+                group
+              } @else {
+                event
+              }
               <span class="tag is-light ml-2">{{ siblings().length }}</span>
             </a>
           </li>

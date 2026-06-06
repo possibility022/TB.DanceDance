@@ -77,14 +77,25 @@ describe('VideoPlayer', () => {
     expect(component.loading()).toBe(false);
   });
 
+  it('hides the native video download control', () => {
+    const { fixture } = createFixture({});
+    const video = fixture.nativeElement.querySelector('video') as HTMLVideoElement;
+
+    expect(video.getAttribute('controlsList')).toBe('nodownload');
+  });
+
   it('does not expose a stream url for an unconverted recording', () => {
-    const { component, videos } = createFixture({ video: { videoId: 'vid1', blobId: 'blob1', converted: false } });
+    const { component, videos } = createFixture({
+      video: { videoId: 'vid1', blobId: 'blob1', converted: false },
+    });
     expect(component.streamUrl()).toBeNull();
     expect(videos.streamUrl).not.toHaveBeenCalled();
   });
 
   it('enters the failed state when the recording cannot be loaded', () => {
-    const { component } = createFixture({ getVideo: vi.fn(() => throwError(() => new Error('boom'))) });
+    const { component } = createFixture({
+      getVideo: vi.fn(() => throwError(() => new Error('boom'))),
+    });
     expect(component.failed()).toBe(true);
     expect(component.loading()).toBe(false);
   });
@@ -166,12 +177,18 @@ describe('VideoPlayer', () => {
 
   describe('sidebar tabs', () => {
     it('defaults to the recordings tab when siblings are loaded', () => {
-      const { component } = createFixture({ groupId: 'g1', getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })) });
+      const { component } = createFixture({
+        groupId: 'g1',
+        getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })),
+      });
       expect(component.activeTab()).toBe('recordings');
     });
 
     it('switches to the comments tab when requested', () => {
-      const { component } = createFixture({ groupId: 'g1', getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })) });
+      const { component } = createFixture({
+        groupId: 'g1',
+        getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })),
+      });
       component.setTab('comments');
       expect(component.activeTab()).toBe('comments');
     });
