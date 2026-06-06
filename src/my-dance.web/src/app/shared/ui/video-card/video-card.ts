@@ -12,6 +12,9 @@ import { LongDatePipe } from '../../format/long-date.pipe';
   template: `
     <div class="card" [class.has-background-link-light]="selected()">
       <div class="card-content">
+        @if (badge()) {
+          <span class="tag is-info is-light mb-2">{{ badge() }}</span>
+        }
         <h3 class="title is-6 mb-1">{{ video().name }}</h3>
         <p class="is-size-7 has-text-grey">
           {{ video().recordedDateTime | longDate }}
@@ -44,5 +47,7 @@ export class VideoCard {
   readonly queryParams = input<Params>({});
   /** Highlight this card as the currently-playing recording. */
   readonly selected = input(false);
+  /** Optional contextual label shown above the title (e.g. group name). */
+  readonly badge = input('');
   readonly share = output<VideoInformation>();
 }
