@@ -26,7 +26,15 @@ import { LongDatePipe } from '../../format/long-date.pipe';
         <div class="video-card__header">
           <div>
             @if (badge()) {
-              <span class="tag is-info is-light video-card__badge">{{ badge() }}</span>
+              <span
+                class="tag video-card__badge"
+                [attr.data-badge-tone]="badgeTone().index"
+                [style.--video-card-badge-bg]="badgeTone().background"
+                [style.--video-card-badge-border]="badgeTone().border"
+                [style.--video-card-badge-text]="badgeTone().text"
+              >
+                {{ badge() }}
+              </span>
             }
             <h3 class="title is-6 video-card__title">{{ video().name || 'Untitled recording' }}</h3>
           </div>
@@ -171,6 +179,10 @@ import { LongDatePipe } from '../../format/long-date.pipe';
     .video-card__badge {
       max-width: 100%;
       margin-bottom: 0.45rem;
+      border: 1px solid var(--video-card-badge-border);
+      background: var(--video-card-badge-bg);
+      color: var(--video-card-badge-text);
+      font-weight: 700;
     }
 
     .video-card__title {
@@ -244,6 +256,37 @@ export class VideoCard {
   readonly share = output<VideoInformation>();
 
   readonly formattedDuration = computed(() => formatDuration(this.video().duration));
+  readonly badgeTone = computed(() => getBadgeTone(this.badge()));
+}
+
+interface BadgeTone {
+  readonly index: number;
+  readonly background: string;
+  readonly border: string;
+  readonly text: string;
+}
+
+const BADGE_TONES: readonly Omit<BadgeTone, 'index'>[] = [
+  { background: '#e8f3ff', border: '#a9d2ff', text: '#15518a' },
+  { background: '#eaf7ef', border: '#acdcbc', text: '#1f6b3b' },
+  { background: '#fff1d7', border: '#f2c16b', text: '#7a4a08' },
+  { background: '#f0edff', border: '#c7bbff', text: '#4a3a96' },
+  { background: '#ffecef', border: '#f4adbb', text: '#8a2d42' },
+  { background: '#e7f7f7', border: '#9fd7d6', text: '#176365' },
+];
+
+function getBadgeTone(text: string): BadgeTone {
+  const index = hashText(text.trim().toLowerCase()) % BADGE_TONES.length;
+  return { index, ...BADGE_TONES[index] };
+}
+
+function hashText(text: string): number {
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+
+  return hash;
 }
 
 function formatDuration(duration: string | undefined): string {

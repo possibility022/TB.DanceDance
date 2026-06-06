@@ -102,10 +102,26 @@ describe('VideoCard', () => {
 
   it('renders the badge when provided and omits it when empty', async () => {
     const withBadge = (await setup(CONVERTED, { badge: 'Salsa' })).nativeElement as HTMLElement;
-    const tag = withBadge.querySelector('.tag.is-info');
+    const tag = withBadge.querySelector('.video-card__badge');
     expect(tag?.textContent?.trim()).toBe('Salsa');
 
     const withoutBadge = (await setup(CONVERTED)).nativeElement as HTMLElement;
-    expect(withoutBadge.querySelector('.tag.is-info')).toBeNull();
+    expect(withoutBadge.querySelector('.video-card__badge')).toBeNull();
+  });
+
+  it('assigns badge colors deterministically from the badge text', async () => {
+    const first = (await setup(CONVERTED, { badge: 'Salsa' })).nativeElement as HTMLElement;
+    const second = (await setup(CONVERTED, { badge: 'Salsa' })).nativeElement as HTMLElement;
+    const different = (await setup(CONVERTED, { badge: 'Tango' })).nativeElement as HTMLElement;
+
+    const firstBadge = first.querySelector('.video-card__badge') as HTMLElement;
+    const secondBadge = second.querySelector('.video-card__badge') as HTMLElement;
+    const differentBadge = different.querySelector('.video-card__badge') as HTMLElement;
+
+    expect(firstBadge.dataset['badgeTone']).toBe(secondBadge.dataset['badgeTone']);
+    expect(firstBadge.style.getPropertyValue('--video-card-badge-bg')).toBe(
+      secondBadge.style.getPropertyValue('--video-card-badge-bg'),
+    );
+    expect(firstBadge.dataset['badgeTone']).not.toBe(differentBadge.dataset['badgeTone']);
   });
 });
