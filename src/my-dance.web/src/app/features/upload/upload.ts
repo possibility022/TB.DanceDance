@@ -17,6 +17,14 @@ interface UploadTarget {
 }
 
 type Stage = 'form' | 'uploading' | 'done' | 'error';
+type UploadItemStatus = 'pending' | 'uploading' | 'done' | 'error';
+
+interface UploadItem {
+  readonly id: string;
+  readonly fileName: string;
+  readonly progress: number;
+  readonly status: UploadItemStatus;
+}
 
 @Component({
   selector: 'app-upload',
@@ -38,6 +46,7 @@ export class Upload {
 
   readonly stage = signal<Stage>('form');
   readonly files = signal<readonly File[]>([]);
+  readonly uploadItems = signal<readonly UploadItem[]>([]);
   readonly total = signal(0);
   readonly currentIndex = signal(0);
   readonly progress = signal(0);
@@ -88,6 +97,7 @@ export class Upload {
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.files.set(input.files ? Array.from(input.files) : []);
+    this.uploadItems.set([]);
   }
 
   submit(): void {
@@ -110,6 +120,14 @@ export class Upload {
     this.total.set(files.length);
     this.currentIndex.set(0);
     this.progress.set(0);
+    this.uploadItems.set(
+      files.map((file, index) => ({
+        id: `${index}:${file.name}:${file.lastModified}:${file.size}`,
+        fileName: file.name,
+        progress: 0,
+        status: 'pending',
+      })),
+    );
 
     from(files)
       .pipe(
@@ -117,9 +135,17 @@ export class Upload {
           defer(() => {
             this.currentIndex.set(index + 1);
             this.progress.set(0);
+            this.updateUploadItem(index, { progress: 0, status: 'uploading' });
             return this.uploads.produceUploadUrl(this.buildRequest(file, target, explicitName)).pipe(
               switchMap((response) => this.blob.upload(response.sas ?? '', file)),
-              tap((percent) => this.progress.set(percent)),
+              tap({
+                next: (percent) => {
+                  this.progress.set(percent);
+                  this.updateUploadItem(index, { progress: percent });
+                },
+                error: () => this.updateUploadItem(index, { status: 'error' }),
+                complete: () => this.updateUploadItem(index, { progress: 100, status: 'done' }),
+              }),
             );
           }),
         ),
@@ -137,7 +163,14 @@ export class Upload {
     this.currentIndex.set(0);
     this.total.set(0);
     this.files.set([]);
+    this.uploadItems.set([]);
     this.form.reset({ name: '', recordedDate: '', targetKey: 'private' });
+  }
+
+  private updateUploadItem(index: number, patch: Partial<UploadItem>): void {
+    this.uploadItems.update((items) =>
+      items.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
+    );
   }
 
   private buildRequest(file: File, target: UploadTarget, explicitName: string): ProduceUploadUrlRequest {

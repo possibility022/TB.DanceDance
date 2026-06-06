@@ -21,8 +21,30 @@
   }
   @case ('uploading') {
     <div class="block">
-      <p class="block">Uploading file {{ currentIndex() }} of {{ total() }} — {{ progress() }}%</p>
-      <progress class="progress is-primary" [value]="progress()" max="100">{{ progress() }}%</progress>
+      <p class="block">Uploading file {{ currentIndex() }} of {{ total() }}</p>
+
+      @for (item of uploadItems(); track item.id) {
+        <div class="box">
+          <div class="level is-mobile mb-2">
+            <div class="level-left">
+              <p class="level-item has-text-weight-semibold">{{ item.fileName }}</p>
+            </div>
+            <div class="level-right">
+              <p class="level-item is-size-7 has-text-grey">{{ item.progress }}%</p>
+            </div>
+          </div>
+          <progress
+            class="progress"
+            [class.is-primary]="item.status === 'uploading'"
+            [class.is-success]="item.status === 'done'"
+            [class.is-danger]="item.status === 'error'"
+            [value]="item.progress"
+            max="100"
+          >
+            {{ item.progress }}%
+          </progress>
+        </div>
+      }
     </div>
   }
   @default {
