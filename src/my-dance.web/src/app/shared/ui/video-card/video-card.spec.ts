@@ -15,13 +15,13 @@ const CONVERTED: VideoInformation = {
 
 async function setup(
   video: VideoInformation,
-  inputs: Partial<{ shareable: boolean; selected: boolean; queryParams: Record<string, string>; badge: string }> = {},
+  inputs: Partial<{
+    shareable: boolean;
+    selected: boolean;
+    queryParams: Record<string, string>;
+    badge: string;
+  }> = {},
 ): Promise<ComponentFixture<VideoCard>> {
-  await TestBed.configureTestingModule({
-    imports: [VideoCard],
-    providers: [provideRouter([])],
-  }).compileComponents();
-
   const fixture = TestBed.createComponent(VideoCard);
   fixture.componentRef.setInput('video', video);
   for (const [key, value] of Object.entries(inputs)) {
@@ -32,16 +32,41 @@ async function setup(
 }
 
 describe('VideoCard', () => {
-  it('renders the name, formatted recorded date, and duration', async () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [VideoCard],
+      providers: [provideRouter([])],
+    }).compileComponents();
+  });
+
+  it('renders the name, formatted recorded date, and duration badge', async () => {
     const el = (await setup(CONVERTED)).nativeElement as HTMLElement;
     expect(el.querySelector('h3')?.textContent).toContain('Waltz basics');
     const meta = el.querySelector('p')?.textContent ?? '';
     expect(meta).toContain('04 June 2026');
-    expect(meta).toContain('3:21');
+    expect(meta).not.toContain('3:21');
+    expect(el.querySelector('.video-card__duration')?.textContent?.trim()).toBe('3:21');
+  });
+
+  it('formats duration once in the preview badge', async () => {
+    const el = (await setup({ ...CONVERTED, duration: '00:03:21.0000000' }))
+      .nativeElement as HTMLElement;
+
+    expect(el.querySelector('.video-card__duration')?.textContent?.trim()).toBe('3:21');
+    expect(el.textContent?.match(/3:21/g)).toHaveLength(1);
+  });
+
+  it('formats ISO and seconds durations', async () => {
+    const iso = (await setup({ ...CONVERTED, duration: 'PT1H2M3S' })).nativeElement as HTMLElement;
+    expect(iso.querySelector('.video-card__duration')?.textContent?.trim()).toBe('1:02:03');
+
+    const seconds = (await setup({ ...CONVERTED, duration: '61' })).nativeElement as HTMLElement;
+    expect(seconds.querySelector('.video-card__duration')?.textContent?.trim()).toBe('1:01');
   });
 
   it('links Watch to the player using the blob id and query params', async () => {
-    const el = (await setup(CONVERTED, { queryParams: { groupId: 'g1' } })).nativeElement as HTMLElement;
+    const el = (await setup(CONVERTED, { queryParams: { groupId: 'g1' } }))
+      .nativeElement as HTMLElement;
     const watch = el.querySelector('a.button.is-primary');
     expect(watch?.textContent).toContain('Watch');
     expect(watch?.getAttribute('href')).toBe('/videos/blob1?groupId=g1');

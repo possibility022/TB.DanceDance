@@ -164,6 +164,25 @@ describe('VideoPlayer', () => {
     });
   });
 
+  describe('sidebar tabs', () => {
+    it('defaults to the recordings tab when siblings are loaded', () => {
+      const { component } = createFixture({ groupId: 'g1', getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })) });
+      expect(component.activeTab()).toBe('recordings');
+    });
+
+    it('switches to the comments tab when requested', () => {
+      const { component } = createFixture({ groupId: 'g1', getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })) });
+      component.setTab('comments');
+      expect(component.activeTab()).toBe('comments');
+    });
+
+    it('falls back to comments when no siblings are loaded', () => {
+      const { component } = createFixture({});
+      expect(component.siblings()).toHaveLength(0);
+      expect(component.activeTab()).toBe('comments');
+    });
+  });
+
   describe('comment moderation', () => {
     it('edits a comment then reloads the list', () => {
       const { component, comments } = createFixture({});
