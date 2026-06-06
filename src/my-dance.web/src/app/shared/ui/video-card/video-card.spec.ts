@@ -15,7 +15,7 @@ const CONVERTED: VideoInformation = {
 
 async function setup(
   video: VideoInformation,
-  inputs: Partial<{ shareable: boolean; selected: boolean; queryParams: Record<string, string> }> = {},
+  inputs: Partial<{ shareable: boolean; selected: boolean; queryParams: Record<string, string>; badge: string }> = {},
 ): Promise<ComponentFixture<VideoCard>> {
   await TestBed.configureTestingModule({
     imports: [VideoCard],
@@ -73,5 +73,14 @@ describe('VideoCard', () => {
   it('highlights the card when selected', async () => {
     const el = (await setup(CONVERTED, { selected: true })).nativeElement as HTMLElement;
     expect(el.querySelector('.card')?.classList).toContain('has-background-link-light');
+  });
+
+  it('renders the badge when provided and omits it when empty', async () => {
+    const withBadge = (await setup(CONVERTED, { badge: 'Salsa' })).nativeElement as HTMLElement;
+    const tag = withBadge.querySelector('.tag.is-info');
+    expect(tag?.textContent?.trim()).toBe('Salsa');
+
+    const withoutBadge = (await setup(CONVERTED)).nativeElement as HTMLElement;
+    expect(withoutBadge.querySelector('.tag.is-info')).toBeNull();
   });
 });

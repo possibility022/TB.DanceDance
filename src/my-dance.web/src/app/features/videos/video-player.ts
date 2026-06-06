@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   effect,
   inject,
   input,
@@ -19,6 +20,8 @@ import { CommentResponse, VideoInformation } from '../../core/api/api-models';
 import { CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 import { VideoList } from '../../shared/ui/video-list/video-list';
+
+export type SidebarTab = 'comments' | 'recordings';
 
 @Component({
   selector: 'app-video-player',
@@ -53,6 +56,16 @@ export class VideoPlayer {
   readonly editingName = signal(false);
   readonly nameDraft = signal('');
   readonly renaming = signal(false);
+
+  /** User-selected tab. Reads through `activeTab` to guard against stale `recordings` state when no siblings are loaded. */
+  private readonly tabChoice = signal<SidebarTab>('recordings');
+  readonly activeTab = computed<SidebarTab>(() =>
+    this.tabChoice() === 'recordings' && this.siblings().length === 0 ? 'comments' : this.tabChoice(),
+  );
+
+  setTab(tab: SidebarTab): void {
+    this.tabChoice.set(tab);
+  }
 
   constructor() {
     // Reload when the recording changes (incl. navigating between siblings,
