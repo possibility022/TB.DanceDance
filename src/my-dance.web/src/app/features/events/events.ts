@@ -15,6 +15,14 @@ import { EventModel, VideoInformation } from '../../core/api/api-models';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 import { VideoList } from '../../shared/ui/video-list/video-list';
 
+interface EventSeasonGroup {
+  readonly key: string;
+  readonly label: string;
+  readonly events: readonly EventModel[];
+}
+
+type Season = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
+
 @Component({
   selector: 'app-events',
   imports: [ReactiveFormsModule, LongDatePipe, VideoList],
@@ -139,16 +147,7 @@ export class Events {
   readonly loading = signal(true);
   readonly failed = signal(false);
   readonly items = signal<readonly EventModel[]>([]);
-  readonly upcomingEvents = computed(() =>
-    [...this.items()]
-      .filter((event) => dateValue(event.date) >= todayValue())
-      .sort((a, b) => dateValue(a.date) - dateValue(b.date)),
-  );
-  readonly pastEvents = computed(() =>
-    [...this.items()]
-      .filter((event) => dateValue(event.date) < todayValue())
-      .sort((a, b) => dateValue(b.date) - dateValue(a.date)),
-  );
+  readonly eventSeasonGroups = computed(() => groupEventsBySeason(this.items()));
 
   readonly selected = signal<EventModel | null>(null);
   readonly videos = signal<readonly VideoInformation[]>([]);
@@ -270,8 +269,56 @@ function dateValue(value: Date | string | number | undefined): number {
   return new Date(value).getTime();
 }
 
-function todayValue(): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today.getTime();
+function groupEventsBySeason(events: readonly EventModel[]): readonly EventSeasonGroup[] {
+  const groups = new Map<
+    string,
+    { label: string; newestEventDate: number; events: EventModel[] }
+  >();
+
+  for (const event of events) {
+    const date = toDate(event.date);
+    const year = date.getFullYear();
+    const season = seasonForMonth(date.getMonth());
+    const key = `${year}-${season}`;
+    const eventDate = date.getTime();
+    const group = groups.get(key);
+
+    if (group) {
+      group.events.push(event);
+      group.newestEventDate = Math.max(group.newestEventDate, eventDate);
+    } else {
+      groups.set(key, {
+        label: `${year} ${season}`,
+        newestEventDate: eventDate,
+        events: [event],
+      });
+    }
+  }
+
+  return [...groups.entries()]
+    .map(([key, group]) => ({
+      key,
+      label: group.label,
+      newestEventDate: group.newestEventDate,
+      events: group.events.sort((a, b) => dateValue(b.date) - dateValue(a.date)),
+    }))
+    .sort((a, b) => b.newestEventDate - a.newestEventDate)
+    .map(({ key, label, events }) => ({ key, label, events }));
+}
+
+function toDate(value: Date | string | number | undefined): Date {
+  return value ? new Date(value) : new Date(0);
+}
+
+function seasonForMonth(month: number): Season {
+  if (month >= 2 && month <= 4) {
+    return 'Spring';
+  }
+  if (month >= 5 && month <= 7) {
+    return 'Summer';
+  }
+  if (month >= 8 && month <= 10) {
+    return 'Autumn';
+  }
+  return 'Winter';
 }

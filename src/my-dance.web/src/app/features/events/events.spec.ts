@@ -44,13 +44,30 @@ describe('Events', () => {
     expect(component.items()).toHaveLength(1);
   });
 
-  it('groups events into upcoming and past lists', () => {
+  it('groups events by year and season', () => {
+    const springEvent: EventModel = {
+      id: 'e3',
+      name: 'Spring Intensive',
+      date: new Date(2026, 3, 1),
+    };
+    const autumnEvent: EventModel = { id: 'e4', name: 'Autumn Gala', date: new Date(2025, 9, 1) };
     const { component } = createEventsFixture({
-      getMyAccess: vi.fn(() => of({ assigned: { events: [GALA, WORKSHOP] } })),
+      getMyAccess: vi.fn(() =>
+        of({ assigned: { events: [GALA, springEvent, autumnEvent, WORKSHOP] } }),
+      ),
     });
 
-    expect(component.upcomingEvents().map((event) => event.id)).toEqual(['e2']);
-    expect(component.pastEvents().map((event) => event.id)).toEqual(['e1']);
+    expect(
+      component.eventSeasonGroups().map((group) => ({
+        label: group.label,
+        eventIds: group.events.map((event) => event.id),
+      })),
+    ).toEqual([
+      { label: '2099 Summer', eventIds: ['e2'] },
+      { label: '2026 Spring', eventIds: ['e3'] },
+      { label: '2026 Winter', eventIds: ['e1'] },
+      { label: '2025 Autumn', eventIds: ['e4'] },
+    ]);
   });
 
   it('enters the failed state when loading errors', () => {

@@ -53,11 +53,8 @@
     <div class="events-page__panel-header">
       <div>
         <h2 id="events-list-title" class="title is-5 mb-1">Your events</h2>
-        <p class="is-size-7 has-text-grey">{{ items().length }} total</p>
+        <p class="is-size-7 has-text-grey">{{ items().length }} total events</p>
       </div>
-      @if (items().length > 0) {
-        <span class="tag is-light">{{ upcomingEvents().length }} upcoming</span>
-      }
     </div>
 
     @if (items().length === 0) {
@@ -68,27 +65,10 @@
         </button>
       </div>
     } @else {
-      @if (upcomingEvents().length > 0) {
-        <h3 class="events-page__section-label">Upcoming</h3>
+      @for (group of eventSeasonGroups(); track group.key) {
+        <h3 class="events-page__section-label">{{ group.label }}</h3>
         <div class="events-page__list">
-          @for (event of upcomingEvents(); track event.id ?? $index) {
-            <button type="button" class="events-page__event-button" (click)="select(event)">
-              <span>
-                <span class="events-page__event-name">{{ event.name }}</span>
-                <span class="events-page__event-date is-size-7 has-text-grey">
-                  {{ event.date | longDate }}
-                </span>
-              </span>
-              <span class="events-page__event-arrow" aria-hidden="true">&rsaquo;</span>
-            </button>
-          }
-        </div>
-      }
-
-      @if (pastEvents().length > 0) {
-        <h3 class="events-page__section-label">Past</h3>
-        <div class="events-page__list">
-          @for (event of pastEvents(); track event.id ?? $index) {
+          @for (event of group.events; track event.id ?? $index) {
             <button type="button" class="events-page__event-button" (click)="select(event)">
               <span>
                 <span class="events-page__event-name">{{ event.name }}</span>
