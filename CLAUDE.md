@@ -95,6 +95,7 @@ The backend follows a strict layered architecture under `src/backend/`:
 - The API validates tokens via JWT Bearer middleware; issuer discovery uses the HTTP endpoint of the auth server (`:8080`).
 - Video streaming endpoints accept the JWT in a query parameter (`token=...`) because `<video>` elements cannot send Authorization headers.
 - The converter daemon uses OAuth2 client credentials flow (not user login).
+- **Local dev only** (`AuthServer:AllowWeakPasswords=true`): the auth server also enables the OAuth2 password grant at `/connect/token` for the public `tbdancedancehttpclient` client, so any seeded user (`testemail@email.com`, `testemail2@email.com`, password `1234`) can fetch a token with a single REST call. Never enabled outside development. See `README.md` and `src/backend/Application/httpRequests/token.http`.
 
 ### Database
 

@@ -48,3 +48,22 @@ DO $$
 
     END $$;
 
+-- Second dev user (testemail2@email.com): limited access on purpose. Member of a single
+-- group ("Środy 18:00") and no events, so this user only sees the videos shared to that
+-- group (43e4d723..., c4029eb1...). Useful for testing per-user visibility/access boundaries.
+DO $$
+    DECLARE
+        userId text = '9f1c8e2a-4b6d-4c3e-8a7f-2d5e6b1a0c34';
+    BEGIN
+        IF NOT EXISTS (SELECT 1 from access."Users" where "Id" = userId)
+        THEN
+        RAISE NOTICE 'Second dance user NOT found. Inserting dance data.';
+        INSERT INTO access."Users" ("Id", "FirstName", "LastName", "Email") VALUES (userId, 'Tom2', 'B', 'testemail2@email.com');
+
+        INSERT INTO access."AssingedToGroups" ("Id", "GroupId", "UserId", "WhenJoined") VALUES (gen_random_uuid(), '7c30e3cc-e6d8-4cf7-8b64-eba68efa5366', userId, '2022-02-01 19:28:47.258000 +00:00');
+        ELSE
+            RAISE NOTICE 'Second dance user found. Skipping insert.';
+        end if;
+
+    END $$;
+

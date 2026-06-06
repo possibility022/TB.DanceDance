@@ -74,20 +74,22 @@ SET "ClientType" = EXCLUDED."ClientType",
     "PostLogoutRedirectUris" = EXCLUDED."PostLogoutRedirectUris",
     "Requirements" = EXCLUDED."Requirements";
 
--- Kept from legacy script mapping. This client requires enabling password flow in server configuration.
+-- Dev-only REST token client. Public (no secret) so any seeded user can fetch a token via
+-- the OAuth2 password grant with a single REST call. The password grant is only enabled on
+-- the auth server when AuthServer:AllowWeakPasswords=true (local development).
 INSERT INTO "Idp.Auth"."OpenIddictApplications" (
-    "Id", "ClientId", "ClientType", "DisplayName", "ClientSecret", "ConcurrencyToken",
+    "Id", "ClientId", "ClientType", "DisplayName", "ConcurrencyToken",
     "Permissions")
 VALUES (
     'app_tbdancedancehttpclient',
     'tbdancedancehttpclient',
-    'confidential',
+    'public',
     'TB DanceDance Http Client',
-    '4Vw/t6S10MOhxfx2mqQ995AVeyiUnyU1hWmX8Gn0Xxw=',
     md5(random()::text || clock_timestamp()::text),
     '["ept:token","gt:password","scp:openid","scp:profile","scp:tbdancedanceapi.read"]'
 )
 ON CONFLICT ("ClientId") DO UPDATE
 SET "ClientType" = EXCLUDED."ClientType",
     "DisplayName" = EXCLUDED."DisplayName",
+    "ClientSecret" = NULL,
     "Permissions" = EXCLUDED."Permissions";
