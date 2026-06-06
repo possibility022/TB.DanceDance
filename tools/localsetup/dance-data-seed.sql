@@ -42,6 +42,11 @@ DO $$
 
             INSERT INTO access."AssingedToGroups" ("Id", "GroupId", "UserId", "WhenJoined") VALUES (gen_random_uuid(), '2a7554e4-0dc3-4f92-be4c-e4463adf1cee', userId, '2022-02-01 19:28:47.258000 +00:00');
             INSERT INTO access."AssingedToGroups" ("Id", "GroupId", "UserId", "WhenJoined") VALUES (gen_random_uuid(), '7c30e3cc-e6d8-4cf7-8b64-eba68efa5366', userId, '2022-02-01 19:28:47.258000 +00:00');
+
+            -- Make Tom B an admin of both groups so group access requests are visible/approvable
+            -- (events are approvable via Events.Owner; groups need a GroupsAdmins row).
+            INSERT INTO access."GroupsAdmins" ("Id", "GroupId", "UserId") VALUES (gen_random_uuid(), '2a7554e4-0dc3-4f92-be4c-e4463adf1cee', userId);
+            INSERT INTO access."GroupsAdmins" ("Id", "GroupId", "UserId") VALUES (gen_random_uuid(), '7c30e3cc-e6d8-4cf7-8b64-eba68efa5366', userId);
         ELSE
             RAISE NOTICE 'Dance user found. Skipping insert.';
         end if;

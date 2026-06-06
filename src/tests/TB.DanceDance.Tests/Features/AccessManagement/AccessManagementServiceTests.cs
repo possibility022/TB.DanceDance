@@ -163,6 +163,37 @@ public class AccessManagementServiceTests : BaseTestClass
     }
 
     [Fact]
+    public async Task GetAccessRequestsToApproveAsync_DoesNotReturnGroupRequest_WhenNoGroupAdmin_ButReturnsItOnceAdminExists()
+    {
+        // Regression: a pending group request is invisible to everyone until a matching
+        // GroupsAdmins row exists. The seed previously never created group admins, so group
+        // access requests never appeared on the "Requested accesses" page.
+        var approver = new UserDataBuilder().Build();
+        var requestor = new UserDataBuilder().Build();
+        var group = new GroupDataBuilder().Build();
+
+        SeedDbContext.AddRange(approver, requestor, group);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        SeedDbContext.GroupAssigmentRequests.Add(new GroupAssigmentRequest
+        {
+            Id = Guid.NewGuid(), GroupId = group.Id, UserId = requestor.Id, Approved = null, WhenJoined = DateTime.UtcNow.AddDays(-1)
+        });
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // No GroupAdmin yet -> request must not be approvable by anyone.
+        var withoutAdmin = await service.GetAccessRequestsToApproveAsync(approver.Id, TestContext.Current.CancellationToken);
+        Assert.DoesNotContain(withoutAdmin, r => r.IsGroup && r.Name == group.Name);
+
+        // Grant group-admin rights -> request now appears.
+        SeedDbContext.GroupsAdmins.Add(new GroupAdmin { Id = Guid.NewGuid(), UserId = approver.Id, GroupId = group.Id });
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var withAdmin = await service.GetAccessRequestsToApproveAsync(approver.Id, TestContext.Current.CancellationToken);
+        Assert.Contains(withAdmin, r => r.IsGroup && r.Name == group.Name);
+    }
+
+    [Fact]
     public async Task ApproveAccessRequest_Group_CreatesMembershipAndMarksApproved()
     {
         var approver = new UserDataBuilder().Build();
