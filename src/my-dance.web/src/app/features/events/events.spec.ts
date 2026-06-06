@@ -8,6 +8,7 @@ import { EventsService } from '../../core/api/events.service';
 import { EventModel } from '../../core/api/api-models';
 
 const GALA: EventModel = { id: 'e1', name: 'Gala', date: new Date(2026, 0, 1) };
+const WORKSHOP: EventModel = { id: 'e2', name: 'Workshop', date: new Date(2099, 5, 1) };
 
 function createEventsFixture(overrides: {
   getMyAccess?: ReturnType<typeof vi.fn>;
@@ -43,8 +44,19 @@ describe('Events', () => {
     expect(component.items()).toHaveLength(1);
   });
 
+  it('groups events into upcoming and past lists', () => {
+    const { component } = createEventsFixture({
+      getMyAccess: vi.fn(() => of({ assigned: { events: [GALA, WORKSHOP] } })),
+    });
+
+    expect(component.upcomingEvents().map((event) => event.id)).toEqual(['e2']);
+    expect(component.pastEvents().map((event) => event.id)).toEqual(['e1']);
+  });
+
   it('enters the failed state when loading errors', () => {
-    const { component } = createEventsFixture({ getMyAccess: vi.fn(() => throwError(() => new Error('x'))) });
+    const { component } = createEventsFixture({
+      getMyAccess: vi.fn(() => throwError(() => new Error('x'))),
+    });
     expect(component.failed()).toBe(true);
   });
 
@@ -75,6 +87,20 @@ describe('Events', () => {
     expect(component.videosLoading()).toBe(false);
   });
 
+  it('clearSelection() returns to the event list state', () => {
+    const { component } = createEventsFixture({
+      getEventVideos: vi.fn(() => of({ videos: [{ name: 'v1' }] })),
+    });
+
+    component.select(GALA);
+    component.clearSelection();
+
+    expect(component.selected()).toBeNull();
+    expect(component.videos()).toEqual([]);
+    expect(component.videosLoading()).toBe(false);
+    expect(component.videosFailed()).toBe(false);
+  });
+
   it('createEvent() does nothing while the form is invalid', () => {
     const { component, events } = createEventsFixture({});
     component.createEvent();
@@ -85,6 +111,7 @@ describe('Events', () => {
     const createEvent = vi.fn(() => of({ id: 'new' }));
     const { component, access, events } = createEventsFixture({ createEvent });
 
+    component.openCreateModal();
     component.form.setValue({ name: '  Winter Ball  ', date: '2026-02-14' });
     component.createEvent();
 
@@ -92,6 +119,7 @@ describe('Events', () => {
       event: { name: 'Winter Ball', date: new Date('2026-02-14') },
     });
     expect(component.creating()).toBe(false);
+    expect(component.createModalOpen()).toBe(false);
     // load() ran once on init and once after creating.
     expect(access.getMyAccess).toHaveBeenCalledTimes(2);
   });
@@ -100,9 +128,25 @@ describe('Events', () => {
     const createEvent = vi.fn(() => throwError(() => new Error('x')));
     const { component } = createEventsFixture({ createEvent });
 
+    component.openCreateModal();
     component.form.setValue({ name: 'Winter Ball', date: '2026-02-14' });
     component.createEvent();
 
     expect(component.creating()).toBe(false);
+    expect(component.createModalOpen()).toBe(true);
+    expect(component.createFailed()).toBe(true);
+  });
+
+  it('opens and closes the create modal', () => {
+    const { component } = createEventsFixture({});
+
+    component.openCreateModal();
+    expect(component.createModalOpen()).toBe(true);
+
+    component.form.setValue({ name: 'Draft', date: '2026-02-14' });
+    component.closeCreateModal();
+
+    expect(component.createModalOpen()).toBe(false);
+    expect(component.form.getRawValue()).toEqual({ name: '', date: '' });
   });
 });
