@@ -3,6 +3,8 @@ import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 
 import { GroupVideos } from './group-videos';
+import { AuthService } from '../../core/auth/auth.service';
+import { VideosService } from '../../core/api/videos.service';
 import { GroupsService } from '../../core/api/groups.service';
 import { AccessService } from '../../core/api/access.service';
 import { UploadService } from '../../core/api/upload.service';
@@ -16,6 +18,8 @@ async function setup(opts: {
     imports: [GroupVideos],
     providers: [
       provideRouter([]),
+      { provide: AuthService, useValue: { getAccessToken: () => of('test-token') } },
+      { provide: VideosService, useValue: { thumbnailUrl: () => null } },
       { provide: GroupsService, useValue: { getGroupVideos: () => opts.videos ?? of({ videos: [] }) } },
       { provide: AccessService, useValue: { getMyAccess: vi.fn(() => of({ assigned: { groups: [], events: [] } })) } },
       { provide: UploadService, useValue: { produceUploadUrl: vi.fn(() => of({ sas: '', videoId: 'v' })) } },

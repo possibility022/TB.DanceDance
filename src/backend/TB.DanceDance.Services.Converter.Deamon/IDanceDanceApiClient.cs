@@ -9,4 +9,8 @@ internal interface IDanceDanceApiClient
     Task UploadVideoToTransformInformation(UpdateVideoInfoRequest updateVideoInfoRequest, CancellationToken token);
     Task UploadContent(Guid videoId, Stream content, CancellationToken token);
     Task PublishTransformedVideo(Guid videoId, CancellationToken token);
+
+    Task<VideoToThumbnailResponse> GetNextVideoForThumbnailAsync(CancellationToken token);
+    Task UploadThumbnail(Guid videoId, Stream content, CancellationToken token);
+    Task PublishThumbnail(Guid videoId, CancellationToken token);
 }

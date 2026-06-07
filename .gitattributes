@@ -45,6 +45,13 @@
 #*.gif   binary
 
 ###############################################################################
+# Shell scripts must keep LF endings - they're baked into Linux container
+# images verbatim and CRLF breaks the shebang line (e.g. "#!/bin/sh\r" ->
+# "not found").
+###############################################################################
+*.sh text eol=lf
+
+###############################################################################
 # diff behavior for common document formats
 # 
 # Convert binary document formats to text before diffing them. This feature

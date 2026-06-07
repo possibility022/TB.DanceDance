@@ -4,10 +4,12 @@ description: >-
   Run, debug, and inspect the TB.DanceDance app locally via Docker Compose
   (local_environment.dockercompose.yaml). Use for building/starting/stopping/restarting
   the whole stack or a single container, tailing logs, checking status, resetting state
-  (DB + blob volumes), waiting for seed data, and fetching a user/converter access token
-  by HTTP for hitting the API. Triggers: "start the app locally", "restart the api
+  (DB + blob volumes), waiting for seed data, fetching a user/converter access token
+  by HTTP for hitting the API, and listing/inspecting/uploading/replacing/deleting blobs
+  in the local Azurite emulator. Triggers: "start the app locally", "restart the api
   container", "reset the local db", "get me a token", "why is the converter failing",
-  "tail the auth server logs".
+  "tail the auth server logs", "list blobs in thumbnails", "delete that blob from
+  azurite", "replace/upload a video blob locally".
 ---
 
 # Local stack (Docker) — run & debug TB.DanceDance
@@ -121,6 +123,28 @@ Content-Type: application/x-www-form-urlencoded
 
 grant_type=password&client_id=tbdancedancehttpclient&username=testemail@email.com&password=1234&scope=openid profile tbdancedanceapi.read
 ```
+
+## Inspecting / managing blobs (Azurite)
+
+Azurite has no built-in CLI, and `az`/`azcopy`/`Az.Storage` aren't installed. Use the
+bundled file-based C# app instead — it references `Azure.Storage.Blobs` (the same SDK
+and connection string the API uses, see `ConnectionStrings:Blob` in the compose file)
+and runs directly with `dotnet run`, no `.csproj` needed (.NET 10 "file-based programs"):
+
+```powershell
+cd .claude/skills/local-stack/scripts
+
+dotnet run azurite-blob.cs containers                                          # list containers
+dotnet run azurite-blob.cs list thumbnails                                     # list blobs
+dotnet run azurite-blob.cs list videos <prefix>                                # filter by name prefix
+dotnet run azurite-blob.cs get thumbnails <blobName> ./out.jpg                 # download
+dotnet run azurite-blob.cs put thumbnails <blobName> ./new.jpg image/jpeg      # upload / replace (overwrites)
+dotnet run azurite-blob.cs delete thumbnails <blobName>                        # delete one (dry run by default)
+dotnet run azurite-blob.cs delete videos --prefix stale- --force               # delete all matching a prefix
+```
+Known containers (from `BlobDataServiceFactory.cs`): `videos`, `videostoconvert`,
+`thumbnails`. `delete` always prints what it *would* remove first — pass `--force` to
+actually delete; confirm with the user before doing so since it's destructive.
 
 ## Inspecting the databases
 

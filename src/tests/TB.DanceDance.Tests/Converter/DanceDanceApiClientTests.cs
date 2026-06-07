@@ -174,6 +174,58 @@ public class DanceDanceApiClientTests : IDisposable
         await Task.CompletedTask;
     }
 
+    [Fact]
+    public async Task GetNextVideoForThumbnailAsync_ReturnsObject_On200()
+    {
+        StubToken();
+        var model = new VideoToThumbnailModel
+        {
+            Id = Guid.NewGuid(),
+            BlobId = "blob-abc",
+            FileName = "video.mp4",
+            Sas = server.Url + "/blob/video.mp4"
+        };
+        var content = new VideoToThumbnailResponse { VideoExists = true, VideoToThumbnail = model };
+        var json = JsonSerializer.Serialize(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        server
+            .Given(Request.Create().WithPath("/api/converter/thumbnails").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody(json));
+
+        var res = await danceApiClient.GetNextVideoForThumbnailAsync(CancellationToken.None);
+
+        Assert.NotNull(res);
+        Assert.True(res.VideoExists);
+        Assert.Equal(model.Id, res.VideoToThumbnail!.Id);
+        Assert.Equal(model.BlobId, res.VideoToThumbnail!.BlobId);
+        Assert.Equal(model.FileName, res.VideoToThumbnail!.FileName);
+    }
+
+    [Fact]
+    public async Task GetNextVideoForThumbnailAsync_Throws_OnNonSuccess()
+    {
+        StubToken();
+        server
+            .Given(Request.Create().WithPath("/api/converter/thumbnails").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => danceApiClient.GetNextVideoForThumbnailAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task PublishThumbnail_PostsToCorrectEndpoint()
+    {
+        StubToken();
+        var id = Guid.NewGuid();
+        server
+            .Given(Request.Create().WithPath($"/api/converter/videos/{id}/thumbnail/publish").UsingPost())
+            .RespondWith(Response.Create().WithStatusCode(200));
+
+        await danceApiClient.PublishThumbnail(id, CancellationToken.None);
+
+        var logs = server.FindLogEntries(Request.Create().WithPath($"/api/converter/videos/{id}/thumbnail/publish").UsingPost());
+        Assert.Single(logs);
+    }
+
     public void Dispose()
     {
         apiHttpClient.Dispose();

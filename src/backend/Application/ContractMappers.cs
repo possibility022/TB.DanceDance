@@ -21,7 +21,8 @@ public static class ContractMappers
             Name = video.Name,
             RecordedDateTime = video.RecordedDateTime,
             Converted = video.Converted,
-            CommentVisibility = (int)video.CommentVisibility
+            CommentVisibility = (int)video.CommentVisibility,
+            ThumbnailBlobId = video.ThumbnailBlobId
         };
     }
 

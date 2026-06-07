@@ -24,4 +24,6 @@ public interface IVideoService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if updated successfully, false if not found or unauthorized</returns>
     Task<bool> UpdateCommentVisibilityAsync(Guid videoId, string userId, CommentVisibility commentVisibility, CancellationToken cancellationToken);
+
+    Task<Stream?> OpenThumbnailStream(string blobId, CancellationToken cancellationToken);
 }

@@ -102,4 +102,42 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
         var res = await apiClient.SendAsync(request, token);
         res.EnsureSuccessStatusCode();
     }
+
+    public async Task<VideoToThumbnailResponse> GetNextVideoForThumbnailAsync(CancellationToken token)
+    {
+        var response = await apiClient.GetAsync("/api/converter/thumbnails", token);
+        response.EnsureSuccessStatusCode();
+
+        var contentStream = await response.Content.ReadAsStreamAsync(token);
+        var result = await System.Text.Json.JsonSerializer.DeserializeAsync<VideoToThumbnailResponse>(contentStream, serializationOptions, cancellationToken: token);
+
+        if (result == null)
+            throw new NullReferenceException("Expected not null.");
+
+        return result;
+    }
+
+    public async Task UploadThumbnail(Guid videoId, Stream content, CancellationToken token)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/converter/videos/{videoId}/thumbnail/sas");
+
+        var res = await apiClient.SendAsync(request, token);
+        res.EnsureSuccessStatusCode();
+
+        var body = await res.Content.ReadFromJsonAsync<GetThumbnailSasResponse>(serializationOptions, cancellationToken: token);
+
+        if (body == null)
+            throw new NullReferenceException("Deserialized body is null.");
+
+        var cloudBlockBlob = new BlobClient(RewriteBlobUrl(new Uri(body.Sas)));
+        await cloudBlockBlob.UploadAsync(content, token);
+    }
+
+    public async Task PublishThumbnail(Guid videoId, CancellationToken token)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/converter/videos/{videoId}/thumbnail/publish");
+
+        var res = await apiClient.SendAsync(request, token);
+        res.EnsureSuccessStatusCode();
+    }
 }

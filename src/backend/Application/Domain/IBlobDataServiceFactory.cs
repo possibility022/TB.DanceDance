@@ -10,5 +10,6 @@ public interface IBlobDataServiceFactory
 public enum BlobContainer
 {
     Videos,
-    VideosToConvert
+    VideosToConvert,
+    Thumbnails
 }

@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
+import { AuthService } from '../../../core/auth/auth.service';
+import { VideosService } from '../../../core/api/videos.service';
 import { VideoCard } from './video-card';
 import { VideoInformation } from '../../../core/api/api-models';
 
@@ -35,7 +38,11 @@ describe('VideoCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [VideoCard],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { getAccessToken: () => of('test-token') } },
+        { provide: VideosService, useValue: { thumbnailUrl: () => null } },
+      ],
     }).compileComponents();
   });
 

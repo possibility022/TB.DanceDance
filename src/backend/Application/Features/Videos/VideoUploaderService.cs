@@ -10,12 +10,14 @@ public class VideoUploaderService : IVideoUploaderService
 {
     private readonly IBlobDataService videosToConvertBlobs;
     private readonly IBlobDataService publishedVideosBlobs;
+    private readonly IBlobDataService thumbnailBlobs;
     private readonly IApplicationContext danceDbContext;
 
     public VideoUploaderService(IBlobDataServiceFactory factory, IApplicationContext danceDbContext)
     {
         videosToConvertBlobs = factory.GetBlobDataService(BlobContainer.VideosToConvert);
         publishedVideosBlobs = factory.GetBlobDataService(BlobContainer.Videos);
+        thumbnailBlobs = factory.GetBlobDataService(BlobContainer.Thumbnails);
         this.danceDbContext = danceDbContext;
     }
 
@@ -110,7 +112,7 @@ public class VideoUploaderService : IVideoUploaderService
 
     public async Task<SharedBlob?> GetSasForConvertedVideoAsync(Guid videoId, CancellationToken cancellationToken)
     {
-        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId,cancellationToken);
+        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId, cancellationToken);
         if (video == null)
             return null;
 
@@ -120,7 +122,50 @@ public class VideoUploaderService : IVideoUploaderService
 
         await danceDbContext.SaveChangesAsync(cancellationToken);
 
-
         return sas;
+    }
+
+    public async Task<(Guid Id, string BlobId, string FileName, Uri Sas)?> GetNextVideoForThumbnailAsync(CancellationToken cancellationToken)
+    {
+        var video = await danceDbContext.Videos
+            .Where(r => (r.LockedTill == null || r.LockedTill < DateTime.UtcNow) && r.Converted && r.ThumbnailBlobId == null && r.BlobId != null)
+            .OrderByDescending(r => r.SharedDateTime)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (video == null)
+            return null;
+
+        video.LockedTill = DateTime.SpecifyKind(DateTime.Now.AddDays(1), DateTimeKind.Utc);
+        await danceDbContext.SaveChangesAsync(cancellationToken);
+
+        var sas = videosToConvertBlobs.GetReadSas(video.SourceBlobId);
+        return (video.Id, video.BlobId!, video.FileName, sas);
+    }
+
+    public async Task<SharedBlob?> GetSasForThumbnailUploadAsync(Guid videoId, CancellationToken cancellationToken)
+    {
+        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId, cancellationToken);
+        if (video == null)
+            return null;
+
+        var blobId = $"{videoId}/thumbnail.jpg";
+        var sas = thumbnailBlobs.GetUploadSas(blobId);
+        return sas;
+    }
+
+    public async Task<bool> PublishThumbnailAsync(Guid videoId, CancellationToken cancellationToken)
+    {
+        var video = await danceDbContext.Videos.FirstOrDefaultAsync(r => r.Id == videoId, cancellationToken);
+        if (video == null)
+            return false;
+
+        var blobId = $"{videoId}/thumbnail.jpg";
+        var exists = await thumbnailBlobs.BlobExistsAsync(blobId);
+        if (!exists)
+            return false;
+
+        video.ThumbnailBlobId = blobId;
+        await danceDbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
