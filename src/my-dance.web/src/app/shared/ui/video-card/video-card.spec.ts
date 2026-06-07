@@ -1,9 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
 
-import { AuthService } from '../../../core/auth/auth.service';
-import { VideosService } from '../../../core/api/videos.service';
 import { VideoCard } from './video-card';
 import { VideoInformation } from '../../../core/api/api-models';
 
@@ -38,11 +35,7 @@ describe('VideoCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [VideoCard],
-      providers: [
-        provideRouter([]),
-        { provide: AuthService, useValue: { getAccessToken: () => of('test-token') } },
-        { provide: VideosService, useValue: { thumbnailUrl: () => null } },
-      ],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
@@ -130,5 +123,26 @@ describe('VideoCard', () => {
       secondBadge.style.getPropertyValue('--video-card-badge-bg'),
     );
     expect(firstBadge.dataset['badgeTone']).not.toBe(differentBadge.dataset['badgeTone']);
+  });
+
+  it('uses the thumbnail URL from the video information for the preview background', async () => {
+    const el = (
+      await setup({ ...CONVERTED, thumbnailUrl: 'https://azurite/thumbnails/abc?sv=2024' })
+    ).nativeElement as HTMLElement;
+    const preview = el.querySelector('.video-card__preview') as HTMLElement;
+
+    expect(preview.classList).toContain('has-thumbnail');
+    expect(preview.style.getPropertyValue('--thumb')).toBe(
+      'url(https://azurite/thumbnails/abc?sv=2024)',
+    );
+  });
+
+  it('omits the thumbnail background when no thumbnail URL is present', async () => {
+    const el = (await setup({ ...CONVERTED, thumbnailUrl: undefined }))
+      .nativeElement as HTMLElement;
+    const preview = el.querySelector('.video-card__preview') as HTMLElement;
+
+    expect(preview.classList).not.toContain('has-thumbnail');
+    expect(preview.style.getPropertyValue('--thumb')).toBe('');
   });
 });

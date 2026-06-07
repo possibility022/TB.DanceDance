@@ -11,7 +11,7 @@ namespace Application;
 
 public static class ContractMappers
 {
-    public static VideoInformation MapToVideoInformation(Video video)
+    public static VideoInformation MapToVideoInformation(Video video, string? thumbnailUrl)
     {
         return new VideoInformation()
         {
@@ -22,7 +22,7 @@ public static class ContractMappers
             RecordedDateTime = video.RecordedDateTime,
             Converted = video.Converted,
             CommentVisibility = (int)video.CommentVisibility,
-            ThumbnailBlobId = video.ThumbnailBlobId
+            ThumbnailUrl = thumbnailUrl
         };
     }
 

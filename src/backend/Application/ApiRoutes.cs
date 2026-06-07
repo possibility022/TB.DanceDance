@@ -27,7 +27,6 @@ public static class ApiRoutes
         public const string MyVideos = $"{Base}/my";
         public const string GetSingle = $"{Base}/{{blobId}}";
         public const string GetStream = $"{Base}/{{blobId}}/stream";
-        public const string GetThumbnail = $"{Base}/{{blobId}}/thumbnail";
         public const string Rename = $"{Base}/{{videoId:guid}}/rename";
         public const string GetUploadUrl = $"{Base}/upload";
         public const string RefreshUploadUrl = $"{Base}/upload/{{videoId:guid}}";

@@ -11,6 +11,6 @@ namespace TB.DanceDance.API.Contracts.Models
         public TimeSpan? Duration { get; set; }
         public bool Converted { get; set; }
         public int CommentVisibility { get; set; }
-        public string? ThumbnailBlobId { get; set; }
+        public string? ThumbnailUrl { get; set; }
     }
 }

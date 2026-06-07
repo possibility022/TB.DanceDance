@@ -1,9 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { Params, RouterLink } from '@angular/router';
 
-import { AuthService } from '../../../core/auth/auth.service';
-import { VideosService } from '../../../core/api/videos.service';
 import { VideoInformation } from '../../../core/api/api-models';
 import { LongDatePipe } from '../../format/long-date.pipe';
 
@@ -267,18 +264,9 @@ export class VideoCard {
   readonly badge = input('');
   readonly share = output<VideoInformation>();
 
-  private readonly auth = inject(AuthService);
-  private readonly videos = inject(VideosService);
-  private readonly accessToken = toSignal(this.auth.getAccessToken(), { initialValue: '' });
-
   readonly formattedDuration = computed(() => formatDuration(this.video().duration));
   readonly badgeTone = computed(() => getBadgeTone(this.badge()));
-  readonly thumbnailUrl = computed(() => {
-    const blobId = this.video().blobId;
-    const token = this.accessToken();
-    if (!blobId || !token || !this.video().thumbnailBlobId) return null;
-    return this.videos.thumbnailUrl(blobId, token);
-  });
+  readonly thumbnailUrl = computed(() => this.video().thumbnailUrl ?? null);
 }
 
 interface BadgeTone {

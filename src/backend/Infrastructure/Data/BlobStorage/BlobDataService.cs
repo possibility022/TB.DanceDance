@@ -38,9 +38,14 @@ public class BlobDataService : IBlobDataService
 
     public Uri GetReadSas(string blobId)
     {
+        return GetReadSas(blobId, DateTimeOffset.Now.AddMinutes(60));
+    }
+
+    public Uri GetReadSas(string blobId, DateTimeOffset expiresOn)
+    {
         var client = container.GetBlobClient(blobId);
         var sasBuilder = new BlobSasBuilder();
-        sasBuilder.ExpiresOn = DateTimeOffset.Now.AddMinutes(60);
+        sasBuilder.ExpiresOn = expiresOn;
         sasBuilder.SetPermissions(BlobAccountSasPermissions.Read);
 
         var sas = client.GenerateSasUri(sasBuilder);

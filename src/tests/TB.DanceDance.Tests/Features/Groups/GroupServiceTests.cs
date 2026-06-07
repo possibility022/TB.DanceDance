@@ -1,21 +1,25 @@
 ﻿using Application.Features.Groups;
+using Application.Features.Videos;
 using Domain.Entities;
 using Infrastructure.Data;
+using NSubstitute;
 using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Features.Groups;
 
 public class GroupServiceTests : BaseTestClass
 {
+    private readonly IThumbnailUrlService thumbnailUrlService;
     private GroupService groupService = null!;
 
     public GroupServiceTests(DanceDbFixture dbContextFixture) : base(dbContextFixture)
     {
+        thumbnailUrlService = Substitute.For<IThumbnailUrlService>();
     }
 
     protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
     {
-        groupService = new GroupService(runtimeDbContext);
+        groupService = new GroupService(runtimeDbContext, thumbnailUrlService);
         return ValueTask.CompletedTask;
     }
 
@@ -248,5 +252,55 @@ public class GroupServiceTests : BaseTestClass
         Assert.Single(result);
         Assert.Equal(vA.Id, result.Single().Video.Id);
         Assert.Equal(groupA.Id, result.Single().GroupId);
+    }
+
+    // G11: GetAllVideos resolves a thumbnail URL via IThumbnailUrlService when the video has a thumbnail blob
+    [Fact]
+    public async Task GetAllVideos_PopulatesThumbnailUrl_WhenThumbnailBlobIdIsSet()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var joinedAt = DateTime.UtcNow;
+        var membership = userB.AssignTo(group, joinedAt);
+
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).WithThumbnailBlobId("thumb-1").Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
+
+        SeedDbContext.AddRange(user, group, membership, v, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        thumbnailUrlService.GetThumbnailUrl("thumb-1").Returns("https://azurite/thumbnails/thumb-1?sv=stub");
+
+        var result = await groupService.GetAllVideos(user.Id, group.Id, TestContext.Current.CancellationToken);
+        Assert.Single(result);
+        Assert.Equal("https://azurite/thumbnails/thumb-1?sv=stub", result.Single().ThumbnailUrl);
+
+        var resultAllGroups = await groupService.GetAllVideos(user.Id, TestContext.Current.CancellationToken);
+        Assert.Single(resultAllGroups);
+        Assert.Equal("https://azurite/thumbnails/thumb-1?sv=stub", resultAllGroups.Single().ThumbnailUrl);
+    }
+
+    // G12: GetAllVideos leaves ThumbnailUrl null when the video has no thumbnail blob
+    [Fact]
+    public async Task GetAllVideos_LeavesThumbnailUrlNull_WhenNoThumbnailBlobId()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var joinedAt = DateTime.UtcNow;
+        var membership = userB.AssignTo(group, joinedAt);
+
+        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
+
+        SeedDbContext.AddRange(user, group, membership, v, share);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        thumbnailUrlService.GetThumbnailUrl(Arg.Any<string?>()).Returns((string?)null);
+
+        var result = await groupService.GetAllVideos(user.Id, group.Id, TestContext.Current.CancellationToken);
+        Assert.Single(result);
+        Assert.Null(result.Single().ThumbnailUrl);
     }
 }

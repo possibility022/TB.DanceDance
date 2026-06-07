@@ -8,10 +8,12 @@ namespace Application.Features.Videos.Endpoints.Videos;
 public class ListMyVideosEndpoint : EndpointWithoutRequest<MyVideosResponse>
 {
     private readonly IAccessService accessService;
+    private readonly IThumbnailUrlService thumbnailUrlService;
 
-    public ListMyVideosEndpoint(IAccessService accessService)
+    public ListMyVideosEndpoint(IAccessService accessService, IThumbnailUrlService thumbnailUrlService)
     {
         this.accessService = accessService;
+        this.thumbnailUrlService = thumbnailUrlService;
     }
 
     public override void Configure()
@@ -23,7 +25,9 @@ public class ListMyVideosEndpoint : EndpointWithoutRequest<MyVideosResponse>
     public override async Task HandleAsync(CancellationToken ct)
     {
         var videos = await accessService.GetUserPrivateVideos(User.GetSubject(), ct);
-        var videoInformation = videos.Select(ContractMappers.MapToVideoInformation).ToArray();
+        var videoInformation = videos
+            .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId)))
+            .ToArray();
         
         await Send.OkAsync(new MyVideosResponse
         {

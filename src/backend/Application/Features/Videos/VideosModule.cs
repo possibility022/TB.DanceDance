@@ -10,6 +10,7 @@ public static class VideosModule
         {
             services.AddScoped<IVideoService, VideoService>();
             services.AddScoped<IVideoUploaderService, VideoUploaderService>();
+            services.AddScoped<IThumbnailUrlService, ThumbnailUrlService>();
             return services;
         }
     }

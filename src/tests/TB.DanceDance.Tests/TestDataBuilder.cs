@@ -237,6 +237,7 @@ public class VideoDataBuilder
     private long _sourceBlobSize;
     private long _convertedBlobSize;
     private CommentVisibility _commentVisibility;
+    private string? _thumbnailBlobId;
 
     private readonly List<SharedWith> _sharedWith = new();
 
@@ -272,6 +273,7 @@ public class VideoDataBuilder
     public VideoDataBuilder WithSourceBlobSize(long size) { _sourceBlobSize = size; return this; }
     public VideoDataBuilder WithConvertedBlobSize(long size) { _convertedBlobSize = size; return this; }
     public VideoDataBuilder WithCommentVisibility(CommentVisibility visibility) { _commentVisibility = visibility; return this; }
+    public VideoDataBuilder WithThumbnailBlobId(string? thumbnailBlobId) { _thumbnailBlobId = thumbnailBlobId; return this; }
 
     public Video Build() => new Video
     {
@@ -287,7 +289,8 @@ public class VideoDataBuilder
         Converted = _converted,
         SourceBlobSize = _sourceBlobSize,
         ConvertedBlobSize = _convertedBlobSize,
-        CommentVisibility = _commentVisibility
+        CommentVisibility = _commentVisibility,
+        ThumbnailBlobId = _thumbnailBlobId
     };
 
     public VideoDataBuilder ShareWithUser(string userId)
