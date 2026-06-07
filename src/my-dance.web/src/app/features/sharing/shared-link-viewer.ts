@@ -20,6 +20,8 @@ import { CommentResponse, SharedVideoInfoResponse } from '../../core/api/api-mod
 import { CommentDraft, CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 
+const COMMENTS_PAGE_SIZE = 20;
+
 /** Public viewer for one shared recording, reachable at a stable URL. */
 @Component({
   selector: 'app-shared-link-viewer',
@@ -45,6 +47,9 @@ export class SharedLinkViewer implements OnInit {
   readonly info = signal<SharedVideoInfoResponse | null>(null);
   readonly streamUrl = signal<string | null>(null);
   readonly commentList = signal<readonly CommentResponse[]>([]);
+  readonly loadingMoreComments = signal(false);
+  readonly canLoadMoreComments = signal(false);
+  private currentCommentsPage = 0;
   readonly submitting = signal(false);
 
   readonly canCompose = computed(() => {
@@ -84,10 +89,58 @@ export class SharedLinkViewer implements OnInit {
 
   private loadComments(): void {
     this.comments
-      .getCommentsByLink(this.linkId())
+      .getCommentsByLink(this.linkId(), 1, COMMENTS_PAGE_SIZE)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => this.commentList.set(response.comments ?? []),
+        next: (response) => {
+          const items = response.items ?? [];
+          this.commentList.set(items);
+          this.currentCommentsPage = 1;
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+        },
+        error: () => {
+          this.commentList.set([]);
+          this.canLoadMoreComments.set(false);
+        },
+      });
+  }
+
+  loadMoreComments(): void {
+    if (this.loadingMoreComments() || !this.canLoadMoreComments()) {
+      return;
+    }
+
+    this.loadingMoreComments.set(true);
+    const nextPage = this.currentCommentsPage + 1;
+
+    this.comments
+      .getCommentsByLink(this.linkId(), nextPage, COMMENTS_PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = [...this.commentList(), ...(response.items ?? [])];
+          this.commentList.set(items);
+          this.currentCommentsPage = nextPage;
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+          this.loadingMoreComments.set(false);
+        },
+        error: () => this.loadingMoreComments.set(false),
+      });
+  }
+
+  /** Refetches everything currently shown (rather than collapsing back to page 1) so a mutation doesn't hide already-loaded comments. */
+  private reloadLoadedComments(): void {
+    const pageSize = this.currentCommentsPage * COMMENTS_PAGE_SIZE;
+
+    this.comments
+      .getCommentsByLink(this.linkId(), 1, pageSize)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = response.items ?? [];
+          this.commentList.set(items);
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+        },
         error: () => this.commentList.set([]),
       });
   }
@@ -105,7 +158,7 @@ export class SharedLinkViewer implements OnInit {
         next: () => {
           this.submitting.set(false);
           this.commentsRef()?.resetComposer();
-          this.loadComments();
+          this.reloadLoadedComments();
         },
         error: () => this.submitting.set(false),
       });
@@ -113,7 +166,7 @@ export class SharedLinkViewer implements OnInit {
 
   private afterMutation(action$: Observable<void>): void {
     action$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.loadComments(),
+      next: () => this.reloadLoadedComments(),
     });
   }
 

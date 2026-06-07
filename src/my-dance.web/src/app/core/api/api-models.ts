@@ -205,12 +205,11 @@ export interface CreateCommentRequest {
     authorName?: string | undefined;
 }
 
-export interface ListCommentsByLinkResponse {
-    comments?: CommentResponse[];
-}
-
-export interface ListCommentsForVideoResponse {
-    comments?: CommentResponse[];
+export interface PagedResponseOfCommentResponse {
+    items?: CommentResponse[];
+    totalCount?: number;
+    pageNumber?: number;
+    pageSize?: number;
 }
 
 export interface ReportCommentRequest {

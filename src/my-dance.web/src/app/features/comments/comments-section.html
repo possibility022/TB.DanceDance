@@ -109,5 +109,19 @@
         }
       </article>
     }
+
+    @if (canLoadMore()) {
+      <div class="block has-text-centered">
+        <button
+          type="button"
+          class="button"
+          [class.is-loading]="loadingMore()"
+          [disabled]="loadingMore()"
+          (click)="loadMore.emit()"
+        >
+          Load more
+        </button>
+      </div>
+    }
   }
 </section>

@@ -23,6 +23,8 @@ import { VideoList } from '../../shared/ui/video-list/video-list';
 
 export type SidebarTab = 'comments' | 'recordings';
 
+const COMMENTS_PAGE_SIZE = 20;
+
 @Component({
   selector: 'app-video-player',
   imports: [LongDatePipe, CommentsSection, VideoList],
@@ -49,6 +51,9 @@ export class VideoPlayer {
   readonly streamUrl = signal<string | null>(null);
 
   readonly commentList = signal<readonly CommentResponse[]>([]);
+  readonly loadingMoreComments = signal(false);
+  readonly canLoadMoreComments = signal(false);
+  private currentCommentsPage = 0;
   private readonly videoId = signal<string | null>(null);
 
   readonly siblings = signal<readonly VideoInformation[]>([]);
@@ -160,11 +165,60 @@ export class VideoPlayer {
 
   private loadComments(videoId: string): void {
     this.comments
-      .getCommentsForVideo(videoId)
+      .getCommentsForVideo(videoId, 1, COMMENTS_PAGE_SIZE)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => this.commentList.set(response.comments ?? []),
+        next: (response) => {
+          const items = response.items ?? [];
+          this.commentList.set(items);
+          this.currentCommentsPage = 1;
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+        },
         // Comments are non-critical; leave the list empty on failure.
+        error: () => {
+          this.commentList.set([]);
+          this.canLoadMoreComments.set(false);
+        },
+      });
+  }
+
+  loadMoreComments(): void {
+    const videoId = this.videoId();
+    if (!videoId || this.loadingMoreComments() || !this.canLoadMoreComments()) {
+      return;
+    }
+
+    this.loadingMoreComments.set(true);
+    const nextPage = this.currentCommentsPage + 1;
+
+    this.comments
+      .getCommentsForVideo(videoId, nextPage, COMMENTS_PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = [...this.commentList(), ...(response.items ?? [])];
+          this.commentList.set(items);
+          this.currentCommentsPage = nextPage;
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+          this.loadingMoreComments.set(false);
+        },
+        error: () => this.loadingMoreComments.set(false),
+      });
+  }
+
+  /** Refetches everything currently shown (rather than collapsing back to page 1) so a mutation doesn't hide already-loaded comments. */
+  private reloadLoadedComments(videoId: string): void {
+    const pageSize = this.currentCommentsPage * COMMENTS_PAGE_SIZE;
+
+    this.comments
+      .getCommentsForVideo(videoId, 1, pageSize)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = response.items ?? [];
+          this.commentList.set(items);
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+        },
         error: () => this.commentList.set([]),
       });
   }
@@ -174,7 +228,7 @@ export class VideoPlayer {
       next: () => {
         const videoId = this.videoId();
         if (videoId) {
-          this.loadComments(videoId);
+          this.reloadLoadedComments(videoId);
         }
       },
     });

@@ -6,8 +6,7 @@ import { AnonymousIdService } from '../anonymous-id.service';
 import {
   CommentResponse,
   CreateCommentRequest,
-  ListCommentsByLinkResponse,
-  ListCommentsForVideoResponse,
+  PagedResponseOfCommentResponse,
   ReportCommentRequest,
   UpdateCommentRequest,
 } from './api-models';
@@ -29,18 +28,19 @@ export class CommentsService {
     return { AnonymousId: this.anonymousId.getId() };
   }
 
-  /** Comments for a recording, in the authenticated player. */
-  getCommentsForVideo(videoId: string): Observable<ListCommentsForVideoResponse> {
-    return this.api.get<ListCommentsForVideoResponse>(
+  /** A page of comments for a recording, in the authenticated player. */
+  getCommentsForVideo(videoId: string, page: number, pageSize: number): Observable<PagedResponseOfCommentResponse> {
+    return this.api.get<PagedResponseOfCommentResponse>(
       `/api/comments/video/${encodeURIComponent(videoId)}`,
+      { params: { page, pageSize } },
     );
   }
 
-  /** Comments on a shared link (public). */
-  getCommentsByLink(linkId: string): Observable<ListCommentsByLinkResponse> {
-    return this.api.get<ListCommentsByLinkResponse>(
+  /** A page of comments on a shared link (public). */
+  getCommentsByLink(linkId: string, page: number, pageSize: number): Observable<PagedResponseOfCommentResponse> {
+    return this.api.get<PagedResponseOfCommentResponse>(
       `/api/share/${encodeURIComponent(linkId)}/comments`,
-      { headers: this.anonymousHeader() },
+      { headers: this.anonymousHeader(), params: { page, pageSize } },
     );
   }
 
