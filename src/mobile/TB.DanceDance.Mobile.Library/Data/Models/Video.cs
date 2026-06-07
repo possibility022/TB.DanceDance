@@ -18,6 +18,7 @@ public record Video
     public Guid GroupId { get; set; }
     public UploadState? UploadState { get; set; }
     public bool Converted { get; set; } = false;
+    public string? ThumbnailUrl { get; set; }
 
 
     public static List<Video> MapFromApiResponse(IReadOnlyCollection<VideoFromGroupInformation>? videosResponse)
@@ -34,6 +35,7 @@ public record Video
             GroupId = v.GroupId,
             BlobId = v.BlobId,
             Converted = v.Converted,
+            ThumbnailUrl = v.ThumbnailUrl,
         }).ToList();
     }
 
@@ -46,6 +48,7 @@ public record Video
             When = r.RecordedDateTime,
             BlobId = r.BlobId,
             Converted = r.Converted,
+            ThumbnailUrl = r.ThumbnailUrl,
         }).ToList();
     }
 }

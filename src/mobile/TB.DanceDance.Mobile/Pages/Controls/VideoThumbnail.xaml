@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
+             x:Class="TB.DanceDance.Mobile.Pages.Controls.VideoThumbnail"
+             x:Name="VideoThumbnailRoot">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid HeightRequest="160" HorizontalOptions="Fill">
+        <Image Source="{Binding ResolvedThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
+               Aspect="AspectFill"
+               IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
+
+        <Grid IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}, Converter={StaticResource InverseBooleanConverter}}">
+            <BoxView>
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#20314f" Offset="0.0" />
+                        <GradientStop Color="#2f6f73" Offset="0.56" />
+                        <GradientStop Color="#f0b35a" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+            <Border StrokeShape="RoundRectangle 999"
+                    Stroke="Transparent"
+                    BackgroundColor="#EBFFFFFF"
+                    Padding="0"
+                    HeightRequest="48"
+                    WidthRequest="48"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                <Polygon Points="0,0 0,22 19,11"
+                         Fill="{StaticResource Primary}"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Margin="16,11,0,0" />
+            </Border>
+        </Grid>
+    </Grid>
+</ContentView>
