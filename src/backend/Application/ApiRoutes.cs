@@ -23,10 +23,11 @@ public static class ApiRoutes
     public static class Video
     {
         private const string Base = $"{ApiBase}/videos";
-        
+
         public const string MyVideos = $"{Base}/my";
         public const string GetSingle = $"{Base}/{{blobId}}";
         public const string GetStream = $"{Base}/{{blobId}}/stream";
+        public const string GetThumbnail = $"{Base}/{{blobId}}/thumbnail";
         public const string Rename = $"{Base}/{{videoId:guid}}/rename";
         public const string GetUploadUrl = $"{Base}/upload";
         public const string RefreshUploadUrl = $"{Base}/upload/{{videoId:guid}}";
@@ -40,6 +41,9 @@ public static class ApiRoutes
         public const string Videos = $"{Base}/videos";
         public const string Upload = $"{Base}/videos/{{videoId}}/publish";
         public const string GetPublishSas = $"{Base}/videos/{{videoId}}/sas";
+        public const string Thumbnails = $"{Base}/thumbnails";
+        public const string GetThumbnailSas = $"{Base}/videos/{{videoId}}/thumbnail/sas";
+        public const string PublishThumbnail = $"{Base}/videos/{{videoId}}/thumbnail/publish";
     }
 
     public static class Access

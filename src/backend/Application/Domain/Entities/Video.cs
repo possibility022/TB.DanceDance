@@ -24,6 +24,8 @@ public class Video
 
     public bool Converted { get; set; } = false;
 
+    public string? ThumbnailBlobId { get; set; }
+
     /// <summary>
     /// Size of the source blob in bytes. 0 if not calculated yet.
     /// </summary>

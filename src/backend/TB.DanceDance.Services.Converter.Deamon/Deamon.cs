@@ -26,7 +26,8 @@ internal sealed class Deamon : BackgroundService
             try
             {
                 var converted = await ProcessNext(token);
-                if (!converted)
+                var thumbnailed = await ProcessNextThumbnail(token);
+                if (!converted && !thumbnailed)
                 {
                     var delay = programConfig.DelayInMinutes * 1000 * 60;
                     Log.Information("Waiting till next run. Delay in minutes: {0}", programConfig.DelayInMinutes);
@@ -88,7 +89,7 @@ internal sealed class Deamon : BackgroundService
 
         Log.Information("Converting video.");
         await converter.ConvertAsync(inputVideo, convertedFilePath);
-        
+
         // Ensure the stream is disposed before deleting the file on Windows
         using (var convertedVideo = File.OpenRead(convertedFilePath))
         {
@@ -104,6 +105,55 @@ internal sealed class Deamon : BackgroundService
 
         if (File.Exists(convertedFilePath))
             File.Delete(convertedFilePath);
+
+        return true;
+    }
+
+    private async Task<bool> ProcessNextThumbnail(CancellationToken token)
+    {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var client = scope.ServiceProvider.GetRequiredService<IDanceDanceApiClient>();
+        var converter = scope.ServiceProvider.GetRequiredService<IFFmpegClientConverter>();
+
+        Log.Information("Getting next video for thumbnail.");
+        var response = await client.GetNextVideoForThumbnailAsync(token);
+
+        if (response.VideoExists is false)
+        {
+            Log.Information("Nothing to thumbnail.");
+            return false;
+        }
+
+        var video = response.VideoToThumbnail!;
+        Log.Information("Generating thumbnail for video {0}", video.Id);
+
+        var guid = video.Id;
+        var inputVideo = Path.Combine(programConfig.WorkDir, $"{guid}.thumb-source.{video.FileName}");
+        var thumbnailPath = Path.Combine(programConfig.WorkDir, $"{guid}.thumbnail.jpg");
+
+        using (var file = File.Open(inputVideo, FileMode.Create))
+        {
+            Log.Information("Downloading source for thumbnail into {0}.", inputVideo);
+            await client.GetVideoToConvertAsync(file, new Uri(video.Sas), token);
+        }
+
+        Log.Information("Generating thumbnail.");
+        await converter.GenerateThumbnailAsync(inputVideo, thumbnailPath);
+
+        using (var thumbnailFile = File.OpenRead(thumbnailPath))
+        {
+            Log.Information("Uploading thumbnail.");
+            await client.UploadThumbnail(video.Id, thumbnailFile, token);
+        }
+
+        Log.Information("Publishing thumbnail.");
+        await client.PublishThumbnail(video.Id, token);
+
+        if (File.Exists(inputVideo))
+            File.Delete(inputVideo);
+
+        if (File.Exists(thumbnailPath))
+            File.Delete(thumbnailPath);
 
         return true;
     }

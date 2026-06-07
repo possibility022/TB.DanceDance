@@ -48,6 +48,11 @@ internal class FFmpegClientConverter : IFFmpegClientConverter
         return (DateTime.Now, res.Duration);
     }
 
+    public async Task GenerateThumbnailAsync(string input, string output)
+    {
+        await FFMpeg.SnapshotAsync(input, output, captureTime: TimeSpan.FromSeconds(3));
+    }
+
     private DateTime? GetCreationTime(Dictionary<string, string>? tags)
     {
         if (tags == null)

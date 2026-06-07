@@ -13,4 +13,8 @@ public interface IVideoUploaderService
     Task<Guid?> UploadConvertedVideoAsync(Guid videoToConvertId, CancellationToken cancellationToken);
     Uri GetVideoSas(string blobId);
     Task<SharedBlob?> GetSasForConvertedVideoAsync(Guid videoId, CancellationToken cancellationToken);
+
+    Task<(Guid Id, string BlobId, string FileName, Uri Sas)?> GetNextVideoForThumbnailAsync(CancellationToken cancellationToken);
+    Task<SharedBlob?> GetSasForThumbnailUploadAsync(Guid videoId, CancellationToken cancellationToken);
+    Task<bool> PublishThumbnailAsync(Guid videoId, CancellationToken cancellationToken);
 }

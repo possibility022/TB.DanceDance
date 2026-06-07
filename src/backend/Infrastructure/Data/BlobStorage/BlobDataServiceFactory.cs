@@ -52,6 +52,8 @@ public class BlobDataServiceFactory : IBlobDataServiceFactory
         else if (container == BlobContainer.VideosToConvert)
             // ReSharper disable once StringLiteralTypo
             return "videostoconvert";
+        else if (container == BlobContainer.Thumbnails)
+            return "thumbnails";
         else
             throw new ArgumentOutOfRangeException(nameof(container),
                 "Could not resolve name for blob container type: " + container.ToString());

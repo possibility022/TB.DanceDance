@@ -289,6 +289,103 @@ public class VideoUploaderTests : BaseTestClass
     }
 
     [Fact]
+    public async Task GetNextVideoForThumbnailAsync_ReturnsNull_WhenNoEligibleVideos()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        // Not converted → ineligible
+        var notConverted = new VideoDataBuilder().UploadedBy(user).Converted(false).Build();
+        // Already has thumbnail → ineligible
+        var hasThumbnail = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
+        hasThumbnail.ThumbnailBlobId = "some-thumb";
+        SeedDbContext.AddRange(user, notConverted, hasThumbnail);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var result = await uploaderService.GetNextVideoForThumbnailAsync(TestContext.Current.CancellationToken);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetNextVideoForThumbnailAsync_ReturnsConvertedVideoWithoutThumbnail()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        var blobId = Guid.NewGuid().ToString();
+        var v = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(blobId).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var result = await uploaderService.GetNextVideoForThumbnailAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(v.Id, result!.Value.Id);
+        Assert.Equal(blobId, result.Value.BlobId);
+        Assert.True(result.Value.Sas.IsAbsoluteUri);
+    }
+
+    [Fact]
+    public async Task GetSasForThumbnailUploadAsync_ReturnsNull_WhenVideoMissing()
+    {
+        var result = await uploaderService.GetSasForThumbnailUploadAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetSasForThumbnailUploadAsync_ReturnsSas_ForExistingVideo()
+    {
+        var user = new UserDataBuilder().Build();
+        var v = new VideoDataBuilder().UploadedBy(user).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var result = await uploaderService.GetSasForThumbnailUploadAsync(v.Id, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.True(result!.Sas.IsAbsoluteUri);
+        Assert.Contains(v.Id.ToString(), result.BlobId);
+    }
+
+    [Fact]
+    public async Task PublishThumbnailAsync_ReturnsFalse_WhenVideoMissing()
+    {
+        var result = await uploaderService.PublishThumbnailAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task PublishThumbnailAsync_ReturnsFalse_WhenBlobNotUploaded()
+    {
+        var user = new UserDataBuilder().Build();
+        var v = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var result = await uploaderService.PublishThumbnailAsync(v.Id, TestContext.Current.CancellationToken);
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task PublishThumbnailAsync_SetsThumbnailBlobId_WhenBlobExists()
+    {
+        var user = new UserDataBuilder().Build();
+        var v = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Upload the thumbnail blob so PublishThumbnailAsync can find it
+        var thumbnails = factory.GetBlobDataService(BlobContainer.Thumbnails);
+        var expectedBlobId = $"{v.Id}/thumbnail.jpg";
+        await thumbnails.Upload(expectedBlobId, new MemoryStream(new byte[] { 0xFF, 0xD8, 0xFF }));
+
+        var result = await uploaderService.PublishThumbnailAsync(v.Id, TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+
+        Assert.True(result);
+        var updated = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(expectedBlobId, updated.ThumbnailBlobId);
+    }
+
+    [Fact]
     public async Task UploadConvertedVideoAsync_ContinuesWithZeroSizes_WhenSizeCalculationFails()
     {
         // Arrange - create video with blobs that don't actually exist (size calculation will fail)
