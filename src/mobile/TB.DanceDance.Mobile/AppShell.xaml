@@ -6,13 +6,17 @@
     xmlns:local="clr-namespace:TB.DanceDance.Mobile"
     xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
     xmlns:nalu="https://nalu-development.github.com/nalu/navigation"
+    xmlns:events="clr-namespace:TB.DanceDance.Mobile.Pages.Events"
+    xmlns:groups="clr-namespace:TB.DanceDance.Mobile.Pages.Groups"
+    xmlns:account="clr-namespace:TB.DanceDance.Mobile.Pages.Account"
+    xmlns:upload="clr-namespace:TB.DanceDance.Mobile.Pages.Upload"
     FlyoutBehavior="Flyout"
     Title="TB.DanceDance.Mobile">
 
     <ShellContent
         Title="Logowanie"
         Shell.FlyoutBehavior="Disabled"
-        nalu:Navigation.PageType="local:MainPage" />
+        nalu:Navigation.PageType="pages:MainPage" />
 
     <FlyoutItem
         Title="Aplikacja"
@@ -20,20 +24,20 @@
         nalu:NaluShell.TabBarView="{local:AppShellTabBar}">
 
         <ShellContent Title="Wydarzenia"
-                      nalu:Navigation.PageType="pages:EventsPage" />
+                      nalu:Navigation.PageType="events:EventsPage" />
 
         <ShellContent Title="Lekcje Reg."
-                      nalu:Navigation.PageType="pages:GroupVideosPage" />
+                      nalu:Navigation.PageType="groups:GroupVideosPage" />
 
         <ShellContent Title="Osobiste"
                       nalu:Navigation.PageType="pages:MyVideosPage" />
 
         <ShellContent Title="Konto"
-                      nalu:Navigation.PageType="pages:AccountPage" />
+                      nalu:Navigation.PageType="account:AccountPage" />
     </FlyoutItem>
 
     <ShellContent
         Title="Status wysyłania plików"
-        nalu:Navigation.PageType="pages:UploadManagerPage" />
+        nalu:Navigation.PageType="upload:UploadManagerPage" />
 
 </nalu:NaluShell>

@@ -3,7 +3,7 @@ using Duende.IdentityModel.OidcClient.Browser;
 using TB.DanceDance.Mobile.Library.Services.Network;
 using IBrowser = Duende.IdentityModel.OidcClient.Browser.IBrowser;
 
-namespace TB.DanceDance.Mobile.Services.Auth;
+namespace TB.DanceDance.Mobile;
 
 public class MauiAuthenticationBrowser : IBrowser
 {

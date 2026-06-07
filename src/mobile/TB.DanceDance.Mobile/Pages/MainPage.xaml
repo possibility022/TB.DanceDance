@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
+             x:DataType="pages:MainPageViewModel"
+             x:Name="MainPageViewPage"
+             x:Class="TB.DanceDance.Mobile.Pages.MainPage">
+    <Grid VerticalOptions="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <Label
+            Grid.Row="0"
+            Text="Cześć!"
+            Style="{StaticResource Headline}"
+            SemanticProperties.HeadingLevel="Level1" />
+
+        <Label
+            Grid.Row="1"
+            Text="Zarejestruj się lub zaloguj :)"
+            Style="{StaticResource Headline}"
+            SemanticProperties.HeadingLevel="Level2" />
+
+        <ActivityIndicator Grid.Row="2" IsRunning="true" IsVisible="{Binding LoginInProgress}" />
+
+        <controls:FillButton Grid.Row="3"
+            Text="Zarejestruj / Zaloguj"
+            Command="{Binding LoginCommand}"
+            IsEnabled="{Binding LoginEnabled}" />
+    </Grid>
+
+</ContentPage>

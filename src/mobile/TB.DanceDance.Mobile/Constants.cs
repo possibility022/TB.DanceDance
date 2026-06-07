@@ -1,4 +1,4 @@
-namespace TB.DanceDance.Mobile.Data;
+namespace TB.DanceDance.Mobile;
 
 public static class Constants
 {

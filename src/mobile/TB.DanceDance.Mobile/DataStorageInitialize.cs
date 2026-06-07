@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.Mobile.Library.Data;
 
-namespace TB.DanceDance.Mobile.Data;
+namespace TB.DanceDance.Mobile;
 
 public class DataStorageInitialize : IMauiInitializeService
 {

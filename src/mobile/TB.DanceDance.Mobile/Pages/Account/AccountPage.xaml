@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:account="clr-namespace:TB.DanceDance.Mobile.Pages.Account"
+             x:DataType="account:AccountPageModel"
+             x:Class="TB.DanceDance.Mobile.Pages.Account.AccountPage"
+             Title="Konto">
+    <Grid Margin="10,20,10,10">
+        <VerticalStackLayout Spacing="20" VerticalOptions="Start">
+            <Label Text="{Binding UserDisplay, StringFormat='Zalogowany: {0}'}"
+                   IsVisible="{Binding HasUserDisplay}"
+                   FontSize="16" />
+            <controls:FillButton Text="Uzyskaj Dostępy"
+                                 Command="{Binding NavigateToGetAccessCommand}" />
+            <controls:FillButton Text="Wyloguj"
+                                 Command="{Binding LogoutCommand}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

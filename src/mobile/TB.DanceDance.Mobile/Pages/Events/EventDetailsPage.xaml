@@ -1,14 +1,13 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls" 
-             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models;assembly=TB.DanceDance.Mobile.Library"
-             xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
-             x:Class="TB.DanceDance.Mobile.Pages.MyVideosPage"
-             x:Name="MyVideosPageView"
-             x:DataType="pages:MyVideosPageModel"
-             Title="MyVideosPage">
+             xmlns:events="clr-namespace:TB.DanceDance.Mobile.Pages.Events"
+             x:DataType="events:EventDetailsPageModel"
+             x:Class="TB.DanceDance.Mobile.Pages.Events.EventDetailsPage">
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
@@ -20,10 +19,10 @@
             <StackLayout Margin="10">
 
                 <RefreshView IsRefreshing="{Binding IsRefreshing}"
-                         Command="{Binding RefreshCommand}">
+                             Command="{Binding RefreshCommand}">
                     <ScrollView>
                         <StackLayout
-                        BindableLayout.ItemsSource="{Binding Videos}">
+                            BindableLayout.ItemsSource="{Binding Videos}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:Video">
                                     <Border Padding="0" Margin="0,10,0,0" StrokeShape="RoundRectangle 8" IsEnabled="{Binding Converted}">
@@ -41,28 +40,23 @@
                                                     <Label Text="{Binding Name}" FontSize="24">
                                                         <Label.GestureRecognizers>
                                                             <TapGestureRecognizer
-                                                            Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
-                                                            CommandParameter="{Binding .}" />
+                                                                Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type events:EventDetailsPageModel}}, x:DataType=events:EventDetailsPageModel}"
+                                                                CommandParameter="{Binding .}" />
                                                         </Label.GestureRecognizers>
                                                     </Label>
                                                     <Label
-                                                    Text="{Binding When, Converter={StaticResource DateTimeConverter}}" />
+                                                        Text="{Binding When, Converter={StaticResource DateTimeConverter}}" />
                                                     <Label Text="Nagranie nie jest gotowe."
-                                                       IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
-                                                       TextColor="{StaticResource Magenta}">
+                                                           IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
+                                                           TextColor="{StaticResource Magenta}">
                                                     </Label>
                                                 </VerticalStackLayout>
 
-                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Spacing="15">
-                                                    <controls:ShareButton
-                                                                 Command="{Binding ShareVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
-                                                                 CommandParameter="{Binding Id}"/>
-
-                                                    <controls:EditButton
-                                                                 Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
-                                                                 CommandParameter="{Binding Id}"/>
-
-                                                </HorizontalStackLayout>
+                                                <controls:EditButton Grid.Column="1"
+                                                                     Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type events:EventDetailsPageModel}}, x:DataType=events:EventDetailsPageModel}"
+                                                                     CommandParameter="{Binding Id}"
+                                                                     HorizontalOptions="End"
+                                                                     VerticalOptions="Center" />
                                             </Grid>
                                         </VerticalStackLayout>
                                     </Border>
@@ -79,7 +73,7 @@
                         Command="{Binding LoadMoreCommand}" />
             </StackLayout>
             <VerticalStackLayout HorizontalOptions="End" VerticalOptions="End">
-                <controls:AddVideoButton Command="{Binding NavigateToUploadCommand}"/>
+                <controls:AddVideoButton Command="{Binding NavigateToUploadToEventCommand}"></controls:AddVideoButton>
             </VerticalStackLayout>
         </Grid>
     </ContentPage.Content>
