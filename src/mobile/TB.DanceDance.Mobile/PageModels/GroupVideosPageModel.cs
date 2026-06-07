@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nalu;
@@ -11,6 +12,8 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class GroupVideosPageModel : ObservableObject, IAppearingAware
 {
+    private const int PageSize = 20;
+
     private readonly VideoProvider videoProvider;
     private readonly IDanceHttpApiClient apiClient;
     private readonly INavigationService navigationService;
@@ -23,10 +26,13 @@ public partial class GroupVideosPageModel : ObservableObject, IAppearingAware
     }
 
     [ObservableProperty] private bool isRefreshing;
+    [ObservableProperty] private bool isLoadingMore;
+    [ObservableProperty] private bool canLoadMore;
 
-    [ObservableProperty] private List<Video> videos = [];
+    [ObservableProperty] private ObservableCollection<Video> videos = [];
 
     private bool videoLoaded = false;
+    private int currentPage = 0;
 
     public async ValueTask OnAppearingAsync()
     {
@@ -102,10 +108,41 @@ public partial class GroupVideosPageModel : ObservableObject, IAppearingAware
                 .Push<UploadVideoPageModel>()
                 .WithIntent(new UploadToGroupIntent()));
 
+    [RelayCommand]
+    private async Task LoadMore()
+    {
+        if (IsLoadingMore || !CanLoadMore)
+            return;
+
+        try
+        {
+            IsLoadingMore = true;
+
+            var nextPage = currentPage + 1;
+            var (items, totalCount) = await videoProvider.GetGroupVideosAsync(nextPage, PageSize);
+
+            foreach (var video in items)
+                Videos.Add(video);
+
+            currentPage = nextPage;
+            CanLoadMore = Videos.Count < totalCount;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error when loading more group videos.");
+        }
+        finally
+        {
+            IsLoadingMore = false;
+        }
+    }
+
     private async Task LoadData()
     {
-        var loadedVideos = await videoProvider.GetGroupVideosAsync();
-        Videos = loadedVideos;
+        var (items, totalCount) = await videoProvider.GetGroupVideosAsync(page: 1, PageSize);
+        Videos = new ObservableCollection<Video>(items);
+        currentPage = 1;
+        CanLoadMore = Videos.Count < totalCount;
         videoLoaded = true;
     }
 }

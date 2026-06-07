@@ -12,19 +12,18 @@ public class VideoProvider
         this.apiClient = apiClient;
     }
 
-    public async Task<List<Video>> GetEventVideos(Guid eventId)
+    public async Task<(IReadOnlyCollection<Video> Items, int TotalCount)> GetEventVideos(Guid eventId, int page, int pageSize)
     {
-        var videosForEvent = await apiClient.GetVideosForEvent(eventId);
-        var videos = Video.MapFromApiResponse(videosForEvent);
-
-        return videos;
+        var response = await apiClient.GetVideosForEvent(eventId, page, pageSize);
+        var videos = Video.MapFromApiResponse(response.Items.ToArray());
+        return (videos, response.TotalCount);
     }
 
-    public async Task<List<Video>> GetGroupVideosAsync()
+    public async Task<(IReadOnlyCollection<Video> Items, int TotalCount)> GetGroupVideosAsync(int page, int pageSize)
     {
-        var response = await apiClient.GetVideosFromGroups();
-        var videos = Video.MapFromApiResponse(response);
-        return videos;
+        var response = await apiClient.GetVideosFromGroups(page, pageSize);
+        var videos = Video.MapFromApiResponse(response.Items.ToArray());
+        return (videos, response.TotalCount);
     }
 
     public async Task<(IReadOnlyCollection<Video> Items, int TotalCount)> GetMyVideos(int page, int pageSize)
