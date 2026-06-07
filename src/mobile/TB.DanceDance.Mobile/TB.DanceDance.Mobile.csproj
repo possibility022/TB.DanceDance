@@ -143,7 +143,7 @@
 	  <MauiXaml Update="Pages\Popups\SharingPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\UploadVideoPage.xaml">
+	  <MauiXaml Update="Pages\Upload\UploadVideoPage.xaml">
 	    <SubType>Designer</SubType>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Controls\FillButton.xaml">
@@ -164,7 +164,7 @@
 	  <Compile Update="Pages\Controls\ShareButton.xaml.cs">
 	    <DependentUpon>ShareButton.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\UploadVideoPage.xaml.cs">
+	  <Compile Update="Pages\Upload\UploadVideoPage.xaml.cs">
 	    <DependentUpon>UploadVideoPage.xaml</DependentUpon>
 	    <SubType>Code</SubType>
 	  </Compile>
@@ -196,6 +196,10 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-maccatalyst'">
 	  <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Pages\Intents\" />
 	</ItemGroup>
 
 </Project>

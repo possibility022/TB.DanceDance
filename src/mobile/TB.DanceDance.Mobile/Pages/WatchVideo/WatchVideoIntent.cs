@@ -1,3 +1,3 @@
-namespace TB.DanceDance.Mobile.PageModels.Intents;
+namespace TB.DanceDance.Mobile.Pages.WatchVideo;
 
 public sealed record WatchVideoIntent(string VideoBlobId);

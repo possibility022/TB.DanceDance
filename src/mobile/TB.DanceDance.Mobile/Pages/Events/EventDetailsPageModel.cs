@@ -7,6 +7,8 @@ using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.PageModels.Intents;
+using TB.DanceDance.Mobile.Pages.Events;
+using TB.DanceDance.Mobile.Pages.Intents;
 
 namespace TB.DanceDance.Mobile.PageModels;
 

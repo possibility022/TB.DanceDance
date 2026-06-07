@@ -1,4 +1,4 @@
-namespace TB.DanceDance.Mobile.PageModels.Intents;
+namespace TB.DanceDance.Mobile.Pages.Upload;
 
 public abstract record UploadVideoIntent;
 
