@@ -17,6 +17,20 @@
     [shareable]="true"
     (share)="openShare($event)"
   />
+
+  @if (canLoadMore()) {
+    <div class="block has-text-centered">
+      <button
+        type="button"
+        class="button"
+        [class.is-loading]="loadingMore()"
+        [disabled]="loadingMore()"
+        (click)="loadMore()"
+      >
+        Load more
+      </button>
+    </div>
+  }
 }
 
 <app-share-dialog

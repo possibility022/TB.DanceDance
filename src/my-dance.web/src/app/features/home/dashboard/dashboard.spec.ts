@@ -6,14 +6,14 @@ import { Dashboard } from './dashboard';
 import { VideosService } from '../../../core/api/videos.service';
 import { GroupsService } from '../../../core/api/groups.service';
 import { AccessService } from '../../../core/api/access.service';
-import { MyVideosResponse, ListGroupVideosResponse, GetUserAccessResponse } from '../../../core/api/api-models';
+import { PagedResponseOfVideoInformation, ListGroupVideosResponse, GetUserAccessResponse } from '../../../core/api/api-models';
 
 function d(y: number, m: number, day: number): Date {
   return new Date(y, m, day);
 }
 
 async function setup(opts: {
-  my?: Observable<MyVideosResponse>;
+  my?: Observable<PagedResponseOfVideoInformation>;
   groups?: Observable<ListGroupVideosResponse>;
   access?: Observable<GetUserAccessResponse>;
 }): Promise<ComponentFixture<Dashboard>> {
@@ -21,7 +21,7 @@ async function setup(opts: {
     imports: [Dashboard],
     providers: [
       provideRouter([]),
-      { provide: VideosService, useValue: { getMyVideos: () => opts.my ?? of({ videoInformation: [] }) } },
+      { provide: VideosService, useValue: { getMyVideos: () => opts.my ?? of({ items: [] }) } },
       { provide: GroupsService, useValue: { getGroupVideos: () => opts.groups ?? of({ videos: [] }) } },
       { provide: AccessService, useValue: { getMyAccess: () => opts.access ?? of({}) } },
     ],
@@ -36,7 +36,7 @@ describe('Dashboard', () => {
   it('loads the three libraries and exposes their counts', async () => {
     const c = (
       await setup({
-        my: of({ videoInformation: [{ name: 'a' }, { name: 'b' }] }),
+        my: of({ items: [{ name: 'a' }, { name: 'b' }] }),
         groups: of({ videos: [{ name: 'g' }] }),
         access: of({ assigned: { events: [{ name: 'e1', date: d(2026, 0, 1) }] } }),
       })
@@ -52,7 +52,7 @@ describe('Dashboard', () => {
   it('reports the latest recorded date per library, ignoring undated videos', async () => {
     const c = (
       await setup({
-        my: of({ videoInformation: [{ recordedDateTime: d(2026, 0, 10) }, { recordedDateTime: d(2026, 2, 1) }] }),
+        my: of({ items: [{ recordedDateTime: d(2026, 0, 10) }, { recordedDateTime: d(2026, 2, 1) }] }),
         groups: of({ videos: [{ recordedDateTime: d(2026, 1, 15) }, {}] }),
       })
     ).componentInstance;
@@ -62,7 +62,7 @@ describe('Dashboard', () => {
   });
 
   it('has no latest date for an empty / fully-undated library', async () => {
-    const c = (await setup({ my: of({ videoInformation: [{}, {}] }) })).componentInstance;
+    const c = (await setup({ my: of({ items: [{}, {}] }) })).componentInstance;
     expect(c.myLatest()).toBeNull();
     expect(c.groupLatest()).toBeNull();
   });
@@ -70,7 +70,7 @@ describe('Dashboard', () => {
   it('merges group and personal videos into a recent feed sorted newest-first', async () => {
     const c = (
       await setup({
-        my: of({ videoInformation: [{ name: 'm-old', recordedDateTime: d(2026, 0, 1) }, { name: 'no-date' }] }),
+        my: of({ items: [{ name: 'm-old', recordedDateTime: d(2026, 0, 1) }, { name: 'no-date' }] }),
         groups: of({
           videos: [
             { name: 'g-new', recordedDateTime: d(2026, 5, 1) },
@@ -87,7 +87,7 @@ describe('Dashboard', () => {
 
   it('caps the recent feed at five entries', async () => {
     const videos = Array.from({ length: 8 }, (_, i) => ({ recordedDateTime: d(2026, 0, i + 1) }));
-    const c = (await setup({ my: of({ videoInformation: videos }) })).componentInstance;
+    const c = (await setup({ my: of({ items: videos }) })).componentInstance;
     expect(c.recent()).toHaveLength(5);
   });
 

@@ -9,8 +9,11 @@
 
 
 
-export interface MyVideosResponse {
-    videoInformation?: VideoInformation[];
+export interface PagedResponseOfVideoInformation {
+    items?: VideoInformation[];
+    totalCount?: number;
+    pageNumber?: number;
+    pageSize?: number;
 }
 
 export interface VideoInformation {
@@ -22,6 +25,12 @@ export interface VideoInformation {
     converted?: boolean;
     commentVisibility?: number;
     thumbnailUrl?: string | undefined;
+}
+
+export interface PagedRequest {
+}
+
+export interface ListMyVideosRequest extends PagedRequest {
 }
 
 export interface UploadUrlResponse {

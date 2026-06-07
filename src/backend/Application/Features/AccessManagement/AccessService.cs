@@ -31,15 +31,14 @@ public class AccessService : IAccessService
         return dbContext.AssingedToEvents.AnyAsync(r => r.EventId == eventId && r.UserId == userId, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<Video>> GetUserPrivateVideos(string userId, CancellationToken cancellationToken)
+    public IQueryable<Video> GetUserPrivateVideosQuery(string userId)
     {
-        var privateVideos = dbContext.SharedWith
+        return dbContext.SharedWith
             .Where(r => r.EventId == null && r.GroupId == null && r.UserId == userId)
-            .Join(dbContext.Videos, v => v.VideoId, v => v.Id, (c, v) => v)
-            .AsNoTracking();
-
-        var result = await privateVideos.ToArrayAsync(cancellationToken);
-        return result;
+            .Join(dbContext.Videos, r => r.VideoId, v => v.Id, (r, v) => v)
+            .AsNoTracking()
+            .OrderByDescending(v => v.RecordedDateTime)
+            .ThenBy(v => v.Id);
     }
     
     private IQueryable<Video> GetBaseVideosForUserQuery(string userId)

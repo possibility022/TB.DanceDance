@@ -1,0 +1,17 @@
+### REMEMBER TO CALL GET TOKEN FROM token.http
+
+### First page, default size
+GET https://localhost:7068/api/videos/my
+Authorization: Bearer {{token}}
+
+### Explicit page/pageSize
+GET https://localhost:7068/api/videos/my?page=1&pageSize=2
+Authorization: Bearer {{token}}
+
+### Second page
+GET https://localhost:7068/api/videos/my?page=2&pageSize=2
+Authorization: Bearer {{token}}
+
+### Out-of-range page -> empty items, correct totalCount
+GET https://localhost:7068/api/videos/my?page=999&pageSize=10
+Authorization: Bearer {{token}}

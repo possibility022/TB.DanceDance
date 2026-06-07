@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { ApiClient } from './api-client';
 import {
-  MyVideosResponse,
+  PagedResponseOfVideoInformation,
   RenameVideoRequest,
   UpdateCommentSettingsRequest,
   VideoInformationResponse,
@@ -15,9 +15,11 @@ import {
 export class VideosService {
   private readonly api = inject(ApiClient);
 
-  /** The current user's private recordings. */
-  getMyVideos(): Observable<MyVideosResponse> {
-    return this.api.get<MyVideosResponse>('/api/videos/my');
+  /** A page of the current user's private recordings. */
+  getMyVideos(page: number, pageSize: number): Observable<PagedResponseOfVideoInformation> {
+    return this.api.get<PagedResponseOfVideoInformation>('/api/videos/my', {
+      params: { page, pageSize },
+    });
   }
 
   /** Information about a single recording by its blob id. */

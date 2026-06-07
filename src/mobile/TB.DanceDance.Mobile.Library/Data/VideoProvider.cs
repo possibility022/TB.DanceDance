@@ -27,10 +27,10 @@ public class VideoProvider
         return videos;
     }
 
-    public async Task<IReadOnlyCollection<Video>> GetMyVideos()
+    public async Task<(IReadOnlyCollection<Video> Items, int TotalCount)> GetMyVideos(int page, int pageSize)
     {
-        var response = await apiClient.GetMyVideos();
-        var videos = Video.MapFromApiResponse(response);
-        return videos;
+        var response = await apiClient.GetMyVideos(page, pageSize);
+        var videos = Video.MapFromApiResponse(response.Items.ToArray());
+        return (videos, response.TotalCount);
     }
 }
