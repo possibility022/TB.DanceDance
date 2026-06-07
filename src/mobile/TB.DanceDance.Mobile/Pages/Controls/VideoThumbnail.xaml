@@ -10,43 +10,36 @@
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <Border StrokeShape="RoundRectangle 8"
-            Stroke="Transparent"
-            Padding="0"
-            HeightRequest="72"
-            WidthRequest="110"
-            HorizontalOptions="Start">
-        <Grid>
-            <Image Source="{Binding ThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
-                   Aspect="AspectFill"
-                   IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
+    <Grid HeightRequest="160" HorizontalOptions="Fill">
+        <Image Source="{Binding ThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
+               Aspect="AspectFill"
+               IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
 
-            <Grid IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}, Converter={StaticResource InverseBooleanConverter}}">
-                <BoxView>
-                    <BoxView.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#20314f" Offset="0.0" />
-                            <GradientStop Color="#2f6f73" Offset="0.56" />
-                            <GradientStop Color="#f0b35a" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </BoxView.Background>
-                </BoxView>
+        <Grid IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}, Converter={StaticResource InverseBooleanConverter}}">
+            <BoxView>
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#20314f" Offset="0.0" />
+                        <GradientStop Color="#2f6f73" Offset="0.56" />
+                        <GradientStop Color="#f0b35a" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
 
-                <Border StrokeShape="RoundRectangle 999"
-                        Stroke="Transparent"
-                        BackgroundColor="#EBFFFFFF"
-                        Padding="0"
-                        HeightRequest="28"
-                        WidthRequest="28"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center">
-                    <Polygon Points="0,0 0,14 12,7"
-                             Fill="{StaticResource Primary}"
-                             HorizontalOptions="Center"
-                             VerticalOptions="Center"
-                             Margin="10,7,0,0" />
-                </Border>
-            </Grid>
+            <Border StrokeShape="RoundRectangle 999"
+                    Stroke="Transparent"
+                    BackgroundColor="#EBFFFFFF"
+                    Padding="0"
+                    HeightRequest="48"
+                    WidthRequest="48"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                <Polygon Points="0,0 0,22 19,11"
+                         Fill="{StaticResource Primary}"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"
+                         Margin="16,11,0,0" />
+            </Border>
         </Grid>
-    </Border>
+    </Grid>
 </ContentView>
