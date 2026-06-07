@@ -32,19 +32,19 @@ describe('CommentsService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getCommentsForVideo() GETs the authenticated video comments', () => {
-    service.getCommentsForVideo('vid/1').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/comments/video/vid%2F1`);
+  it('getCommentsForVideo() GETs the authenticated video comments with page and pageSize params', () => {
+    service.getCommentsForVideo('vid/1', 2, 20).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/comments/video/vid%2F1?page=2&pageSize=20`);
     expect(req.request.method).toBe('GET');
-    req.flush({ comments: [] });
+    req.flush({ items: [], totalCount: 0, pageNumber: 2, pageSize: 20 });
   });
 
-  it('getCommentsByLink() GETs link comments with the AnonymousId header', () => {
-    service.getCommentsByLink('link1').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/share/link1/comments`);
+  it('getCommentsByLink() GETs link comments with the AnonymousId header and page/pageSize params', () => {
+    service.getCommentsByLink('link1', 2, 20).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/share/link1/comments?page=2&pageSize=20`);
     expect(req.request.method).toBe('GET');
     expect(req.request.headers.get('AnonymousId')).toBe(ANON_ID);
-    req.flush({ comments: [] });
+    req.flush({ items: [], totalCount: 0, pageNumber: 2, pageSize: 20 });
   });
 
   it('addCommentByLink() POSTs the comment body', () => {

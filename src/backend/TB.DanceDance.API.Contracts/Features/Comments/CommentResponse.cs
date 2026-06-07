@@ -1,7 +1,16 @@
 using System;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace TB.DanceDance.API.Contracts.Features.Comments
 {
+    public class ListCommentsForVideoRequest : PagedRequest
+    {
+    }
+    
+    public class ListCommentsByLinkRequest : PagedRequest
+    {
+    }
+    
     public class CommentResponse
     {
         /// <summary>

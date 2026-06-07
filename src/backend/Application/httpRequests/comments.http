@@ -44,12 +44,27 @@ Content-Type: application/json
 
 > {% client.global.set("anonymousCommentId", response.body.id); %}
 
-### STEP 5: Get all comments (authenticated user)
+### STEP 5: Get comments, paged (authenticated user)
 GET https://localhost:7068/api/share/{{shareLinkId}}/comments
 Authorization: Bearer {{token}}
 
-### STEP 6: Get all comments (anonymous user)
+### STEP 5b: Get comments, explicit page/pageSize (authenticated user)
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments?page=1&pageSize=2
+Authorization: Bearer {{token}}
+
+### STEP 5c: Get comments, second page (authenticated user)
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments?page=2&pageSize=2
+Authorization: Bearer {{token}}
+
+### STEP 5d: Get comments, out-of-range page -> empty items, correct totalCount (authenticated user)
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments?page=999&pageSize=10
+Authorization: Bearer {{token}}
+
+### STEP 6: Get comments, paged (anonymous user)
 GET https://localhost:7068/api/share/{{shareLinkId}}/comments?anonymousId={{anonymousId}}
+
+### STEP 6b: Get comments, explicit page/pageSize (anonymous user)
+GET https://localhost:7068/api/share/{{shareLinkId}}/comments?anonymousId={{anonymousId}}&page=1&pageSize=2
 
 ### STEP 7: Update comment (only author can update)
 @commentId = 13e07339-329f-4e45-8330-c0be8b8116c4

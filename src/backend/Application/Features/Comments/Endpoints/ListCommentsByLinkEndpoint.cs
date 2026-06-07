@@ -2,13 +2,14 @@ using Application.Extensions;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using TB.DanceDance.API.Contracts.Features.Comments;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Comments.Endpoints;
 
 /// <summary>
 /// Gets comments for a video accessed through a shared link. Anonymous access allowed.
 /// </summary>
-public class ListCommentsByLinkEndpoint : EndpointWithoutRequest<ListCommentsByLinkResponse>
+public class ListCommentsByLinkEndpoint : Endpoint<ListCommentsByLinkRequest, PagedResponse<CommentResponse>>
 {
     private readonly ICommentService commentService;
 
@@ -23,28 +24,35 @@ public class ListCommentsByLinkEndpoint : EndpointWithoutRequest<ListCommentsByL
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ListCommentsByLinkRequest req, CancellationToken ct)
     {
         var userId = User.TryGetSubject();
         var linkId = Route<string>("linkId") ?? string.Empty;
-        
+        var pageNumber = req.NormalizedPage;
+        var pageSize = req.NormalizedPageSize;
+
         var anonymousId = CommentMapper.ResolveAnonymousId(HttpContext.Request);
 
         try
         {
-            var comments = await commentService.GetCommentsForVideoAsync(
+            var (comments, totalCount) = await commentService.GetCommentsForVideoAsync(
                 userId,
                 anonymousId,
                 linkId,
+                pageNumber,
+                pageSize,
                 ct);
 
             var shaOfAnonymousId = CommentMapper.ComputeSha256(anonymousId);
 
-            var response = new ListCommentsByLinkResponse
+            var response = new PagedResponse<CommentResponse>
             {
-                Comments = comments
+                Items = comments
                     .Select(c => CommentMapper.MapToResponse(c, userId, shaOfAnonymousId))
                     .ToArray(),
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
             };
 
             await Send.OkAsync(response, ct);

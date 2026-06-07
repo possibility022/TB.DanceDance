@@ -24,6 +24,7 @@ function createFixture(opts: {
   renameVideo?: ReturnType<typeof vi.fn>;
   getVideosForGroup?: ReturnType<typeof vi.fn>;
   getEventVideos?: ReturnType<typeof vi.fn>;
+  getCommentsForVideo?: ReturnType<typeof vi.fn>;
   groupId?: string;
   eventId?: string;
 }) {
@@ -36,7 +37,7 @@ function createFixture(opts: {
   const groups = { getVideosForGroup: opts.getVideosForGroup ?? vi.fn(() => of({ videos: [] })) };
   const events = { getEventVideos: opts.getEventVideos ?? vi.fn(() => of({ videos: [] })) };
   const comments = {
-    getCommentsForVideo: vi.fn(() => of({ comments: [] })),
+    getCommentsForVideo: opts.getCommentsForVideo ?? vi.fn(() => of({ items: [], totalCount: 0 })),
     updateComment: vi.fn(() => of(void 0)),
     deleteComment: vi.fn(() => of(void 0)),
     hideComment: vi.fn(() => of(void 0)),
@@ -73,7 +74,7 @@ describe('VideoPlayer', () => {
     expect(component.info()?.name).toBe('Tango');
     expect(videos.streamUrl).toHaveBeenCalledWith('blob1', 'token');
     expect(component.streamUrl()).toBe('https://api/stream');
-    expect(comments.getCommentsForVideo).toHaveBeenCalledWith('vid1');
+    expect(comments.getCommentsForVideo).toHaveBeenCalledWith('vid1', 1, 20);
     expect(component.loading()).toBe(false);
   });
 
@@ -201,11 +202,12 @@ describe('VideoPlayer', () => {
   });
 
   describe('comment moderation', () => {
-    it('edits a comment then reloads the list', () => {
+    it('edits a comment then reloads the currently-loaded amount', () => {
       const { component, comments } = createFixture({});
       component.onSaveEdit({ commentId: 'c1', content: 'edited' });
       expect(comments.updateComment).toHaveBeenCalledWith('c1', { content: 'edited' });
       expect(comments.getCommentsForVideo).toHaveBeenCalledTimes(2); // load + reload
+      expect(comments.getCommentsForVideo).toHaveBeenLastCalledWith('vid1', 1, 20); // 1 page loaded so far
     });
 
     it('removes, hides, unhides, and reports comments', () => {
@@ -219,6 +221,73 @@ describe('VideoPlayer', () => {
       expect(comments.hideComment).toHaveBeenCalledWith('c1');
       expect(comments.unhideComment).toHaveBeenCalledWith('c1');
       expect(comments.reportComment).toHaveBeenCalledWith('c1', { reason: 'spam' });
+    });
+  });
+
+  describe('comment paging', () => {
+    it('exposes canLoadMoreComments when there are more comments than the first page returned', () => {
+      const getCommentsForVideo = vi.fn(() => of({ items: [{ id: 'c1' }], totalCount: 3 }));
+      const { component } = createFixture({ getCommentsForVideo });
+      expect(component.canLoadMoreComments()).toBe(true);
+    });
+
+    it('hides load more once every comment has been loaded', () => {
+      const getCommentsForVideo = vi.fn(() => of({ items: [{ id: 'c1' }, { id: 'c2' }], totalCount: 2 }));
+      const { component } = createFixture({ getCommentsForVideo });
+      expect(component.canLoadMoreComments()).toBe(false);
+    });
+
+    it('loadMoreComments appends the next page and tracks whether more remain', () => {
+      const calls: Array<[string, number, number]> = [];
+      const getCommentsForVideo = vi.fn((videoId: string, page: number, pageSize: number) => {
+        calls.push([videoId, page, pageSize]);
+        return page === 1
+          ? of({ items: [{ id: 'c1' }], totalCount: 3 })
+          : of({ items: [{ id: 'c2' }], totalCount: 3 });
+      });
+
+      const { component } = createFixture({ getCommentsForVideo });
+      expect(component.canLoadMoreComments()).toBe(true);
+
+      component.loadMoreComments();
+
+      expect(component.commentList().map((c) => c.id)).toEqual(['c1', 'c2']);
+      expect(component.canLoadMoreComments()).toBe(true);
+      expect(component.loadingMoreComments()).toBe(false);
+      expect(calls).toEqual([
+        ['vid1', 1, 20],
+        ['vid1', 2, 20],
+      ]);
+    });
+
+    it('loadMoreComments is a no-op while already loading or when there is nothing more to load', () => {
+      const getCommentsForVideo = vi.fn(() => of({ items: [{ id: 'c1' }, { id: 'c2' }], totalCount: 2 }));
+      const { component } = createFixture({ getCommentsForVideo });
+
+      expect(getCommentsForVideo).toHaveBeenCalledTimes(1);
+      expect(component.canLoadMoreComments()).toBe(false);
+
+      component.loadMoreComments();
+
+      expect(getCommentsForVideo).toHaveBeenCalledTimes(1);
+    });
+
+    it('a mutation refetches everything currently shown rather than collapsing back to one page', () => {
+      const calls: Array<[string, number, number]> = [];
+      const getCommentsForVideo = vi.fn((videoId: string, page: number, pageSize: number) => {
+        calls.push([videoId, page, pageSize]);
+        return page === 1 && pageSize === 20
+          ? of({ items: Array.from({ length: 20 }, (_, i) => ({ id: `c${i}` })), totalCount: 50 })
+          : of({ items: Array.from({ length: 40 }, (_, i) => ({ id: `c${i}` })), totalCount: 50 });
+      });
+
+      const { component } = createFixture({ getCommentsForVideo });
+      component.loadMoreComments(); // now showing 2 pages (40 items)
+
+      component.onRemove('c1');
+
+      expect(calls.at(-1)).toEqual(['vid1', 1, 40]); // refetch sized to the 2 pages already loaded
+      expect(component.commentList()).toHaveLength(40);
     });
   });
 });

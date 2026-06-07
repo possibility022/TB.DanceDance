@@ -45,7 +45,12 @@ export class CommentsSection {
   readonly requireSignature = input(false);
   /** A create is in flight — disables the composer. */
   readonly submitting = input(false);
+  /** Whether the host has more pages of comments to fetch — shows the "Load more" button. */
+  readonly canLoadMore = input(false);
+  /** A load-more fetch is in flight — disables and spins the button. */
+  readonly loadingMore = input(false);
 
+  readonly loadMore = output<void>();
   readonly create = output<CommentDraft>();
   readonly saveEdit = output<CommentEdit>();
   readonly remove = output<string>();

@@ -16,6 +16,7 @@ function createFixture(opts: {
   info?: SharedVideoInfoResponse;
   getSharedVideo?: ReturnType<typeof vi.fn>;
   addCommentByLink?: ReturnType<typeof vi.fn>;
+  getCommentsByLink?: ReturnType<typeof vi.fn>;
 }) {
   const authed: WritableSignal<boolean> = signal(opts.authed ?? false);
   const sharing = {
@@ -24,7 +25,7 @@ function createFixture(opts: {
     sharedStreamUrl: vi.fn(() => 'https://api/stream'),
   };
   const comments = {
-    getCommentsByLink: vi.fn(() => of({ comments: [] })),
+    getCommentsByLink: opts.getCommentsByLink ?? vi.fn(() => of({ items: [], totalCount: 0 })),
     addCommentByLink: opts.addCommentByLink ?? vi.fn(() => of({ id: 'c1' })),
     updateComment: vi.fn(() => of(void 0)),
     deleteComment: vi.fn(() => of(void 0)),
@@ -56,7 +57,7 @@ describe('SharedLinkViewer', () => {
     expect(sharing.getSharedVideo).toHaveBeenCalledWith('link-1');
     expect(component.info()?.name).toBe('Shared');
     expect(component.streamUrl()).toBe('https://api/stream');
-    expect(comments.getCommentsByLink).toHaveBeenCalledWith('link-1');
+    expect(comments.getCommentsByLink).toHaveBeenCalledWith('link-1', 1, 20);
     expect(component.loading()).toBe(false);
   });
 
@@ -116,6 +117,7 @@ describe('SharedLinkViewer', () => {
       });
       expect(component.submitting()).toBe(false);
       expect(comments.getCommentsByLink).toHaveBeenCalledTimes(2); // load + reload
+      expect(comments.getCommentsByLink).toHaveBeenLastCalledWith('link-1', 1, 20); // 1 page loaded so far
     });
 
     it('omits the anonymous id for signed-in users', () => {
@@ -142,11 +144,12 @@ describe('SharedLinkViewer', () => {
   });
 
   describe('moderation passthrough', () => {
-    it('edits a comment then reloads', () => {
+    it('edits a comment then reloads the currently-loaded amount', () => {
       const { component, comments } = createFixture({});
       component.onSaveEdit({ commentId: 'c1', content: 'edited' });
       expect(comments.updateComment).toHaveBeenCalledWith('c1', { content: 'edited' });
       expect(comments.getCommentsByLink).toHaveBeenCalledTimes(2);
+      expect(comments.getCommentsByLink).toHaveBeenLastCalledWith('link-1', 1, 20); // 1 page loaded so far
     });
 
     it('removes, hides, unhides, and reports comments', () => {
@@ -160,6 +163,73 @@ describe('SharedLinkViewer', () => {
       expect(comments.hideComment).toHaveBeenCalledWith('c1');
       expect(comments.unhideComment).toHaveBeenCalledWith('c1');
       expect(comments.reportComment).toHaveBeenCalledWith('c1', { reason: 'spam' });
+    });
+  });
+
+  describe('comment paging', () => {
+    it('exposes canLoadMoreComments when there are more comments than the first page returned', () => {
+      const getCommentsByLink = vi.fn(() => of({ items: [{ id: 'c1' }], totalCount: 3 }));
+      const { component } = createFixture({ getCommentsByLink });
+      expect(component.canLoadMoreComments()).toBe(true);
+    });
+
+    it('hides load more once every comment has been loaded', () => {
+      const getCommentsByLink = vi.fn(() => of({ items: [{ id: 'c1' }, { id: 'c2' }], totalCount: 2 }));
+      const { component } = createFixture({ getCommentsByLink });
+      expect(component.canLoadMoreComments()).toBe(false);
+    });
+
+    it('loadMoreComments appends the next page and tracks whether more remain', () => {
+      const calls: Array<[string, number, number]> = [];
+      const getCommentsByLink = vi.fn((linkId: string, page: number, pageSize: number) => {
+        calls.push([linkId, page, pageSize]);
+        return page === 1
+          ? of({ items: [{ id: 'c1' }], totalCount: 3 })
+          : of({ items: [{ id: 'c2' }], totalCount: 3 });
+      });
+
+      const { component } = createFixture({ getCommentsByLink });
+      expect(component.canLoadMoreComments()).toBe(true);
+
+      component.loadMoreComments();
+
+      expect(component.commentList().map((c) => c.id)).toEqual(['c1', 'c2']);
+      expect(component.canLoadMoreComments()).toBe(true);
+      expect(component.loadingMoreComments()).toBe(false);
+      expect(calls).toEqual([
+        ['link-1', 1, 20],
+        ['link-1', 2, 20],
+      ]);
+    });
+
+    it('loadMoreComments is a no-op while already loading or when there is nothing more to load', () => {
+      const getCommentsByLink = vi.fn(() => of({ items: [{ id: 'c1' }, { id: 'c2' }], totalCount: 2 }));
+      const { component } = createFixture({ getCommentsByLink });
+
+      expect(getCommentsByLink).toHaveBeenCalledTimes(1);
+      expect(component.canLoadMoreComments()).toBe(false);
+
+      component.loadMoreComments();
+
+      expect(getCommentsByLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('a mutation refetches everything currently shown rather than collapsing back to one page', () => {
+      const calls: Array<[string, number, number]> = [];
+      const getCommentsByLink = vi.fn((linkId: string, page: number, pageSize: number) => {
+        calls.push([linkId, page, pageSize]);
+        return page === 1 && pageSize === 20
+          ? of({ items: Array.from({ length: 20 }, (_, i) => ({ id: `c${i}` })), totalCount: 50 })
+          : of({ items: Array.from({ length: 40 }, (_, i) => ({ id: `c${i}` })), totalCount: 50 });
+      });
+
+      const { component } = createFixture({ getCommentsByLink });
+      component.loadMoreComments(); // now showing 2 pages (40 items)
+
+      component.onRemove('c1');
+
+      expect(calls.at(-1)).toEqual(['link-1', 1, 40]); // refetch sized to the 2 pages already loaded
+      expect(component.commentList()).toHaveLength(40);
     });
   });
 });

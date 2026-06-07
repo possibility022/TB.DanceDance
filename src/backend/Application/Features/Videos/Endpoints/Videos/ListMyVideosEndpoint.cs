@@ -1,14 +1,10 @@
-using Application.Extensions;
+﻿using Application.Extensions;
 using Application.Features.AccessManagement;
-using Application.Pagination;
 using FastEndpoints;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Videos.Endpoints.Videos;
-
-public class ListMyVideosRequest : PagedRequest
-{
-}
 
 public class ListMyVideosEndpoint : Endpoint<ListMyVideosRequest, PagedResponse<VideoInformation>>
 {

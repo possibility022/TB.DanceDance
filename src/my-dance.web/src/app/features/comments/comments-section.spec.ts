@@ -143,6 +143,36 @@ describe('CommentsSection', () => {
     });
   });
 
+  describe('load more button', () => {
+    const comment: CommentResponse = { id: 'c1', content: 'x' };
+
+    it('is hidden when canLoadMore is false', async () => {
+      const fixture = await setup({ comments: [comment], canLoadMore: false });
+      const buttons = [...fixture.nativeElement.querySelectorAll('button')] as HTMLButtonElement[];
+      expect(buttons.some((b) => b.textContent?.trim() === 'Load more')).toBe(false);
+    });
+
+    it('renders, spins while loading, and emits loadMore on click', async () => {
+      const fixture = await setup({ comments: [comment], canLoadMore: true, loadingMore: false });
+      const emitted: void[] = [];
+      fixture.componentInstance.loadMore.subscribe(() => emitted.push(undefined));
+
+      const buttons = [...fixture.nativeElement.querySelectorAll('button')] as HTMLButtonElement[];
+      const loadMoreButton = buttons.find((b) => b.textContent?.trim() === 'Load more');
+      expect(loadMoreButton).toBeTruthy();
+      expect(loadMoreButton!.disabled).toBe(false);
+      expect(loadMoreButton!.classList.contains('is-loading')).toBe(false);
+
+      loadMoreButton!.click();
+      expect(emitted.length).toBe(1);
+
+      fixture.componentRef.setInput('loadingMore', true);
+      fixture.detectChanges();
+      expect(loadMoreButton!.disabled).toBe(true);
+      expect(loadMoreButton!.classList.contains('is-loading')).toBe(true);
+    });
+  });
+
   describe('mutually exclusive edit / report panels', () => {
     const comment: CommentResponse = { id: 'c1', content: 'x' };
 

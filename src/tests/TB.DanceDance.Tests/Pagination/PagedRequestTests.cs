@@ -1,4 +1,4 @@
-using Application.Pagination;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace TB.DanceDance.Tests.Pagination;
 
