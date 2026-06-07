@@ -21,6 +21,7 @@ export interface VideoInformation {
     duration?: string | undefined;
     converted?: boolean;
     commentVisibility?: number;
+    thumbnailBlobId?: string | undefined;
 }
 
 export interface UploadUrlResponse {

@@ -49,4 +49,13 @@ export class VideosService {
     const token = new HttpParams().set('token', accessToken).toString();
     return `${this.api.url(`/api/videos/${encodeURIComponent(blobId)}/stream`)}?${token}`;
   }
+
+  /**
+   * Thumbnail URL for a recording. Like stream URLs, `<img>` elements cannot
+   * send an auth header, so the access token is carried as a query parameter.
+   */
+  thumbnailUrl(blobId: string, accessToken: string): string {
+    const token = new HttpParams().set('token', accessToken).toString();
+    return `${this.api.url(`/api/videos/${encodeURIComponent(blobId)}/thumbnail`)}?${token}`;
+  }
 }

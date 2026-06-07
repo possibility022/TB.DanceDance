@@ -1,6 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Params, RouterLink } from '@angular/router';
 
+import { AuthService } from '../../../core/auth/auth.service';
+import { VideosService } from '../../../core/api/videos.service';
 import { VideoInformation } from '../../../core/api/api-models';
 import { LongDatePipe } from '../../format/long-date.pipe';
 
@@ -15,7 +18,12 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       [class.has-background-link-light]="selected()"
       [class.is-selected]="selected()"
     >
-      <div class="video-card__preview" aria-hidden="true">
+      <div
+        class="video-card__preview"
+        aria-hidden="true"
+        [style.--thumb]="thumbnailUrl() ? 'url(' + thumbnailUrl() + ')' : null"
+        [class.has-thumbnail]="!!thumbnailUrl()"
+      >
         <span class="video-card__play"></span>
         @if (formattedDuration()) {
           <span class="video-card__duration">{{ formattedDuration() }}</span>
@@ -113,6 +121,10 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       background:
         radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.34), transparent 24%),
         linear-gradient(135deg, #20314f 0%, #2f6f73 56%, #f0b35a 100%);
+    }
+
+    .video-card__preview.has-thumbnail {
+      background: var(--thumb) center / cover no-repeat;
     }
 
     .video-card__preview::after {
@@ -255,8 +267,18 @@ export class VideoCard {
   readonly badge = input('');
   readonly share = output<VideoInformation>();
 
+  private readonly auth = inject(AuthService);
+  private readonly videos = inject(VideosService);
+  private readonly accessToken = toSignal(this.auth.getAccessToken(), { initialValue: '' });
+
   readonly formattedDuration = computed(() => formatDuration(this.video().duration));
   readonly badgeTone = computed(() => getBadgeTone(this.badge()));
+  readonly thumbnailUrl = computed(() => {
+    const blobId = this.video().blobId;
+    const token = this.accessToken();
+    if (!blobId || !token || !this.video().thumbnailBlobId) return null;
+    return this.videos.thumbnailUrl(blobId, token);
+  });
 }
 
 interface BadgeTone {

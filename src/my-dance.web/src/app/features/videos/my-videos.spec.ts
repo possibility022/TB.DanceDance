@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 
 import { MyVideos } from './my-videos';
+import { AuthService } from '../../core/auth/auth.service';
 import { VideosService } from '../../core/api/videos.service';
 import { SharingService } from '../../core/api/sharing.service';
 import { MyVideosResponse, VideoInformation } from '../../core/api/api-models';
@@ -12,11 +13,13 @@ async function setup(my?: Observable<MyVideosResponse>): Promise<ComponentFixtur
     imports: [MyVideos],
     providers: [
       provideRouter([]),
+      { provide: AuthService, useValue: { getAccessToken: () => of('test-token') } },
       {
         provide: VideosService,
         useValue: {
           getMyVideos: () => my ?? of({ videoInformation: [] }),
           updateCommentSettings: () => of(void 0),
+          thumbnailUrl: () => null,
         },
       },
       {
