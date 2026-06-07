@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
+             x:Class="TB.DanceDance.Mobile.Pages.Controls.VideoThumbnail"
+             x:Name="VideoThumbnailRoot">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Border StrokeShape="RoundRectangle 8"
+            Stroke="Transparent"
+            Padding="0"
+            HeightRequest="72"
+            WidthRequest="110"
+            HorizontalOptions="Start">
+        <Grid>
+            <Image Source="{Binding ThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
+                   Aspect="AspectFill"
+                   IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
+
+            <Grid IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}, Converter={StaticResource InverseBooleanConverter}}">
+                <BoxView>
+                    <BoxView.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#20314f" Offset="0.0" />
+                            <GradientStop Color="#2f6f73" Offset="0.56" />
+                            <GradientStop Color="#f0b35a" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </BoxView.Background>
+                </BoxView>
+
+                <Border StrokeShape="RoundRectangle 999"
+                        Stroke="Transparent"
+                        BackgroundColor="#EBFFFFFF"
+                        Padding="0"
+                        HeightRequest="28"
+                        WidthRequest="28"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                    <Polygon Points="0,0 0,14 12,7"
+                             Fill="{StaticResource Primary}"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             Margin="10,7,0,0" />
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</ContentView>
