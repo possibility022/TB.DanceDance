@@ -1,15 +1,10 @@
 using Application.Extensions;
-using Application.Pagination;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using TB.DanceDance.API.Contracts.Features.Comments;
 using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Comments.Endpoints;
-
-public class ListCommentsForVideoRequest : PagedRequest
-{
-}
 
 /// <summary>
 /// Gets comments for a video the authenticated user has access to.
