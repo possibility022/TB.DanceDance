@@ -50,7 +50,15 @@ internal class FFmpegClientConverter : IFFmpegClientConverter
 
     public async Task GenerateThumbnailAsync(string input, string output)
     {
-        await FFMpeg.SnapshotAsync(input, output, captureTime: TimeSpan.FromSeconds(3));
+        var args = FFMpegArguments
+            .FromFileInput(input)
+            .OutputToFile(output, overwrite: true, addArguments: options => options
+                .WithFrameOutputCount(1)
+                // Scale to a 480px-wide thumbnail, preserving aspect ratio (-1 derives the height).
+                .WithCustomArgument("-vf scale=480:-1")
+                .Seek(TimeSpan.FromSeconds(3)));
+
+        await args.ProcessAsynchronously();
     }
 
     private DateTime? GetCreationTime(Dictionary<string, string>? tags)
