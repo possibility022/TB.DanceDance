@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,13 +14,18 @@ namespace TB.DanceDance.Mobile.PageModels;
 
 public partial class MyVideosPageModel : ObservableObject, IAppearingAware
 {
-    [ObservableProperty] IReadOnlyCollection<Video> videos = [];
+    private const int PageSize = 20;
+
+    [ObservableProperty] ObservableCollection<Video> videos = [];
     [ObservableProperty] private bool isRefreshing;
+    [ObservableProperty] private bool isLoadingMore;
+    [ObservableProperty] private bool canLoadMore;
     private readonly IDanceHttpApiClient apiClient;
     private readonly VideoProvider videoProvider;
     private readonly IPopupService popupService;
     private readonly INavigationService navigationService;
     private bool videosLoaded = false;
+    private int currentPage = 0;
 
     public MyVideosPageModel(IDanceHttpApiClient apiClient, VideoProvider videoProvider, IPopupService popupService, INavigationService navigationService)
     {
@@ -116,10 +122,41 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
         }
     }
 
+    [RelayCommand]
+    private async Task LoadMore()
+    {
+        if (IsLoadingMore || !CanLoadMore)
+            return;
+
+        try
+        {
+            IsLoadingMore = true;
+
+            var nextPage = currentPage + 1;
+            var (items, totalCount) = await videoProvider.GetMyVideos(nextPage, PageSize);
+
+            foreach (var video in items)
+                Videos.Add(video);
+
+            currentPage = nextPage;
+            CanLoadMore = Videos.Count < totalCount;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error when loading more videos.");
+        }
+        finally
+        {
+            IsLoadingMore = false;
+        }
+    }
+
     private async Task LoadData()
     {
-        var providedVideos = await videoProvider.GetMyVideos();
-        Videos = providedVideos;
+        var (items, totalCount) = await videoProvider.GetMyVideos(page: 1, PageSize);
+        Videos = new ObservableCollection<Video>(items);
+        currentPage = 1;
+        CanLoadMore = Videos.Count < totalCount;
         videosLoaded = true;
     }
 }

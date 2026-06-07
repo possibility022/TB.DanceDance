@@ -267,23 +267,29 @@ public class DanceHttpApiClientTests : IDisposable
             Name             = "Some Name",
             RecordedDateTime = DateTime.UtcNow,
         };
-        var payload = new MyVideosResponse
+        var payload = new PagedResponse<VideoInformation>
         {
-            VideoInformation = new[] { item }
+            Items = new[] { item },
+            TotalCount = 1,
+            PageNumber = 1,
+            PageSize = 20
         };
 
-        server.Given(Request.Create().WithPath("/api/videos/my").UsingGet())
+        server.Given(Request.Create().WithPath("/api/videos/my").WithParam("page", "1").WithParam("pageSize", "20").UsingGet())
             .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(payload, serializerOptions)));
 
-        var res = await client.GetMyVideos();
+        var res = await client.GetMyVideos(page: 1, pageSize: 20);
 
         Assert.NotNull(res);
-        Assert.Equal(item.BlobId, res.First().BlobId);
-        Assert.Equal(item.Converted, res.First().Converted);
-        Assert.Equal(item.Duration, res.First().Duration);
-        Assert.Equal(item.VideoId, res.First().VideoId);
-        Assert.Equal(item.RecordedDateTime, res.First().RecordedDateTime);
+        Assert.Equal(1, res.TotalCount);
+        Assert.Equal(1, res.PageNumber);
+        Assert.Equal(20, res.PageSize);
+        Assert.Equal(item.BlobId, res.Items.First().BlobId);
+        Assert.Equal(item.Converted, res.Items.First().Converted);
+        Assert.Equal(item.Duration, res.Items.First().Duration);
+        Assert.Equal(item.VideoId, res.Items.First().VideoId);
+        Assert.Equal(item.RecordedDateTime, res.Items.First().RecordedDateTime);
     }
 
     [Fact]

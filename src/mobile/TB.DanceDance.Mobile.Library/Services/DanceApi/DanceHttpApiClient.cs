@@ -144,16 +144,13 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         res.EnsureSuccessStatusCode();
     }
 
-    public async Task<IReadOnlyCollection<VideoInformation>> GetMyVideos()
+    public async Task<PagedResponse<VideoInformation>> GetMyVideos(int page, int pageSize)
     {
-        var response = await httpClient.GetAsync("/api/videos/my", CancellationToken.None);
+        var response = await httpClient.GetAsync($"/api/videos/my?page={page}&pageSize={pageSize}", CancellationToken.None);
         response.EnsureSuccessStatusCode();
 
-        var videos = await response.Content.ReadFromJsonAsync<MyVideosResponse>();
-        if (videos == null)
-            return Array.Empty<VideoInformation>();
-
-        return videos.VideoInformation.ToList();
+        var videos = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>();
+        return videos ?? new PagedResponse<VideoInformation> { PageNumber = page, PageSize = pageSize };
     }
 
     public async Task<SharedLinkResponse?> GetSharingLinkAsync(Guid videoId, CancellationToken token = default)
