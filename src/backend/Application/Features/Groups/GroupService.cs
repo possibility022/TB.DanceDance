@@ -1,4 +1,5 @@
 ﻿using Application.Domain.Models;
+using Application.Features.Videos;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Models;
@@ -9,10 +10,12 @@ namespace Application.Features.Groups;
 public class GroupService : IGroupService
 {
     private readonly IApplicationContext dbContext;
+    private readonly IThumbnailUrlService thumbnailUrlService;
 
-    public GroupService(IApplicationContext dbContext)
+    public GroupService(IApplicationContext dbContext, IThumbnailUrlService thumbnailUrlService)
     {
         this.dbContext = dbContext;
+        this.thumbnailUrlService = thumbnailUrlService;
     }
 
     public async Task<ICollection<Group>> GetAllGroups(CancellationToken cancellationToken)
@@ -60,7 +63,7 @@ public class GroupService : IGroupService
         return q.ToArrayAsync(cancellationToken);
     }
 
-    public Task<VideoFromGroupInformation[]> GetAllVideos(string userId, CancellationToken cancellationToken)
+    public async Task<VideoFromGroupInformation[]> GetAllVideos(string userId, CancellationToken cancellationToken)
     {
         var q = from assignedTo in dbContext.AssingedToGroups
             join sharedWith in dbContext.SharedWith on assignedTo.GroupId equals sharedWith.GroupId
@@ -68,24 +71,32 @@ public class GroupService : IGroupService
             join video in dbContext.Videos on sharedWith.VideoId equals video.Id
             where assignedTo.UserId == userId && assignedTo.WhenJoined < video.RecordedDateTime
             orderby video.RecordedDateTime descending
-            select new VideoFromGroupInformation()
+            select new
             {
-                GroupId = danceGroup.Id,
-                GroupName = danceGroup.Name,
-                BlobId = video.BlobId ?? string.Empty,
-                ThumbnailBlobId = video.ThumbnailBlobId,
-                CommentVisibility = (int)video.CommentVisibility,
-                Duration = video.Duration,
-                Name = video.Name,
-                RecordedDateTime = video.RecordedDateTime,
-                Converted = video.Converted,
-                VideoId = video.Id,
+                Information = new VideoFromGroupInformation()
+                {
+                    GroupId = danceGroup.Id,
+                    GroupName = danceGroup.Name,
+                    BlobId = video.BlobId ?? string.Empty,
+                    CommentVisibility = (int)video.CommentVisibility,
+                    Duration = video.Duration,
+                    Name = video.Name,
+                    RecordedDateTime = video.RecordedDateTime,
+                    Converted = video.Converted,
+                    VideoId = video.Id,
+                },
+                video.ThumbnailBlobId
             };
 
-        return q.ToArrayAsync(cancellationToken);
+        var rows = await q.ToArrayAsync(cancellationToken);
+        return rows.Select(r =>
+        {
+            r.Information.ThumbnailUrl = thumbnailUrlService.GetThumbnailUrl(r.ThumbnailBlobId);
+            return r.Information;
+        }).ToArray();
     }
-    
-    public Task<VideoFromGroupInformation[]> GetAllVideos(string userId, Guid groupId, CancellationToken cancellationToken)
+
+    public async Task<VideoFromGroupInformation[]> GetAllVideos(string userId, Guid groupId, CancellationToken cancellationToken)
     {
         var q = from assignedTo in dbContext.AssingedToGroups
             join sharedWith in dbContext.SharedWith on assignedTo.GroupId equals sharedWith.GroupId
@@ -93,20 +104,28 @@ public class GroupService : IGroupService
             join video in dbContext.Videos on sharedWith.VideoId equals video.Id
             where assignedTo.UserId == userId && assignedTo.WhenJoined < video.RecordedDateTime && assignedTo.GroupId == groupId
             orderby video.RecordedDateTime descending
-            select new VideoFromGroupInformation()
+            select new
             {
-                GroupId = danceGroup.Id,
-                GroupName = danceGroup.Name,
-                BlobId = video.BlobId ?? string.Empty,
-                ThumbnailBlobId = video.ThumbnailBlobId,
-                CommentVisibility = (int)video.CommentVisibility,
-                Duration = video.Duration,
-                Name = video.Name,
-                RecordedDateTime = video.RecordedDateTime,
-                Converted = video.Converted,
-                VideoId = video.Id,
+                Information = new VideoFromGroupInformation()
+                {
+                    GroupId = danceGroup.Id,
+                    GroupName = danceGroup.Name,
+                    BlobId = video.BlobId ?? string.Empty,
+                    CommentVisibility = (int)video.CommentVisibility,
+                    Duration = video.Duration,
+                    Name = video.Name,
+                    RecordedDateTime = video.RecordedDateTime,
+                    Converted = video.Converted,
+                    VideoId = video.Id,
+                },
+                video.ThumbnailBlobId
             };
 
-        return q.ToArrayAsync(cancellationToken);
+        var rows = await q.ToArrayAsync(cancellationToken);
+        return rows.Select(r =>
+        {
+            r.Information.ThumbnailUrl = thumbnailUrlService.GetThumbnailUrl(r.ThumbnailBlobId);
+            return r.Information;
+        }).ToArray();
     }
 }

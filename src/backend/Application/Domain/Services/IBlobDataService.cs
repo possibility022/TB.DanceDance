@@ -5,6 +5,7 @@ namespace Domain.Services;
 public interface IBlobDataService
 {
     Uri GetReadSas(string blobId);
+    Uri GetReadSas(string blobId, DateTimeOffset expiresOn);
     Task<Stream> OpenStream(string blobName, CancellationToken cancellationToken);
     Task Upload(string blobId, Stream stream);
     SharedBlob GetUploadSas(string? blobId = null);

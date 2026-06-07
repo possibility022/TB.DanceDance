@@ -78,6 +78,52 @@ public class BlobDataServiceTests
     }
 
     [Fact]
+    public void GetReadSas_WithExplicitExpiry_ProducesByteIdenticalUrls_ForSameExpiry()
+    {
+        // Arrange
+        var blobService = factory.GetBlobDataService(BlobContainer.Thumbnails);
+        var blobId = Guid.NewGuid().ToString();
+        var expiresOn = new DateTimeOffset(2026, 6, 7, 10, 30, 0, TimeSpan.Zero);
+
+        // Act
+        var first = blobService.GetReadSas(blobId, expiresOn);
+        var second = blobService.GetReadSas(blobId, expiresOn);
+
+        // Assert
+        Assert.Equal(first.ToString(), second.ToString());
+        Assert.Equal(first.Query, second.Query);
+    }
+
+    [Fact]
+    public void GetReadSas_WithExplicitExpiry_ProducesDifferentUrls_ForDifferentExpiry()
+    {
+        // Arrange
+        var blobService = factory.GetBlobDataService(BlobContainer.Thumbnails);
+        var blobId = Guid.NewGuid().ToString();
+
+        // Act
+        var first = blobService.GetReadSas(blobId, new DateTimeOffset(2026, 6, 7, 10, 30, 0, TimeSpan.Zero));
+        var second = blobService.GetReadSas(blobId, new DateTimeOffset(2026, 6, 7, 11, 0, 0, TimeSpan.Zero));
+
+        // Assert
+        Assert.NotEqual(first.ToString(), second.ToString());
+    }
+
+    [Fact]
+    public void GetReadSas_WithoutExplicitExpiry_StillProducesAReadableSasUri()
+    {
+        // Arrange
+        var blobService = factory.GetBlobDataService(BlobContainer.Thumbnails);
+        var blobId = Guid.NewGuid().ToString();
+
+        // Act
+        var sas = blobService.GetReadSas(blobId);
+
+        // Assert
+        Assert.Contains("sig=", sas.Query);
+    }
+
+    [Fact]
     public async Task GetBlobSizeAsync_WorksAcrossDifferentContainers()
     {
         // Arrange

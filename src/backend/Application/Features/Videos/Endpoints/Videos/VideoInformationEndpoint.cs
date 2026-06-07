@@ -7,10 +7,12 @@ namespace Application.Features.Videos.Endpoints.Videos;
 public class VideoInformationEndpoint : EndpointWithoutRequest<VideoInformationResponse>
 {
     private readonly IVideoService videoService;
+    private readonly IThumbnailUrlService thumbnailUrlService;
 
-    public VideoInformationEndpoint(IVideoService videoService)
+    public VideoInformationEndpoint(IVideoService videoService, IThumbnailUrlService thumbnailUrlService)
     {
         this.videoService = videoService;
+        this.thumbnailUrlService = thumbnailUrlService;
     }
 
     public override void Configure()
@@ -31,7 +33,7 @@ public class VideoInformationEndpoint : EndpointWithoutRequest<VideoInformationR
             await Send.NotFoundAsync(cancellation: ct);
         else
         {
-            var results = ContractMappers.MapToVideoInformation(info);
+            var results = ContractMappers.MapToVideoInformation(info, thumbnailUrlService.GetThumbnailUrl(info.ThumbnailBlobId));
             await Send.OkAsync(new VideoInformationResponse
             {
                 VideoInformation = results

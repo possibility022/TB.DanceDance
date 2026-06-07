@@ -13,7 +13,6 @@ public class VideoService : IVideoService
 {
     private readonly IApplicationContext dbContext;
     private readonly IBlobDataService blobService;
-    private readonly IBlobDataService thumbnailBlobService;
     private readonly IVideoUploaderService videoUploaderService;
     private readonly IAccessService accessService;
 
@@ -26,7 +25,6 @@ public class VideoService : IVideoService
     {
         this.dbContext = dbContext;
         blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
-        thumbnailBlobService = blobServiceFactory.GetBlobDataService(BlobContainer.Thumbnails);
         this.videoUploaderService = videoUploaderService;
         this.accessService = accessService;
     }
@@ -130,18 +128,6 @@ public class VideoService : IVideoService
             VideoId = video.Id,
             ExpireAt = sas.ExpiresAt
         };
-    }
-
-    public async Task<Stream?> OpenThumbnailStream(string blobId, CancellationToken cancellationToken)
-    {
-        var video = await dbContext.Videos
-            .Where(r => r.BlobId == blobId && r.ThumbnailBlobId != null)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (video?.ThumbnailBlobId == null)
-            return null;
-
-        return await thumbnailBlobService.OpenStream(video.ThumbnailBlobId, cancellationToken);
     }
 
     public async Task<bool> UpdateCommentVisibilityAsync(

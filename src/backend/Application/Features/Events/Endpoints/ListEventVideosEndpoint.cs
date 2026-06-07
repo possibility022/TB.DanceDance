@@ -1,5 +1,6 @@
 ﻿using Application.Extensions;
 using Application.Features.AccessManagement;
+using Application.Features.Videos;
 using Domain.Entities;
 using FastEndpoints;
 using TB.DanceDance.API.Contracts.Features.Events;
@@ -11,11 +12,13 @@ public class ListEventVideosEndpoint : EndpointWithoutRequest<ListEventVideosRes
 {
     private readonly IEventService eventService;
     private readonly IAccessService accessService;
+    private readonly IThumbnailUrlService thumbnailUrlService;
 
-    public ListEventVideosEndpoint(IEventService eventService, IAccessService accessService)
+    public ListEventVideosEndpoint(IEventService eventService, IAccessService accessService, IThumbnailUrlService thumbnailUrlService)
     {
         this.eventService = eventService;
         this.accessService = accessService;
+        this.thumbnailUrlService = thumbnailUrlService;
     }
     
     public override void Configure()
@@ -49,6 +52,8 @@ public class ListEventVideosEndpoint : EndpointWithoutRequest<ListEventVideosRes
 
     private VideoInformation[] MapVideos(IReadOnlyCollection<Video> videos)
     {
-        return videos.Select(ContractMappers.MapToVideoInformation).ToArray();
+        return videos
+            .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId)))
+            .ToArray();
     }
 }

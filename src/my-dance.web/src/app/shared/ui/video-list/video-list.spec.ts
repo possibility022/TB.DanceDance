@@ -1,9 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
 
-import { AuthService } from '../../../core/auth/auth.service';
-import { VideosService } from '../../../core/api/videos.service';
 import { VideoList } from './video-list';
 import { VideoInformation } from '../../../core/api/api-models';
 
@@ -17,11 +14,7 @@ async function setup(
 ): Promise<ComponentFixture<VideoList>> {
   await TestBed.configureTestingModule({
     imports: [VideoList],
-    providers: [
-      provideRouter([]),
-      { provide: AuthService, useValue: { getAccessToken: () => of('test-token') } },
-      { provide: VideosService, useValue: { thumbnailUrl: () => null } },
-    ],
+    providers: [provideRouter([])],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(VideoList);
