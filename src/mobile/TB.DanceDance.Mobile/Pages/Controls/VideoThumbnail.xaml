@@ -11,7 +11,7 @@
     </ContentView.Resources>
 
     <Grid HeightRequest="160" HorizontalOptions="Fill">
-        <Image Source="{Binding ThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
+        <Image Source="{Binding ResolvedThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
                Aspect="AspectFill"
                IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
 

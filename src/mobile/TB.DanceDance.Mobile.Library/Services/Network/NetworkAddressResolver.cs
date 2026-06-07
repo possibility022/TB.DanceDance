@@ -15,10 +15,11 @@ public class NetworkAddressResolver
 
     private const string Localhost = "localhost";
     private const string LoopAddress = "127.0.0.1";
+    private const string DockerHostAlias = "host.docker.internal";
     private const string AndroidHostMachine = "10.0.2.2";
-    
+
 #endif
-    
+
     public Uri Resolve(Uri uri)
     {
         #if DEBUG
@@ -29,13 +30,15 @@ public class NetworkAddressResolver
                 return new UriBuilder(uri) { Host = AndroidHostMachine }.Uri;
             if (uri.Host.Equals(LoopAddress))
                 return new UriBuilder(uri) { Host = AndroidHostMachine }.Uri;
+            if (uri.Host.Equals(DockerHostAlias))
+                return new UriBuilder(uri) { Host = AndroidHostMachine }.Uri;
         }
-            
+
         #endif
-        
+
         return uri;
     }
-    
+
     public string Resolve(string uri)
     {
 #if DEBUG
@@ -43,10 +46,11 @@ public class NetworkAddressResolver
         if (platform == DevicePlatform.Android)
         {
             return uri.Replace(Localhost, AndroidHostMachine)
-                .Replace(LoopAddress, AndroidHostMachine);
+                .Replace(LoopAddress, AndroidHostMachine)
+                .Replace(DockerHostAlias, AndroidHostMachine);
         }
 #endif
-        
+
         return uri;
     }
     
