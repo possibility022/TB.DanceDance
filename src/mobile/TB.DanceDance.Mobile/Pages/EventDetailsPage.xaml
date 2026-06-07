@@ -25,35 +25,40 @@
                             BindableLayout.ItemsSource="{Binding Videos}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:Video">
-                                    <Border Padding="10" Margin="0,10,0,0" IsEnabled="{Binding Converted}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition></ColumnDefinition>
-                                                <ColumnDefinition></ColumnDefinition>
-                                            </Grid.ColumnDefinitions>
-                                            <VerticalStackLayout>
-                                                <Label Text="{Binding Name}" FontSize="24">
-                                                    <Label.GestureRecognizers>
-                                                        <TapGestureRecognizer
-                                                            Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventDetailsPageModel}}, x:DataType=pageModels:EventDetailsPageModel}"
-                                                            CommandParameter="{Binding .}" />
-                                                    </Label.GestureRecognizers>
-                                                </Label>
-                                                <Label
-                                                    Text="{Binding When, Converter={StaticResource DateTimeConverter}}" />
-                                                <Label Text="Nagranie nie jest gotowe."
-                                                       IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
-                                                       TextColor="{StaticResource Magenta}">
-                                                </Label>
-                                            </VerticalStackLayout>
+                                    <Border Padding="0" Margin="0,10,0,0" StrokeShape="RoundRectangle 8" IsEnabled="{Binding Converted}">
+                                        <VerticalStackLayout Spacing="0">
+                                            <controls:VideoThumbnail
+                                                ThumbnailUrl="{Binding ThumbnailUrl}"
+                                                HorizontalOptions="Fill" />
 
-                                            <controls:EditButton Grid.Column="1"
-                                                                 Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventDetailsPageModel}}, x:DataType=pageModels:EventDetailsPageModel}"
-                                                                 CommandParameter="{Binding Id}"
-                                                                 HorizontalOptions="End"
-                                                                 VerticalOptions="Center" />
+                                            <Grid Padding="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition></ColumnDefinition>
+                                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <VerticalStackLayout Grid.Column="0">
+                                                    <Label Text="{Binding Name}" FontSize="24">
+                                                        <Label.GestureRecognizers>
+                                                            <TapGestureRecognizer
+                                                                Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventDetailsPageModel}}, x:DataType=pageModels:EventDetailsPageModel}"
+                                                                CommandParameter="{Binding .}" />
+                                                        </Label.GestureRecognizers>
+                                                    </Label>
+                                                    <Label
+                                                        Text="{Binding When, Converter={StaticResource DateTimeConverter}}" />
+                                                    <Label Text="Nagranie nie jest gotowe."
+                                                           IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
+                                                           TextColor="{StaticResource Magenta}">
+                                                    </Label>
+                                                </VerticalStackLayout>
 
-                                        </Grid>
+                                                <controls:EditButton Grid.Column="1"
+                                                                     Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:EventDetailsPageModel}}, x:DataType=pageModels:EventDetailsPageModel}"
+                                                                     CommandParameter="{Binding Id}"
+                                                                     HorizontalOptions="End"
+                                                                     VerticalOptions="Center" />
+                                            </Grid>
+                                        </VerticalStackLayout>
                                     </Border>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
