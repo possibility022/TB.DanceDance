@@ -128,12 +128,15 @@ public class VideoUploaderService : IVideoUploaderService
     public async Task<(Guid Id, string BlobId, string FileName, Uri Sas)?> GetNextVideoForThumbnailAsync(CancellationToken cancellationToken)
     {
         var video = await danceDbContext.Videos
-            .Where(r => r.Converted && r.ThumbnailBlobId == null && r.BlobId != null)
+            .Where(r => (r.LockedTill == null || r.LockedTill < DateTime.UtcNow) && r.Converted && r.ThumbnailBlobId == null && r.BlobId != null)
             .OrderByDescending(r => r.SharedDateTime)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (video == null)
             return null;
+
+        video.LockedTill = DateTime.SpecifyKind(DateTime.Now.AddDays(1), DateTimeKind.Utc);
+        await danceDbContext.SaveChangesAsync(cancellationToken);
 
         var sas = videosToConvertBlobs.GetReadSas(video.SourceBlobId);
         return (video.Id, video.BlobId!, video.FileName, sas);

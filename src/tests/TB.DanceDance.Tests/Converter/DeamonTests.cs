@@ -74,6 +74,10 @@ public class DeamonTests
         api.GetNextVideoToConvertAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<VideoToTransformResponse?>(response)!, Task.FromResult<VideoToTransformResponse?>(null)!);
 
+        // Nothing to thumbnail, so it doesn't interfere with the conversion-loop assertions below
+        api.GetNextVideoForThumbnailAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<VideoToThumbnailResponse?>(new VideoToThumbnailResponse { VideoExists = false })!);
+
         // Download writes the input file content
         api.GetVideoToConvertAsync(Arg.Any<Stream>(), Arg.Any<Uri>(), Arg.Any<CancellationToken>())
             .Returns(ci =>
