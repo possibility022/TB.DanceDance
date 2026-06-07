@@ -1,5 +1,6 @@
 ﻿using Application.Features.AccessManagement;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Domain.Entities;
 using TB.DanceDance.Tests.TestsFixture;
 
@@ -416,9 +417,9 @@ public class AccessServiceTests : BaseTestClass
         Assert.True(has);
     }
 
-    // P1: GetUserPrivateVideos returns only private videos for the user
+    // P1: GetUserPrivateVideosQuery returns only private videos for the user
     [Fact]
-    public async Task GetUserPrivateVideos_ReturnsOnlyPrivateVideos_ForUser()
+    public async Task GetUserPrivateVideosQuery_ReturnsOnlyPrivateVideos_ForUser()
     {
         // Arrange
         var userB = new UserDataBuilder();
@@ -448,19 +449,19 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+        var result = await accessService.GetUserPrivateVideosQuery(user.Id).ToArrayAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Equal(2, result.Count);
+        Assert.Equal(2, result.Length);
         Assert.Contains(result, v => v.Id == privateVideo1.Id);
         Assert.Contains(result, v => v.Id == privateVideo2.Id);
         Assert.DoesNotContain(result, v => v.Id == groupVideo.Id);
         Assert.DoesNotContain(result, v => v.Id == eventVideo.Id);
     }
 
-    // P2: GetUserPrivateVideos returns empty when user has no private videos
+    // P2: GetUserPrivateVideosQuery returns empty when user has no private videos
     [Fact]
-    public async Task GetUserPrivateVideos_ReturnsEmpty_WhenUserHasNoPrivateVideos()
+    public async Task GetUserPrivateVideosQuery_ReturnsEmpty_WhenUserHasNoPrivateVideos()
     {
         // Arrange
         var user = new UserDataBuilder().Build();
@@ -468,15 +469,15 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+        var result = await accessService.GetUserPrivateVideosQuery(user.Id).ToArrayAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Empty(result);
     }
 
-    // P3: GetUserPrivateVideos does not return other users' private videos
+    // P3: GetUserPrivateVideosQuery does not return other users' private videos
     [Fact]
-    public async Task GetUserPrivateVideos_DoesNotReturnOtherUsersPrivateVideos()
+    public async Task GetUserPrivateVideosQuery_DoesNotReturnOtherUsersPrivateVideos()
     {
         // Arrange
         var user1 = new UserDataBuilder().Build();
@@ -492,7 +493,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await accessService.GetUserPrivateVideos(user1.Id, TestContext.Current.CancellationToken);
+        var result = await accessService.GetUserPrivateVideosQuery(user1.Id).ToArrayAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(result);
@@ -500,9 +501,9 @@ public class AccessServiceTests : BaseTestClass
         Assert.DoesNotContain(result, v => v.Id == user2Video.Id);
     }
 
-    // P4: GetUserPrivateVideos returns videos with correct blob sizes
+    // P4: GetUserPrivateVideosQuery returns videos with correct blob sizes
     [Fact]
-    public async Task GetUserPrivateVideos_ReturnsVideosWithBlobSizes()
+    public async Task GetUserPrivateVideosQuery_ReturnsVideosWithBlobSizes()
     {
         // Arrange
         var user = new UserDataBuilder().Build();
@@ -518,7 +519,7 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+        var result = await accessService.GetUserPrivateVideosQuery(user.Id).ToArrayAsync(TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(result);
@@ -527,9 +528,9 @@ public class AccessServiceTests : BaseTestClass
         Assert.Equal(2048, returnedVideo.ConvertedBlobSize);
     }
 
-    // P5: GetUserPrivateVideos returns videos regardless of conversion status
+    // P5: GetUserPrivateVideosQuery returns videos regardless of conversion status
     [Fact]
-    public async Task GetUserPrivateVideos_ReturnsVideos_RegardlessOfConversionStatus()
+    public async Task GetUserPrivateVideosQuery_ReturnsVideos_RegardlessOfConversionStatus()
     {
         // Arrange
         var user = new UserDataBuilder().Build();
@@ -544,17 +545,17 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+        var result = await accessService.GetUserPrivateVideosQuery(user.Id).ToArrayAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Equal(2, result.Count);
+        Assert.Equal(2, result.Length);
         Assert.Contains(result, v => v.Id == convertedVideo.Id);
         Assert.Contains(result, v => v.Id == unconvertedVideo.Id);
     }
 
-    // P6: GetUserPrivateVideos works correctly when user has mix of private, group, and event videos
+    // P6: GetUserPrivateVideosQuery works correctly when user has mix of private, group, and event videos
     [Fact]
-    public async Task GetUserPrivateVideos_FiltersCorrectly_WithMixedVideoTypes()
+    public async Task GetUserPrivateVideosQuery_FiltersCorrectly_WithMixedVideoTypes()
     {
         // Arrange
         var userB = new UserDataBuilder();
@@ -589,15 +590,41 @@ public class AccessServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var result = await accessService.GetUserPrivateVideos(user.Id, TestContext.Current.CancellationToken);
+        var result = await accessService.GetUserPrivateVideosQuery(user.Id).ToArrayAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        Assert.Equal(3, result.Count);
+        Assert.Equal(3, result.Length);
         Assert.Contains(result, v => v.Id == private1.Id);
         Assert.Contains(result, v => v.Id == private2.Id);
         Assert.Contains(result, v => v.Id == private3.Id);
     }
-    
+
+    // GetUserPrivateVideosQuery orders videos by RecordedDateTime descending (then Id) so paging is stable
+    [Fact]
+    public async Task GetUserPrivateVideosQuery_OrdersByRecordedDateTimeDescending()
+    {
+        // Arrange
+        var user = new UserDataBuilder().Build();
+
+        var oldest = new VideoDataBuilder().UploadedBy(user).WithName("Oldest").RecordedAt(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
+        var middle = new VideoDataBuilder().UploadedBy(user).WithName("Middle").RecordedAt(new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
+        var newest = new VideoDataBuilder().UploadedBy(user).WithName("Newest").RecordedAt(new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
+
+        var shares = new[] { oldest, middle, newest }
+            .Select(v => new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, EventId = null, GroupId = null })
+            .ToArray();
+
+        SeedDbContext.AddRange(user, oldest, middle, newest);
+        SeedDbContext.AddRange(shares);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await accessService.GetUserPrivateVideosQuery(user.Id).ToArrayAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal([newest.Id, middle.Id, oldest.Id], result.Select(v => v.Id));
+    }
+
     // P7 When user has private video, method should tell that user has access to it.
     [Fact]
     public async Task DoesUserHasAccessAsync_ReturnsTrueForPrivateVideo()

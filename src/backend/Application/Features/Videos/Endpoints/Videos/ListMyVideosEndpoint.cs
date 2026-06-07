@@ -1,11 +1,16 @@
-﻿using Application.Extensions;
+using Application.Extensions;
 using Application.Features.AccessManagement;
+using Application.Pagination;
 using FastEndpoints;
-using TB.DanceDance.API.Contracts.Features.Videos;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Videos.Endpoints.Videos;
 
-public class ListMyVideosEndpoint : EndpointWithoutRequest<MyVideosResponse>
+public class ListMyVideosRequest : PagedRequest
+{
+}
+
+public class ListMyVideosEndpoint : Endpoint<ListMyVideosRequest, PagedResponse<VideoInformation>>
 {
     private readonly IAccessService accessService;
     private readonly IThumbnailUrlService thumbnailUrlService;
@@ -22,16 +27,24 @@ public class ListMyVideosEndpoint : EndpointWithoutRequest<MyVideosResponse>
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ListMyVideosRequest req, CancellationToken ct)
     {
-        var videos = await accessService.GetUserPrivateVideos(User.GetSubject(), ct);
+        var pageNumber = req.NormalizedPage;
+        var pageSize = req.NormalizedPageSize;
+
+        var query = accessService.GetUserPrivateVideosQuery(User.GetSubject());
+        var (videos, totalCount) = await query.ToPagedResultAsync(pageNumber, pageSize, ct);
+
         var videoInformation = videos
             .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId)))
             .ToArray();
-        
-        await Send.OkAsync(new MyVideosResponse
+
+        await Send.OkAsync(new PagedResponse<VideoInformation>
         {
-            VideoInformation = videoInformation
+            Items = videoInformation,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
         }, cancellation: ct);
     }
 }
