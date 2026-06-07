@@ -29,17 +29,23 @@ describe('GroupsService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getGroupVideos() GETs /api/groups/videos', () => {
-    service.getGroupVideos().subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/groups/videos`);
+  it('getGroupVideos() GETs /api/groups/videos with page and pageSize params', () => {
+    let response;
+    service.getGroupVideos(1, 20).subscribe((r) => (response = r));
+    const req = httpMock.expectOne(`${BASE}/api/groups/videos?page=1&pageSize=20`);
     expect(req.request.method).toBe('GET');
-    req.flush({ videos: [] });
+    req.flush({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
+
+    expect(response).toEqual({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
   });
 
-  it('getVideosForGroup() GETs the url-encoded group videos', () => {
-    service.getVideosForGroup('g/1').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/groups/g%2F1/videos`);
+  it('getVideosForGroup() GETs the url-encoded group videos with page and pageSize params', () => {
+    let response;
+    service.getVideosForGroup('g/1', 1, 20).subscribe((r) => (response = r));
+    const req = httpMock.expectOne(`${BASE}/api/groups/g%2F1/videos?page=1&pageSize=20`);
     expect(req.request.method).toBe('GET');
-    req.flush({ videos: [] });
+    req.flush({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
+
+    expect(response).toEqual({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
   });
 });

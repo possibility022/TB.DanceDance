@@ -33,8 +33,8 @@ public class EventServiceTests : BaseTestClass
 
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var videos =
-            await eventService.GetVideos(testData.evt.Id, testData.user.Id, TestContext.Current.CancellationToken);
+        var (videos, _) =
+            await eventService.GetVideos(testData.evt.Id, testData.user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
 
         Assert.Single(videos);
         Assert.Equal(testData.video.Id, videos.Single().Id);
@@ -128,7 +128,7 @@ public class EventServiceTests : BaseTestClass
         });
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var videos = await eventService.GetVideos(evtA.Id, user.Id, TestContext.Current.CancellationToken);
+        var (videos, _) = await eventService.GetVideos(evtA.Id, user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Empty(videos);
     }
 
@@ -163,7 +163,7 @@ public class EventServiceTests : BaseTestClass
         SeedDbContext.AddRange(shareGroup, shareDirect);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var videos = await eventService.GetVideos(evt.Id, user.Id, TestContext.Current.CancellationToken);
+        var (videos, _) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Empty(videos);
     }
 
@@ -183,7 +183,7 @@ public class EventServiceTests : BaseTestClass
         SeedDbContext.AddRange(owner, user, evt, video, share);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var videos = await eventService.GetVideos(evt.Id, user.Id, TestContext.Current.CancellationToken);
+        var (videos, _) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Empty(videos);
     }
 
@@ -210,7 +210,7 @@ public class EventServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(evt.Id, user.Id, TestContext.Current.CancellationToken);
+        var (result, _) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Equal(new[] { v2.Id, v3.Id, v1.Id }, result.Select(r => r.Id).ToArray());
     }
 
@@ -233,8 +233,8 @@ public class EventServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(evt.Id, user.Id,TestContext.Current.CancellationToken);
-        Assert.Equal(2, result.Length);
+        var (result, _) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
+        Assert.Equal(2, result.Count);
         Assert.All(result, v => Assert.Equal(video.Id, v.Id));
     }
 
@@ -265,7 +265,7 @@ public class EventServiceTests : BaseTestClass
         );
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var resultA = await eventService.GetVideos(evtA.Id, user.Id,TestContext.Current.CancellationToken);
+        var (resultA, _) = await eventService.GetVideos(evtA.Id, user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Single(resultA);
         Assert.Equal(vA.Id, resultA.Single().Id);
     }
@@ -288,7 +288,7 @@ public class EventServiceTests : BaseTestClass
             new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id, EventId = created.Id });
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(created.Id, owner.Id,TestContext.Current.CancellationToken);
+        var (result, _) = await eventService.GetVideos(created.Id, owner.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Single(result);
         Assert.Equal(video.Id, result.Single().Id);
     }
@@ -309,8 +309,75 @@ public class EventServiceTests : BaseTestClass
             new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id, EventId = evt.Id });
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await eventService.GetVideos(evt.Id, owner.Id,TestContext.Current.CancellationToken);
+        var (result, _) = await eventService.GetVideos(evt.Id, owner.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         SeedDbContext.ChangeTracker.Clear();
         Assert.Empty(result);
+    }
+
+    // C20: GetVideos first page returns PageSize items in RecordedDateTime-descending order plus correct TotalCount
+    [Fact]
+    public async Task GetVideos_FirstPage_ReturnsPageSizeItemsAndTotalCount()
+    {
+        var (user, evt, videos) = await SeedFiveEventVideos();
+
+        var (firstPage, totalCount) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 1, pageSize: 2, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, totalCount);
+        var list = firstPage.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(videos[4].Id, list[0].Id);
+        Assert.Equal(videos[3].Id, list[1].Id);
+    }
+
+    // C21: GetVideos second page returns the remainder in the same order
+    [Fact]
+    public async Task GetVideos_SecondPage_ReturnsRemainderInOrder()
+    {
+        var (user, evt, videos) = await SeedFiveEventVideos();
+
+        var (secondPage, totalCount) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 2, pageSize: 2, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, totalCount);
+        var list = secondPage.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(videos[2].Id, list[0].Id);
+        Assert.Equal(videos[1].Id, list[1].Id);
+    }
+
+    // C22: GetVideos out-of-range page returns no items but the correct TotalCount
+    [Fact]
+    public async Task GetVideos_OutOfRangePage_ReturnsEmptyItemsWithCorrectTotalCount()
+    {
+        var (user, evt, _) = await SeedFiveEventVideos();
+
+        var (items, totalCount) = await eventService.GetVideos(evt.Id, user.Id, pageNumber: 999, pageSize: 10, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, totalCount);
+        Assert.Empty(items);
+    }
+
+    private async Task<(User user, Event evt, Video[] videos)> SeedFiveEventVideos()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var evtB = new EventDataBuilder();
+        var owner = evtB.BuildOwner();
+        var evt = evtB.Build();
+        var membership = userB.AssignTo(evt);
+
+        var videos = Enumerable.Range(0, 5)
+            .Select(i => new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-10 + i)).Build())
+            .ToArray();
+        var shares = videos
+            .Select(v => new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, EventId = evt.Id })
+            .ToArray();
+
+        SeedDbContext.AddRange(owner, user, evt, membership);
+        SeedDbContext.AddRange(videos);
+        SeedDbContext.AddRange(shares);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+
+        return (user, evt, videos);
     }
 }

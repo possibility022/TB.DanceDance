@@ -272,12 +272,14 @@ public class GroupServiceTests : BaseTestClass
 
         thumbnailUrlService.GetThumbnailUrl("thumb-1").Returns("https://azurite/thumbnails/thumb-1?sv=stub");
 
-        var result = await groupService.GetAllVideos(user.Id, group.Id, TestContext.Current.CancellationToken);
+        var (result, totalCount) = await groupService.GetAllVideos(user.Id, group.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Single(result);
+        Assert.Equal(1, totalCount);
         Assert.Equal("https://azurite/thumbnails/thumb-1?sv=stub", result.Single().ThumbnailUrl);
 
-        var resultAllGroups = await groupService.GetAllVideos(user.Id, TestContext.Current.CancellationToken);
+        var (resultAllGroups, totalCountAllGroups) = await groupService.GetAllVideos(user.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Single(resultAllGroups);
+        Assert.Equal(1, totalCountAllGroups);
         Assert.Equal("https://azurite/thumbnails/thumb-1?sv=stub", resultAllGroups.Single().ThumbnailUrl);
     }
 
@@ -299,8 +301,76 @@ public class GroupServiceTests : BaseTestClass
 
         thumbnailUrlService.GetThumbnailUrl(Arg.Any<string?>()).Returns((string?)null);
 
-        var result = await groupService.GetAllVideos(user.Id, group.Id, TestContext.Current.CancellationToken);
+        var (result, _) = await groupService.GetAllVideos(user.Id, group.Id, pageNumber: 1, pageSize: 20, TestContext.Current.CancellationToken);
         Assert.Single(result);
         Assert.Null(result.Single().ThumbnailUrl);
+    }
+
+    // G13: GetAllVideos first page returns PageSize items in RecordedDateTime-descending order plus correct TotalCount
+    [Fact]
+    public async Task GetAllVideos_FirstPage_ReturnsPageSizeItemsAndTotalCount()
+    {
+        var (user, group, videos) = await SeedFiveGroupVideos();
+
+        var (firstPage, totalCount) = await groupService.GetAllVideos(user.Id, group.Id, pageNumber: 1, pageSize: 2, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, totalCount);
+        var list = firstPage.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(videos[4].Id, list[0].VideoId);
+        Assert.Equal(videos[3].Id, list[1].VideoId);
+    }
+
+    // G14: GetAllVideos second page returns the remainder in the same order
+    [Fact]
+    public async Task GetAllVideos_SecondPage_ReturnsRemainderInOrder()
+    {
+        var (user, group, videos) = await SeedFiveGroupVideos();
+
+        var (secondPage, totalCount) = await groupService.GetAllVideos(user.Id, group.Id, pageNumber: 2, pageSize: 2, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, totalCount);
+        var list = secondPage.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal(videos[2].Id, list[0].VideoId);
+        Assert.Equal(videos[1].Id, list[1].VideoId);
+    }
+
+    // G15: GetAllVideos out-of-range page returns no items but the correct TotalCount
+    [Fact]
+    public async Task GetAllVideos_OutOfRangePage_ReturnsEmptyItemsWithCorrectTotalCount()
+    {
+        var (user, group, _) = await SeedFiveGroupVideos();
+
+        var (items, totalCount) = await groupService.GetAllVideos(user.Id, group.Id, pageNumber: 999, pageSize: 10, TestContext.Current.CancellationToken);
+
+        Assert.Equal(5, totalCount);
+        Assert.Empty(items);
+    }
+
+    private async Task<(User user, Group group, Video[] videos)> SeedFiveGroupVideos()
+    {
+        var userB = new UserDataBuilder();
+        var user = userB.Build();
+        var group = new GroupDataBuilder().Build();
+        var joinedAt = DateTime.UtcNow.AddDays(-1);
+        var membership = userB.AssignTo(group, joinedAt);
+
+        var videos = Enumerable.Range(0, 5)
+            .Select(i => new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(i + 1)).Build())
+            .ToArray();
+        var shares = videos
+            .Select(v => new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id })
+            .ToArray();
+
+        SeedDbContext.AddRange(user, group, membership);
+        SeedDbContext.AddRange(videos);
+        SeedDbContext.AddRange(shares);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        SeedDbContext.ChangeTracker.Clear();
+
+        thumbnailUrlService.GetThumbnailUrl(Arg.Any<string?>()).Returns((string?)null);
+
+        return (user, group, videos);
     }
 }

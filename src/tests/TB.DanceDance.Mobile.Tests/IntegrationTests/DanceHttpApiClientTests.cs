@@ -2,9 +2,7 @@ using NSubstitute;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Features.AccessManagement;
 using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
-using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Contracts.Features.Events.Models;
-using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Contracts.Features.Videos;
@@ -120,9 +118,9 @@ public class DanceHttpApiClientTests : IDisposable
     [Fact]
     public async Task GetVideosFromGroups_ReturnsCollection()
     {
-        var payload = new ListGroupVideosResponse
+        var payload = new PagedResponse<VideoFromGroupInformation>
         {
-            Videos = new[]
+            Items = new[]
             {
                 new VideoFromGroupInformation
                 {
@@ -134,7 +132,10 @@ public class DanceHttpApiClientTests : IDisposable
                     Converted = true,
                     RecordedDateTime = DateTime.UtcNow
                 }
-            }
+            },
+            TotalCount = 1,
+            PageNumber = 1,
+            PageSize = 20,
         };
         server.Given(Request.Create().WithPath("/api/groups/videos").UsingGet())
             .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
@@ -150,9 +151,9 @@ public class DanceHttpApiClientTests : IDisposable
     public async Task GetVideosForEvent_Works_NullBody_ReturnsEmpty_And_ThrowsOnError()
     {
         var eventId = Guid.NewGuid();
-        var vids = new ListEventVideosResponse
+        var vids = new PagedResponse<VideoInformation>
         {
-            Videos = new List<VideoInformation>
+            Items = new List<VideoInformation>
             {
                 new VideoInformation
                 {
@@ -162,7 +163,10 @@ public class DanceHttpApiClientTests : IDisposable
                     Converted = false,
                     RecordedDateTime = DateTime.UtcNow
                 }
-            }
+            },
+            TotalCount = 1,
+            PageNumber = 1,
+            PageSize = 20,
         };
 
         // normal

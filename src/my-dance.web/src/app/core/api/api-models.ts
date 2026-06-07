@@ -157,8 +157,17 @@ export interface SharedVideoInfoResponse {
     allowAnonymousCommentsOnThisLink?: boolean;
 }
 
-export interface ListGroupVideosResponse {
-    videos?: VideoFromGroupInformation[];
+export interface PagedResponseOfVideoFromGroupInformation {
+    items?: VideoFromGroupInformation[];
+    totalCount?: number;
+    pageNumber?: number;
+    pageSize?: number;
+}
+
+export interface ListAllGroupVideosRequest extends PagedRequest {
+}
+
+export interface ListGroupVideosRequest extends PagedRequest {
 }
 
 export interface VideoFromGroupInformation extends VideoInformation {
@@ -180,8 +189,7 @@ export interface EventModel {
     date: Date;
 }
 
-export interface ListEventVideosResponse {
-    videos?: VideoInformation[];
+export interface ListEventVideosRequest extends PagedRequest {
 }
 
 export interface CommentResponse {

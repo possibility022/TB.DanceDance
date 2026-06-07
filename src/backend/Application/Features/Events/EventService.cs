@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Extensions;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Events;
@@ -25,7 +26,7 @@ public class EventService : IEventService
         return @event;
     }
 
-    public Task<Video[]> GetVideos(Guid eventId, string userId, CancellationToken cancellationToken)
+    public Task<(IReadOnlyCollection<Video> Items, int TotalCount)> GetVideos(Guid eventId, string userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var q = from assignedTo in dbContext.AssingedToEvents
                 join sharedWith in dbContext.SharedWith on assignedTo.EventId equals sharedWith.EventId
@@ -34,6 +35,6 @@ public class EventService : IEventService
                 orderby video.RecordedDateTime descending
                 select video;
 
-        return q.ToArrayAsync(cancellationToken);
+        return q.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 }

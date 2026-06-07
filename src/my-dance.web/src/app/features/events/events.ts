@@ -24,6 +24,8 @@ interface EventSeasonGroup {
 
 type Season = 'Winter' | 'Spring' | 'Summer' | 'Autumn';
 
+const VIDEOS_PAGE_SIZE = 20;
+
 @Component({
   selector: 'app-events',
   imports: [ReactiveFormsModule, LongDatePipe, VideoList, UploadDialog],
@@ -167,6 +169,9 @@ export class Events {
   readonly videos = signal<readonly VideoInformation[]>([]);
   readonly videosLoading = signal(false);
   readonly videosFailed = signal(false);
+  readonly videosLoadingMore = signal(false);
+  readonly videosCanLoadMore = signal(false);
+  private currentVideosPage = 0;
 
   readonly uploadModalOpen = signal(false);
   readonly uploadTargetKey = computed(() => {
@@ -213,18 +218,50 @@ export class Events {
     this.videosLoading.set(true);
     this.videosFailed.set(false);
     this.videos.set([]);
+    this.videosLoadingMore.set(false);
+    this.videosCanLoadMore.set(false);
+    this.currentVideosPage = 0;
 
     this.events
-      .getEventVideos(event.id)
+      .getEventVideos(event.id, 1, VIDEOS_PAGE_SIZE)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.videos.set(response.videos ?? []);
+          const items = response.items ?? [];
+          this.videos.set(items);
+          this.currentVideosPage = 1;
+          this.videosCanLoadMore.set(items.length < (response.totalCount ?? 0));
           this.videosLoading.set(false);
         },
         error: () => {
           this.videosFailed.set(true);
           this.videosLoading.set(false);
+        },
+      });
+  }
+
+  loadMoreVideos(): void {
+    const event = this.selected();
+    if (!event?.id || this.videosLoadingMore() || !this.videosCanLoadMore()) {
+      return;
+    }
+
+    this.videosLoadingMore.set(true);
+    const nextPage = this.currentVideosPage + 1;
+
+    this.events
+      .getEventVideos(event.id, nextPage, VIDEOS_PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = [...this.videos(), ...(response.items ?? [])];
+          this.videos.set(items);
+          this.currentVideosPage = nextPage;
+          this.videosCanLoadMore.set(items.length < (response.totalCount ?? 0));
+          this.videosLoadingMore.set(false);
+        },
+        error: () => {
+          this.videosLoadingMore.set(false);
         },
       });
   }
@@ -235,6 +272,9 @@ export class Events {
     this.videos.set([]);
     this.videosLoading.set(false);
     this.videosFailed.set(false);
+    this.videosLoadingMore.set(false);
+    this.videosCanLoadMore.set(false);
+    this.currentVideosPage = 0;
   }
 
   openUploadDialog(): void {

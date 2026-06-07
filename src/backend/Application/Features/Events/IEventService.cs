@@ -6,5 +6,5 @@ public interface IEventService
 {
     Task<ICollection<Event>> GetAllEvents(CancellationToken cancellationToken);
     Task<Event> CreateEventAsync(Event @event, CancellationToken cancellationToken);
-    Task<Video[]> GetVideos(Guid eventId, string userId, CancellationToken cancellationToken);
+    Task<(IReadOnlyCollection<Video> Items, int TotalCount)> GetVideos(Guid eventId, string userId, int pageNumber, int pageSize, CancellationToken cancellationToken);
 }

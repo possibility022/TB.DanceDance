@@ -24,6 +24,7 @@ import { VideoList } from '../../shared/ui/video-list/video-list';
 export type SidebarTab = 'comments' | 'recordings';
 
 const COMMENTS_PAGE_SIZE = 20;
+const SIBLINGS_PAGE_SIZE = 100;
 
 @Component({
   selector: 'app-video-player',
@@ -120,16 +121,16 @@ export class VideoPlayer {
 
   private loadSiblings(): void {
     const request$ = this.groupId()
-      ? this.groups.getVideosForGroup(this.groupId())
+      ? this.groups.getVideosForGroup(this.groupId(), 1, SIBLINGS_PAGE_SIZE)
       : this.eventId()
-        ? this.events.getEventVideos(this.eventId())
+        ? this.events.getEventVideos(this.eventId(), 1, SIBLINGS_PAGE_SIZE)
         : null;
     if (!request$) {
       this.siblings.set([]);
       return;
     }
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => this.siblings.set(response.videos ?? []),
+      next: (response) => this.siblings.set(response.items ?? []),
       error: () => this.siblings.set([]),
     });
   }

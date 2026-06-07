@@ -34,8 +34,8 @@ function createFixture(opts: {
     streamUrl: vi.fn(() => 'https://api/stream'),
     renameVideo: opts.renameVideo ?? vi.fn(() => of(void 0)),
   };
-  const groups = { getVideosForGroup: opts.getVideosForGroup ?? vi.fn(() => of({ videos: [] })) };
-  const events = { getEventVideos: opts.getEventVideos ?? vi.fn(() => of({ videos: [] })) };
+  const groups = { getVideosForGroup: opts.getVideosForGroup ?? vi.fn(() => of({ items: [] })) };
+  const events = { getEventVideos: opts.getEventVideos ?? vi.fn(() => of({ items: [] })) };
   const comments = {
     getCommentsForVideo: opts.getCommentsForVideo ?? vi.fn(() => of({ items: [], totalCount: 0 })),
     updateComment: vi.fn(() => of(void 0)),
@@ -103,16 +103,16 @@ describe('VideoPlayer', () => {
 
   describe('sibling playlist', () => {
     it('loads group siblings when a group scope is provided', () => {
-      const getVideosForGroup = vi.fn(() => of({ videos: [{ videoId: 'a' }, { videoId: 'b' }] }));
+      const getVideosForGroup = vi.fn(() => of({ items: [{ videoId: 'a' }, { videoId: 'b' }] }));
       const { component, groups } = createFixture({ groupId: 'g1', getVideosForGroup });
-      expect(groups.getVideosForGroup).toHaveBeenCalledWith('g1');
+      expect(groups.getVideosForGroup).toHaveBeenCalledWith('g1', 1, 100);
       expect(component.siblings()).toHaveLength(2);
     });
 
     it('loads event siblings when only an event scope is provided', () => {
-      const getEventVideos = vi.fn(() => of({ videos: [{ videoId: 'a' }] }));
+      const getEventVideos = vi.fn(() => of({ items: [{ videoId: 'a' }] }));
       const { component, events } = createFixture({ eventId: 'e1', getEventVideos });
-      expect(events.getEventVideos).toHaveBeenCalledWith('e1');
+      expect(events.getEventVideos).toHaveBeenCalledWith('e1', 1, 100);
       expect(component.siblings()).toHaveLength(1);
     });
 
@@ -180,7 +180,7 @@ describe('VideoPlayer', () => {
     it('defaults to the recordings tab when siblings are loaded', () => {
       const { component } = createFixture({
         groupId: 'g1',
-        getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })),
+        getVideosForGroup: vi.fn(() => of({ items: [{ videoId: 'a' }] })),
       });
       expect(component.activeTab()).toBe('recordings');
     });
@@ -188,7 +188,7 @@ describe('VideoPlayer', () => {
     it('switches to the comments tab when requested', () => {
       const { component } = createFixture({
         groupId: 'g1',
-        getVideosForGroup: vi.fn(() => of({ videos: [{ videoId: 'a' }] })),
+        getVideosForGroup: vi.fn(() => of({ items: [{ videoId: 'a' }] })),
       });
       component.setTab('comments');
       expect(component.activeTab()).toBe('comments');

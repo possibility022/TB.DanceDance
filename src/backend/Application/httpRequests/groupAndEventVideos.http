@@ -1,0 +1,52 @@
+### REMEMBER TO CALL GET TOKEN FROM token.http
+
+@groupId = 7c30e3cc-e6d8-4cf7-8b64-eba68efa5366
+@eventId = 00000000-0000-0000-0000-000000000000
+
+### Groups: all videos across the user's groups - first page, default size
+GET https://localhost:7068/api/groups/videos
+Authorization: Bearer {{token}}
+
+### Groups: all videos across the user's groups - explicit page/pageSize
+GET https://localhost:7068/api/groups/videos?page=1&pageSize=2
+Authorization: Bearer {{token}}
+
+### Groups: all videos across the user's groups - second page
+GET https://localhost:7068/api/groups/videos?page=2&pageSize=2
+Authorization: Bearer {{token}}
+
+### Groups: all videos across the user's groups - out-of-range page -> empty items, correct totalCount
+GET https://localhost:7068/api/groups/videos?page=999&pageSize=10
+Authorization: Bearer {{token}}
+
+### Groups: videos for a specific group - first page, default size
+GET https://localhost:7068/api/groups/{{groupId}}/videos
+Authorization: Bearer {{token}}
+
+### Groups: videos for a specific group - explicit page/pageSize
+GET https://localhost:7068/api/groups/{{groupId}}/videos?page=1&pageSize=2
+Authorization: Bearer {{token}}
+
+### Groups: videos for a specific group - second page
+GET https://localhost:7068/api/groups/{{groupId}}/videos?page=2&pageSize=2
+Authorization: Bearer {{token}}
+
+### Groups: videos for a specific group - out-of-range page -> empty items, correct totalCount
+GET https://localhost:7068/api/groups/{{groupId}}/videos?page=999&pageSize=10
+Authorization: Bearer {{token}}
+
+### Events: videos for a specific event - first page, default size
+GET https://localhost:7068/api/events/{{eventId}}/videos
+Authorization: Bearer {{token}}
+
+### Events: videos for a specific event - explicit page/pageSize
+GET https://localhost:7068/api/events/{{eventId}}/videos?page=1&pageSize=2
+Authorization: Bearer {{token}}
+
+### Events: videos for a specific event - second page
+GET https://localhost:7068/api/events/{{eventId}}/videos?page=2&pageSize=2
+Authorization: Bearer {{token}}
+
+### Events: videos for a specific event - out-of-range page -> empty items, correct totalCount
+GET https://localhost:7068/api/events/{{eventId}}/videos?page=999&pageSize=10
+Authorization: Bearer {{token}}

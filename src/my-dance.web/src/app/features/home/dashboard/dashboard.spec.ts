@@ -6,7 +6,7 @@ import { Dashboard } from './dashboard';
 import { VideosService } from '../../../core/api/videos.service';
 import { GroupsService } from '../../../core/api/groups.service';
 import { AccessService } from '../../../core/api/access.service';
-import { PagedResponseOfVideoInformation, ListGroupVideosResponse, GetUserAccessResponse } from '../../../core/api/api-models';
+import { PagedResponseOfVideoInformation, PagedResponseOfVideoFromGroupInformation, GetUserAccessResponse } from '../../../core/api/api-models';
 
 function d(y: number, m: number, day: number): Date {
   return new Date(y, m, day);
@@ -14,7 +14,7 @@ function d(y: number, m: number, day: number): Date {
 
 async function setup(opts: {
   my?: Observable<PagedResponseOfVideoInformation>;
-  groups?: Observable<ListGroupVideosResponse>;
+  groups?: Observable<PagedResponseOfVideoFromGroupInformation>;
   access?: Observable<GetUserAccessResponse>;
 }): Promise<ComponentFixture<Dashboard>> {
   await TestBed.configureTestingModule({
@@ -22,7 +22,7 @@ async function setup(opts: {
     providers: [
       provideRouter([]),
       { provide: VideosService, useValue: { getMyVideos: () => opts.my ?? of({ items: [] }) } },
-      { provide: GroupsService, useValue: { getGroupVideos: () => opts.groups ?? of({ videos: [] }) } },
+      { provide: GroupsService, useValue: { getGroupVideos: () => opts.groups ?? of({ items: [] }) } },
       { provide: AccessService, useValue: { getMyAccess: () => opts.access ?? of({}) } },
     ],
   }).compileComponents();
@@ -37,7 +37,7 @@ describe('Dashboard', () => {
     const c = (
       await setup({
         my: of({ items: [{ name: 'a' }, { name: 'b' }] }),
-        groups: of({ videos: [{ name: 'g' }] }),
+        groups: of({ items: [{ name: 'g' }] }),
         access: of({ assigned: { events: [{ name: 'e1', date: d(2026, 0, 1) }] } }),
       })
     ).componentInstance;
@@ -53,7 +53,7 @@ describe('Dashboard', () => {
     const c = (
       await setup({
         my: of({ items: [{ recordedDateTime: d(2026, 0, 10) }, { recordedDateTime: d(2026, 2, 1) }] }),
-        groups: of({ videos: [{ recordedDateTime: d(2026, 1, 15) }, {}] }),
+        groups: of({ items: [{ recordedDateTime: d(2026, 1, 15) }, {}] }),
       })
     ).componentInstance;
 
@@ -72,7 +72,7 @@ describe('Dashboard', () => {
       await setup({
         my: of({ items: [{ name: 'm-old', recordedDateTime: d(2026, 0, 1) }, { name: 'no-date' }] }),
         groups: of({
-          videos: [
+          items: [
             { name: 'g-new', recordedDateTime: d(2026, 5, 1) },
             { name: 'g-mid', recordedDateTime: d(2026, 2, 1) },
           ],
