@@ -1,11 +1,12 @@
-using System.Text;
-using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nalu;
+using System.Text;
+using System.Text.Json;
 using TB.DanceDance.Mobile.Library.Services.Auth;
+using TB.DanceDance.Mobile.Pages.Access;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.Account;
 
 public partial class AccountPageModel : ObservableObject, IAppearingAware
 {

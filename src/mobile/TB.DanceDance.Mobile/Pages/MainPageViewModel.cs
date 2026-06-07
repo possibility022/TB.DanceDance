@@ -3,9 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
-using TB.DanceDance.Mobile.Library.Services.Network;
+using TB.DanceDance.Mobile.Pages.Events;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages;
 
 public partial class MainPageViewModel : ObservableObject, IAppearingAware
 {

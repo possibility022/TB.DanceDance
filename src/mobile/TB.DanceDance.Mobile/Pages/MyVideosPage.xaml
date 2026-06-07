@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels" 
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls" 
              xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters" 
-             xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models;assembly=TB.DanceDance.Mobile.Library" 
+             xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models;assembly=TB.DanceDance.Mobile.Library"
+             xmlns:pages="clr-namespace:TB.DanceDance.Mobile.Pages"
              x:Class="TB.DanceDance.Mobile.Pages.MyVideosPage"
              x:Name="MyVideosPageView"
-             x:DataType="pageModels:MyVideosPageModel"
+             x:DataType="pages:MyVideosPageModel"
              Title="MyVideosPage">
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -41,7 +41,7 @@
                                                     <Label Text="{Binding Name}" FontSize="24">
                                                         <Label.GestureRecognizers>
                                                             <TapGestureRecognizer
-                                                            Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
+                                                            Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
                                                             CommandParameter="{Binding .}" />
                                                         </Label.GestureRecognizers>
                                                     </Label>
@@ -55,11 +55,11 @@
 
                                                 <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Spacing="15">
                                                     <controls:ShareButton
-                                                                 Command="{Binding ShareVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
+                                                                 Command="{Binding ShareVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
                                                                  CommandParameter="{Binding Id}"/>
 
                                                     <controls:EditButton
-                                                                 Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pageModels:MyVideosPageModel}}, x:DataType=pageModels:MyVideosPageModel}"
+                                                                 Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
                                                                  CommandParameter="{Binding Id}"/>
 
                                                 </HorizontalStackLayout>

@@ -1,14 +1,15 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
+using System.Collections.ObjectModel;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
-using TB.DanceDance.Mobile.PageModels.Intents;
+using TB.DanceDance.Mobile.Pages.Upload;
+using TB.DanceDance.Mobile.Pages.WatchVideos;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.Groups;
 
 public partial class GroupVideosPageModel : ObservableObject, IAppearingAware
 {
@@ -73,7 +74,7 @@ public partial class GroupVideosPageModel : ObservableObject, IAppearingAware
             if (newName == null)
                 return;
 
-            var video = Videos.First(r => r.Id == videoId);
+            var video = Enumerable.First<Video>(Videos, r => r.Id == videoId);
             if (video.Name == newName)
                 return;
 

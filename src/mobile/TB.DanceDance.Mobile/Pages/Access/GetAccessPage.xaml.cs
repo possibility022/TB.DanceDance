@@ -1,6 +1,4 @@
-﻿using TB.DanceDance.Mobile.PageModels;
-
-namespace TB.DanceDance.Mobile.Pages;
+﻿namespace TB.DanceDance.Mobile.Pages.Access;
 
 public partial class GetAccessPage : ContentPage
 {

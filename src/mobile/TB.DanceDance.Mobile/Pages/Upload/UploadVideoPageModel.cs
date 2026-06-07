@@ -3,11 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
-using TB.DanceDance.API.Contracts.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
-using TB.DanceDance.Mobile.Pages.Upload;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.Upload;
 
 public partial class UploadVideoPageModel : ObservableObject,
     IAppearingAware,

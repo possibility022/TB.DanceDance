@@ -1,8 +1,8 @@
-namespace TB.DanceDance.Mobile.Pages;
+namespace TB.DanceDance.Mobile.Pages.Account;
 
 public partial class AccountPage : ContentPage
 {
-    public AccountPage(PageModels.AccountPageModel model)
+    public AccountPage(AccountPageModel model)
     {
         InitializeComponent();
         BindingContext = model;

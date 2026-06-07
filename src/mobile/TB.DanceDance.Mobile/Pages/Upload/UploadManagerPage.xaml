@@ -2,11 +2,11 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models.Storage;assembly=TB.DanceDance.Mobile.Library"
-             x:DataType="pageModels:UploadManagerPageModel"
+             xmlns:upload="clr-namespace:TB.DanceDance.Mobile.Pages.Upload"
+             x:DataType="upload:UploadManagerPageModel"
              x:Name="UploadManagerPageView"
-             x:Class="TB.DanceDance.Mobile.Pages.UploadManagerPage">
+             x:Class="TB.DanceDance.Mobile.Pages.Upload.UploadManagerPage">
     <ContentPage.Content>
         <StackLayout Margin="10" Spacing="10">
             <Label Text="Wysyłanie odbywa się tylko przez WiFi"></Label>

@@ -1,16 +1,17 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
+using System.Collections.ObjectModel;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
-using TB.DanceDance.Mobile.PageModels.Intents;
-using TB.DanceDance.Mobile.Pages.Events;
-using TB.DanceDance.Mobile.Pages.Intents;
+using TB.DanceDance.Mobile.Pages.Upload;
+using TB.DanceDance.Mobile.Pages.WatchVideos;
+using UploadVideoPageModel = TB.DanceDance.Mobile.Pages.Upload.UploadVideoPageModel;
+using WatchVideoPageModel = TB.DanceDance.Mobile.Pages.WatchVideos.WatchVideoPageModel;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.Events;
 
 public partial class EventDetailsPageModel : ObservableObject,
     IEnteringAware<EventDetailsIntent>
@@ -49,7 +50,7 @@ public partial class EventDetailsPageModel : ObservableObject,
             if (newName == null)
                 return;
 
-            var video = Videos.First(r => r.Id == videoId);
+            var video = Enumerable.First<Video>(Videos, r => r.Id == videoId);
             if (video.Name == newName)
                 return;
 

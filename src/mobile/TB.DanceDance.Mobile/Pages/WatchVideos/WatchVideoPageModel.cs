@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Nalu;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.WatchVideos;
 
 public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<WatchVideoIntent>
 {

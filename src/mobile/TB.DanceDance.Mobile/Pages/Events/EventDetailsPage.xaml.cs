@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TB.DanceDance.Mobile.PageModels;
-
-namespace TB.DanceDance.Mobile.Pages;
+﻿namespace TB.DanceDance.Mobile.Pages.Events;
 
 public partial class EventDetailsPage : ContentPage
 {

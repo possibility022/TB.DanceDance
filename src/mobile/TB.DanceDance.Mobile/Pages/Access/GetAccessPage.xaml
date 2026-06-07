@@ -2,11 +2,10 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:TB.DanceDance.Mobile.PageModels"
-             xmlns:pageModels="clr-namespace:TB.DanceDance.Mobile.PageModels"
-             x:DataType="pageModels:GetAccessPageModel"
+             xmlns:access="clr-namespace:TB.DanceDance.Mobile.Pages.Access"
+             x:DataType="access:GetAccessPageModel"
              x:Name="GetAccessPageView"
-             x:Class="TB.DanceDance.Mobile.Pages.GetAccessPage">
+             x:Class="TB.DanceDance.Mobile.Pages.Access.GetAccessPage">
     <ContentPage.Content>
         <StackLayout Margin="10, 0, 10, 0">
             <RefreshView IsRefreshing="{Binding IsRefreshing}"
@@ -15,7 +14,7 @@
                     <StackLayout
                         BindableLayout.ItemsSource="{Binding Accesses}">
                         <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="models:AccessModel">
+                            <DataTemplate x:DataType="access:AccessModel">
                                 <Border Padding="10" Margin="0,10,0,0">
                                     <VerticalStackLayout>
                                         <HorizontalStackLayout Spacing="10">

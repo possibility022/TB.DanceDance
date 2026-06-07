@@ -6,7 +6,7 @@ using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.Network;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.Upload;
 
 public partial class UploadManagerPageModel : ObservableObject, IAppearingAware
 {

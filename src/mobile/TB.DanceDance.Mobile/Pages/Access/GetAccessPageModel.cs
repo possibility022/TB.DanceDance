@@ -9,7 +9,7 @@ using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
-namespace TB.DanceDance.Mobile.PageModels;
+namespace TB.DanceDance.Mobile.Pages.Access;
 
 public record AccessModel
 {
@@ -72,7 +72,7 @@ public partial class GetAccessPageModel : ObservableObject, IAppearingAware
         try
         {
             CanBeRequested = false;
-            var toRequest = Accesses.Where(r => r.CanBeRequested && r.IsRequesting)
+            var toRequest = Enumerable.Where<AccessModel>(Accesses, r => r.CanBeRequested && r.IsRequesting)
                 .ToArray();
 
             if (toRequest.Any())
