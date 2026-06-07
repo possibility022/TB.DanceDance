@@ -29,15 +29,15 @@ describe('VideosService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getMyVideos() GETs /api/videos/my', () => {
+  it('getMyVideos() GETs /api/videos/my with page and pageSize params', () => {
     let response: unknown;
-    service.getMyVideos().subscribe((r) => (response = r));
+    service.getMyVideos(2, 20).subscribe((r) => (response = r));
 
-    const req = httpMock.expectOne(`${BASE}/api/videos/my`);
+    const req = httpMock.expectOne(`${BASE}/api/videos/my?page=2&pageSize=20`);
     expect(req.request.method).toBe('GET');
-    req.flush({ videoInformation: [{ videoId: '1' }] });
+    req.flush({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 2, pageSize: 20 });
 
-    expect(response).toEqual({ videoInformation: [{ videoId: '1' }] });
+    expect(response).toEqual({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 2, pageSize: 20 });
   });
 
   it('getVideo() GETs the url-encoded blob id', () => {
