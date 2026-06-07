@@ -50,6 +50,6 @@ public class UpdateVideoInfoEndpoint : Endpoint<UpdateVideoInfoRequest, EmptyRes
             return await Send.NotFoundAsync(ct);
 
 
-        return await Send.OkAsync(ct);
+        return await Send.NoContentAsync(ct);
     }
 }
