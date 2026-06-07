@@ -115,10 +115,12 @@ public class CommentService : ICommentService
         return comment;
     }
 
-    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
+    public async Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForVideoAsync(
         string? userId,
         string? anonymousId,
         string linkId,
+        int pageNumber,
+        int pageSize,
         CancellationToken cancellationToken)
     {
         // Validate the shared link exists and is valid
@@ -128,25 +130,29 @@ public class CommentService : ICommentService
 
         if (link == null || link.ExpireAt <= DateTimeOffset.UtcNow || link.IsRevoked)
         {
-            return Array.Empty<Comment>();
+            return (Array.Empty<Comment>(), 0);
         }
-        
-        return await QueryCommentsBase(userId, anonymousId, link.Video, cancellationToken);
+
+        return await QueryCommentsBase(userId, anonymousId, link.Video, pageNumber, pageSize, cancellationToken);
     }
 
-    private async Task<IReadOnlyCollection<Comment>> QueryCommentsBase(string? userId, string? anonymousId, Video video, CancellationToken cancellationToken)
+    private async Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> QueryCommentsBase(
+        string? userId,
+        string? anonymousId,
+        Video video,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         // Check if user is the video owner
         var isVideoOwner = userId != null && video.UploadedBy == userId;
         var videoId = video.Id;
-        
+
         // Video owner always sees all comments (including hidden ones)
         if (isVideoOwner)
         {
-            var ownerComments = await QueryAllComments(videoId)
-                .ToListAsync(cancellationToken);
-
-            return ownerComments.AsReadOnly();
+            return await QueryAllComments(videoId)
+                .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
         }
 
         Expression<Func<Comment, bool>> predicate = c => false;
@@ -162,7 +168,7 @@ public class CommentService : ICommentService
         {
             predicate = predicate.Or(c => c.UserId == userId);
         }
-        
+
         // Apply visibility rules based on video's CommentVisibility setting
         switch (video.CommentVisibility)
         {
@@ -172,7 +178,7 @@ public class CommentService : ICommentService
                 // Authenticated or with specific anonymous id.
                 baseQuery = dbContext.Comments.Where(predicate);
                 break;
-            
+
             case CommentVisibility.AuthenticatedOnly:
                 if (userId is not null)
                 {
@@ -187,27 +193,31 @@ public class CommentService : ICommentService
                 break;
 
             default:
-                return Array.Empty<Comment>();
+                return (Array.Empty<Comment>(), 0);
         }
 
         // Get non-hidden comments
-        var comments = await baseQuery!
+        return await baseQuery!
             .Where(c => c.VideoId == videoId)
             .OrderBy(c => c.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        return comments.AsReadOnly();
+            .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string userId, string? anonymousId, Guid videoId, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForVideoAsync(
+        string userId,
+        string? anonymousId,
+        Guid videoId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
     {
         var hasAccess = await accessService.DoesUserHasAccessAsync(videoId, userId, cancellationToken);
         if (!hasAccess)
             throw new UnauthorizedAccessException("No access to the video.");
 
         var video = await dbContext.Videos.FirstAsync(v => v.Id == videoId, cancellationToken);
-        
-        return await QueryCommentsBase(userId, anonymousId, video, cancellationToken);
+
+        return await QueryCommentsBase(userId, anonymousId, video, pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<bool> UpdateCommentAsync(

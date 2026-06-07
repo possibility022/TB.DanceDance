@@ -398,11 +398,13 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id,
             null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, comments.Count); // Owner sees both
@@ -433,10 +435,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             null, null, // Anonymous
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments); // Only non-hidden
@@ -467,10 +471,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             viewer.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments);
@@ -510,11 +516,13 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             null, // Anonymous
             "1234567890",
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments);
@@ -545,10 +553,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             viewer.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments);
@@ -588,11 +598,13 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             null,
             "dahkwjdha", // Anonymous
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments);
@@ -632,11 +644,13 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             viewer.Id, // Not owner
             null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(comments);
@@ -666,10 +680,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, comments.Count);
@@ -695,16 +711,20 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act - Viewer
-        var viewerComments = await commentService.GetCommentsForVideoAsync(
+        var (viewerComments, _) = await commentService.GetCommentsForVideoAsync(
             viewer.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Act - Owner
-        var ownerComments = await commentService.GetCommentsForVideoAsync(
+        var (ownerComments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Empty(viewerComments); // Viewer sees nothing
@@ -728,10 +748,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Empty(comments);
@@ -754,10 +776,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Empty(comments);
@@ -779,10 +803,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Empty(comments);
@@ -806,10 +832,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var returnedComment = comments.First();
@@ -853,10 +881,12 @@ public class CommentServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var comments = await commentService.GetCommentsForVideoAsync(
+        var (comments, _) = await commentService.GetCommentsForVideoAsync(
             owner.Id, null,
             link.Id,
-            TestContext.Current.CancellationToken);
+            pageNumber: 1,
+            pageSize: 20,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         var list = comments.ToList();
@@ -864,6 +894,118 @@ public class CommentServiceTests : BaseTestClass
         Assert.Equal("First", list[0].Content);
         Assert.Equal("Second", list[1].Content);
         Assert.Equal("Third", list[2].Content);
+    }
+
+    [Fact]
+    public async Task GetComments_FirstPage_ReturnsPageSizeItemsAndTotalCount()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var link = new SharedLinkDataBuilder()
+            .ForVideo(video)
+            .SharedBy(owner)
+            .AllowComments()
+            .Build();
+
+        var comments = Enumerable.Range(0, 5)
+            .Select(i => new CommentDataBuilder()
+                .ForVideo(video)
+                .ByUser(owner)
+                .WithContent($"Comment {i}")
+                .CreatedAt(DateTimeOffset.UtcNow.AddMinutes(-10 + i))
+                .Build())
+            .ToArray();
+
+        SeedDbContext.AddRange(owner, video, link);
+        SeedDbContext.AddRange(comments);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var (firstPage, totalCount) = await commentService.GetCommentsForVideoAsync(
+            owner.Id, null,
+            link.Id,
+            pageNumber: 1,
+            pageSize: 2,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(5, totalCount);
+        var list = firstPage.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal("Comment 0", list[0].Content);
+        Assert.Equal("Comment 1", list[1].Content);
+    }
+
+    [Fact]
+    public async Task GetComments_SecondPage_ReturnsRemainderInOrder()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var link = new SharedLinkDataBuilder()
+            .ForVideo(video)
+            .SharedBy(owner)
+            .AllowComments()
+            .Build();
+
+        var comments = Enumerable.Range(0, 5)
+            .Select(i => new CommentDataBuilder()
+                .ForVideo(video)
+                .ByUser(owner)
+                .WithContent($"Comment {i}")
+                .CreatedAt(DateTimeOffset.UtcNow.AddMinutes(-10 + i))
+                .Build())
+            .ToArray();
+
+        SeedDbContext.AddRange(owner, video, link);
+        SeedDbContext.AddRange(comments);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var (secondPage, totalCount) = await commentService.GetCommentsForVideoAsync(
+            owner.Id, null,
+            link.Id,
+            pageNumber: 2,
+            pageSize: 2,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(5, totalCount);
+        var list = secondPage.ToList();
+        Assert.Equal(2, list.Count);
+        Assert.Equal("Comment 2", list[0].Content);
+        Assert.Equal("Comment 3", list[1].Content);
+    }
+
+    [Fact]
+    public async Task GetComments_OutOfRangePage_ReturnsEmptyItemsWithCorrectTotalCount()
+    {
+        // Arrange
+        var owner = new UserDataBuilder().Build();
+        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var link = new SharedLinkDataBuilder()
+            .ForVideo(video)
+            .SharedBy(owner)
+            .AllowComments()
+            .Build();
+
+        var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).WithContent("Only comment").Build();
+
+        SeedDbContext.AddRange(owner, video, link, comment);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        var (items, totalCount) = await commentService.GetCommentsForVideoAsync(
+            owner.Id, null,
+            link.Id,
+            pageNumber: 999,
+            pageSize: 10,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(1, totalCount);
+        Assert.Empty(items);
     }
 
 

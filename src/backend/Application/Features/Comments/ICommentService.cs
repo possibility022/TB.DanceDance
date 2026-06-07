@@ -24,34 +24,42 @@ public interface ICommentService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets comments for a video accessed through a shared link.
+    /// Gets a page of comments for a video accessed through a shared link.
     /// Applies visibility rules based on video's CommentVisibility setting and user authentication status.
     /// The video ID is resolved from the shared link.
     /// </summary>
     /// <param name="userId">The ID of the user viewing comments (null for anonymous)</param>
     /// <param name="anonymousId">Anonymous user ID (null for non-anonymous users)</param>
     /// <param name="linkId">The shared link being used to access the video</param>
+    /// <param name="pageNumber">The 1-based page number to retrieve</param>
+    /// <param name="pageSize">The number of comments per page</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Collection of visible comments</returns>
-    Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(string? userId,
+    /// <returns>The page of visible comments and the total count of visible comments</returns>
+    Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForVideoAsync(string? userId,
         string? anonymousId,
         string linkId,
+        int pageNumber,
+        int pageSize,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Retrieves a collection of comments for a specific video.
+    /// Retrieves a page of comments for a specific video.
     /// </summary>
     /// <param name="userId">The ID of the user requesting the comments</param>
     /// <param name="videoId">The unique identifier of the video blob</param>
     /// <param name="anonymousId">Anonymous id to provide to get comments posted as anonymous user.</param>
+    /// <param name="pageNumber">The 1-based page number to retrieve</param>
+    /// <param name="pageSize">The number of comments per page</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A read-only collection of comments for the specified video</returns>
+    /// <returns>The page of comments for the specified video and the total count of visible comments</returns>
     /// <exception cref="ArgumentException">If the video does not exist or validation fails</exception>
     /// <exception cref="UnauthorizedAccessException">If the user is not authorized to access the video's comments</exception>
-    Task<IReadOnlyCollection<Comment>> GetCommentsForVideoAsync(
+    Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForVideoAsync(
         string userId,
         string? anonymousId,
         Guid videoId,
+        int pageNumber,
+        int pageSize,
         CancellationToken cancellationToken);
 
     /// <summary>
