@@ -4,7 +4,6 @@ using TB.DanceDance.API.Contracts.Features.AccessManagement;
 using TB.DanceDance.API.Contracts.Features.AccessManagement.Models;
 using TB.DanceDance.API.Contracts.Features.Events;
 using TB.DanceDance.API.Contracts.Features.Events.Models;
-using TB.DanceDance.API.Contracts.Features.Groups;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Features.Sharing;
 using TB.DanceDance.API.Contracts.Features.Videos;
@@ -58,9 +57,9 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         var response = await httpClient.GetAsync("/api/groups/videos");
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<ListGroupVideosResponse>();
+        var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoFromGroupInformation>>();
 
-        return content?.Videos;
+        return content?.Items as IReadOnlyCollection<VideoFromGroupInformation>;
     }
 
     public async Task<IReadOnlyCollection<VideoInformation>> GetVideosForEvent(Guid eventId)
@@ -70,11 +69,11 @@ public class DanceHttpApiClient : IDanceHttpApiClient
             var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadFromJsonAsync<ListEventVideosResponse>();
+            var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>();
             if (content == null)
                 return Array.Empty<VideoInformation>();
 
-            return content.Videos;
+            return (IReadOnlyCollection<VideoInformation>)content.Items;
         }
         catch (Exception ex)
         {

@@ -70,14 +70,14 @@ export class Dashboard {
 
     forkJoin({
       my: this.videos.getMyVideos(1, RECENT_LIMIT),
-      groups: this.groups.getGroupVideos(),
+      groups: this.groups.getGroupVideos(1, RECENT_LIMIT),
       access: this.access.getMyAccess(),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ my, groups, access }) => {
           this.myVideos.set(my.items ?? []);
-          this.groupVideos.set(groups.videos ?? []);
+          this.groupVideos.set(groups.items ?? []);
           this.events.set(access.assigned?.events ?? []);
           this.loading.set(false);
         },

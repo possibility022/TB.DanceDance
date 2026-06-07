@@ -1,4 +1,4 @@
-﻿using Application.Extensions;
+using Application.Extensions;
 using Application.Features.AccessManagement;
 using Application.Features.Videos;
 using Domain.Entities;
@@ -8,7 +8,7 @@ using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Events.Endpoints;
 
-public class ListEventVideosEndpoint : EndpointWithoutRequest<ListEventVideosResponse>
+public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, PagedResponse<VideoInformation>>
 {
     private readonly IEventService eventService;
     private readonly IAccessService accessService;
@@ -20,33 +20,40 @@ public class ListEventVideosEndpoint : EndpointWithoutRequest<ListEventVideosRes
         this.accessService = accessService;
         this.thumbnailUrlService = thumbnailUrlService;
     }
-    
+
     public override void Configure()
     {
         Get(ApiRoutes.Events.Videos);
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ListEventVideosRequest req, CancellationToken ct)
     {
         var eventId = Route<Guid>("eventId");
         var userId = User.GetSubject();
-        var videos = await eventService
-            .GetVideos(eventId, userId, ct);
+        var pageNumber = req.NormalizedPage;
+        var pageSize = req.NormalizedPageSize;
 
-        if (videos.Length == 0)
+        var (videos, totalCount) = await eventService.GetVideos(eventId, userId, pageNumber, pageSize, ct);
+
+        if (totalCount == 0)
         {
             var isAssigned = await accessService.DoesUserHasAccessToEvent(eventId, userId, ct);
             if (!isAssigned)
+            {
                 await Send.UnauthorizedAsync(ct);
+                return;
+            }
         }
-        
-        var videoInformation = MapVideos(videos);
-        var response = new ListEventVideosResponse
+
+        var response = new PagedResponse<VideoInformation>
         {
-            Videos = videoInformation
+            Items = MapVideos(videos),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
         };
-        
+
         await Send.OkAsync(response, ct);
     }
 

@@ -1,10 +1,12 @@
-﻿using Application.Extensions;
+using Application.Extensions;
 using FastEndpoints;
 using TB.DanceDance.API.Contracts.Features.Groups;
+using TB.DanceDance.API.Contracts.Features.Groups.Model;
+using TB.DanceDance.API.Contracts.Models;
 
 namespace Application.Features.Groups.Endpoints;
 
-public class ListAllGroupVideosEndpoint : EndpointWithoutRequest<ListGroupVideosResponse>
+public class ListAllGroupVideosEndpoint : Endpoint<ListAllGroupVideosRequest, PagedResponse<VideoFromGroupInformation>>
 {
     private readonly IGroupService groupService;
 
@@ -19,14 +21,21 @@ public class ListAllGroupVideosEndpoint : EndpointWithoutRequest<ListGroupVideos
         Policies(ApiScopes.Read);
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(ListAllGroupVideosRequest req, CancellationToken ct)
     {
         var userId = User.GetSubject();
+        var pageNumber = req.NormalizedPage;
+        var pageSize = req.NormalizedPageSize;
 
-        var videos = await groupService
-            .GetAllVideos(userId, ct);
+        var (videos, totalCount) = await groupService.GetAllVideos(userId, pageNumber, pageSize, ct);
 
-        var response = new ListGroupVideosResponse() { Videos = videos };
+        var response = new PagedResponse<VideoFromGroupInformation>
+        {
+            Items = videos.ToArray(),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+        };
 
         await Send.OkAsync(response, ct);
     }

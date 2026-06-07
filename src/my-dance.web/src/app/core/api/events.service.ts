@@ -5,7 +5,7 @@ import { ApiClient } from './api-client';
 import {
   CreateNewEventRequest,
   CreateNewEventResponse,
-  ListEventVideosResponse,
+  PagedResponseOfVideoInformation,
 } from './api-models';
 
 /** Events and their recordings. */
@@ -18,10 +18,15 @@ export class EventsService {
     return this.api.post<CreateNewEventResponse>('/api/events', request);
   }
 
-  /** Recordings for a single event. */
-  getEventVideos(eventId: string): Observable<ListEventVideosResponse> {
-    return this.api.get<ListEventVideosResponse>(
+  /** A page of recordings for a single event. */
+  getEventVideos(
+    eventId: string,
+    page: number,
+    pageSize: number,
+  ): Observable<PagedResponseOfVideoInformation> {
+    return this.api.get<PagedResponseOfVideoInformation>(
       `/api/events/${encodeURIComponent(eventId)}/videos`,
+      { params: { page, pageSize } },
     );
   }
 }

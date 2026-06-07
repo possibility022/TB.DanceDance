@@ -31,7 +31,7 @@ public class ApproveAccessRequestEndpoint : Endpoint<ApproveAccessRequestRequest
             results = await accessManagementService.DeclineAccessRequest(req.RequestId, req.IsGroup, userId, ct);
 
         if (results)
-            await Send.OkAsync(ct);
+            await Send.NoContentAsync(ct);
         else
             await Send.ErrorsAsync(cancellation: ct);
     }

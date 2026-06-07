@@ -7,16 +7,25 @@ import { GroupsService } from '../../core/api/groups.service';
 import { AccessService } from '../../core/api/access.service';
 import { UploadService } from '../../core/api/upload.service';
 import { BlobUploadService } from '../../core/api/blob-upload.service';
-import { ListGroupVideosResponse } from '../../core/api/api-models';
+import { PagedResponseOfVideoFromGroupInformation } from '../../core/api/api-models';
 
 async function setup(opts: {
-  videos?: Observable<ListGroupVideosResponse>;
+  videos?: Observable<PagedResponseOfVideoFromGroupInformation>;
+  getGroupVideos?: (
+    page: number,
+    pageSize: number,
+  ) => Observable<PagedResponseOfVideoFromGroupInformation>;
 }): Promise<ComponentFixture<GroupVideos>> {
   await TestBed.configureTestingModule({
     imports: [GroupVideos],
     providers: [
       provideRouter([]),
-      { provide: GroupsService, useValue: { getGroupVideos: () => opts.videos ?? of({ videos: [] }) } },
+      {
+        provide: GroupsService,
+        useValue: {
+          getGroupVideos: opts.getGroupVideos ?? (() => opts.videos ?? of({ items: [], totalCount: 0 })),
+        },
+      },
       { provide: AccessService, useValue: { getMyAccess: vi.fn(() => of({ assigned: { groups: [], events: [] } })) } },
       { provide: UploadService, useValue: { produceUploadUrl: vi.fn(() => of({ sas: '', videoId: 'v' })) } },
       { provide: BlobUploadService, useValue: { upload: vi.fn(() => of(100)) } },
@@ -37,11 +46,12 @@ describe('GroupVideos', () => {
     const c = (
       await setup({
         videos: of({
-          videos: [
+          items: [
             { videoId: 'v1', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 0, 10) },
             { videoId: 'v2', groupId: 'g2', groupName: 'Bachata', recordedDateTime: d(2026, 2, 1) },
             { videoId: 'v3', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 1, 15) },
           ],
+          totalCount: 3,
         }),
       })
     ).componentInstance;
@@ -53,11 +63,12 @@ describe('GroupVideos', () => {
     const c = (
       await setup({
         videos: of({
-          videos: [
+          items: [
             { videoId: 'no-date' },
             { videoId: 'old', recordedDateTime: d(2024, 5, 1) },
             { videoId: 'new', recordedDateTime: d(2026, 5, 1) },
           ],
+          totalCount: 3,
         }),
       })
     ).componentInstance;
@@ -69,7 +80,8 @@ describe('GroupVideos', () => {
     const c = (
       await setup({
         videos: of({
-          videos: [{ videoId: 'v1', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 5, 1) }],
+          items: [{ videoId: 'v1', groupId: 'g1', groupName: 'Salsa', recordedDateTime: d(2026, 5, 1) }],
+          totalCount: 1,
         }),
       })
     ).componentInstance;
@@ -93,5 +105,55 @@ describe('GroupVideos', () => {
     expect(component.uploadModalOpen()).toBe(true);
     component.closeUploadDialog();
     expect(component.uploadModalOpen()).toBe(false);
+  });
+
+  it('exposes canLoadMore when there are more items than the first page returned', async () => {
+    const c = (
+      await setup({ videos: of({ items: [{ videoId: 'v1' }], totalCount: 3 }) })
+    ).componentInstance;
+    expect(c.canLoadMore()).toBe(true);
+  });
+
+  it('hides load more once every item has been loaded', async () => {
+    const c = (
+      await setup({ videos: of({ items: [{ videoId: 'v1' }, { videoId: 'v2' }], totalCount: 2 }) })
+    ).componentInstance;
+    expect(c.canLoadMore()).toBe(false);
+  });
+
+  it('loadMore appends the next page and tracks whether more remain', async () => {
+    const calls: Array<[number, number]> = [];
+    const getGroupVideos = (page: number, pageSize: number) => {
+      calls.push([page, pageSize]);
+      return page === 1
+        ? of({ items: [{ videoId: 'v1' }], totalCount: 3, pageNumber: 1, pageSize: 1 })
+        : of({ items: [{ videoId: 'v2' }], totalCount: 3, pageNumber: 2, pageSize: 1 });
+    };
+
+    const c = (await setup({ getGroupVideos })).componentInstance;
+    expect(c.canLoadMore()).toBe(true);
+
+    c.loadMore();
+
+    expect(c.sortedVideos().map((v) => v.videoId)).toEqual(['v1', 'v2']);
+    expect(c.canLoadMore()).toBe(true);
+    expect(c.loadingMore()).toBe(false);
+    expect(calls).toEqual([[1, 20], [2, 20]]);
+  });
+
+  it('loadMore is a no-op while already loading or when there is nothing more to load', async () => {
+    let callCount = 0;
+    const getGroupVideos = () => {
+      callCount++;
+      return of({ items: [{ videoId: 'v1' }, { videoId: 'v2' }], totalCount: 2 });
+    };
+
+    const c = (await setup({ getGroupVideos })).componentInstance;
+    expect(callCount).toBe(1);
+    expect(c.canLoadMore()).toBe(false);
+
+    c.loadMore();
+
+    expect(callCount).toBe(1);
   });
 });

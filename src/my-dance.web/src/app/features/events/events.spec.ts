@@ -21,7 +21,7 @@ function createEventsFixture(overrides: {
     getMyAccess: overrides.getMyAccess ?? vi.fn(() => of({ assigned: { events: [GALA] } })),
   };
   const events = {
-    getEventVideos: overrides.getEventVideos ?? vi.fn(() => of({ videos: [] })),
+    getEventVideos: overrides.getEventVideos ?? vi.fn(() => of({ items: [], totalCount: 0 })),
     createEvent: overrides.createEvent ?? vi.fn(() => of({ id: 'new' })),
   };
   const uploads = { produceUploadUrl: vi.fn(() => of({ sas: '', videoId: 'v' })) };
@@ -84,15 +84,73 @@ describe('Events', () => {
   });
 
   it('select() loads videos for the chosen event', () => {
-    const getEventVideos = vi.fn(() => of({ videos: [{ name: 'v1' }] }));
+    const getEventVideos = vi.fn(() => of({ items: [{ name: 'v1' }], totalCount: 1 }));
     const { component, events } = createEventsFixture({ getEventVideos });
 
     component.select(GALA);
 
-    expect(events.getEventVideos).toHaveBeenCalledWith('e1');
+    expect(events.getEventVideos).toHaveBeenCalledWith('e1', 1, 20);
     expect(component.selected()?.id).toBe('e1');
     expect(component.videos()).toHaveLength(1);
     expect(component.videosLoading()).toBe(false);
+  });
+
+  it('select() exposes videosCanLoadMore when there are more items than the first page returned', () => {
+    const getEventVideos = vi.fn(() => of({ items: [{ name: 'v1' }], totalCount: 3 }));
+    const { component } = createEventsFixture({ getEventVideos });
+
+    component.select(GALA);
+
+    expect(component.videosCanLoadMore()).toBe(true);
+  });
+
+  it('select() hides load more once every item has been loaded', () => {
+    const getEventVideos = vi.fn(() => of({ items: [{ name: 'v1' }, { name: 'v2' }], totalCount: 2 }));
+    const { component } = createEventsFixture({ getEventVideos });
+
+    component.select(GALA);
+
+    expect(component.videosCanLoadMore()).toBe(false);
+  });
+
+  it('loadMoreVideos appends the next page and tracks whether more remain', () => {
+    const calls: Array<[string, number, number]> = [];
+    const getEventVideos = vi.fn((eventId: string, page: number, pageSize: number) => {
+      calls.push([eventId, page, pageSize]);
+      return page === 1
+        ? of({ items: [{ name: 'v1' }], totalCount: 3, pageNumber: 1, pageSize: 1 })
+        : of({ items: [{ name: 'v2' }], totalCount: 3, pageNumber: 2, pageSize: 1 });
+    });
+    const { component } = createEventsFixture({ getEventVideos });
+
+    component.select(GALA);
+    expect(component.videosCanLoadMore()).toBe(true);
+
+    component.loadMoreVideos();
+
+    expect(component.videos().map((v) => v.name)).toEqual(['v1', 'v2']);
+    expect(component.videosCanLoadMore()).toBe(true);
+    expect(component.videosLoadingMore()).toBe(false);
+    expect(calls).toEqual([['e1', 1, 20], ['e1', 2, 20]]);
+  });
+
+  it('loadMoreVideos is a no-op while already loading, when nothing more to load, or with no selection', () => {
+    let callCount = 0;
+    const getEventVideos = vi.fn(() => {
+      callCount++;
+      return of({ items: [{ name: 'v1' }, { name: 'v2' }], totalCount: 2 });
+    });
+    const { component } = createEventsFixture({ getEventVideos });
+
+    component.loadMoreVideos();
+    expect(callCount).toBe(0);
+
+    component.select(GALA);
+    expect(callCount).toBe(1);
+    expect(component.videosCanLoadMore()).toBe(false);
+
+    component.loadMoreVideos();
+    expect(callCount).toBe(1);
   });
 
   it('select() on an event without an id selects but loads nothing', () => {
@@ -112,7 +170,7 @@ describe('Events', () => {
 
   it('clearSelection() returns to the event list state', () => {
     const { component } = createEventsFixture({
-      getEventVideos: vi.fn(() => of({ videos: [{ name: 'v1' }] })),
+      getEventVideos: vi.fn(() => of({ items: [{ name: 'v1' }], totalCount: 1 })),
     });
 
     component.select(GALA);
@@ -122,6 +180,8 @@ describe('Events', () => {
     expect(component.videos()).toEqual([]);
     expect(component.videosLoading()).toBe(false);
     expect(component.videosFailed()).toBe(false);
+    expect(component.videosCanLoadMore()).toBe(false);
+    expect(component.videosLoadingMore()).toBe(false);
   });
 
   it('createEvent() does nothing while the form is invalid', () => {

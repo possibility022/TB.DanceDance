@@ -1,4 +1,5 @@
 ﻿using Application.Domain.Models;
+using Application.Extensions;
 using Application.Features.Videos;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
@@ -63,7 +64,7 @@ public class GroupService : IGroupService
         return q.ToArrayAsync(cancellationToken);
     }
 
-    public async Task<VideoFromGroupInformation[]> GetAllVideos(string userId, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyCollection<VideoFromGroupInformation> Items, int TotalCount)> GetAllVideos(string userId, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var q = from assignedTo in dbContext.AssingedToGroups
             join sharedWith in dbContext.SharedWith on assignedTo.GroupId equals sharedWith.GroupId
@@ -88,15 +89,17 @@ public class GroupService : IGroupService
                 video.ThumbnailBlobId
             };
 
-        var rows = await q.ToArrayAsync(cancellationToken);
-        return rows.Select(r =>
+        var (rows, totalCount) = await q.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
+        var items = rows.Select(r =>
         {
             r.Information.ThumbnailUrl = thumbnailUrlService.GetThumbnailUrl(r.ThumbnailBlobId);
             return r.Information;
         }).ToArray();
+
+        return (items, totalCount);
     }
 
-    public async Task<VideoFromGroupInformation[]> GetAllVideos(string userId, Guid groupId, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyCollection<VideoFromGroupInformation> Items, int TotalCount)> GetAllVideos(string userId, Guid groupId, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var q = from assignedTo in dbContext.AssingedToGroups
             join sharedWith in dbContext.SharedWith on assignedTo.GroupId equals sharedWith.GroupId
@@ -121,11 +124,13 @@ public class GroupService : IGroupService
                 video.ThumbnailBlobId
             };
 
-        var rows = await q.ToArrayAsync(cancellationToken);
-        return rows.Select(r =>
+        var (rows, totalCount) = await q.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
+        var items = rows.Select(r =>
         {
             r.Information.ThumbnailUrl = thumbnailUrlService.GetThumbnailUrl(r.ThumbnailBlobId);
             return r.Information;
         }).ToArray();
+
+        return (items, totalCount);
     }
 }

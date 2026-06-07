@@ -38,10 +38,13 @@ describe('EventsService', () => {
     req.flush({ id: 'e1' });
   });
 
-  it('getEventVideos() GETs the url-encoded event videos', () => {
-    service.getEventVideos('e/1').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/events/e%2F1/videos`);
+  it('getEventVideos() GETs the url-encoded event videos with page and pageSize params', () => {
+    let response;
+    service.getEventVideos('e/1', 1, 20).subscribe((r) => (response = r));
+    const req = httpMock.expectOne(`${BASE}/api/events/e%2F1/videos?page=1&pageSize=20`);
     expect(req.request.method).toBe('GET');
-    req.flush({ videos: [] });
+    req.flush({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
+
+    expect(response).toEqual({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
   });
 });

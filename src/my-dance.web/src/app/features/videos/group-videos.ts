@@ -8,6 +8,8 @@ import { VideoFromGroupInformation } from '../../core/api/api-models';
 import { VideoCard } from '../../shared/ui/video-card/video-card';
 import { UploadDialog } from '../upload/upload-dialog';
 
+const PAGE_SIZE = 20;
+
 function recordedTime(video: VideoFromGroupInformation): number {
   if (!video.recordedDateTime) {
     return -Infinity;
@@ -49,6 +51,10 @@ export class GroupVideos {
   readonly uploadModalOpen = signal(false);
   private readonly items = signal<readonly VideoFromGroupInformation[]>([]);
 
+  readonly loadingMore = signal(false);
+  readonly canLoadMore = signal(false);
+  private currentPage = 0;
+
   /** All lesson recordings, newest first; undated recordings sink to the end. */
   readonly sortedVideos = computed<readonly VideoFromGroupInformation[]>(() =>
     [...this.items()].sort((a, b) => recordedTime(b) - recordedTime(a)),
@@ -71,16 +77,44 @@ export class GroupVideos {
     this.failed.set(false);
 
     this.groups
-      .getGroupVideos()
+      .getGroupVideos(1, PAGE_SIZE)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.items.set(response.videos ?? []);
+          const items = response.items ?? [];
+          this.items.set(items);
+          this.currentPage = 1;
+          this.canLoadMore.set(items.length < (response.totalCount ?? 0));
           this.loading.set(false);
         },
         error: () => {
           this.failed.set(true);
           this.loading.set(false);
+        },
+      });
+  }
+
+  loadMore(): void {
+    if (this.loadingMore() || !this.canLoadMore()) {
+      return;
+    }
+
+    this.loadingMore.set(true);
+    const nextPage = this.currentPage + 1;
+
+    this.groups
+      .getGroupVideos(nextPage, PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = [...this.items(), ...(response.items ?? [])];
+          this.items.set(items);
+          this.currentPage = nextPage;
+          this.canLoadMore.set(items.length < (response.totalCount ?? 0));
+          this.loadingMore.set(false);
+        },
+        error: () => {
+          this.loadingMore.set(false);
         },
       });
   }

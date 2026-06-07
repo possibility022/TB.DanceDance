@@ -50,7 +50,7 @@ public class UpdateCommentSettingsEndpoint : Endpoint<UpdateCommentSettingsReque
         }
         else
         {
-            await Send.OkAsync(ct);
+            await Send.NoContentAsync(ct);
         }
     }
 }
