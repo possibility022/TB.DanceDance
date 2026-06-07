@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Nalu;
@@ -12,9 +13,12 @@ namespace TB.DanceDance.Mobile.PageModels;
 public partial class EventDetailsPageModel : ObservableObject,
     IEnteringAware<EventDetailsIntent>
 {
+    private const int PageSize = 20;
+
     private readonly VideoProvider videoProvider;
     private readonly IDanceHttpApiClient apiClient;
     private readonly INavigationService navigationService;
+    private int currentPage = 0;
 
     public EventDetailsPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient, INavigationService navigationService)
     {
@@ -73,8 +77,10 @@ public partial class EventDetailsPageModel : ObservableObject,
 
     [ObservableProperty] Guid eventId;
 
-    [ObservableProperty] List<Video> videos = [];
+    [ObservableProperty] ObservableCollection<Video> videos = [];
     [ObservableProperty] private bool isRefreshing;
+    [ObservableProperty] private bool isLoadingMore;
+    [ObservableProperty] private bool canLoadMore;
 
     public async ValueTask OnEnteringAsync(EventDetailsIntent intent)
     {
@@ -101,12 +107,43 @@ public partial class EventDetailsPageModel : ObservableObject,
         }
     }
 
+    [RelayCommand]
+    private async Task LoadMore()
+    {
+        if (IsLoadingMore || !CanLoadMore || EventId == Guid.Empty)
+            return;
+
+        try
+        {
+            IsLoadingMore = true;
+
+            var nextPage = currentPage + 1;
+            var (items, totalCount) = await videoProvider.GetEventVideos(EventId, nextPage, PageSize);
+
+            foreach (var video in items)
+                Videos.Add(video);
+
+            currentPage = nextPage;
+            CanLoadMore = Videos.Count < totalCount;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error when loading more event videos.");
+        }
+        finally
+        {
+            IsLoadingMore = false;
+        }
+    }
+
     private async Task LoadData(Guid eventId)
     {
         if (eventId != Guid.Empty)
         {
-            var providedVideos = await videoProvider.GetEventVideos(eventId);
-            Videos = providedVideos;
+            var (items, totalCount) = await videoProvider.GetEventVideos(eventId, page: 1, PageSize);
+            Videos = new ObservableCollection<Video>(items);
+            currentPage = 1;
+            CanLoadMore = Videos.Count < totalCount;
         }
     }
 }

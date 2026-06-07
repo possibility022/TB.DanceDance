@@ -52,28 +52,26 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<IReadOnlyCollection<VideoFromGroupInformation>?> GetVideosFromGroups()
+    public async Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize)
     {
-        var response = await httpClient.GetAsync("/api/groups/videos");
+        var response = await httpClient.GetAsync($"/api/groups/videos?page={page}&pageSize={pageSize}");
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoFromGroupInformation>>();
 
-        return content?.Items as IReadOnlyCollection<VideoFromGroupInformation>;
+        return content ?? new PagedResponse<VideoFromGroupInformation> { PageNumber = page, PageSize = pageSize };
     }
 
-    public async Task<IReadOnlyCollection<VideoInformation>> GetVideosForEvent(Guid eventId)
+    public async Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize)
     {
         try
         {
-            var response = await httpClient.GetAsync($"/api/events/{eventId}/videos");
+            var response = await httpClient.GetAsync($"/api/events/{eventId}/videos?page={page}&pageSize={pageSize}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>();
-            if (content == null)
-                return Array.Empty<VideoInformation>();
 
-            return (IReadOnlyCollection<VideoInformation>)content.Items;
+            return content ?? new PagedResponse<VideoInformation> { PageNumber = page, PageSize = pageSize };
         }
         catch (Exception ex)
         {

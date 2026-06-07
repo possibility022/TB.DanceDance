@@ -137,14 +137,15 @@ public class DanceHttpApiClientTests : IDisposable
             PageNumber = 1,
             PageSize = 20,
         };
-        server.Given(Request.Create().WithPath("/api/groups/videos").UsingGet())
+        server.Given(Request.Create().WithPath("/api/groups/videos").WithParam("page", "1").WithParam("pageSize", "20").UsingGet())
             .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(payload, serializerOptions)));
 
-        var res = await client.GetVideosFromGroups();
+        var res = await client.GetVideosFromGroups(page: 1, pageSize: 20);
         Assert.NotNull(res);
-        Assert.Single(res);
-        Assert.Equal("G", res.First().GroupName);
+        Assert.Equal(1, res.TotalCount);
+        Assert.Single(res.Items);
+        Assert.Equal("G", res.Items.First().GroupName);
     }
 
     [Fact]
@@ -170,31 +171,32 @@ public class DanceHttpApiClientTests : IDisposable
         };
 
         // normal
-        server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").UsingGet())
+        server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").WithParam("page", "1").WithParam("pageSize", "20").UsingGet())
             .InScenario("videos")
             .WillSetStateTo("null")
             .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(vids, serializerOptions)));
 
-        var list = await client.GetVideosForEvent(eventId);
-        Assert.Single(list);
+        var paged = await client.GetVideosForEvent(eventId, page: 1, pageSize: 20);
+        Assert.Single(paged.Items);
+        Assert.Equal(1, paged.TotalCount);
 
         // null body
-        server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").UsingGet())
+        server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").WithParam("page", "1").WithParam("pageSize", "20").UsingGet())
             .InScenario("videos").WhenStateIs("null")
             .WillSetStateTo("error")
             .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json")
                 .WithBody("null"));
 
-        var empty = await client.GetVideosForEvent(eventId);
-        Assert.Empty(empty);
+        var empty = await client.GetVideosForEvent(eventId, page: 1, pageSize: 20);
+        Assert.Empty(empty.Items);
 
         // error
-        server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").UsingGet())
+        server.Given(Request.Create().WithPath($"/api/events/{eventId}/videos").WithParam("page", "1").WithParam("pageSize", "20").UsingGet())
             .InScenario("videos").WhenStateIs("error")
             .RespondWith(Response.Create().WithStatusCode(500));
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => client.GetVideosForEvent(eventId));
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.GetVideosForEvent(eventId, page: 1, pageSize: 20));
     }
 
     [Fact]

@@ -12,8 +12,8 @@ public interface IDanceHttpApiClient
     Task RenameVideoAsync(Guid videoId, string newName);
     Task<GetUserAccessResponse> GetUserAccesses();
     Task RequestAccess(RequestAccessRequest accessRequest);
-    Task<IReadOnlyCollection<VideoFromGroupInformation>?> GetVideosFromGroups();
-    Task<IReadOnlyCollection<VideoInformation>> GetVideosForEvent(Guid eventId);
+    Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize);
+    Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize);
     Task<RefreshUploadUrlResponse> RefreshUploadUrl(Guid videoId);
     Task<ProduceUploadUrlResponse?> GetUploadInformation(
         string fileName,
