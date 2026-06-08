@@ -4,6 +4,9 @@ namespace TB.DanceDance.Mobile;
 
 public partial class AppShellTabBar
 {
+    private static readonly Color ActiveColor = GetColor("Primary", Colors.Teal);
+    private static readonly Color InactiveColor = GetColor("Gray500", Colors.Gray);
+
     private ShellItem Item => BindingContext as ShellItem ??
                               throw new InvalidOperationException(
                                   "AppShellTabBar must have a ShellItem as its BindingContext");
@@ -40,77 +43,15 @@ public partial class AppShellTabBar
 
     private void UpdateCurrentItem(ShellSection currentItem)
     {
-        this.CancelAnimations();
-        var numButtons = (double)Buttons.Count;
         var selectedIndex = ShellItem?.Items.IndexOf(currentItem) ?? 0;
-        var startPosition = TabBarShape.InsetPosition;
-        var buttonFractionalOffset = 1.0 / (numButtons - 1);
-        var endPosition = buttonFractionalOffset * selectedIndex;
-        var startTranslationX = SelectedShape.TranslationX;
-        var availableTranslationWidth = ((View)SelectedShape.Parent.Parent).Width;
-        var endTranslationX = (availableTranslationWidth - TabBarShape.InsetWidth) * buttonFractionalOffset * selectedIndex + 32;
 
-        AnimateSelectedShapeJump(selectedIndex);
-
-        SelectedShapeContainer.TranslationX = startTranslationX - 0.001;
-        this.Animate("CurrentItem",
-            v =>
+        for (var i = 0; i < Buttons.Count; i++)
+        {
+            if (Buttons[i] is ImageButton { Source: FontImageSource source })
             {
-                TabBarShape.InsetPosition = (float)(startPosition + (endPosition - startPosition) * v);
-                SelectedShapeContainer.TranslationX = startTranslationX + (endTranslationX - startTranslationX) * v;
-            },
-            length: 250);
-    }
-
-    private const string SelectedJumpOut = nameof(SelectedJumpOut);
-    private const string SelectedJumpIn = nameof(SelectedJumpIn);
-
-    private void AnimateSelectedShapeJump(int selectedIndex, double deltaY = 50)
-    {
-        SelectedShapeContainer.ZIndex = 0;
-        var startTranslationY = SelectedShape.TranslationY;
-        var middleTranslationY = deltaY;
-        var startOpacity = SelectedButton.Opacity;
-        var middleOpacity = 0f;
-        var endTranslationY = 0;
-        var endOpacity = 1f;
-        this.Animate(
-            SelectedJumpOut,
-            v =>
-            {
-                SelectedShape.TranslationY = startTranslationY + (middleTranslationY - startTranslationY) * v;
-                SelectedButton.Opacity = startOpacity + (middleOpacity - startOpacity) * v;
-            },
-            length: 125,
-            finished: (_, canceled) =>
-            {
-                if (canceled)
-                {
-                    return;
-                }
-
-                ((FontImageSource)SelectedButton.Source).Glyph =
-                    ((FontImageSource)((ImageButton)Buttons[selectedIndex]!).Source).Glyph;
-
-                this.Animate(
-                    SelectedJumpIn,
-                    v =>
-                    {
-                        SelectedShape.TranslationY = middleTranslationY + (endTranslationY - middleTranslationY) * v;
-                        SelectedButton.Opacity = middleOpacity + (endOpacity - middleOpacity) * v;
-                    },
-                    finished: (_, canceled2) =>
-                    {
-                        if (canceled2)
-                        {
-                            return;
-                        }
-
-                        SelectedShapeContainer.ZIndex = 2;
-                    }
-                );
+                source.Color = i == selectedIndex ? ActiveColor : InactiveColor;
             }
-        );
+        }
     }
 
     private async void IconClicked(object? sender, EventArgs e)
@@ -128,11 +69,8 @@ public partial class AppShellTabBar
         await Shell.Current.GoToAsync($"//{targetSection.CurrentItem.Route}");
     }
 
-    private void SelectedButtonClicked(object? sender, EventArgs e)
-    {
-        this.AbortAnimation(SelectedJumpIn);
-        this.AbortAnimation(SelectedJumpOut);
-        var index = Item.Items.IndexOf(Item.CurrentItem);
-        AnimateSelectedShapeJump(index, 25);
-    }
+    private static Color GetColor(string key, Color fallback) =>
+        Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color
+            ? color
+            : fallback;
 }
