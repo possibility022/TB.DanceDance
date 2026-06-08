@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { Events } from './events';
@@ -38,9 +38,12 @@ function createEventsFixture(overrides: {
     ],
   });
 
+  const router = TestBed.inject(Router);
+  const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
   const fixture = TestBed.createComponent(Events);
   fixture.detectChanges();
-  return { fixture, access, events, component: fixture.componentInstance };
+  return { fixture, access, events, navigate, component: fixture.componentInstance };
 }
 
 describe('Events', () => {
@@ -93,6 +96,40 @@ describe('Events', () => {
     expect(component.selected()?.id).toBe('e1');
     expect(component.videos()).toHaveLength(1);
     expect(component.videosLoading()).toBe(false);
+  });
+
+  it('select() pushes the event id into the URL so browser Back returns to the list', () => {
+    const { component, navigate } = createEventsFixture({});
+    component.select(GALA);
+    expect(navigate).toHaveBeenCalledWith(['/events'], { queryParams: { eventId: 'e1' } });
+  });
+
+  it('clearSelection() removes the event id from the URL', () => {
+    const { component, navigate } = createEventsFixture({});
+    component.select(GALA);
+    navigate.mockClear();
+
+    component.clearSelection();
+
+    expect(navigate).toHaveBeenCalledWith(['/events'], { queryParams: {} });
+  });
+
+  it('reflects the eventId query param (browser Back/Forward and deep links)', () => {
+    const getEventVideos = vi.fn(() => of({ items: [{ name: 'v1' }], totalCount: 1 }));
+    const { fixture, component, navigate } = createEventsFixture({ getEventVideos });
+
+    // Forward to the detail view via the URL — no extra history entry pushed.
+    fixture.componentRef.setInput('eventId', 'e1');
+    fixture.detectChanges();
+    expect(component.selected()?.id).toBe('e1');
+    expect(component.videos()).toHaveLength(1);
+    expect(navigate).not.toHaveBeenCalled();
+
+    // Browser Back clears the param and returns to the list.
+    fixture.componentRef.setInput('eventId', '');
+    fixture.detectChanges();
+    expect(component.selected()).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('select() exposes videosCanLoadMore when there are more items than the first page returned', () => {
