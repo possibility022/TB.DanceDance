@@ -5,6 +5,19 @@ using TB.DanceDance.API.Contracts.Features.Videos;
 
 namespace Application.Features.Videos;
 
+/// <summary>
+/// Outcome of an owner-only video delete, mapped by the endpoint to 204 / 403 / 404.
+/// </summary>
+public enum DeleteVideoResult
+{
+    /// <summary>No video exists with the given id.</summary>
+    NotFound,
+    /// <summary>The video exists but the requesting user is not its uploader.</summary>
+    Forbidden,
+    /// <summary>The video, its related rows and blobs were removed.</summary>
+    Deleted
+}
+
 public interface IVideoService
 {
     Task<Stream> OpenStream(string blobName, CancellationToken cancellationToken);
@@ -24,4 +37,15 @@ public interface IVideoService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if updated successfully, false if not found or unauthorized</returns>
     Task<bool> UpdateCommentVisibilityAsync(Guid videoId, string userId, CommentVisibility commentVisibility, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Permanently deletes a video the user owns: the <see cref="Video"/> row (cascading to its
+    /// <c>SharedWith</c>, <c>Comment</c>, <c>SharedLink</c> and <c>VideoMetadata</c> rows) and all three
+    /// associated blobs (source, converted and thumbnail). Only the uploader may delete.
+    /// </summary>
+    /// <param name="videoId">The video ID.</param>
+    /// <param name="userId">The ID of the user requesting the delete (must be the uploader).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The delete outcome (deleted, forbidden, or not found).</returns>
+    Task<DeleteVideoResult> DeleteVideoAsync(Guid videoId, string userId, CancellationToken cancellationToken);
 }

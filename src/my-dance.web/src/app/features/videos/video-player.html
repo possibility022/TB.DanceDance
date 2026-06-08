@@ -43,6 +43,15 @@
         >
           Rename
         </button>
+        <button
+          type="button"
+          class="button is-small is-text has-text-danger ml-1"
+          aria-label="Delete recording"
+          [disabled]="deleting()"
+          (click)="deleteVideo()"
+        >
+          Delete
+        </button>
       </h1>
     }
     <p class="subtitle is-6 has-text-grey">

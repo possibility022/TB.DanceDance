@@ -15,7 +15,9 @@
     [videos]="items()"
     emptyMessage="You haven’t uploaded any recordings yet."
     [shareable]="true"
+    [deletable]="true"
     (share)="openShare($event)"
+    (deleteVideo)="onDelete($event)"
   />
 
   @if (canLoadMore()) {

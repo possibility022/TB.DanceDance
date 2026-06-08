@@ -55,6 +55,13 @@ describe('VideosService', () => {
     req.flush(null);
   });
 
+  it('deleteVideo() DELETEs the url-encoded video id', () => {
+    service.deleteVideo('vid 1').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/videos/vid%201`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
+
   it('updateCommentSettings() POSTs the visibility to the comment-settings endpoint', () => {
     service.updateCommentSettings('vid1', { commentVisibility: 2 }).subscribe();
     const req = httpMock.expectOne(`${BASE}/api/videos/vid1/comment-settings`);

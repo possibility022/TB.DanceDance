@@ -32,6 +32,11 @@ export class VideosService {
     return this.api.post<void>(`/api/videos/${encodeURIComponent(videoId)}/rename`, request);
   }
 
+  /** Owner-only: permanently delete a recording and all of its associated data. */
+  deleteVideo(videoId: string): Observable<void> {
+    return this.api.delete<void>(`/api/videos/${encodeURIComponent(videoId)}`);
+  }
+
   /** Owner-only: change who may see this recording's comments. */
   updateCommentSettings(
     videoId: string,

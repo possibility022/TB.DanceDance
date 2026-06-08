@@ -51,11 +51,14 @@
                                                            >
                                                     </Label>
                                                 </VerticalStackLayout>
-                                                <controls:EditButton Grid.Column="1"
+                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Spacing="15">
+                                                    <controls:EditButton
                                                                      Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type groups:GroupVideosPageModel}}, x:DataType=groups:GroupVideosPageModel}"
-                                                                     CommandParameter="{Binding Id}"
-                                                                     HorizontalOptions="End"
-                                                                     VerticalOptions="Center" />
+                                                                     CommandParameter="{Binding Id}" />
+                                                    <controls:DeleteButton
+                                                                     Command="{Binding DeleteVideoCommand, Source={RelativeSource AncestorType={x:Type groups:GroupVideosPageModel}}, x:DataType=groups:GroupVideosPageModel}"
+                                                                     CommandParameter="{Binding Id}" />
+                                                </HorizontalStackLayout>
                                             </Grid>
                                         </VerticalStackLayout>
                                     </Border>

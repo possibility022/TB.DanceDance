@@ -74,6 +74,15 @@ import { LongDatePipe } from '../../format/long-date.pipe';
               Share
             </button>
           }
+          @if (deletable()) {
+            <button
+              type="button"
+              class="button is-danger is-light video-card__delete"
+              (click)="deleteVideo.emit(video())"
+            >
+              Delete
+            </button>
+          }
         </div>
       </div>
     </article>
@@ -247,7 +256,8 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       color: currentColor;
     }
 
-    .video-card__share {
+    .video-card__share,
+    .video-card__delete {
       font-weight: 600;
     }
   `,
@@ -256,6 +266,8 @@ export class VideoCard {
   readonly video = input.required<VideoInformation>();
   /** Show the Share action (e.g. in the user's own library). */
   readonly shareable = input(false);
+  /** Show the Delete action (owner-only, e.g. in the user's own library). */
+  readonly deletable = input(false);
   /** Query params carried to the player to preserve the group/event scope. */
   readonly queryParams = input<Params>({});
   /** Highlight this card as the currently-playing recording. */
@@ -263,6 +275,7 @@ export class VideoCard {
   /** Optional contextual label shown above the title (e.g. group name). */
   readonly badge = input('');
   readonly share = output<VideoInformation>();
+  readonly deleteVideo = output<VideoInformation>();
 
   readonly formattedDuration = computed(() => formatDuration(this.video().duration));
   readonly badgeTone = computed(() => getBadgeTone(this.badge()));
