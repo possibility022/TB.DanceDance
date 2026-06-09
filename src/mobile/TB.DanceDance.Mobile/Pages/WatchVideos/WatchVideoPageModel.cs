@@ -16,9 +16,8 @@ public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<Watc
 
     private async Task LoadData(string videoBlobId)
     {
-        var path = Path.Combine(FileSystem.Current.CacheDirectory, videoBlobId + ".mp4");
-
 #if DEBUG
+        var path = Path.Combine(FileSystem.Current.CacheDirectory, videoBlobId + ".mp4");
         await using var stream = await apiClient.GetStream(videoBlobId);
         try
         {

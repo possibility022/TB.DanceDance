@@ -32,6 +32,12 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task DeleteVideoAsync(Guid videoId)
+    {
+        var response = await httpClient.DeleteAsync($"/api/videos/{videoId}");
+        response.EnsureSuccessStatusCode();
+    }
+
     public async Task<GetUserAccessResponse> GetUserAccesses()
     {
         var response = await httpClient.GetAsync("/api/videos/accesses/my");

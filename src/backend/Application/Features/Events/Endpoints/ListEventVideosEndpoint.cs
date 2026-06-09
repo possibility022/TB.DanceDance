@@ -48,7 +48,7 @@ public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, PagedRes
 
         var response = new PagedResponse<VideoInformation>
         {
-            Items = MapVideos(videos),
+            Items = MapVideos(videos, userId),
             TotalCount = totalCount,
             PageNumber = pageNumber,
             PageSize = pageSize,
@@ -57,10 +57,10 @@ public class ListEventVideosEndpoint : Endpoint<ListEventVideosRequest, PagedRes
         await Send.OkAsync(response, ct);
     }
 
-    private VideoInformation[] MapVideos(IReadOnlyCollection<Video> videos)
+    private VideoInformation[] MapVideos(IReadOnlyCollection<Video> videos, string currentUserId)
     {
         return videos
-            .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId)))
+            .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId), currentUserId))
             .ToArray();
     }
 }

@@ -72,6 +72,31 @@ public partial class EventDetailsPageModel : ObservableObject,
     }
 
     [RelayCommand]
+    private async Task DeleteVideo(Guid videoId)
+    {
+        try
+        {
+            var video = Videos.FirstOrDefault(r => r.Id == videoId);
+            if (video == null)
+                return;
+
+            var confirmed = await Shell.Current.CurrentPage.DisplayAlertAsync("Usuń nagranie",
+                $"Czy na pewno chcesz trwale usunąć „{video.Name}”? Usunięte zostaną również komentarze i linki do udostępnień.",
+                "Usuń", "Anuluj");
+
+            if (!confirmed)
+                return;
+
+            await apiClient.DeleteVideoAsync(videoId);
+            Videos.Remove(video);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not delete video");
+        }
+    }
+
+    [RelayCommand]
     private Task NavigateToUploadToEvent()
         => navigationService.GoToAsync(
             Navigation.Relative()

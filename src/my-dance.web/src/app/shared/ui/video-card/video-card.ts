@@ -18,6 +18,9 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       <div
         class="video-card__preview"
         aria-hidden="true"
+        [class.is-clickable]="watchable()"
+        [routerLink]="watchable() ? ['/videos', video().blobId] : null"
+        [queryParams]="queryParams()"
         [style.--thumb]="thumbnailUrl() ? 'url(' + thumbnailUrl() + ')' : null"
         [class.has-thumbnail]="!!thumbnailUrl()"
       >
@@ -55,7 +58,7 @@ import { LongDatePipe } from '../../format/long-date.pipe';
         </p>
 
         <div class="buttons are-small video-card__actions">
-          @if (video().converted && video().blobId) {
+          @if (watchable()) {
             <a
               class="button is-primary video-card__watch"
               [routerLink]="['/videos', video().blobId]"
@@ -72,6 +75,15 @@ import { LongDatePipe } from '../../format/long-date.pipe';
               (click)="share.emit(video())"
             >
               Share
+            </button>
+          }
+          @if (deletable() && video().isOwner) {
+            <button
+              type="button"
+              class="button is-danger is-light video-card__delete"
+              (click)="deleteVideo.emit(video())"
+            >
+              Delete
             </button>
           }
         </div>
@@ -122,6 +134,10 @@ import { LongDatePipe } from '../../format/long-date.pipe';
 
     .video-card__preview.has-thumbnail {
       background: var(--thumb) center / cover no-repeat;
+    }
+
+    .video-card__preview.is-clickable {
+      cursor: pointer;
     }
 
     .video-card__preview::after {
@@ -247,7 +263,8 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       color: currentColor;
     }
 
-    .video-card__share {
+    .video-card__share,
+    .video-card__delete {
       font-weight: 600;
     }
   `,
@@ -256,6 +273,8 @@ export class VideoCard {
   readonly video = input.required<VideoInformation>();
   /** Show the Share action (e.g. in the user's own library). */
   readonly shareable = input(false);
+  /** Show the Delete action (owner-only, e.g. in the user's own library). */
+  readonly deletable = input(false);
   /** Query params carried to the player to preserve the group/event scope. */
   readonly queryParams = input<Params>({});
   /** Highlight this card as the currently-playing recording. */
@@ -263,7 +282,10 @@ export class VideoCard {
   /** Optional contextual label shown above the title (e.g. group name). */
   readonly badge = input('');
   readonly share = output<VideoInformation>();
+  readonly deleteVideo = output<VideoInformation>();
 
+  /** A recording is watchable once conversion has produced a playable blob. */
+  readonly watchable = computed(() => this.video().converted && !!this.video().blobId);
   readonly formattedDuration = computed(() => formatDuration(this.video().duration));
   readonly badgeTone = computed(() => getBadgeTone(this.badge()));
   readonly thumbnailUrl = computed(() => this.video().thumbnailUrl ?? null);

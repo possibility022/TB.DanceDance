@@ -96,4 +96,10 @@ public class BlobDataService : IBlobDataService
         var properties = await blobClient.GetPropertiesAsync();
         return properties.Value.ContentLength;
     }
+
+    public Task DeleteAsync(string blobId, CancellationToken cancellationToken = default)
+    {
+        var client = container.GetBlobClient(blobId);
+        return client.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: cancellationToken);
+    }
 }

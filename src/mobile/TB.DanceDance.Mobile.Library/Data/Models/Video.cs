@@ -20,6 +20,9 @@ public record Video
     public bool Converted { get; set; } = false;
     public string? ThumbnailUrl { get; set; }
 
+    /// <summary>True when the current user uploaded this video, i.e. may delete it.</summary>
+    public bool IsOwner { get; set; }
+
 
     public static List<Video> MapFromApiResponse(IReadOnlyCollection<VideoFromGroupInformation>? videosResponse)
     {
@@ -36,6 +39,7 @@ public record Video
             BlobId = v.BlobId,
             Converted = v.Converted,
             ThumbnailUrl = v.ThumbnailUrl,
+            IsOwner = v.IsOwner,
         }).ToList();
     }
 
@@ -49,6 +53,7 @@ public record Video
             BlobId = r.BlobId,
             Converted = r.Converted,
             ThumbnailUrl = r.ThumbnailUrl,
+            IsOwner = r.IsOwner,
         }).ToList();
     }
 }

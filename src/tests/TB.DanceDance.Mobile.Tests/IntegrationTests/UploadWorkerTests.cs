@@ -177,4 +177,45 @@ public class UploadWorkerTests
 
         platform.Received().UploadProgressNotification("vid.mp4", 50, 100);
     }
+
+    [Fact(Timeout = 10000)]
+    public async Task Work_DoesNotComplete_SharedChannel()
+    {
+        // The channel is a DI singleton in the app: it must survive a session so
+        // later uploads can keep reporting progress.
+        var (worker, db, uploader, api, platform, channel) = CreateSut();
+
+        await worker.Work(TestContext.Current.CancellationToken);
+
+        Assert.False(channel.Reader.Completion.IsCompleted);
+        Assert.True(channel.Writer.TryWrite(
+            new UploadProgressEvent { FileName = "x", FileSize = 1, SendBytes = 1 }));
+    }
+
+    [Fact(Timeout = 10000)]
+    public async Task SecondSession_OnSameChannel_StillForwardsProgress()
+    {
+        // Mirrors production: each foreground-service start makes a new worker but
+        // shares the singleton channel. A first completed session must not break
+        // progress reporting for the next one.
+        var db = CreateDb();
+        var uploader = Substitute.For<IVideoUploader>();
+        var api = Substitute.For<IDanceHttpApiClient>();
+        var channel = Channel.CreateUnbounded<UploadProgressEvent>();
+
+        var firstWorker = new UploadWorker(db, uploader, api, channel);
+        firstWorker.SetPlatformNotification(Substitute.For<IPlatformNotification>());
+        await firstWorker.Work(TestContext.Current.CancellationToken);
+
+        var secondPlatform = Substitute.For<IPlatformNotification>();
+        var secondWorker = new UploadWorker(db, uploader, api, channel);
+        secondWorker.SetPlatformNotification(secondPlatform);
+        await channel.Writer.WriteAsync(
+            new UploadProgressEvent { FileName = "v2.mp4", FileSize = 100, SendBytes = 40 },
+            TestContext.Current.CancellationToken);
+
+        await secondWorker.Work(TestContext.Current.CancellationToken);
+
+        secondPlatform.Received().UploadProgressNotification("v2.mp4", 40, 100);
+    }
 }

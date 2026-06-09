@@ -322,4 +322,133 @@ public class VideoServiceTests : BaseTestClass
     }
 
     #endregion
+
+    #region DeleteVideoAsync Tests
+
+    private async Task UploadBlobAsync(BlobContainer container, string blobId)
+    {
+        var svc = factory.GetBlobDataService(container);
+        await svc.Upload(blobId, new MemoryStream([1, 2, 3, 4]));
+    }
+
+    private Task<bool> BlobExistsAsync(BlobContainer container, string blobId)
+        => factory.GetBlobDataService(container).BlobExistsAsync(blobId);
+
+    [Fact]
+    public async Task DeleteVideoAsync_Owner_RemovesVideoRelatedRowsAndBlobs()
+    {
+        // Arrange: a fully populated video — shared-with, a shared link, an authenticated
+        // comment and an anonymous comment via the link, plus all three blobs.
+        var owner = new UserDataBuilder().Build();
+        var sourceBlobId = $"src-{Guid.NewGuid():N}";
+        var convertedBlobId = Guid.NewGuid().ToString();
+        var thumbnailBlobId = $"{Guid.NewGuid()}/thumbnail.jpg";
+
+        var video = new VideoDataBuilder()
+            .UploadedBy(owner)
+            .Converted()
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(convertedBlobId)
+            .WithThumbnailBlobId(thumbnailBlobId)
+            .Build();
+
+        var sharedWith = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id };
+        var link = new SharedLinkDataBuilder().ForVideo(video).SharedBy(owner).Build();
+        var userComment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Build();
+        var anonComment = new CommentDataBuilder().ForVideo(video).ByAnonymous(link).Build();
+
+        SeedDbContext.AddRange(owner, video, sharedWith, link, userComment, anonComment);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await UploadBlobAsync(BlobContainer.VideosToConvert, sourceBlobId);
+        await UploadBlobAsync(BlobContainer.Videos, convertedBlobId);
+        await UploadBlobAsync(BlobContainer.Thumbnails, thumbnailBlobId);
+
+        // Act
+        var result = await videoService.DeleteVideoAsync(video.Id, owner.Id, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal(DeleteVideoResult.Deleted, result);
+
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.False(await SeedDbContext.Videos.AnyAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken));
+        Assert.False(await SeedDbContext.SharedWith.AnyAsync(s => s.VideoId == video.Id, TestContext.Current.CancellationToken));
+        Assert.False(await SeedDbContext.SharedLinks.AnyAsync(l => l.VideoId == video.Id, TestContext.Current.CancellationToken));
+        Assert.False(await SeedDbContext.Comments.AnyAsync(c => c.VideoId == video.Id, TestContext.Current.CancellationToken));
+
+        Assert.False(await BlobExistsAsync(BlobContainer.VideosToConvert, sourceBlobId));
+        Assert.False(await BlobExistsAsync(BlobContainer.Videos, convertedBlobId));
+        Assert.False(await BlobExistsAsync(BlobContainer.Thumbnails, thumbnailBlobId));
+    }
+
+    [Fact]
+    public async Task DeleteVideoAsync_NotOwner_ReturnsForbidden_AndKeepsEverything()
+    {
+        var owner = new UserDataBuilder().Build();
+        var otherUser = new UserDataBuilder().Build();
+        var sourceBlobId = $"src-{Guid.NewGuid():N}";
+        var convertedBlobId = Guid.NewGuid().ToString();
+
+        var video = new VideoDataBuilder()
+            .UploadedBy(owner)
+            .Converted()
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(convertedBlobId)
+            .Build();
+
+        SeedDbContext.AddRange(owner, otherUser, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await UploadBlobAsync(BlobContainer.VideosToConvert, sourceBlobId);
+        await UploadBlobAsync(BlobContainer.Videos, convertedBlobId);
+
+        var result = await videoService.DeleteVideoAsync(video.Id, otherUser.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DeleteVideoResult.Forbidden, result);
+
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.True(await SeedDbContext.Videos.AnyAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken));
+        Assert.True(await BlobExistsAsync(BlobContainer.VideosToConvert, sourceBlobId));
+        Assert.True(await BlobExistsAsync(BlobContainer.Videos, convertedBlobId));
+    }
+
+    [Fact]
+    public async Task DeleteVideoAsync_UnknownVideo_ReturnsNotFound()
+    {
+        var user = new UserDataBuilder().Build();
+        SeedDbContext.Add(user);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var result = await videoService.DeleteVideoAsync(Guid.NewGuid(), user.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DeleteVideoResult.NotFound, result);
+    }
+
+    [Fact]
+    public async Task DeleteVideoAsync_UnconvertedVideo_DeletesWithoutConvertedOrThumbnailBlobs()
+    {
+        // A video that hasn't been converted yet has no BlobId/ThumbnailBlobId — only the source blob exists.
+        var owner = new UserDataBuilder().Build();
+        var sourceBlobId = $"src-{Guid.NewGuid():N}";
+
+        var video = new VideoDataBuilder()
+            .UploadedBy(owner)
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(null)
+            .Build();
+
+        SeedDbContext.AddRange(owner, video);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await UploadBlobAsync(BlobContainer.VideosToConvert, sourceBlobId);
+
+        var result = await videoService.DeleteVideoAsync(video.Id, owner.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DeleteVideoResult.Deleted, result);
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.False(await SeedDbContext.Videos.AnyAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken));
+        Assert.False(await BlobExistsAsync(BlobContainer.VideosToConvert, sourceBlobId));
+    }
+
+    #endregion
 }

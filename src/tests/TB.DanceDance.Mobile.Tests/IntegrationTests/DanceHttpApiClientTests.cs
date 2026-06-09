@@ -60,6 +60,29 @@ public class DanceHttpApiClientTests : IDisposable
     }
 
     [Fact]
+    public async Task DeleteVideoAsync_DeletesSuccessfully()
+    {
+        var id = Guid.NewGuid();
+        server.Given(Request.Create().WithPath($"/api/videos/{id}").UsingDelete())
+            .RespondWith(Response.Create().WithStatusCode(204));
+
+        await client.DeleteVideoAsync(id);
+
+        var logs = server.FindLogEntries(Request.Create().WithPath($"/api/videos/{id}").UsingDelete());
+        Assert.Single(logs);
+    }
+
+    [Fact]
+    public async Task DeleteVideoAsync_ThrowsOnError()
+    {
+        var id = Guid.NewGuid();
+        server.Given(Request.Create().WithPath($"/api/videos/{id}").UsingDelete())
+            .RespondWith(Response.Create().WithStatusCode(403));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.DeleteVideoAsync(id));
+    }
+
+    [Fact]
     public async Task GetUserAccesses_ReturnsContent_OrEmptyOnNull()
     {
         var obj = new GetUserAccessResponse

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 import { VideoCard } from './video-card';
 import { VideoInformation } from '../../../core/api/api-models';
@@ -17,6 +17,7 @@ async function setup(
   video: VideoInformation,
   inputs: Partial<{
     shareable: boolean;
+    deletable: boolean;
     selected: boolean;
     queryParams: Record<string, string>;
     badge: string;
@@ -72,10 +73,30 @@ describe('VideoCard', () => {
     expect(watch?.getAttribute('href')).toBe('/videos/blob1?groupId=g1');
   });
 
+  it('opens the player when the thumbnail is clicked', async () => {
+    const fixture = await setup(CONVERTED, { queryParams: { groupId: 'g1' } });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    const preview = fixture.nativeElement.querySelector('.video-card__preview') as HTMLElement;
+
+    expect(preview.classList).toContain('is-clickable');
+    preview.click();
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate.mock.calls[0][0].toString()).toBe('/videos/blob1?groupId=g1');
+  });
+
   it('shows a processing tag instead of Watch until the video is converted', async () => {
-    const el = (await setup({ ...CONVERTED, converted: false })).nativeElement as HTMLElement;
+    const fixture = await setup({ ...CONVERTED, converted: false });
+    const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('a.button.is-primary')).toBeNull();
     expect(el.textContent).toContain('Processing');
+
+    // The thumbnail must not navigate while the recording is still processing.
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    const preview = el.querySelector('.video-card__preview') as HTMLElement;
+    expect(preview.classList).not.toContain('is-clickable');
+    preview.click();
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('hides the Share action by default', async () => {
@@ -93,6 +114,26 @@ describe('VideoCard', () => {
     button.click();
 
     expect(emitted).toEqual([CONVERTED]);
+  });
+
+  it('shows the Delete action only when deletable and the user owns the video', async () => {
+    const notOwner = (await setup({ ...CONVERTED, isOwner: false }, { deletable: true }))
+      .nativeElement as HTMLElement;
+    expect(notOwner.querySelector('.video-card__delete')).toBeNull();
+
+    const owner = await setup({ ...CONVERTED, isOwner: true }, { deletable: true });
+    const button = owner.nativeElement.querySelector('.video-card__delete') as HTMLButtonElement;
+    expect(button.textContent).toContain('Delete');
+
+    const emitted: VideoInformation[] = [];
+    owner.componentInstance.deleteVideo.subscribe((v) => emitted.push(v));
+    button.click();
+    expect(emitted).toEqual([{ ...CONVERTED, isOwner: true }]);
+  });
+
+  it('hides the Delete action when not deletable even for the owner', async () => {
+    const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
+    expect(el.querySelector('.video-card__delete')).toBeNull();
   });
 
   it('highlights the card when selected', async () => {

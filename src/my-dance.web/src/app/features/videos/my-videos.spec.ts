@@ -111,4 +111,71 @@ describe('MyVideos', () => {
     c.closeShare();
     expect(c.shareOpen()).toBe(false);
   });
+
+  describe('delete', () => {
+    async function setupForDelete(
+      deleteVideo: (videoId: string) => Observable<void>,
+    ): Promise<{ component: MyVideos }> {
+      await TestBed.configureTestingModule({
+        imports: [MyVideos],
+        providers: [
+          provideRouter([]),
+          {
+            provide: VideosService,
+            useValue: {
+              getMyVideos: () =>
+                of({
+                  items: [
+                    { videoId: 'v1', name: 'A' },
+                    { videoId: 'v2', name: 'B' },
+                  ],
+                  totalCount: 2,
+                }),
+              deleteVideo,
+            },
+          },
+          { provide: SharingService, useValue: { getMySharedLinks: () => of({ links: [] }) } },
+        ],
+      }).compileComponents();
+
+      const fixture = TestBed.createComponent(MyVideos);
+      fixture.detectChanges();
+      return { component: fixture.componentInstance };
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('confirms, deletes, and drops the item from the list', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const deleteVideo = vi.fn(() => of(void 0));
+      const { component } = await setupForDelete(deleteVideo);
+
+      component.onDelete({ videoId: 'v1', name: 'A' });
+
+      expect(deleteVideo).toHaveBeenCalledWith('v1');
+      expect(component.items().map((v) => v.videoId)).toEqual(['v2']);
+    });
+
+    it('is a no-op when the confirmation is dismissed', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
+      const deleteVideo = vi.fn(() => of(void 0));
+      const { component } = await setupForDelete(deleteVideo);
+
+      component.onDelete({ videoId: 'v1', name: 'A' });
+
+      expect(deleteVideo).not.toHaveBeenCalled();
+      expect(component.items().map((v) => v.videoId)).toEqual(['v1', 'v2']);
+    });
+
+    it('keeps the item when the delete request fails', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const deleteVideo = vi.fn(() => throwError(() => new Error('boom')));
+      const { component } = await setupForDelete(deleteVideo);
+
+      component.onDelete({ videoId: 'v1', name: 'A' });
+
+      expect(deleteVideo).toHaveBeenCalledWith('v1');
+      expect(component.items().map((v) => v.videoId)).toEqual(['v1', 'v2']);
+    });
+  });
 });

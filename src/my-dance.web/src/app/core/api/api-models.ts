@@ -25,6 +25,8 @@ export interface VideoInformation {
     converted?: boolean;
     commentVisibility?: number;
     thumbnailUrl?: string | undefined;
+    /** True when the current user uploaded this video (the only one who may delete it). */
+    isOwner?: boolean;
 }
 
 export interface PagedRequest {
