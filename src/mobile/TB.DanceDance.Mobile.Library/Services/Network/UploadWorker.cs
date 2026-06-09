@@ -88,10 +88,15 @@ public class UploadWorker : IDisposable
                 }
             }
 
-            uploadProgressChannel.Writer.TryComplete();
+            // Do NOT complete the channel: it is shared (a DI singleton) across
+            // upload sessions, so completing it would close it permanently and
+            // break progress reporting for every subsequent upload. End the
+            // monitor by cancelling instead, then deliver any tail messages it
+            // didn't drain before cancellation.
             Serilog.Log.Debug("Requesting cancellation on {token}.", mainLoopCanncellationTokenSource.Token.GetHashCode());
             await mainLoopCanncellationTokenSource.CancelAsync();
             await monitorProgressProcess;
+            DrainProgress();
 
             platformNotification?.UploadCompleteNotification();
 
@@ -120,7 +125,17 @@ public class UploadWorker : IDisposable
             // nothing to do
         }
     }
-    
+
+    /// <summary>
+    /// Forwards any progress messages still buffered after the monitor stopped,
+    /// so the final state isn't lost when the loop ends.
+    /// </summary>
+    private void DrainProgress()
+    {
+        while (uploadProgressChannel.Reader.TryRead(out var message))
+            platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
+    }
+
     private async Task Upload(VideosToUpload video, CancellationToken token)
     {
         try

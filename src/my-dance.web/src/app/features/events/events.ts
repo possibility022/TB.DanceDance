@@ -3,10 +3,13 @@ import {
   Component,
   DestroyRef,
   computed,
+  effect,
   inject,
+  input,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AccessService } from '../../core/api/access.service';
@@ -157,8 +160,18 @@ const VIDEOS_PAGE_SIZE = 20;
 export class Events {
   private readonly access = inject(AccessService);
   private readonly events = inject(EventsService);
+  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+
+  /**
+   * The selected event, carried in the URL (`/events?eventId=…`) so that the
+   * detail view is its own history entry — browser Back returns to the list.
+   * Bound from the query param via withComponentInputBinding().
+   */
+  readonly eventId = input<string>('');
+  /** The URL state we've already applied, so we don't reload on echoes. */
+  private syncedEventId = '';
 
   readonly loading = signal(true);
   readonly failed = signal(false);
@@ -189,6 +202,26 @@ export class Events {
 
   constructor() {
     this.load();
+    // Drive the detail view from the URL so browser Back/Forward and deep links
+    // work. Reacts to the bound query param and to events finishing loading.
+    effect(() => {
+      this.applyEventIdFromUrl(this.eventId(), this.items());
+    });
+  }
+
+  private applyEventIdFromUrl(id: string, events: readonly EventModel[]): void {
+    if (id === this.syncedEventId) {
+      return;
+    }
+    if (!id) {
+      this.resetDetail();
+      return;
+    }
+    const event = events.find((candidate) => candidate.id === id);
+    // If the events aren't loaded yet, this effect re-runs once they are.
+    if (event) {
+      this.loadDetail(event);
+    }
   }
 
   load(): void {
@@ -210,7 +243,16 @@ export class Events {
       });
   }
 
+  /** User picked an event from the list: render it and push a history entry. */
   select(event: EventModel): void {
+    this.loadDetail(event);
+    if (event.id) {
+      this.router.navigate(['/events'], { queryParams: { eventId: event.id } });
+    }
+  }
+
+  private loadDetail(event: EventModel): void {
+    this.syncedEventId = event.id ?? '';
     this.selected.set(event);
     if (!event.id) {
       return;
@@ -266,7 +308,14 @@ export class Events {
       });
   }
 
+  /** "Back to events" button: clear the URL so it lands on the list. */
   clearSelection(): void {
+    this.resetDetail();
+    this.router.navigate(['/events'], { queryParams: {} });
+  }
+
+  private resetDetail(): void {
+    this.syncedEventId = '';
     this.uploadModalOpen.set(false);
     this.selected.set(null);
     this.videos.set([]);

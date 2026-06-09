@@ -43,6 +43,8 @@ public class StreamVideoEndpoint : EndpointWithoutRequest
             return await Send.UnauthorizedAsync(ct);
 
         var stream = await videoService.OpenStream(blobId, ct);
-        return await Send.StreamAsync(stream, contentType: "video/mp4", cancellation: ct);
+        // enableRangeProcessing lets the browser issue Range requests, which is
+        // what makes seeking forward (to not-yet-buffered positions) work.
+        return await Send.StreamAsync(stream, contentType: "video/mp4", enableRangeProcessing: true, cancellation: ct);
     }
 }

@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ViewportScroller } from '@angular/common';
 import { Observable, forkJoin } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -44,6 +45,7 @@ export class VideoPlayer {
   private readonly events = inject(EventsService);
   private readonly comments = inject(CommentsService);
   private readonly auth = inject(AuthService);
+  private readonly viewport = inject(ViewportScroller);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
@@ -79,6 +81,9 @@ export class VideoPlayer {
     effect(() => {
       this.blobId();
       this.load();
+      // The component is reused when switching between siblings, so the router
+      // doesn't reset scroll. Bring the player back into view at the top.
+      this.viewport.scrollToPosition([0, 0]);
     });
     effect(() => {
       this.groupId();
