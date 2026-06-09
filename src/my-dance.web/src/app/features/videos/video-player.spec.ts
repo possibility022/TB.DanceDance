@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { ViewportScroller } from '@angular/common';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
@@ -47,6 +48,7 @@ function createFixture(opts: {
     reportComment: vi.fn(() => of(void 0)),
   };
   const auth = { getAccessToken: vi.fn(() => of('token')), isAuthenticated: signal(true) };
+  const viewport = { scrollToPosition: vi.fn() };
 
   TestBed.configureTestingModule({
     imports: [VideoPlayer],
@@ -57,6 +59,7 @@ function createFixture(opts: {
       { provide: EventsService, useValue: events },
       { provide: CommentsService, useValue: comments },
       { provide: AuthService, useValue: auth },
+      { provide: ViewportScroller, useValue: viewport },
     ],
   });
 
@@ -65,7 +68,7 @@ function createFixture(opts: {
   if (opts.groupId) fixture.componentRef.setInput('groupId', opts.groupId);
   if (opts.eventId) fixture.componentRef.setInput('eventId', opts.eventId);
   fixture.detectChanges();
-  return { fixture, videos, groups, events, comments, auth, component: fixture.componentInstance };
+  return { fixture, videos, groups, events, comments, auth, viewport, component: fixture.componentInstance };
 }
 
 describe('VideoPlayer', () => {
@@ -116,6 +119,21 @@ describe('VideoPlayer', () => {
       const { component, events } = createFixture({ eventId: 'e1', getEventVideos });
       expect(events.getEventVideos).toHaveBeenCalledWith('e1', 1, 100);
       expect(component.siblings()).toHaveLength(1);
+    });
+
+    it('scrolls back to the top when switching to a sibling recording', () => {
+      const { fixture, viewport } = createFixture({
+        groupId: 'g1',
+        getVideosForGroup: vi.fn(() => of({ items: [{ videoId: 'a' }, { videoId: 'b' }] })),
+      });
+      // The component is reused across siblings; selecting one swaps the player
+      // in place, so it must scroll the viewport back up to the new video.
+      viewport.scrollToPosition.mockClear();
+
+      fixture.componentRef.setInput('blobId', 'blob2');
+      fixture.detectChanges();
+
+      expect(viewport.scrollToPosition).toHaveBeenCalledWith([0, 0]);
     });
 
     it('has no siblings without a scope', () => {

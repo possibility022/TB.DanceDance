@@ -18,6 +18,9 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       <div
         class="video-card__preview"
         aria-hidden="true"
+        [class.is-clickable]="watchable()"
+        [routerLink]="watchable() ? ['/videos', video().blobId] : null"
+        [queryParams]="queryParams()"
         [style.--thumb]="thumbnailUrl() ? 'url(' + thumbnailUrl() + ')' : null"
         [class.has-thumbnail]="!!thumbnailUrl()"
       >
@@ -55,7 +58,7 @@ import { LongDatePipe } from '../../format/long-date.pipe';
         </p>
 
         <div class="buttons are-small video-card__actions">
-          @if (video().converted && video().blobId) {
+          @if (watchable()) {
             <a
               class="button is-primary video-card__watch"
               [routerLink]="['/videos', video().blobId]"
@@ -131,6 +134,10 @@ import { LongDatePipe } from '../../format/long-date.pipe';
 
     .video-card__preview.has-thumbnail {
       background: var(--thumb) center / cover no-repeat;
+    }
+
+    .video-card__preview.is-clickable {
+      cursor: pointer;
     }
 
     .video-card__preview::after {
@@ -277,6 +284,8 @@ export class VideoCard {
   readonly share = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
 
+  /** A recording is watchable once conversion has produced a playable blob. */
+  readonly watchable = computed(() => this.video().converted && !!this.video().blobId);
   readonly formattedDuration = computed(() => formatDuration(this.video().duration));
   readonly badgeTone = computed(() => getBadgeTone(this.badge()));
   readonly thumbnailUrl = computed(() => this.video().thumbnailUrl ?? null);
