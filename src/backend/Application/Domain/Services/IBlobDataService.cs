@@ -11,4 +11,9 @@ public interface IBlobDataService
     SharedBlob GetUploadSas(string? blobId = null);
     Task<bool> BlobExistsAsync(string blobId);
     Task<long> GetBlobSizeAsync(string blobId);
+
+    /// <summary>
+    /// Deletes the blob (including snapshots) if it exists. No-op when the blob is absent.
+    /// </summary>
+    Task DeleteAsync(string blobId, CancellationToken cancellationToken = default);
 }

@@ -10,6 +10,7 @@ namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 public interface IDanceHttpApiClient
 {
     Task RenameVideoAsync(Guid videoId, string newName);
+    Task DeleteVideoAsync(Guid videoId);
     Task<GetUserAccessResponse> GetUserAccesses();
     Task RequestAccess(RequestAccessRequest accessRequest);
     Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize);

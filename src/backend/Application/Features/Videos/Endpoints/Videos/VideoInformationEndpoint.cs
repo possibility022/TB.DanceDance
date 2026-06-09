@@ -33,7 +33,7 @@ public class VideoInformationEndpoint : EndpointWithoutRequest<VideoInformationR
             await Send.NotFoundAsync(cancellation: ct);
         else
         {
-            var results = ContractMappers.MapToVideoInformation(info, thumbnailUrlService.GetThumbnailUrl(info.ThumbnailBlobId));
+            var results = ContractMappers.MapToVideoInformation(info, thumbnailUrlService.GetThumbnailUrl(info.ThumbnailBlobId), user);
             await Send.OkAsync(new VideoInformationResponse
             {
                 VideoInformation = results

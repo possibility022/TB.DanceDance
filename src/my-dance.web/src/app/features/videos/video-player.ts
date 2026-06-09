@@ -8,6 +8,8 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ViewportScroller } from '@angular/common';
 import { Observable, forkJoin } from 'rxjs';
@@ -45,6 +47,8 @@ export class VideoPlayer {
   private readonly events = inject(EventsService);
   private readonly comments = inject(CommentsService);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly doc = inject(DOCUMENT);
   private readonly viewport = inject(ViewportScroller);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -64,6 +68,7 @@ export class VideoPlayer {
   readonly editingName = signal(false);
   readonly nameDraft = signal('');
   readonly renaming = signal(false);
+  readonly deleting = signal(false);
 
   /** User-selected tab. Reads through `activeTab` to guard against stale `recordings` state when no siblings are loaded. */
   private readonly tabChoice = signal<SidebarTab>('recordings');
@@ -166,6 +171,35 @@ export class VideoPlayer {
           this.editingName.set(false);
         },
         error: () => this.renaming.set(false),
+      });
+  }
+
+  deleteVideo(): void {
+    const video = this.info();
+    const videoId = video?.videoId;
+    if (!videoId || this.deleting()) {
+      return;
+    }
+
+    const name = video?.name || 'this recording';
+    const confirmed = this.doc.defaultView?.confirm(
+      `Delete “${name}”? This permanently removes the recording, its comments and any shared links.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deleting.set(true);
+    this.videos
+      .deleteVideo(videoId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deleting.set(false);
+          // The recording is gone — leave the player and return to the library.
+          this.router.navigate(['/videos/my']);
+        },
+        error: () => this.deleting.set(false),
       });
   }
 

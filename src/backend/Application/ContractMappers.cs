@@ -11,7 +11,7 @@ namespace Application;
 
 public static class ContractMappers
 {
-    public static VideoInformation MapToVideoInformation(Video video, string? thumbnailUrl)
+    public static VideoInformation MapToVideoInformation(Video video, string? thumbnailUrl, string? currentUserId = null)
     {
         return new VideoInformation()
         {
@@ -22,7 +22,8 @@ public static class ContractMappers
             RecordedDateTime = video.RecordedDateTime,
             Converted = video.Converted,
             CommentVisibility = (int)video.CommentVisibility,
-            ThumbnailUrl = thumbnailUrl
+            ThumbnailUrl = thumbnailUrl,
+            IsOwner = currentUserId != null && video.UploadedBy == currentUserId
         };
     }
 

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
@@ -23,6 +23,7 @@ function createFixture(opts: {
   video?: VideoInformation | null;
   getVideo?: ReturnType<typeof vi.fn>;
   renameVideo?: ReturnType<typeof vi.fn>;
+  deleteVideo?: ReturnType<typeof vi.fn>;
   getVideosForGroup?: ReturnType<typeof vi.fn>;
   getEventVideos?: ReturnType<typeof vi.fn>;
   getCommentsForVideo?: ReturnType<typeof vi.fn>;
@@ -34,6 +35,7 @@ function createFixture(opts: {
     getVideo: opts.getVideo ?? vi.fn(() => of({ videoInformation: video })),
     streamUrl: vi.fn(() => 'https://api/stream'),
     renameVideo: opts.renameVideo ?? vi.fn(() => of(void 0)),
+    deleteVideo: opts.deleteVideo ?? vi.fn(() => of(void 0)),
   };
   const groups = { getVideosForGroup: opts.getVideosForGroup ?? vi.fn(() => of({ items: [] })) };
   const events = { getEventVideos: opts.getEventVideos ?? vi.fn(() => of({ items: [] })) };
@@ -191,6 +193,63 @@ describe('VideoPlayer', () => {
       component.startRename();
       component.cancelRename();
       expect(component.editingName()).toBe(false);
+    });
+  });
+
+  describe('delete', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    const deleteButton = (fixture: ComponentFixture<VideoPlayer>) =>
+      fixture.nativeElement.querySelector('button[aria-label="Delete recording"]') as
+        | HTMLButtonElement
+        | null;
+
+    it('shows the Delete button when the user owns the recording', () => {
+      const { fixture } = createFixture({ video: { ...CONVERTED, isOwner: true } });
+      expect(deleteButton(fixture)).not.toBeNull();
+    });
+
+    it('hides the Delete button when the user does not own the recording', () => {
+      const { fixture } = createFixture({ video: { ...CONVERTED, isOwner: false } });
+      expect(deleteButton(fixture)).toBeNull();
+    });
+
+    it('confirms, deletes, and navigates back to the library', () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const deleteVideo = vi.fn(() => of(void 0));
+      const { component } = createFixture({ deleteVideo });
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.deleteVideo();
+
+      expect(deleteVideo).toHaveBeenCalledWith('vid1');
+      expect(navigate).toHaveBeenCalledWith(['/videos/my']);
+      expect(component.deleting()).toBe(false);
+    });
+
+    it('is a no-op when the confirmation is dismissed', () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
+      const deleteVideo = vi.fn(() => of(void 0));
+      const { component } = createFixture({ deleteVideo });
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.deleteVideo();
+
+      expect(deleteVideo).not.toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('clears the in-flight flag and stays on the page when the delete fails', () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const deleteVideo = vi.fn(() => throwError(() => new Error('boom')));
+      const { component } = createFixture({ deleteVideo });
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.deleteVideo();
+
+      expect(deleteVideo).toHaveBeenCalledWith('vid1');
+      expect(navigate).not.toHaveBeenCalled();
+      expect(component.deleting()).toBe(false);
     });
   });
 

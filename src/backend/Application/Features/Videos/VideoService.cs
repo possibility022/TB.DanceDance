@@ -13,6 +13,8 @@ public class VideoService : IVideoService
 {
     private readonly IApplicationContext dbContext;
     private readonly IBlobDataService blobService;
+    private readonly IBlobDataService sourceBlobService;
+    private readonly IBlobDataService thumbnailBlobService;
     private readonly IVideoUploaderService videoUploaderService;
     private readonly IAccessService accessService;
 
@@ -25,6 +27,8 @@ public class VideoService : IVideoService
     {
         this.dbContext = dbContext;
         blobService = blobServiceFactory.GetBlobDataService(BlobContainer.Videos);
+        sourceBlobService = blobServiceFactory.GetBlobDataService(BlobContainer.VideosToConvert);
+        thumbnailBlobService = blobServiceFactory.GetBlobDataService(BlobContainer.Thumbnails);
         this.videoUploaderService = videoUploaderService;
         this.accessService = accessService;
     }
@@ -153,5 +157,38 @@ public class VideoService : IVideoService
         video.CommentVisibility = commentVisibility;
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<DeleteVideoResult> DeleteVideoAsync(Guid videoId, string userId, CancellationToken cancellationToken)
+    {
+        var video = await dbContext.Videos
+            .FirstOrDefaultAsync(v => v.Id == videoId, cancellationToken);
+
+        if (video == null)
+            return DeleteVideoResult.NotFound;
+
+        // Only the uploader may delete — stricter than the access-based rename path.
+        if (video.UploadedBy != userId)
+            return DeleteVideoResult.Forbidden;
+
+        // Capture blob ids before the row is removed.
+        var sourceBlobId = video.SourceBlobId;
+        var convertedBlobId = video.BlobId;
+        var thumbnailBlobId = video.ThumbnailBlobId;
+
+        // Removing the Video row cascades to its SharedWith / Comment / SharedLink / VideoMetadata
+        // rows via the configured ON DELETE CASCADE foreign keys.
+        dbContext.Videos.Remove(video);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Blobs live outside the database, so clean them up explicitly. The three blobs live in
+        // separate containers; DeleteAsync is a no-op when a blob is missing (e.g. not yet converted).
+        await sourceBlobService.DeleteAsync(sourceBlobId, cancellationToken);
+        if (!string.IsNullOrEmpty(convertedBlobId))
+            await blobService.DeleteAsync(convertedBlobId, cancellationToken);
+        if (!string.IsNullOrEmpty(thumbnailBlobId))
+            await thumbnailBlobService.DeleteAsync(thumbnailBlobId, cancellationToken);
+
+        return DeleteVideoResult.Deleted;
     }
 }

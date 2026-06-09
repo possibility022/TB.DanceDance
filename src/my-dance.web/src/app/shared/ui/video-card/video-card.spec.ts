@@ -17,6 +17,7 @@ async function setup(
   video: VideoInformation,
   inputs: Partial<{
     shareable: boolean;
+    deletable: boolean;
     selected: boolean;
     queryParams: Record<string, string>;
     badge: string;
@@ -113,6 +114,26 @@ describe('VideoCard', () => {
     button.click();
 
     expect(emitted).toEqual([CONVERTED]);
+  });
+
+  it('shows the Delete action only when deletable and the user owns the video', async () => {
+    const notOwner = (await setup({ ...CONVERTED, isOwner: false }, { deletable: true }))
+      .nativeElement as HTMLElement;
+    expect(notOwner.querySelector('.video-card__delete')).toBeNull();
+
+    const owner = await setup({ ...CONVERTED, isOwner: true }, { deletable: true });
+    const button = owner.nativeElement.querySelector('.video-card__delete') as HTMLButtonElement;
+    expect(button.textContent).toContain('Delete');
+
+    const emitted: VideoInformation[] = [];
+    owner.componentInstance.deleteVideo.subscribe((v) => emitted.push(v));
+    button.click();
+    expect(emitted).toEqual([{ ...CONVERTED, isOwner: true }]);
+  });
+
+  it('hides the Delete action when not deletable even for the owner', async () => {
+    const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
+    expect(el.querySelector('.video-card__delete')).toBeNull();
   });
 
   it('highlights the card when selected', async () => {
