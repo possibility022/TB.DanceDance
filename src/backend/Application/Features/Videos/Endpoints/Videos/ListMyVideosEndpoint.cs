@@ -28,11 +28,12 @@ public class ListMyVideosEndpoint : Endpoint<ListMyVideosRequest, PagedResponse<
         var pageNumber = req.NormalizedPage;
         var pageSize = req.NormalizedPageSize;
 
-        var query = accessService.GetUserPrivateVideosQuery(User.GetSubject());
+        var userId = User.GetSubject();
+        var query = accessService.GetUserPrivateVideosQuery(userId);
         var (videos, totalCount) = await query.ToPagedResultAsync(pageNumber, pageSize, ct);
 
         var videoInformation = videos
-            .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId)))
+            .Select(v => ContractMappers.MapToVideoInformation(v, thumbnailUrlService.GetThumbnailUrl(v.ThumbnailBlobId), userId))
             .ToArray();
 
         await Send.OkAsync(new PagedResponse<VideoInformation>

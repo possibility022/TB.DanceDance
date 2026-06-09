@@ -57,6 +57,7 @@
                                                                      Command="{Binding RenameVideoCommand, Source={RelativeSource AncestorType={x:Type events:EventDetailsPageModel}}, x:DataType=events:EventDetailsPageModel}"
                                                                      CommandParameter="{Binding Id}" />
                                                     <controls:DeleteButton
+                                                                     IsVisible="{Binding IsOwner}"
                                                                      Command="{Binding DeleteVideoCommand, Source={RelativeSource AncestorType={x:Type events:EventDetailsPageModel}}, x:DataType=events:EventDetailsPageModel}"
                                                                      CommandParameter="{Binding Id}" />
                                                 </HorizontalStackLayout>

@@ -63,6 +63,7 @@
                                                                  CommandParameter="{Binding Id}"/>
 
                                                     <controls:DeleteButton
+                                                                 IsVisible="{Binding IsOwner}"
                                                                  Command="{Binding DeleteVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
                                                                  CommandParameter="{Binding Id}"/>
 

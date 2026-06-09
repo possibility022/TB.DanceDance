@@ -181,6 +181,21 @@ describe('VideoPlayer', () => {
   describe('delete', () => {
     afterEach(() => vi.restoreAllMocks());
 
+    const deleteButton = (fixture: ComponentFixture<VideoPlayer>) =>
+      fixture.nativeElement.querySelector('button[aria-label="Delete recording"]') as
+        | HTMLButtonElement
+        | null;
+
+    it('shows the Delete button when the user owns the recording', () => {
+      const { fixture } = createFixture({ video: { ...CONVERTED, isOwner: true } });
+      expect(deleteButton(fixture)).not.toBeNull();
+    });
+
+    it('hides the Delete button when the user does not own the recording', () => {
+      const { fixture } = createFixture({ video: { ...CONVERTED, isOwner: false } });
+      expect(deleteButton(fixture)).toBeNull();
+    });
+
     it('confirms, deletes, and navigates back to the library', () => {
       vi.spyOn(window, 'confirm').mockReturnValue(true);
       const deleteVideo = vi.fn(() => of(void 0));

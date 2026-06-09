@@ -74,7 +74,7 @@ import { LongDatePipe } from '../../format/long-date.pipe';
               Share
             </button>
           }
-          @if (deletable()) {
+          @if (deletable() && video().isOwner) {
             <button
               type="button"
               class="button is-danger is-light video-card__delete"
