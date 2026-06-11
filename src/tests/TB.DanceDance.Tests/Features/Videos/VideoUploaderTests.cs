@@ -60,6 +60,12 @@ public class VideoUploaderTests : BaseTestClass
         }
     }
 
+    private async Task UploadSourceBlob(string sourceBlobId)
+    {
+        var toConvert = factory.GetBlobDataService(BlobContainer.VideosToConvert);
+        await toConvert.Upload(sourceBlobId, new MemoryStream(new byte[] { 1, 2, 3 }));
+    }
+
     [Fact]
     public async Task GetNextVideoToTransformAsync_DoesNotReturnLockedOrConverted()
     {
@@ -103,6 +109,7 @@ public class VideoUploaderTests : BaseTestClass
 
         SeedDbContext.AddRange(user, vLocked, vConverted, vEligible);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await UploadSourceBlob(vEligible.SourceBlobId);
 
         var next = await uploaderService.GetNextVideoToTransformAsync(TestContext.Current.CancellationToken);
 
@@ -111,6 +118,63 @@ public class VideoUploaderTests : BaseTestClass
         Assert.NotNull(next.LockedTill);
         Assert.True(next.LockedTill!.Value > DateTime.UtcNow);
         Assert.Equal(DateTimeKind.Utc, next.LockedTill!.Value.Kind);
+    }
+
+    [Fact]
+    public async Task GetNextVideoToTransformAsync_SkipsVideo_WhenSourceBlobNotUploaded()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        // Eligible by DB state, but its source blob was never (fully) uploaded.
+        var v = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var next = await uploaderService.GetNextVideoToTransformAsync(TestContext.Current.CancellationToken);
+
+        Assert.Null(next);
+    }
+
+    [Fact]
+    public async Task GetNextVideoToTransformAsync_ReturnsVideo_WhenSourceBlobUploaded()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        var v = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await UploadSourceBlob(v.SourceBlobId);
+
+        var next = await uploaderService.GetNextVideoToTransformAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(next);
+        Assert.Equal(v.Id, next!.Id);
+        Assert.NotNull(next.LockedTill);
+        Assert.True(next.LockedTill!.Value > DateTime.UtcNow);
+    }
+
+    [Fact]
+    public async Task GetNextVideoToTransformAsync_SkipsUnuploaded_AndReturnsUploaded()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        // Newer candidate (sorts first) has no uploaded blob; older candidate is fully uploaded.
+        var newerNotUploaded = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(10)).Build();
+        var olderUploaded = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
+        SeedDbContext.AddRange(user, newerNotUploaded, olderUploaded);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await UploadSourceBlob(olderUploaded.SourceBlobId);
+
+        var next = await uploaderService.GetNextVideoToTransformAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(next);
+        Assert.Equal(olderUploaded.Id, next!.Id);
+
+        // The skipped, not-uploaded video must be left unlocked so it is retried on the next poll.
+        SeedDbContext.ChangeTracker.Clear();
+        var skipped = await SeedDbContext.Videos.AsNoTracking()
+            .FirstAsync(x => x.Id == newerNotUploaded.Id, TestContext.Current.CancellationToken);
+        Assert.Null(skipped.LockedTill);
     }
 
     [Fact]
