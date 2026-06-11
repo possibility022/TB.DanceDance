@@ -23,19 +23,24 @@ public class VideoUploaderService : IVideoUploaderService
 
     public async Task<Video?> GetNextVideoToTransformAsync(CancellationToken cancellationToken)
     {
-        var video = await danceDbContext.Videos
+        var candidates = await danceDbContext.Videos
             .Where(r => (r.LockedTill == null || r.LockedTill < DateTime.UtcNow) && r.Converted == false)
             .OrderByDescending(r => r.SharedDateTime)
-            .FirstOrDefaultAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
 
-        if (video == null)
-            return null;
+        foreach (var video in candidates)
+        {
+            // A block blob is only visible once its block list is committed; an in-progress or
+            // interrupted upload reports as non-existent. So existence == fully uploaded.
+            if (!await videosToConvertBlobs.BlobExistsAsync(video.SourceBlobId))
+                continue; // not fully uploaded yet — leave unlocked so it's retried next poll
 
-        video.LockedTill = DateTime.SpecifyKind(DateTime.Now.AddDays(1), DateTimeKind.Utc);
+            video.LockedTill = DateTime.SpecifyKind(DateTime.Now.AddDays(1), DateTimeKind.Utc);
+            await danceDbContext.SaveChangesAsync(cancellationToken);
+            return video;
+        }
 
-        await danceDbContext.SaveChangesAsync(cancellationToken);
-
-        return video;
+        return null;
     }
 
     public async Task<bool> UpdateVideoInformation(Guid videoId, TimeSpan duration, DateTime recorded,
