@@ -1,0 +1,50 @@
+<header class="block">
+  <h1 class="title">My transfers</h1>
+  <p class="subtitle">Recordings you’ve offered to transfer to someone else.</p>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading transfers">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load your transfers.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else if (items().length === 0) {
+  <p class="has-text-grey">You haven’t created any transfers yet.</p>
+} @else {
+  @for (transfer of items(); track transfer.linkId) {
+    <div class="box">
+      <div class="is-flex is-justify-content-space-between is-align-items-center">
+        <div>
+          <span class="tag" [class.is-warning]="isPending(transfer)" [class.is-light]="true">
+            {{ transfer.status }}
+          </span>
+          <span class="ml-2">
+            {{ transfer.items?.length ?? 0 }} recording{{ (transfer.items?.length ?? 0) === 1 ? '' : 's' }}
+            · {{ transfer.totalSizeBytes | fileSize }}
+          </span>
+        </div>
+        <span class="is-size-7 has-text-grey">Created {{ transfer.createdAt | longDate }}</span>
+      </div>
+
+      @if (isPending(transfer)) {
+        <div class="field has-addons mt-3">
+          <div class="control is-expanded">
+            <input class="input is-small" type="text" readonly [value]="transfer.shareUrl" aria-label="Transfer link" />
+          </div>
+          <div class="control">
+            <button type="button" class="button is-small" (click)="copy(transfer)">
+              {{ copiedId() === transfer.linkId ? 'Copied' : 'Copy' }}
+            </button>
+          </div>
+          <div class="control">
+            <button type="button" class="button is-small is-danger is-light" (click)="revoke(transfer)">
+              Revoke
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
