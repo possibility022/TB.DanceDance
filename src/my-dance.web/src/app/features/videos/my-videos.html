@@ -11,13 +11,22 @@
     <button type="button" class="button is-danger" (click)="load()">Try again</button>
   </div>
 } @else {
+  <div class="block is-flex is-justify-content-flex-end">
+    <button type="button" class="button" [class.is-link]="selectMode()" (click)="toggleSelectMode()">
+      {{ selectMode() ? 'Cancel selection' : 'Select' }}
+    </button>
+  </div>
+
   <app-video-list
     [videos]="items()"
     emptyMessage="You haven’t uploaded any recordings yet."
-    [shareable]="true"
-    [deletable]="true"
+    [shareable]="!selectMode()"
+    [deletable]="!selectMode()"
+    [selectable]="selectMode()"
+    [selectedIds]="selectedIds()"
     (share)="openShare($event)"
     (deleteVideo)="onDelete($event)"
+    (selectionToggle)="toggleSelection($event)"
   />
 
   @if (canLoadMore()) {
@@ -35,10 +44,33 @@
   }
 }
 
+@if (selectMode()) {
+  <div class="transfer-action-bar" role="region" aria-label="Transfer selection">
+    <span>
+      <strong>{{ selectedCount() }}</strong> selected · {{ totalSelectedSize() | fileSize }}
+    </span>
+    <button
+      type="button"
+      class="button is-primary"
+      [disabled]="selectedCount() === 0"
+      (click)="openTransfer()"
+    >
+      Transfer
+    </button>
+  </div>
+}
+
 <app-share-dialog
   [videoId]="shareTarget()?.videoId ?? ''"
   [videoName]="shareTarget()?.name ?? ''"
   [commentVisibility]="shareTarget()?.commentVisibility ?? 0"
   [open]="shareOpen()"
   (closed)="closeShare()"
+/>
+
+<app-create-transfer-dialog
+  [videos]="selectedVideos()"
+  [open]="transferOpen()"
+  (closed)="closeTransfer()"
+  (created)="onTransferCreated()"
 />

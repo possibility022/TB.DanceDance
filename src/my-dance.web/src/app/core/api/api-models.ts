@@ -25,7 +25,7 @@ export interface VideoInformation {
     converted?: boolean;
     commentVisibility?: number;
     thumbnailUrl?: string | undefined;
-    /** True when the current user uploaded this video (the only one who may delete it). */
+    sizeBytes?: number;
     isOwner?: boolean;
 }
 
@@ -127,6 +127,50 @@ export interface VideoToTransformModel {
     sas?: string;
 }
 
+export interface AcceptTransferResponse {
+    accepted?: boolean;
+    requiredBytes?: number | undefined;
+    availableBytes?: number | undefined;
+    error?: string | undefined;
+}
+
+export interface TransferSummaryResponse {
+    linkId?: string;
+    status?: string;
+    createdAt?: Date;
+    expireAt?: Date;
+    shareUrl?: string;
+    totalSizeBytes?: number;
+    acceptedByUserId?: string | undefined;
+    acceptedAt?: Date | undefined;
+    items?: TransferItemInfo[];
+}
+
+export interface TransferItemInfo {
+    videoId?: string;
+    name?: string;
+    recordedDateTime?: Date;
+    duration?: string | undefined;
+    sizeBytes?: number;
+}
+
+export interface CreateTransferRequest {
+    videoIds?: string[];
+    expirationDays?: number;
+}
+
+export interface TransferInfoResponse {
+    linkId?: string;
+    status?: string;
+    expireAt?: Date;
+    totalSizeBytes?: number;
+    items?: TransferItemInfo[];
+}
+
+export interface ListMyTransfersResponse {
+    transfers?: TransferSummaryResponse[];
+}
+
 export interface SharedLinkResponse {
     linkId?: string;
     videoId?: string;
@@ -166,15 +210,15 @@ export interface PagedResponseOfVideoFromGroupInformation {
     pageSize?: number;
 }
 
+export interface VideoFromGroupInformation extends VideoInformation {
+    groupId?: string;
+    groupName?: string;
+}
+
 export interface ListAllGroupVideosRequest extends PagedRequest {
 }
 
 export interface ListGroupVideosRequest extends PagedRequest {
-}
-
-export interface VideoFromGroupInformation extends VideoInformation {
-    groupId?: string;
-    groupName?: string;
 }
 
 export interface CreateNewEventResponse {
@@ -220,6 +264,12 @@ export interface PagedResponseOfCommentResponse {
     totalCount?: number;
     pageNumber?: number;
     pageSize?: number;
+}
+
+export interface ListCommentsByLinkRequest extends PagedRequest {
+}
+
+export interface ListCommentsForVideoRequest extends PagedRequest {
 }
 
 export interface ReportCommentRequest {
