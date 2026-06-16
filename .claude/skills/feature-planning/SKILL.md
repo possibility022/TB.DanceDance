@@ -3,8 +3,9 @@ name: feature-planning
 description: >-
   Plan a new feature with the user up to the point of hand-off: scope it through
   conversation, then draft and create linked YouTrack issues (parent feature +
-  Implementation/Tests/Local-setup subtasks, each written with enough direction to be
-  picked up cold) in project DD. Does NOT produce a technical implementation plan —
+  several small implementation subtasks split by layer/slice, plus Tests and
+  Local-setup subtasks, each written with enough direction to be picked up cold) in
+  project DD. Does NOT produce a technical implementation plan —
   that's `feature-pickup`'s job once active work begins, closer to when the plan will
   actually be acted on. Triggers: "let's plan a feature for X", "I want to add Y to the
   app", "help me scope out Z before I start", "create a youtrack item for this feature",
@@ -37,8 +38,9 @@ paragraph becomes the YouTrack description.
 
 ## 2. Draft YouTrack issues — project `DD` (key), don't create yet
 
-Structure: **one parent feature issue + linked subtasks** for `Implementation`, `Tests`,
-and `Local setup / verification`.
+Structure: **one parent feature issue + linked subtasks**. Always split the implementation
+across **several small implementation subtasks** rather than one monolithic `Implementation`
+issue, then add one `Tests` subtask and one `Local setup / verification` subtask.
 
 - Use `mcp__youtrack__create_issue` with `project: DD`. Known custom fields:
   `Stage` (Backlog → Develop → Review → Test → Staging → Done — start at **Backlog**) and
@@ -46,10 +48,17 @@ and `Local setup / verification`.
   if they don't care).
 - Write each subtask description with enough direction that someone picking it up cold —
   i.e. `feature-pickup` — can turn it into a step-by-step plan without re-litigating scope:
-  - **Implementation**: the concrete changes and which layers/areas they land in (map onto
-    `Domain`/`Application`/`Infrastructure`/`API`, `src/my-dance.web`, `src/mobile`,
-    converter daemon, DB migrations — whichever apply). Call out any new entity, migration,
-    or seed-data change explicitly.
+  - **Implementation (split into several small subtasks)**: never collapse the whole build
+    into one issue. Break it into the smallest coherent, independently reviewable slices —
+    each ideally its own PR — and create one subtask per slice (title them
+    `Implementation: <slice>`). Default split is by layer/area in dependency order, e.g.
+    backend domain + entity + EF migration; backend application/services; backend
+    API/endpoints + contracts; `src/my-dance.web` UI; `src/mobile`; converter daemon —
+    include only those a feature actually touches, and split a layer further if it's still
+    large (e.g. separate frontend screens). For each subtask give the concrete changes and
+    which layers/areas they land in, call out any new entity, migration, or seed-data change
+    explicitly, and note its dependency on earlier subtasks so they can be picked up in
+    order.
   - **Tests**: what needs covering and roughly where it lives (backend integration tests in
     `src/tests/TB.DanceDance.Tests` — xunit v3, NSubstitute, WireMock.Net, Testcontainers;
     mobile tests in `src/tests/TB.DanceDance.Mobile.Tests`; frontend Vitest specs co-located
