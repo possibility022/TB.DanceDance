@@ -153,6 +153,7 @@ if (string.IsNullOrEmpty(noHttps) || !noHttps.Equals("true", StringComparison.Or
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserProfileSyncMiddleware>();
 app.UseApplicationEndpoints();
 app.MapGet("policy/dancedanceapp", (IConfiguration config) =>
 {

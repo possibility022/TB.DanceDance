@@ -79,6 +79,12 @@ public class HtmlBuilder
                    <label>Email (optional)</label>
                    <input name="email" autocomplete="email" />
                    <br />
+                   <label>First name (optional)</label>
+                   <input name="firstName" autocomplete="given-name" />
+                   <br />
+                   <label>Last name (optional)</label>
+                   <input name="lastName" autocomplete="family-name" />
+                   <br />
                    <label>Password</label>
                    <input type="password" name="password" autocomplete="new-password" />
                    <br />
