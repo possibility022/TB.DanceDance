@@ -72,6 +72,25 @@ public class AccessManagementServiceTests : BaseTestClass
     }
 
     [Fact]
+    public async Task SaveGroupsAssigmentRequests_DefaultsJoinDateToSeasonStart_WhenNotProvided()
+    {
+        var requestor = new UserDataBuilder().Build();
+        var group = new GroupDataBuilder()
+            .WithSeasonDates(new DateOnly(2024, 9, 1), new DateOnly(2025, 8, 31))
+            .Build();
+
+        SeedDbContext.AddRange(requestor, group);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await service.SaveGroupsAssigmentRequests(requestor.Id,
+            [(group.Id, default)], TestContext.Current.CancellationToken);
+
+        var saved = SeedDbContext.GroupAssigmentRequests.Single(r => r.UserId == requestor.Id && r.GroupId == group.Id);
+        var expected = DateTime.SpecifyKind(group.SeasonStart.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+        Assert.Equal(expected, saved.WhenJoined);
+    }
+
+    [Fact]
     public async Task AddOrUpdateUserAsync_AddsThenUpdatesUserNames()
     {
         var userB = new UserDataBuilder();

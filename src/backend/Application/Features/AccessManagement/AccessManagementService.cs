@@ -37,13 +37,22 @@ public class AccessManagementService : IAccessManagementService
         var pendingRequests = await dbContext.GroupAssigmentRequests.Where(r => r.UserId == user && r.Approved == null)
             .Select(r => r.GroupId)
             .ToArrayAsync(cancellationToken);
-        
+
+        var groupIds = groups.Select(g => g.groupId).ToArray();
+        var seasonStarts = await dbContext.Groups
+            .Where(g => groupIds.Contains(g.Id))
+            .ToDictionaryAsync(g => g.Id, g => g.SeasonStart, cancellationToken);
+
         var toSave = groups
             .Where(group => !pendingRequests.Contains(group.groupId))
             .Select(group => new GroupAssigmentRequest()
         {
             GroupId = group.groupId,
-            WhenJoined = group.joinedDate,
+            // An unspecified join date defaults to the group's season start, so a member sees
+            // the whole season by default. WhenJoined is a timestamptz column -> must be UTC.
+            WhenJoined = group.joinedDate == default && seasonStarts.TryGetValue(group.groupId, out var seasonStart)
+                ? DateTime.SpecifyKind(seasonStart.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc)
+                : group.joinedDate,
             UserId = user
         });
 

@@ -30,7 +30,7 @@
                 <input
                   type="checkbox"
                   [checked]="checkedGroups().has(group.id ?? '')"
-                  (change)="toggleGroup(group.id)"
+                  (change)="toggleGroup(group)"
                 />
                 {{ group.name }}
                 <span class="is-size-7 has-text-grey">({{ group.seasonStart | season: group.seasonEnd }})</span>
@@ -44,7 +44,7 @@
                       class="input is-small"
                       type="date"
                       [max]="today"
-                      [value]="groupDates()[group.id ?? ''] ?? today"
+                      [value]="groupDates()[group.id ?? ''] ?? seasonStartDate(group)"
                       (change)="setGroupDate(group.id ?? '', $any($event.target).value)"
                     />
                   </div>

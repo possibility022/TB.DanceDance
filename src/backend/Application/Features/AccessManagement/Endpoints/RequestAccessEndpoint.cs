@@ -32,12 +32,6 @@ public class RequestAccessEndpoint : Endpoint<RequestAccessRequest>
             return;
         }
 
-        if (req.Groups != null && req.Groups.Any(r => r.JoinedDate == default))
-        {
-            await Send.ErrorsAsync(cancellation: ct);
-            return;
-        }
-
         var user = User.GetSubject();
 
         var token = GetAccessTokenFromHeader();
