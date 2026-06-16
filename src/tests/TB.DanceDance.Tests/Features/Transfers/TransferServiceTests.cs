@@ -50,22 +50,22 @@ public class TransferServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateTransfer_HappyPath_CreatesPendingTransferWithItems()
+    public async Task CreateTransfer_HappyPath_CreatesPendingTransferWithItem()
     {
         var sender = new UserDataBuilder().Build();
-        var v1 = AddPrivateVideo(sender, name: "V1");
-        var v2 = AddPrivateVideo(sender, name: "V2");
+        var video = AddPrivateVideo(sender, name: "V1");
         SeedDbContext.Add(sender);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { v1.Id, v2.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         Assert.NotNull(transfer);
         Assert.Equal(8, transfer.Id.Length);
         Assert.Equal(sender.Id, transfer.CreatedBy);
         Assert.Equal(TransferStatus.Pending, transfer.Status);
-        Assert.Equal(2, transfer.Items.Count);
+        Assert.Single(transfer.Items);
+        Assert.Equal(video.Id, transfer.Items.Single().VideoId);
         Assert.Equal(7, (transfer.ExpireAt - transfer.CreatedAt).Days);
     }
 
@@ -79,7 +79,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            transferService.CreateTransferAsync(other.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken));
+            transferService.CreateTransferAsync(other.Id, video.Id, 7, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            transferService.CreateTransferAsync(sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken));
+            transferService.CreateTransferAsync(sender.Id, video.Id, 7, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            transferService.CreateTransferAsync(sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken));
+            transferService.CreateTransferAsync(sender.Id, video.Id, 7, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -117,24 +117,23 @@ public class TransferServiceTests : BaseTestClass
         SeedDbContext.Add(sender);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        await transferService.CreateTransferAsync(sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+        await transferService.CreateTransferAsync(sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            transferService.CreateTransferAsync(sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken));
+            transferService.CreateTransferAsync(sender.Id, video.Id, 7, TestContext.Current.CancellationToken));
     }
 
     [Fact]
-    public async Task Accept_MovesOwnership_AllItems()
+    public async Task Accept_MovesOwnership()
     {
         var sender = new UserDataBuilder().Build();
         var recipient = new UserDataBuilder().Build();
-        var v1 = AddPrivateVideo(sender, convertedBlobSize: 100);
-        var v2 = AddPrivateVideo(sender, convertedBlobSize: 200);
+        var video = AddPrivateVideo(sender, convertedBlobSize: 100);
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { v1.Id, v2.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         var result = await transferService.AcceptTransferAsync(
             transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
@@ -142,13 +141,10 @@ public class TransferServiceTests : BaseTestClass
         Assert.Equal(AcceptTransferResult.Accepted, result);
 
         SeedDbContext.ChangeTracker.Clear();
-        foreach (var id in new[] { v1.Id, v2.Id })
-        {
-            var video = await SeedDbContext.Videos.FirstAsync(v => v.Id == id, TestContext.Current.CancellationToken);
-            Assert.Equal(recipient.Id, video.UploadedBy);
-            Assert.True(await IsPrivateVideoOf(recipient.Id, id));
-            Assert.False(await IsPrivateVideoOf(sender.Id, id));
-        }
+        var moved = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(recipient.Id, moved.UploadedBy);
+        Assert.True(await IsPrivateVideoOf(recipient.Id, video.Id));
+        Assert.False(await IsPrivateVideoOf(sender.Id, video.Id));
 
         var saved = await SeedDbContext.VideoTransfers.FirstAsync(t => t.Id == transfer.Id, TestContext.Current.CancellationToken);
         Assert.Equal(TransferStatus.Accepted, saved.Status);
@@ -167,7 +163,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         var ex = await Assert.ThrowsAsync<QuotaExceededException>(() =>
             transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken));
@@ -194,7 +190,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
         await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         SeedDbContext.ChangeTracker.Clear();
@@ -211,7 +207,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         var result = await transferService.AcceptTransferAsync(
             transfer.Id, sender.Id, TestContext.Current.CancellationToken);
@@ -229,7 +225,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         var first = await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
         var second = await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
@@ -248,7 +244,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
         await transferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
 
         var result = await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
@@ -265,7 +261,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         // sender cannot decline
         Assert.False(await transferService.DeclineTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken));
@@ -285,7 +281,7 @@ public class TransferServiceTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var transfer = await transferService.CreateTransferAsync(
-            sender.Id, new[] { video.Id }, 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
         Assert.False(await transferService.RevokeTransferAsync(transfer.Id, other.Id, TestContext.Current.CancellationToken));
         Assert.True(await transferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken));

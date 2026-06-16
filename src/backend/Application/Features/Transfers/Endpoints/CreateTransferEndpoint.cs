@@ -7,7 +7,7 @@ using TB.DanceDance.API.Contracts.Features.Transfers;
 namespace Application.Features.Transfers.Endpoints;
 
 /// <summary>
-/// Creates a transfer of one or more owned, converted, private videos. Requires authentication.
+/// Creates a transfer of a single owned, converted, private video. Requires authentication.
 /// </summary>
 public class CreateTransferEndpoint : Endpoint<CreateTransferRequest, TransferSummaryResponse>
 {
@@ -29,10 +29,11 @@ public class CreateTransferEndpoint : Endpoint<CreateTransferRequest, TransferSu
     public override async Task HandleAsync(CreateTransferRequest req, CancellationToken ct)
     {
         var userId = User.GetSubject();
+        var videoId = Route<Guid>("videoId");
 
         try
         {
-            var transfer = await transferService.CreateTransferAsync(userId, req.VideoIds, req.ExpirationDays, ct);
+            var transfer = await transferService.CreateTransferAsync(userId, videoId, req.ExpirationDays, ct);
 
             // Re-fetch with items + videos so the response carries titles / sizes.
             var full = await transferService.GetTransferAsync(transfer.Id, ct) ?? transfer;

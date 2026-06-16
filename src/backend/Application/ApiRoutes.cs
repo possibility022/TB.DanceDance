@@ -85,7 +85,7 @@ public static class ApiRoutes
     {
         private const string Base = $"{ApiBase}/transfers";
 
-        public const string Create = Base;
+        public const string Create = $"{ApiBase}/videos/{{videoId:guid}}/transfer";
         public const string ListMy = $"{Base}/my";
         public const string GetInfo = $"{Base}/{{linkId}}";
         public const string Accept = $"{Base}/{{linkId}}/accept";

@@ -21,7 +21,7 @@ public class TransferService : ITransferService
 
     public async Task<VideoTransfer> CreateTransferAsync(
         string userId,
-        IReadOnlyCollection<Guid> videoIds,
+        Guid videoId,
         int expirationDays,
         CancellationToken cancellationToken)
     {
@@ -32,66 +32,48 @@ public class TransferService : ITransferService
                 nameof(expirationDays));
         }
 
-        if (videoIds == null || videoIds.Count == 0)
+        var video = await dbContext.Videos
+            .FirstOrDefaultAsync(v => v.Id == videoId, cancellationToken);
+
+        if (video == null)
         {
-            throw new ArgumentException("At least one video must be selected.", nameof(videoIds));
+            throw new ArgumentException($"Video {videoId} was not found.", nameof(videoId));
         }
 
-        var distinctIds = videoIds.Distinct().ToList();
-        if (distinctIds.Count != videoIds.Count)
+        // The sender must personally own the video, and it must be converted.
+        if (video.UploadedBy != userId)
         {
-            throw new ArgumentException("Duplicate videos in the transfer.", nameof(videoIds));
+            throw new ArgumentException($"User {userId} does not own video {videoId}.", nameof(videoId));
         }
 
-        var videos = await dbContext.Videos
-            .Where(v => distinctIds.Contains(v.Id))
-            .ToListAsync(cancellationToken);
-
-        if (videos.Count != distinctIds.Count)
+        if (!video.Converted)
         {
-            throw new ArgumentException("One or more videos were not found.", nameof(videoIds));
+            throw new ArgumentException($"Video {videoId} is not converted yet.", nameof(videoId));
         }
 
-        // The sender must personally own every video, and each must be converted.
-        foreach (var video in videos)
-        {
-            if (video.UploadedBy != userId)
-            {
-                throw new ArgumentException($"User {userId} does not own video {video.Id}.", nameof(videoIds));
-            }
-
-            if (!video.Converted)
-            {
-                throw new ArgumentException($"Video {video.Id} is not converted yet.", nameof(videoIds));
-            }
-        }
-
-        // Each video must be private (a SharedWith row owned by the sender with no event/group).
-        var privateVideoIds = await dbContext.SharedWith
-            .Where(s => distinctIds.Contains(s.VideoId)
+        // The video must be private (a SharedWith row owned by the sender with no event/group).
+        var isPrivate = await dbContext.SharedWith
+            .AnyAsync(s => s.VideoId == videoId
                         && s.UserId == userId
                         && s.EventId == null
-                        && s.GroupId == null)
-            .Select(s => s.VideoId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
+                        && s.GroupId == null, cancellationToken);
 
-        if (privateVideoIds.Count != distinctIds.Count)
+        if (!isPrivate)
         {
-            throw new ArgumentException("Only private videos can be transferred.", nameof(videoIds));
+            throw new ArgumentException("Only private videos can be transferred.", nameof(videoId));
         }
 
-        // A video may be in at most one active (pending, not-expired) outgoing transfer at a time.
+        // The video may be in at most one active (pending, not-expired) outgoing transfer at a time.
         var now = DateTimeOffset.UtcNow;
         var alreadyPending = await dbContext.VideoTransferItems
-            .Where(i => distinctIds.Contains(i.VideoId)
+            .Where(i => i.VideoId == videoId
                         && i.Transfer.Status == TransferStatus.Pending
                         && i.Transfer.ExpireAt > now)
             .AnyAsync(cancellationToken);
 
         if (alreadyPending)
         {
-            throw new ArgumentException("One or more videos are already in a pending transfer.", nameof(videoIds));
+            throw new ArgumentException("This video is already in a pending transfer.", nameof(videoId));
         }
 
         var linkId = await GenerateUniqueLinkIdAsync(cancellationToken);
@@ -103,12 +85,15 @@ public class TransferService : ITransferService
             CreatedAt = now,
             ExpireAt = now.AddDays(expirationDays),
             Status = TransferStatus.Pending,
-            Items = distinctIds.Select(id => new VideoTransferItem
+            Items = new List<VideoTransferItem>
             {
-                Id = Guid.NewGuid(),
-                TransferId = linkId,
-                VideoId = id
-            }).ToList()
+                new VideoTransferItem
+                {
+                    Id = Guid.NewGuid(),
+                    TransferId = linkId,
+                    VideoId = videoId
+                }
+            }
         };
 
         dbContext.VideoTransfers.Add(transfer);

@@ -18,12 +18,12 @@ public enum AcceptTransferResult
 public interface ITransferService
 {
     /// <summary>
-    /// Creates a pending transfer of the given videos from the sender to whoever accepts the link.
-    /// Each video must be owned by the sender, converted, private, and not already in an active
+    /// Creates a pending transfer of a single video from the sender to whoever accepts the link.
+    /// The video must be owned by the sender, converted, private, and not already in an active
     /// pending transfer.
     /// </summary>
-    /// <exception cref="ArgumentException">Invalid input, ineligible video, or a video already in a pending transfer.</exception>
-    Task<VideoTransfer> CreateTransferAsync(string userId, IReadOnlyCollection<Guid> videoIds, int expirationDays, CancellationToken cancellationToken);
+    /// <exception cref="ArgumentException">Invalid input, ineligible video, or the video is already in a pending transfer.</exception>
+    Task<VideoTransfer> CreateTransferAsync(string userId, Guid videoId, int expirationDays, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets a transfer (with its items and videos) by link id. Returns null if the link doesn't

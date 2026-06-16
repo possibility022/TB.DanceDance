@@ -63,9 +63,9 @@ public class TransferEndpointTests : BaseTestClass
         return video;
     }
 
-    private async Task<VideoTransfer> CreatePendingTransfer(User sender, params Video[] videos)
+    private async Task<VideoTransfer> CreatePendingTransfer(User sender, Video video)
         => await transferService.CreateTransferAsync(
-            sender.Id, videos.Select(v => v.Id).ToArray(), 7, TestContext.Current.CancellationToken);
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
     [Fact]
     public async Task GetInfo_RevokedTransfer_Returns404()
@@ -84,14 +84,13 @@ public class TransferEndpointTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetInfo_PendingTransfer_Returns200WithItemsAndTotal()
+    public async Task GetInfo_PendingTransfer_Returns200WithItemAndTotal()
     {
         var sender = new UserDataBuilder().Build();
-        var v1 = AddPrivateVideo(sender, 30);
-        var v2 = AddPrivateVideo(sender, 70);
+        var video = AddPrivateVideo(sender, 100);
         SeedDbContext.Add(sender);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
-        var transfer = await CreatePendingTransfer(sender, v1, v2);
+        var transfer = await CreatePendingTransfer(sender, video);
 
         var ep = Factory.Create<GetTransferInfoEndpoint>(Ctx("recipient", ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -99,7 +98,7 @@ public class TransferEndpointTests : BaseTestClass
         Assert.Equal(200, ep.HttpContext.Response.StatusCode);
         Assert.NotNull(ep.Response);
         Assert.Equal("Pending", ep.Response.Status);
-        Assert.Equal(2, ep.Response.Items.Count);
+        Assert.Single(ep.Response.Items);
         Assert.Equal(100, ep.Response.TotalSizeBytes);
     }
 
