@@ -71,18 +71,32 @@ export class RequestAccess {
     this.checkedEvents.update((set) => toggle(set, id));
   }
 
-  toggleGroup(id: string | undefined): void {
+  toggleGroup(group: GroupModel): void {
+    const id = group.id;
     if (!id) {
       return;
     }
     this.checkedGroups.update((set) => toggle(set, id));
     if (this.checkedGroups().has(id) && !this.groupDates()[id]) {
-      this.setGroupDate(id, this.today);
+      this.setGroupDate(id, this.seasonStartDate(group));
     }
   }
 
   setGroupDate(id: string, date: string): void {
     this.groupDates.update((dates) => ({ ...dates, [id]: date }));
+  }
+
+  /**
+   * A group's season start as a `yyyy-MM-dd` string, used as the default join date so a member
+   * sees the whole season. Falls back to today when the group has no season start. The API
+   * returns `seasonStart` as an ISO string, so we slice it directly to avoid timezone drift.
+   */
+  seasonStartDate(group: GroupModel): string {
+    const raw = group.seasonStart as unknown as string | Date | undefined;
+    if (!raw) {
+      return this.today;
+    }
+    return typeof raw === 'string' ? raw.slice(0, 10) : new Date(raw).toISOString().slice(0, 10);
   }
 
   submit(): void {
@@ -92,13 +106,14 @@ export class RequestAccess {
     this.submitting.set(true);
 
     const dates = this.groupDates();
+    const groupsById = new Map(this.availableGroups().map((group) => [group.id ?? '', group]));
     this.access
       .requestAccess({
         events: [...this.checkedEvents()],
-        groups: [...this.checkedGroups()].map((id) => ({
-          id,
-          joinedDate: new Date(dates[id] ?? this.today),
-        })),
+        groups: [...this.checkedGroups()].map((id) => {
+          const fallback = groupsById.has(id) ? this.seasonStartDate(groupsById.get(id)!) : this.today;
+          return { id, joinedDate: new Date(dates[id] ?? fallback) };
+        }),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
