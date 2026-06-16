@@ -3,9 +3,9 @@ name: feature-planning
 description: >-
   Plan a new feature with the user up to the point of hand-off: scope it through
   conversation, then draft and create linked YouTrack issues (parent feature +
-  several small implementation subtasks split by layer/slice, plus Tests and
-  Local-setup subtasks, each written with enough direction to be picked up cold) in
-  project DD. Does NOT produce a technical implementation plan —
+  several small implementation subtasks split by layer/slice — each covering its own
+  tests — plus a Local-setup/verification subtask, each written with enough direction to
+  be picked up cold) in project DD. Does NOT produce a technical implementation plan —
   that's `feature-pickup`'s job once active work begins, closer to when the plan will
   actually be acted on. Triggers: "let's plan a feature for X", "I want to add Y to the
   app", "help me scope out Z before I start", "create a youtrack item for this feature",
@@ -40,7 +40,10 @@ paragraph becomes the YouTrack description.
 
 Structure: **one parent feature issue + linked subtasks**. Always split the implementation
 across **several small implementation subtasks** rather than one monolithic `Implementation`
-issue, then add one `Tests` subtask and one `Local setup / verification` subtask.
+issue. **Each implementation subtask covers writing the tests for its own slice** (when that
+slice can be meaningfully tested in isolation) rather than deferring them to a separate
+`Tests` issue. Then add one `Local setup / verification` subtask. Do **not** create a
+standalone `Tests` subtask.
 
 - Use `mcp__youtrack__create_issue` with `project: DD`. Known custom fields:
   `Stage` (Backlog → Develop → Review → Test → Staging → Done — start at **Backlog**) and
@@ -58,11 +61,16 @@ issue, then add one `Tests` subtask and one `Local setup / verification` subtask
     large (e.g. separate frontend screens). For each subtask give the concrete changes and
     which layers/areas they land in, call out any new entity, migration, or seed-data change
     explicitly, and note its dependency on earlier subtasks so they can be picked up in
-    order.
-  - **Tests**: what needs covering and roughly where it lives (backend integration tests in
+    order. When a slice adds or changes a DB schema, say that its migration is generated with
+    the `generate-migration` skill (`add-migration.ps1`, revertable via `remove-migration.ps1`)
+    against a throwaway Postgres container — never hand-written. **Each implementation subtask must also spell out the tests for its own slice**:
+    what needs covering and roughly where it lives (backend integration tests in
     `src/tests/TB.DanceDance.Tests` — xunit v3, NSubstitute, WireMock.Net, Testcontainers;
     mobile tests in `src/tests/TB.DanceDance.Mobile.Tests`; frontend Vitest specs co-located
-    in `src/my-dance.web`), plus any new fixtures/seed data/stubs anticipated.
+    in `src/my-dance.web`), plus any new fixtures/seed data/stubs anticipated. Only omit
+    tests for a slice that genuinely can't be tested in isolation (e.g. a scaffolding- or
+    migration-only change with no behaviour yet) — and when you do, say so explicitly in the
+    subtask. Never split testing out into its own subtask.
   - **Local setup / verification**: the concrete "I'll know it works when..." golden-path
     check — what to click through or call (`curl`/`.http`/UI flow), which `local-stack`
     operations are involved (rebuild a container, reset DB/blobs, get a token, tail logs),
