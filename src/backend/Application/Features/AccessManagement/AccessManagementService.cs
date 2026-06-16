@@ -67,7 +67,7 @@ public class AccessManagementService : IAccessManagementService
         {
             record.FirstName = user.FirstName;
             record.LastName = user.LastName;
-            user.Email = user.Email;
+            record.Email = user.Email;
         }
         else
         {
@@ -75,6 +75,38 @@ public class AccessManagementService : IAccessManagementService
         }
 
         return dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task FillMissingUserDataAsync(User user, CancellationToken cancellationToken)
+    {
+        var record = await dbContext.Users.FindAsync([user.Id], cancellationToken);
+
+        if (record is null)
+        {
+            dbContext.Users.Add(user);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
+        var changed = false;
+        if (string.IsNullOrEmpty(record.FirstName) && !string.IsNullOrEmpty(user.FirstName))
+        {
+            record.FirstName = user.FirstName;
+            changed = true;
+        }
+        if (string.IsNullOrEmpty(record.LastName) && !string.IsNullOrEmpty(user.LastName))
+        {
+            record.LastName = user.LastName;
+            changed = true;
+        }
+        if (string.IsNullOrEmpty(record.Email) && !string.IsNullOrEmpty(user.Email))
+        {
+            record.Email = user.Email;
+            changed = true;
+        }
+
+        if (changed)
+            await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private IQueryable<RequestedAccess> GetEventRequestsThatCanBeApprovedByUser(string userId)

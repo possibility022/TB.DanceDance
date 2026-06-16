@@ -4,8 +4,10 @@ description: >-
   Pick up a planned feature from YouTrack (project DD) and start working on it: fetch
   the issue (by ID or by browsing Backlog), check out a branch, move it into Develop and
   assign it, re-derive the implementation/test/verification plan from the issue and its
-  subtasks, set up the local stack, and advance it to Review once implementation and
-  tests land. Companion to the `feature-planning` skill. Triggers: "pick up DD-42",
+  subtasks, set up the local stack, then build it one subtask at a time — committing each
+  subtask in its own commit and marking that subtask Done in YouTrack — and advance the
+  parent to Review once implementation and tests land. Companion to the `feature-planning`
+  skill. Triggers: "pick up DD-42",
   "let's start working on the thumbnails feature", "what's next in the backlog",
   "start implementing this issue".
 ---
@@ -30,11 +32,11 @@ turns that into checked-out code, an active plan, and a running local stack.
 
 ## 2. Branch
 
-- Propose a branch name following the repo's `feature/<short-name>` convention (derive
-  `<short-name>` from the issue title — short, kebab-case, no issue ID prefix; matches
+- Derive a branch name following the repo's `feature/<short-name>` convention
+  (`<short-name>` from the issue title — short, kebab-case, no issue ID prefix; matches
   existing branches like `feature/thumbnails`, `feature/commenting-videos`).
-- Confirm the name with the user, then create and check it out:
-  `git checkout -b feature/<short-name>`.
+- Create and check it out immediately — no confirmation needed:
+  `git checkout -b feature/<short-name>`. Just report the branch name as you do it.
 
 ## 3. Move the issue into Develop
 
@@ -59,20 +61,32 @@ Use the `local-stack` skill to get a working environment before writing code:
 - Wait for seed data (`docker logs -f tbdanceInitializer`).
 - Fetch a token if the feature needs authenticated API calls.
 
-## 6. Build it
+## 6. Build it — one subtask at a time, commit + update status per subtask
 
-Work the subtasks in order — they mirror the natural sequence:
-1. **Implementation** — follow the plan from step 4.
+Work the subtasks in their dependency order. `feature-planning` splits the build into
+**several small implementation subtasks** (by layer/slice) plus a `Tests` subtask and a
+`Local setup / verification` subtask, so the natural sequence is:
+1. Each **`Implementation: <slice>`** subtask in order — follow the plan from step 4.
 2. **Tests** — add/extend tests per the `Tests` subtask (xunit/NSubstitute/WireMock +
    Testcontainers for backend, Vitest for `my-dance.web`, `TB.DanceDance.Mobile.Tests`
    for mobile).
 3. **Local setup / verification** — run the golden-path checklist from that subtask;
    use the `verify` skill to actually exercise the feature in the running stack.
 
-Commit as you go rather than batching everything into one final commit: once a
-subtask (or a coherent chunk of one — e.g. a layer of the implementation, a test file)
-is in a working state, stage just those files and commit with a message describing that
-slice. Small, focused commits make the eventual PR easier to review and give you safe
+**Treat each subtask as one unit of work, and close it out before starting the next:**
+1. Implement just that subtask.
+2. Get it into a working state (it builds; its tests pass where applicable).
+3. **Commit that subtask on its own** — stage only the files belonging to this subtask and
+   make a single focused commit whose message describes the slice and references the
+   subtask (e.g. `DD-44: backend transfer entities + migration`). One subtask → one commit;
+   don't batch multiple subtasks into a commit, and don't split one subtask across unrelated
+   commits.
+4. **Update that subtask's status in YouTrack** (`mcp__youtrack__update_issue`) to
+   `Stage: Done` right after its commit lands — automatically, the same way step 3 and
+   step 7 move the parent. This keeps the board in lockstep with the commit history so the
+   remaining work is always visible.
+
+Small, focused per-subtask commits make the eventual PR easier to review and give safe
 checkpoints to fall back to if a later change goes sideways.
 
 ## 7. Advance to Review
