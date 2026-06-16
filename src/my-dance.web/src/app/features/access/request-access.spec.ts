@@ -3,7 +3,7 @@ import { of, throwError } from 'rxjs';
 
 import { RequestAccess } from './request-access';
 import { AccessService } from '../../core/api/access.service';
-import { GetUserAccessResponse } from '../../core/api/api-models';
+import { GetUserAccessResponse, GroupModel } from '../../core/api/api-models';
 
 const DATE = new Date(2026, 0, 1);
 const FULL_ACCESS: GetUserAccessResponse = {
@@ -12,11 +12,14 @@ const FULL_ACCESS: GetUserAccessResponse = {
     events: [{ id: 'ea', name: 'Assigned event', date: DATE }],
   },
   available: {
-    groups: [{ id: 'g1', name: 'Salsa' }],
+    // seasonStart arrives from the API as an ISO string at runtime.
+    groups: [{ id: 'g1', name: 'Salsa', seasonStart: '2025-09-01T00:00:00' as unknown as Date }],
     events: [{ id: 'e1', name: 'Gala', date: DATE }],
   },
   pending: { groups: ['gp'], events: ['ep1', 'ep2'] },
 };
+
+const salsa = (): GroupModel => FULL_ACCESS.available!.groups![0];
 
 function createFixture(overrides: {
   getMyAccess?: ReturnType<typeof vi.fn>;
@@ -67,16 +70,16 @@ describe('RequestAccess', () => {
       expect(component.checkedEvents().size).toBe(0);
     });
 
-    it('defaults a group join date to today when first checked', () => {
+    it("defaults a group join date to the group's season start when first checked", () => {
       const { component } = createFixture({});
-      component.toggleGroup('g1');
+      component.toggleGroup(salsa());
       expect(component.checkedGroups().has('g1')).toBe(true);
-      expect(component.groupDates()['g1']).toBe(component.today);
+      expect(component.groupDates()['g1']).toBe('2025-09-01');
     });
 
     it('lets a group join date be overridden', () => {
       const { component } = createFixture({});
-      component.toggleGroup('g1');
+      component.toggleGroup(salsa());
       component.setGroupDate('g1', '2026-01-15');
       expect(component.groupDates()['g1']).toBe('2026-01-15');
     });
@@ -101,7 +104,7 @@ describe('RequestAccess', () => {
       const { component, access } = createFixture({ requestAccess });
 
       component.toggleEvent('e1');
-      component.toggleGroup('g1');
+      component.toggleGroup(salsa());
       component.setGroupDate('g1', '2026-03-01');
       component.submit();
 

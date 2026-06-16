@@ -20,6 +20,8 @@ public static class DependencyInjection
         public IServiceCollection RegisterApplicationServices()
         {
 
+            services.AddMemoryCache();
+
             services
                 .AddScoped<ICommentService, CommentService>()
                 .AddScoped<IIdentityClient, IdentityClient>()
