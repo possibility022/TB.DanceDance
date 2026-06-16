@@ -32,11 +32,11 @@ turns that into checked-out code, an active plan, and a running local stack.
 
 ## 2. Branch
 
-- Propose a branch name following the repo's `feature/<short-name>` convention (derive
-  `<short-name>` from the issue title — short, kebab-case, no issue ID prefix; matches
+- Derive a branch name following the repo's `feature/<short-name>` convention
+  (`<short-name>` from the issue title — short, kebab-case, no issue ID prefix; matches
   existing branches like `feature/thumbnails`, `feature/commenting-videos`).
-- Confirm the name with the user, then create and check it out:
-  `git checkout -b feature/<short-name>`.
+- Create and check it out immediately — no confirmation needed:
+  `git checkout -b feature/<short-name>`. Just report the branch name as you do it.
 
 ## 3. Move the issue into Develop
 
