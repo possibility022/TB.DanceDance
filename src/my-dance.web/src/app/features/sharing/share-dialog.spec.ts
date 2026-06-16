@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 
 import { ShareDialog } from './share-dialog';
 import { SharingService } from '../../core/api/sharing.service';
+import { TransfersService } from '../../core/api/transfers.service';
 import { VideosService } from '../../core/api/videos.service';
 import { SharedLinkResponse } from '../../core/api/api-models';
 
@@ -11,6 +12,7 @@ function createFixture(overrides: {
   createSharedLink?: ReturnType<typeof vi.fn>;
   revokeSharedLink?: ReturnType<typeof vi.fn>;
   updateCommentSettings?: ReturnType<typeof vi.fn>;
+  createTransfer?: ReturnType<typeof vi.fn>;
 }) {
   const sharing = {
     getMySharedLinks: overrides.getMySharedLinks ?? vi.fn(() => of({ links: [] })),
@@ -20,17 +22,22 @@ function createFixture(overrides: {
   const videos = {
     updateCommentSettings: overrides.updateCommentSettings ?? vi.fn(() => of(void 0)),
   };
+  const transfers = {
+    createTransfer:
+      overrides.createTransfer ?? vi.fn(() => of({ linkId: 't1', shareUrl: 'https://x/transfer/t1' })),
+  };
 
   TestBed.configureTestingModule({
     imports: [ShareDialog],
     providers: [
       { provide: SharingService, useValue: sharing },
       { provide: VideosService, useValue: videos },
+      { provide: TransfersService, useValue: transfers },
     ],
   });
 
   const fixture: ComponentFixture<ShareDialog> = TestBed.createComponent(ShareDialog);
-  return { fixture, sharing, videos, component: fixture.componentInstance };
+  return { fixture, sharing, videos, transfers, component: fixture.componentInstance };
 }
 
 function open(fixture: ComponentFixture<ShareDialog>, videoId = 'v1', commentVisibility = 0): void {
@@ -200,6 +207,66 @@ describe('ShareDialog', () => {
       component.applyVisibility();
       expect(component.updatingVisibility()).toBe(false);
       expect(component.savedVisibility()).toBe(0); // unchanged on failure
+    });
+  });
+
+  describe('transfer', () => {
+    it('toggles the help message', () => {
+      const { fixture, component } = createFixture({});
+      open(fixture);
+      expect(component.transferHelp()).toBe(false);
+      component.toggleTransferHelp();
+      expect(component.transferHelp()).toBe(true);
+    });
+
+    it('creates a transfer for this video and exposes the link', () => {
+      const { fixture, component, transfers } = createFixture({});
+      open(fixture, 'v1');
+
+      component.transfer();
+
+      expect(transfers.createTransfer).toHaveBeenCalledWith('v1', { expirationDays: 7 });
+      expect(component.transferResult()?.shareUrl).toBe('https://x/transfer/t1');
+      expect(component.transferring()).toBe(false);
+    });
+
+    it('does nothing when there is no video', () => {
+      const { fixture, component, transfers } = createFixture({});
+      open(fixture, '');
+      component.transfer();
+      expect(transfers.createTransfer).not.toHaveBeenCalled();
+    });
+
+    it('transferUrl falls back to the origin for a relative server url', () => {
+      const { fixture, component } = createFixture({
+        createTransfer: vi.fn(() => of({ linkId: 't1', shareUrl: '/transfer/t1' })),
+      });
+      open(fixture, 'v1');
+      component.transfer();
+      expect(component.transferUrl()).toBe(`${window.location.origin}/transfer/t1`);
+    });
+
+    it('flags failure and clears the flag on error', () => {
+      const { fixture, component } = createFixture({
+        createTransfer: vi.fn(() => throwError(() => new Error('x'))),
+      });
+      open(fixture, 'v1');
+      component.transfer();
+      expect(component.transferFailed()).toBe(true);
+      expect(component.transferring()).toBe(false);
+    });
+
+    it('close() resets transfer state', () => {
+      const { fixture, component } = createFixture({});
+      open(fixture, 'v1');
+      component.transfer();
+      component.transferHelp.set(true);
+
+      component.close();
+
+      expect(component.transferResult()).toBeNull();
+      expect(component.transferHelp()).toBe(false);
+      expect(component.transferCopied()).toBe(false);
     });
   });
 });

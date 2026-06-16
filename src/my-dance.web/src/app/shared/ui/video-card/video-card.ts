@@ -31,16 +31,6 @@ import { LongDatePipe } from '../../format/long-date.pipe';
       </div>
 
       <div class="card-content">
-        @if (selectable()) {
-          <label class="checkbox video-card__select">
-            <input
-              type="checkbox"
-              [checked]="checked()"
-              (change)="selectionToggle.emit(video())"
-            />
-            Select for transfer
-          </label>
-        }
         <div class="video-card__header">
           <div>
             @if (badge()) {
@@ -277,13 +267,6 @@ import { LongDatePipe } from '../../format/long-date.pipe';
     .video-card__delete {
       font-weight: 600;
     }
-
-    .video-card__select {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-weight: 600;
-    }
   `,
 })
 export class VideoCard {
@@ -296,15 +279,10 @@ export class VideoCard {
   readonly queryParams = input<Params>({});
   /** Highlight this card as the currently-playing recording. */
   readonly selected = input(false);
-  /** Show a selection checkbox (multi-select mode, e.g. when starting a transfer). */
-  readonly selectable = input(false);
-  /** Whether this card is currently selected in multi-select mode. */
-  readonly checked = input(false);
   /** Optional contextual label shown above the title (e.g. group name). */
   readonly badge = input('');
   readonly share = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
-  readonly selectionToggle = output<VideoInformation>();
 
   /** A recording is watchable once conversion has produced a playable blob. */
   readonly watchable = computed(() => this.video().converted && !!this.video().blobId);

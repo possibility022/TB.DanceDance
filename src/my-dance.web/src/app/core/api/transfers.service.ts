@@ -16,9 +16,15 @@ import {
 export class TransfersService {
   private readonly api = inject(ApiClient);
 
-  /** Sender: create a transfer for one or more owned, private recordings. */
-  createTransfer(request: CreateTransferRequest): Observable<TransferSummaryResponse> {
-    return this.api.post<TransferSummaryResponse>('/api/transfers', request);
+  /** Sender: create a transfer for a single owned, private recording. */
+  createTransfer(
+    videoId: string,
+    request: CreateTransferRequest,
+  ): Observable<TransferSummaryResponse> {
+    return this.api.post<TransferSummaryResponse>(
+      `/api/videos/${encodeURIComponent(videoId)}/transfer`,
+      request,
+    );
   }
 
   /** Sender: the user's outgoing transfers. */

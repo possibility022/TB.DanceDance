@@ -155,7 +155,6 @@ export interface TransferItemInfo {
 }
 
 export interface CreateTransferRequest {
-    videoIds?: string[];
     expirationDays?: number;
 }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -6,31 +6,14 @@ import { VideosService } from '../../core/api/videos.service';
 import { VideoInformation } from '../../core/api/api-models';
 import { VideoList } from '../../shared/ui/video-list/video-list';
 import { ShareDialog } from '../sharing/share-dialog';
-import { CreateTransferDialog } from '../transfers/create-transfer-dialog';
-import { FileSizePipe } from '../../shared/format/file-size.pipe';
 
 const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-my-videos',
-  imports: [VideoList, ShareDialog, CreateTransferDialog, FileSizePipe],
+  imports: [VideoList, ShareDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './my-videos.html',
-  styles: `
-    .transfer-action-bar {
-      position: sticky;
-      bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-top: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      background: var(--bulma-scheme-main-bis, #fff);
-      box-shadow: 0 -0.4rem 1rem rgba(20, 26, 44, 0.12);
-    }
-  `,
 })
 export class MyVideos {
   private readonly videos = inject(VideosService);
@@ -48,20 +31,6 @@ export class MyVideos {
 
   readonly shareTarget = signal<VideoInformation | null>(null);
   readonly shareOpen = signal(false);
-
-  // Multi-select / transfer state.
-  readonly selectMode = signal(false);
-  readonly selectedIds = signal<readonly string[]>([]);
-  readonly transferOpen = signal(false);
-
-  readonly selectedVideos = computed(() => {
-    const ids = new Set(this.selectedIds());
-    return this.items().filter((v) => !!v.videoId && ids.has(v.videoId));
-  });
-  readonly selectedCount = computed(() => this.selectedIds().length);
-  readonly totalSelectedSize = computed(() =>
-    this.selectedVideos().reduce((sum, v) => sum + (v.sizeBytes ?? 0), 0),
-  );
 
   constructor() {
     this.load();
@@ -112,43 +81,6 @@ export class MyVideos {
           this.loadingMore.set(false);
         },
       });
-  }
-
-  toggleSelectMode(): void {
-    const next = !this.selectMode();
-    this.selectMode.set(next);
-    if (!next) {
-      this.selectedIds.set([]);
-    }
-  }
-
-  toggleSelection(video: VideoInformation): void {
-    const id = video.videoId;
-    if (!id) {
-      return;
-    }
-    this.selectedIds.update((ids) =>
-      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
-    );
-  }
-
-  openTransfer(): void {
-    if (this.selectedCount() === 0) {
-      return;
-    }
-    this.transferOpen.set(true);
-  }
-
-  closeTransfer(): void {
-    this.transferOpen.set(false);
-  }
-
-  onTransferCreated(): void {
-    // The transferred recordings will leave this library once accepted; for now just
-    // clear the selection and close out of select mode.
-    this.transferOpen.set(false);
-    this.selectMode.set(false);
-    this.selectedIds.set([]);
   }
 
   openShare(video: VideoInformation): void {

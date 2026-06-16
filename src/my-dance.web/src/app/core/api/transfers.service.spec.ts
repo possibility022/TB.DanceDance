@@ -29,12 +29,19 @@ describe('TransfersService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('createTransfer() POSTs the request to /api/transfers', () => {
-    const body = { videoIds: ['v1', 'v2'], expirationDays: 7 };
-    service.createTransfer(body).subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/transfers`);
+  it('createTransfer() POSTs the request to the per-video transfer endpoint', () => {
+    const body = { expirationDays: 7 };
+    service.createTransfer('v1', body).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/videos/v1/transfer`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(body);
+    req.flush({ linkId: 't1' });
+  });
+
+  it('createTransfer() url-encodes the video id', () => {
+    service.createTransfer('a/b', { expirationDays: 7 }).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/videos/a%2Fb/transfer`);
+    expect(req.request.method).toBe('POST');
     req.flush({ linkId: 't1' });
   });
 

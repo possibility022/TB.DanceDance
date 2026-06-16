@@ -22,11 +22,8 @@ import { VideoCard } from '../video-card/video-card';
               [deletable]="deletable()"
               [queryParams]="queryParams()"
               [selected]="!!selectedBlobId() && video.blobId === selectedBlobId()"
-              [selectable]="selectable()"
-              [checked]="!!video.videoId && selectedIds().includes(video.videoId)"
               (share)="share.emit($event)"
               (deleteVideo)="deleteVideo.emit($event)"
-              (selectionToggle)="selectionToggle.emit($event)"
             />
           </div>
         }
@@ -45,13 +42,8 @@ export class VideoList {
   readonly scopeEventId = input<string>('');
   /** Highlight the currently-playing recording (blob id). */
   readonly selectedBlobId = input<string>('');
-  /** Show per-card selection checkboxes (multi-select mode). */
-  readonly selectable = input(false);
-  /** Video ids currently selected in multi-select mode. */
-  readonly selectedIds = input<readonly string[]>([]);
   readonly share = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
-  readonly selectionToggle = output<VideoInformation>();
 
   readonly queryParams = computed<Params>(() => {
     if (this.scopeGroupId()) {
