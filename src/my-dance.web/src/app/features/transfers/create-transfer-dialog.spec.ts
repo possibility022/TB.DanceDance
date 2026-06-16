@@ -84,6 +84,15 @@ describe('CreateTransferDialog', () => {
     expect(component.creating()).toBe(false);
   });
 
+  it('shareUrl uses the server url when absolute, else falls back to the origin', () => {
+    const { component } = createFixture();
+    component.result.set({ linkId: 't1', shareUrl: 'https://x/transfer/t1' });
+    expect(component.shareUrl()).toBe('https://x/transfer/t1');
+
+    component.result.set({ linkId: 't1', shareUrl: '/transfer/t1' });
+    expect(component.shareUrl()).toBe(`${window.location.origin}/transfer/t1`);
+  });
+
   it('close() resets state and emits closed', () => {
     const { fixture, component } = createFixture();
     open(fixture);

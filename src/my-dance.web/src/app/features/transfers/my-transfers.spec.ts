@@ -61,6 +61,14 @@ describe('MyTransfers', () => {
     expect(component.items().find((t) => t.linkId === 't1')?.status).toBe('Revoked');
   });
 
+  it('shareUrl uses the server url when absolute, else falls back to the origin', () => {
+    const { component } = createFixture({});
+    expect(component.shareUrl({ linkId: 't1', shareUrl: 'https://x/transfer/t1' })).toBe('https://x/transfer/t1');
+    expect(component.shareUrl({ linkId: 't1', shareUrl: '/transfer/t1' })).toBe(
+      `${window.location.origin}/transfer/t1`,
+    );
+  });
+
   it('revoke ignores a transfer with no link id', () => {
     const { component, transfers } = createFixture({});
     component.revoke({});

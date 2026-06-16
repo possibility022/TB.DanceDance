@@ -37,6 +37,15 @@ export class MyTransfers {
     return transfer.status === 'Pending';
   }
 
+  /** Absolute, copyable transfer URL — falls back to the current origin if the API returned a relative url. */
+  shareUrl(transfer: TransferSummaryResponse): string {
+    const url = transfer.shareUrl ?? '';
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    return `${window.location.origin}/transfer/${transfer.linkId ?? ''}`;
+  }
+
   load(): void {
     this.loading.set(true);
     this.failed.set(false);
@@ -77,10 +86,11 @@ export class MyTransfers {
   }
 
   copy(transfer: TransferSummaryResponse): void {
-    if (!transfer.shareUrl) {
+    const url = this.shareUrl(transfer);
+    if (!url) {
       return;
     }
-    void navigator.clipboard?.writeText(transfer.shareUrl).then(() => {
+    void navigator.clipboard?.writeText(url).then(() => {
       this.copiedId.set(transfer.linkId ?? null);
     });
   }

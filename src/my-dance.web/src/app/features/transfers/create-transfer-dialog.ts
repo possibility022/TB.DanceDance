@@ -51,6 +51,19 @@ export class CreateTransferDialog {
     this.videos().reduce((sum, v) => sum + (v.sizeBytes ?? 0), 0),
   );
 
+  /** Absolute, copyable transfer URL — falls back to the current origin if the API returned a relative url. */
+  readonly shareUrl = computed(() => {
+    const result = this.result();
+    if (!result) {
+      return '';
+    }
+    const url = result.shareUrl ?? '';
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    return `${window.location.origin}/transfer/${result.linkId ?? ''}`;
+  });
+
   create(): void {
     if (this.form.invalid || this.creating() || this.videos().length === 0) {
       return;
@@ -78,7 +91,7 @@ export class CreateTransferDialog {
   }
 
   copy(): void {
-    const url = this.result()?.shareUrl;
+    const url = this.shareUrl();
     if (!url) {
       return;
     }
