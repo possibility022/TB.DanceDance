@@ -80,4 +80,17 @@ public static class ApiRoutes
         public const string GetInfo = $"{Base}/{{linkId}}";
         public const string GetStream = $"{Base}/{{linkId}}/stream";
     }
+
+    public static class Transfer
+    {
+        private const string Base = $"{ApiBase}/transfers";
+
+        public const string Create = Base;
+        public const string ListMy = $"{Base}/my";
+        public const string GetInfo = $"{Base}/{{linkId}}";
+        public const string Accept = $"{Base}/{{linkId}}/accept";
+        public const string Decline = $"{Base}/{{linkId}}/decline";
+        public const string Revoke = $"{Base}/{{linkId}}";
+        public const string GetStream = $"{Base}/{{linkId}}/videos/{{videoId:guid}}/stream";
+    }
 }
