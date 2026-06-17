@@ -428,63 +428,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.ToTable("VideoMetadata", "video");
                 });
 
-            modelBuilder.Entity("Domain.Entities.VideoTransfer", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("AcceptedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("AcceptedByUserId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("ExpireAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedBy");
-
-                    b.HasIndex("Id")
-                        .IsUnique();
-
-                    b.ToTable("VideoTransfers", "access");
-                });
-
-            modelBuilder.Entity("Domain.Entities.VideoTransferItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TransferId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("VideoId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VideoId");
-
-                    b.HasIndex("TransferId", "VideoId")
-                        .IsUnique();
-
-                    b.ToTable("VideoTransferItems", "access");
-                });
-
             modelBuilder.Entity("Domain.Entities.AssignedToEvent", b =>
                 {
                     b.HasOne("Domain.Entities.Event", "Event")
@@ -659,36 +602,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Entities.VideoTransfer", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
-                });
-
-            modelBuilder.Entity("Domain.Entities.VideoTransferItem", b =>
-                {
-                    b.HasOne("Domain.Entities.VideoTransfer", "Transfer")
-                        .WithMany("Items")
-                        .HasForeignKey("TransferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Video", "Video")
-                        .WithMany()
-                        .HasForeignKey("VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Transfer");
-
-                    b.Navigation("Video");
-                });
-
             modelBuilder.Entity("Domain.Entities.Event", b =>
                 {
                     b.Navigation("HasSharedVideos");
@@ -702,11 +615,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
             modelBuilder.Entity("Domain.Entities.Video", b =>
                 {
                     b.Navigation("SharedWith");
-                });
-
-            modelBuilder.Entity("Domain.Entities.VideoTransfer", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
