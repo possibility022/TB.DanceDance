@@ -1,5 +1,6 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable } from 'rxjs';
 
@@ -13,6 +14,7 @@ const RETURN_URL_KEY = 'auth.returnUrl';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly oidc = inject(OidcSecurityService);
+  private readonly router = inject(Router);
 
   private readonly authState = toSignal(this.oidc.isAuthenticated$, {
     initialValue: { isAuthenticated: false, allConfigsAuthenticated: [] },
@@ -29,10 +31,17 @@ export class AuthService {
     return this.oidc.checkAuth();
   }
 
-  /** Starts the OIDC login flow, remembering where to return afterwards. */
+  /**
+   * Starts the OIDC login flow, remembering where to return afterwards.
+   *
+   * Defaults to the URL the user is currently on so that signing in from, say,
+   * a shared-link page brings them back to it (the post-login callback would
+   * otherwise drop them on the home page). The home route is not worth storing.
+   */
   login(returnUrl?: string): void {
-    if (returnUrl) {
-      sessionStorage.setItem(RETURN_URL_KEY, returnUrl);
+    const target = returnUrl ?? this.router.url;
+    if (target && target !== '/') {
+      sessionStorage.setItem(RETURN_URL_KEY, target);
     }
     this.oidc.authorize();
   }
