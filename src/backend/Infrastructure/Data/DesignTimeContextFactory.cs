@@ -8,7 +8,14 @@ public class DesignTimeContextFactory : IDesignTimeDbContextFactory<DanceDbConte
     public DanceDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DanceDbContext>();
-        optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=dancedance");
+        var connectionString = Environment.GetEnvironmentVariable("TBDANCEDANCE_MIGRATION_CONNECTION_STRING");
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            connectionString = "Server=localhost;Port=5432;Userid=postgres;Password=rgFraWIuyxONqWCQ71wh;Database=dancedance";
+        }
+
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new DanceDbContext(optionsBuilder.Options);
     }
