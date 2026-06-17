@@ -9,9 +9,14 @@
   <div class="notification is-warning is-light" role="alert">
     This transfer link is no longer valid. It may have expired, been revoked, or already been handled.
   </div>
-} @else if (outcome() === 'accepted') {
+} @else if (outcome() === 'accepted-pending' || info()?.status === 'Accepted') {
+  <div class="notification is-info is-light" role="status">
+    <p class="block">Your acceptance has been recorded.</p>
+    <p>Waiting for the owner to approve. You'll gain access once they confirm.</p>
+  </div>
+} @else if (outcome() === 'approved' || info()?.status === 'Approved') {
   <div class="notification is-success is-light" role="status">
-    <p class="block">The recordings are now yours.</p>
+    <p class="block">This recording is now yours.</p>
     <a class="button is-primary" routerLink="/videos/my">Go to my recordings</a>
   </div>
 } @else if (outcome() === 'declined') {
@@ -61,13 +66,15 @@
     >
       Accept
     </button>
-    <button
-      type="button"
-      class="button"
-      [disabled]="submitting()"
-      (click)="decline()"
-    >
-      Decline
-    </button>
+    @if (transfer.status === 'Pending') {
+      <button
+        type="button"
+        class="button"
+        [disabled]="submitting()"
+        (click)="decline()"
+      >
+        Decline
+      </button>
+    }
   </div>
 }

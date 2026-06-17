@@ -22,6 +22,9 @@ public class VideoTransfer
     public string? AcceptedByUserId { get; set; }
     public DateTimeOffset? AcceptedAt { get; set; }
 
+    /// <summary>When the owner approved after recipient acceptance; null until approved.</summary>
+    public DateTimeOffset? ApprovedAt { get; set; }
+
     public User CreatedByUser { get; set; } = null!;
     public ICollection<VideoTransferItem> Items { get; set; } = null!;
 }

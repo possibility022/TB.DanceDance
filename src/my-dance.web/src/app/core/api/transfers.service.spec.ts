@@ -80,6 +80,27 @@ describe('TransfersService', () => {
     req.flush(null);
   });
 
+  it('approveTransfer() POSTs to the approve endpoint', () => {
+    service.approveTransfer('t1').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/transfers/t1/approve`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ accepted: true });
+  });
+
+  it('approveTransfer() url-encodes the link id', () => {
+    service.approveTransfer('a/b').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/transfers/a%2Fb/approve`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ accepted: true });
+  });
+
+  it('cancelTransfer() POSTs to the cancel endpoint', () => {
+    service.cancelTransfer('t1').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/transfers/t1/cancel`);
+    expect(req.request.method).toBe('POST');
+    req.flush(null);
+  });
+
   it('transferStreamUrl() builds an absolute, token-carrying stream url', () => {
     expect(service.transferStreamUrl('t1', 'v1', 'tok')).toBe(
       `${BASE}/api/transfers/t1/videos/v1/stream?token=tok`,

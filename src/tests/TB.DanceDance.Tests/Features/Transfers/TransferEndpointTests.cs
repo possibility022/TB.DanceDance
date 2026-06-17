@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Application;
+using Microsoft.EntityFrameworkCore;
 using Application.Features.AccessManagement;
 using Application.Features.Transfers;
 using Application.Features.Transfers.Endpoints;
@@ -172,6 +173,118 @@ public class TransferEndpointTests : BaseTestClass
     }
 
     [Fact]
+    public async Task Approve_Valid_Returns200()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var ep = Factory.Create<ApproveTransferEndpoint>(Ctx(sender.Id, ("linkId", transfer.Id)), transferService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(200, ep.HttpContext.Response.StatusCode);
+        Assert.True(ep.Response.Accepted);
+    }
+
+    [Fact]
+    public async Task Approve_ByNonOwner_Returns403()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var other = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, 10);
+        SeedDbContext.AddRange(sender, recipient, other);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var ep = Factory.Create<ApproveTransferEndpoint>(Ctx(other.Id, ("linkId", transfer.Id)), transferService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(403, ep.HttpContext.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Approve_NotAccepted_Returns404()
+    {
+        var sender = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, 10);
+        SeedDbContext.Add(sender);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+
+        // Transfer is still Pending — not yet accepted by anyone
+        var ep = Factory.Create<ApproveTransferEndpoint>(Ctx(sender.Id, ("linkId", transfer.Id)), transferService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(404, ep.HttpContext.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Approve_OverQuota_Returns409()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        recipient.StorageQuotaBytes = 1000;
+        var video = AddPrivateVideo(sender, 100);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        // Tighten quota before approve
+        SeedDbContext.ChangeTracker.Clear();
+        var dbRecipient = await SeedDbContext.Users.FirstAsync(u => u.Id == recipient.Id, TestContext.Current.CancellationToken);
+        dbRecipient.StorageQuotaBytes = 50;
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var ep = Factory.Create<ApproveTransferEndpoint>(Ctx(sender.Id, ("linkId", transfer.Id)), transferService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(409, ep.HttpContext.Response.StatusCode);
+        Assert.False(ep.Response.Accepted);
+        Assert.Equal(100, ep.Response.RequiredBytes);
+    }
+
+    [Fact]
+    public async Task Cancel_Valid_Returns204()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var ep = Factory.Create<CancelTransferEndpoint>(Ctx(sender.Id, ("linkId", transfer.Id)), transferService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(204, ep.HttpContext.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Cancel_NonSender_Returns404()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var ep = Factory.Create<CancelTransferEndpoint>(Ctx(recipient.Id, ("linkId", transfer.Id)), transferService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(404, ep.HttpContext.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task Stream_AsSender_Returns404()
     {
         var sender = new UserDataBuilder().Build();
@@ -205,6 +318,28 @@ public class TransferEndpointTests : BaseTestClass
         await ep.HandleAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(404, ep.HttpContext.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Stream_AcceptedTransfer_AsRecipient_CallsVideoService()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var transfer = await CreatePendingTransfer(sender, video);
+        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var videoService = Substitute.For<IVideoService>();
+        videoService.OpenStream(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Stream>(new MemoryStream(new byte[] { 1, 2, 3 })));
+
+        var ep = Factory.Create<StreamVideoByTransferEndpoint>(
+            Ctx(recipient.Id, ("linkId", transfer.Id), ("videoId", video.Id)), transferService, videoService);
+        await ep.HandleAsync(TestContext.Current.CancellationToken);
+
+        await videoService.ReceivedWithAnyArgs(1).OpenStream(default!, default);
     }
 
     [Fact]

@@ -18,6 +18,9 @@ const INFO: TransferInfoResponse = {
   ],
 };
 
+const INFO_ACCEPTED: TransferInfoResponse = { ...INFO, status: 'Accepted' };
+const INFO_APPROVED: TransferInfoResponse = { ...INFO, status: 'Approved' };
+
 function createFixture(overrides: {
   getTransfer?: ReturnType<typeof vi.fn>;
   acceptTransfer?: ReturnType<typeof vi.fn>;
@@ -63,14 +66,14 @@ describe('TransferLanding', () => {
     expect(component.failed()).toBe(true);
   });
 
-  it('accept success sets the accepted outcome', () => {
+  it('accept success sets accepted-pending outcome', () => {
     const { fixture, component, transfers } = createFixture({});
     fixture.detectChanges();
 
     component.accept();
 
     expect(transfers.acceptTransfer).toHaveBeenCalledWith('t1');
-    expect(component.outcome()).toBe('accepted');
+    expect(component.outcome()).toBe('accepted-pending');
   });
 
   it('accept quota block (409) surfaces required/available bytes', () => {
@@ -112,5 +115,26 @@ describe('TransferLanding', () => {
 
     expect(transfers.declineTransfer).toHaveBeenCalledWith('t1');
     expect(component.outcome()).toBe('declined');
+  });
+
+  it('shows waiting-for-approval when loaded with Accepted status', () => {
+    const { fixture, component } = createFixture({
+      getTransfer: vi.fn(() => of(INFO_ACCEPTED)),
+    });
+    fixture.detectChanges();
+
+    // The info is loaded; outcome remains 'none' but info.status drives the UI
+    expect(component.info()?.status).toBe('Accepted');
+    expect(component.outcome()).toBe('none');
+  });
+
+  it('shows approved state when loaded with Approved status', () => {
+    const { fixture, component } = createFixture({
+      getTransfer: vi.fn(() => of(INFO_APPROVED)),
+    });
+    fixture.detectChanges();
+
+    expect(component.info()?.status).toBe('Approved');
+    expect(component.outcome()).toBe('none');
   });
 });

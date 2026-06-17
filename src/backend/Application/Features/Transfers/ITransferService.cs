@@ -15,6 +15,18 @@ public enum AcceptTransferResult
     CannotAcceptOwnTransfer,
 }
 
+/// <summary>
+/// Outcome of an attempt to approve a transfer.
+/// </summary>
+public enum ApproveTransferResult
+{
+    Approved,
+    /// <summary>Transfer not found, not in Accepted state, expired, or no AcceptedByUserId.</summary>
+    NotAvailable,
+    /// <summary>The approving user is not the original sender.</summary>
+    NotOwner,
+}
+
 public interface ITransferService
 {
     /// <summary>
@@ -27,7 +39,8 @@ public interface ITransferService
 
     /// <summary>
     /// Gets a transfer (with its items and videos) by link id. Returns null if the link doesn't
-    /// exist, is expired, was revoked, or was declined.
+    /// exist, was revoked, was declined, was cancelled, or is a Pending link past its expiry.
+    /// Accepted and Approved transfers are always returned regardless of expiry.
     /// </summary>
     Task<VideoTransfer?> GetTransferAsync(string linkId, CancellationToken cancellationToken);
 
@@ -48,10 +61,24 @@ public interface ITransferService
     Task<bool> DeclineTransferAsync(string linkId, string userId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Accepts a pending transfer: moves ownership of every item to the recipient atomically,
-    /// re-points the private share rows, revokes the sender's active share links for those videos,
-    /// and marks the transfer accepted. Blocked if it would exceed the recipient's storage quota.
+    /// Accepts a pending transfer: records the recipient's intention without moving ownership.
+    /// Parks the transfer in Accepted state awaiting the owner's second confirmation.
+    /// Performs a quota pre-check so the recipient learns early if their storage is too full.
     /// </summary>
     /// <exception cref="QuotaExceededException">Accepting would exceed the recipient's storage quota.</exception>
     Task<AcceptTransferResult> AcceptTransferAsync(string linkId, string userId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Owner's second approval after the recipient accepted. Performs the actual ownership move —
+    /// re-points private share rows, revokes the sender's active share links, sets Status=Approved.
+    /// Re-runs the quota check for the recipient.
+    /// </summary>
+    /// <exception cref="QuotaExceededException">Approving would exceed the recipient's storage quota.</exception>
+    Task<ApproveTransferResult> ApproveTransferAsync(string linkId, string ownerUserId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Owner cancels a transfer that the recipient has already accepted. Ownership is unchanged.
+    /// Sender-only, only from Accepted state. Returns false if not found, wrong user, or wrong state.
+    /// </summary>
+    Task<bool> CancelTransferAsync(string linkId, string ownerUserId, CancellationToken cancellationToken);
 }

@@ -143,6 +143,7 @@ export interface TransferSummaryResponse {
     totalSizeBytes?: number;
     acceptedByUserId?: string | undefined;
     acceptedAt?: Date | undefined;
+    approvedAt?: Date | undefined;
     items?: TransferItemInfo[];
 }
 

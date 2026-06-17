@@ -124,7 +124,7 @@ public class TransferServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Accept_MovesOwnership()
+    public async Task Accept_ParksInAccepted_OwnershipUnchanged()
     {
         var sender = new UserDataBuilder().Build();
         var recipient = new UserDataBuilder().Build();
@@ -141,15 +141,17 @@ public class TransferServiceTests : BaseTestClass
         Assert.Equal(AcceptTransferResult.Accepted, result);
 
         SeedDbContext.ChangeTracker.Clear();
-        var moved = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
-        Assert.Equal(recipient.Id, moved.OwnerUserId);
-        Assert.True(await IsPrivateVideoOf(recipient.Id, video.Id));
-        Assert.False(await IsPrivateVideoOf(sender.Id, video.Id));
+        // Ownership must NOT have moved yet.
+        var unchanged = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(sender.Id, unchanged.OwnerUserId);
+        Assert.True(await IsPrivateVideoOf(sender.Id, video.Id));
+        Assert.False(await IsPrivateVideoOf(recipient.Id, video.Id));
 
         var saved = await SeedDbContext.VideoTransfers.FirstAsync(t => t.Id == transfer.Id, TestContext.Current.CancellationToken);
         Assert.Equal(TransferStatus.Accepted, saved.Status);
         Assert.Equal(recipient.Id, saved.AcceptedByUserId);
         Assert.NotNull(saved.AcceptedAt);
+        Assert.Null(saved.ApprovedAt);
     }
 
     [Fact]
@@ -170,7 +172,6 @@ public class TransferServiceTests : BaseTestClass
         Assert.Equal(100, ex.RequiredBytes);
         Assert.Equal(50, ex.AvailableBytes);
 
-        // Ownership unchanged
         SeedDbContext.ChangeTracker.Clear();
         var reloaded = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
         Assert.Equal(sender.Id, reloaded.OwnerUserId);
@@ -180,7 +181,7 @@ public class TransferServiceTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Accept_RevokesSendersActiveShareLinks()
+    public async Task Accept_DoesNotRevokeShareLinks()
     {
         var sender = new UserDataBuilder().Build();
         var recipient = new UserDataBuilder().Build();
@@ -195,7 +196,7 @@ public class TransferServiceTests : BaseTestClass
 
         SeedDbContext.ChangeTracker.Clear();
         var link = await SeedDbContext.SharedLinks.FirstAsync(l => l.Id == "shlink01", TestContext.Current.CancellationToken);
-        Assert.True(link.IsRevoked);
+        Assert.False(link.IsRevoked);
     }
 
     [Fact]
@@ -249,6 +250,221 @@ public class TransferServiceTests : BaseTestClass
 
         var result = await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
         Assert.Equal(AcceptTransferResult.NotAvailable, result);
+    }
+
+    [Fact]
+    public async Task Approve_HappyPath_MovesOwnership()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        var shareLink = new SharedLinkDataBuilder().WithId("shlinkApprove").ForVideo(video).SharedBy(sender).ExpiresInDays(30).Build();
+        SeedDbContext.AddRange(sender, recipient, shareLink);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var result = await transferService.ApproveTransferAsync(
+            transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ApproveTransferResult.Approved, result);
+
+        SeedDbContext.ChangeTracker.Clear();
+        var moved = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(recipient.Id, moved.OwnerUserId);
+        Assert.True(await IsPrivateVideoOf(recipient.Id, video.Id));
+        Assert.False(await IsPrivateVideoOf(sender.Id, video.Id));
+
+        var link = await SeedDbContext.SharedLinks.FirstAsync(l => l.Id == "shlinkApprove", TestContext.Current.CancellationToken);
+        Assert.True(link.IsRevoked);
+
+        var saved = await SeedDbContext.VideoTransfers.FirstAsync(t => t.Id == transfer.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(TransferStatus.Approved, saved.Status);
+        Assert.NotNull(saved.ApprovedAt);
+    }
+
+    [Fact]
+    public async Task Approve_ByNonOwner_ReturnsNotOwner()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var other = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.AddRange(sender, recipient, other);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var result = await transferService.ApproveTransferAsync(
+            transfer.Id, other.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ApproveTransferResult.NotOwner, result);
+
+        SeedDbContext.ChangeTracker.Clear();
+        var unchanged = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(sender.Id, unchanged.OwnerUserId);
+    }
+
+    [Fact]
+    public async Task Approve_WhenNotAccepted_ReturnsNotAvailable()
+    {
+        var sender = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.Add(sender);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+
+        // Transfer is still Pending — not accepted yet
+        var result = await transferService.ApproveTransferAsync(
+            transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ApproveTransferResult.NotAvailable, result);
+    }
+
+    [Fact]
+    public async Task Approve_OverQuota_Throws_OwnershipUnchanged()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        recipient.StorageQuotaBytes = 1000; // enough to accept but will be tightened before approve
+        var video = AddPrivateVideo(sender, convertedBlobSize: 100);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        // Shrink the recipient's quota below the transfer size before the owner approves
+        SeedDbContext.ChangeTracker.Clear();
+        var dbRecipient = await SeedDbContext.Users.FirstAsync(u => u.Id == recipient.Id, TestContext.Current.CancellationToken);
+        dbRecipient.StorageQuotaBytes = 50;
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var ex = await Assert.ThrowsAsync<QuotaExceededException>(() =>
+            transferService.ApproveTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken));
+
+        Assert.Equal(100, ex.RequiredBytes);
+
+        SeedDbContext.ChangeTracker.Clear();
+        var unchanged = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(sender.Id, unchanged.OwnerUserId);
+        var savedTransfer = await SeedDbContext.VideoTransfers.FirstAsync(t => t.Id == transfer.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(TransferStatus.Accepted, savedTransfer.Status);
+    }
+
+    [Fact]
+    public async Task Cancel_FromAccepted_SetsStatusCancelled_OwnershipUnchanged()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var cancelled = await transferService.CancelTransferAsync(
+            transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+
+        Assert.True(cancelled);
+
+        SeedDbContext.ChangeTracker.Clear();
+        var saved = await SeedDbContext.VideoTransfers.FirstAsync(t => t.Id == transfer.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(TransferStatus.Cancelled, saved.Status);
+        var unchanged = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
+        Assert.Equal(sender.Id, unchanged.OwnerUserId);
+    }
+
+    [Fact]
+    public async Task Cancel_ByNonOwner_ReturnsFalse()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var result = await transferService.CancelTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GetTransfer_Accepted_IsLive()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        var found = await transferService.GetTransferAsync(transfer.Id, TestContext.Current.CancellationToken);
+        Assert.NotNull(found);
+        Assert.Equal(TransferStatus.Accepted, found.Status);
+    }
+
+    [Fact]
+    public async Task GetTransfer_Approved_IsLive()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await transferService.ApproveTransferAsync(
+            transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+
+        var found = await transferService.GetTransferAsync(transfer.Id, TestContext.Current.CancellationToken);
+        Assert.NotNull(found);
+        Assert.Equal(TransferStatus.Approved, found.Status);
+    }
+
+    [Fact]
+    public async Task GetTransfer_Cancelled_ReturnsNull()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var video = AddPrivateVideo(sender, convertedBlobSize: 10);
+        SeedDbContext.AddRange(sender, recipient);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var transfer = await transferService.CreateTransferAsync(
+            sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
+        await transferService.AcceptTransferAsync(
+            transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await transferService.CancelTransferAsync(
+            transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+
+        Assert.Null(await transferService.GetTransferAsync(transfer.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]

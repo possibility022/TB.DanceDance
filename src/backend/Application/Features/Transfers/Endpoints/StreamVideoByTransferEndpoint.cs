@@ -40,8 +40,9 @@ public class StreamVideoByTransferEndpoint : EndpointWithoutRequest
 
         var transfer = await transferService.GetTransferAsync(linkId, ct);
 
-        // Only a live, pending transfer is previewable, and only by a would-be recipient.
-        if (transfer == null || transfer.Status != TransferStatus.Pending || transfer.CreatedBy == userId)
+        // Only Pending or Accepted transfers are previewable, and only by a would-be / actual recipient (not the sender).
+        var isPreviewable = transfer?.Status is TransferStatus.Pending or TransferStatus.Accepted;
+        if (!isPreviewable || transfer!.CreatedBy == userId)
             return await Send.NotFoundAsync(ct);
 
         var item = transfer.Items.FirstOrDefault(i => i.VideoId == videoId);

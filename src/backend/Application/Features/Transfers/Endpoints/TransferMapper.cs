@@ -49,6 +49,7 @@ internal static class TransferMapper
             TotalSizeBytes = items.Sum(i => i.SizeBytes),
             AcceptedByUserId = transfer.AcceptedByUserId,
             AcceptedAt = transfer.AcceptedAt,
+            ApprovedAt = transfer.ApprovedAt,
             Items = items
         };
     }

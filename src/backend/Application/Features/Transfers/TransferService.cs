@@ -114,10 +114,14 @@ public class TransferService : ITransferService
             return null;
         }
 
-        // Expired / revoked / declined links are dead.
-        if (transfer.ExpireAt <= DateTimeOffset.UtcNow
-            || transfer.Status == TransferStatus.Revoked
-            || transfer.Status == TransferStatus.Declined)
+        // Terminal statuses are always dead.
+        if (transfer.Status is TransferStatus.Revoked or TransferStatus.Declined or TransferStatus.Cancelled)
+        {
+            return null;
+        }
+
+        // Only Pending transfers can expire; Accepted/Approved stay live.
+        if (transfer.Status == TransferStatus.Pending && transfer.ExpireAt <= DateTimeOffset.UtcNow)
         {
             return null;
         }
@@ -200,9 +204,7 @@ public class TransferService : ITransferService
             return AcceptTransferResult.CannotAcceptOwnTransfer;
         }
 
-        var videoIds = transfer.Items.Select(i => i.VideoId).ToList();
-
-        // Quota check: the recipient's current private usage + the incoming size must fit their quota.
+        // Quota pre-check: surface capacity issues early so the recipient knows before waiting.
         var requiredBytes = transfer.Items.Sum(i => i.Video.ConvertedBlobSize);
         var usedBytes = await accessService.GetUserPrivateVideosQuery(userId)
             .SumAsync(v => v.ConvertedBlobSize, cancellationToken);
@@ -214,15 +216,61 @@ public class TransferService : ITransferService
             throw new QuotaExceededException(requiredBytes, availableBytes);
         }
 
+        // Park the transfer — ownership moves only when the owner approves.
+        transfer.Status = TransferStatus.Accepted;
+        transfer.AcceptedByUserId = userId;
+        transfer.AcceptedAt = DateTimeOffset.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return AcceptTransferResult.Accepted;
+    }
+
+    public async Task<ApproveTransferResult> ApproveTransferAsync(
+        string linkId,
+        string ownerUserId,
+        CancellationToken cancellationToken)
+    {
+        var transfer = await dbContext.VideoTransfers
+            .Include(t => t.Items)
+                .ThenInclude(i => i.Video)
+            .FirstOrDefaultAsync(t => t.Id == linkId, cancellationToken);
+
+        if (transfer == null
+            || transfer.Status != TransferStatus.Accepted
+            || transfer.ExpireAt <= DateTimeOffset.UtcNow
+            || transfer.AcceptedByUserId == null)
+        {
+            return ApproveTransferResult.NotAvailable;
+        }
+
+        if (transfer.CreatedBy != ownerUserId)
+        {
+            return ApproveTransferResult.NotOwner;
+        }
+
+        var recipientId = transfer.AcceptedByUserId;
+        var videoIds = transfer.Items.Select(i => i.VideoId).ToList();
+
+        // Re-run quota check — recipient's usage may have changed since they accepted.
+        var requiredBytes = transfer.Items.Sum(i => i.Video.ConvertedBlobSize);
+        var usedBytes = await accessService.GetUserPrivateVideosQuery(recipientId)
+            .SumAsync(v => v.ConvertedBlobSize, cancellationToken);
+        var recipient = await dbContext.Users.FirstAsync(u => u.Id == recipientId, cancellationToken);
+        var availableBytes = recipient.StorageQuotaBytes - usedBytes;
+
+        if (requiredBytes > availableBytes)
+        {
+            throw new QuotaExceededException(requiredBytes, availableBytes);
+        }
+
         // Move ownership atomically (single SaveChanges = single transaction).
         foreach (var item in transfer.Items)
         {
-            item.Video.OwnerUserId = userId;
+            item.Video.OwnerUserId = recipientId;
         }
 
-        // Re-point the private share rows from the sender to the recipient. SharedWith.UserId is
-        // init-only, so replace the rows rather than mutating them. My Library lists private videos
-        // by SharedWith.UserId, so this is what actually moves the video between libraries.
+        // Re-point the private share rows from the sender to the recipient.
         var privateShares = await dbContext.SharedWith
             .Where(s => videoIds.Contains(s.VideoId) && s.EventId == null && s.GroupId == null)
             .ToListAsync(cancellationToken);
@@ -233,7 +281,7 @@ public class TransferService : ITransferService
             {
                 Id = Guid.NewGuid(),
                 VideoId = videoId,
-                UserId = userId,
+                UserId = recipientId,
                 EventId = null,
                 GroupId = null
             });
@@ -248,13 +296,32 @@ public class TransferService : ITransferService
             link.IsRevoked = true;
         }
 
-        transfer.Status = TransferStatus.Accepted;
-        transfer.AcceptedByUserId = userId;
-        transfer.AcceptedAt = DateTimeOffset.UtcNow;
+        transfer.Status = TransferStatus.Approved;
+        transfer.ApprovedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return AcceptTransferResult.Accepted;
+        return ApproveTransferResult.Approved;
+    }
+
+    public async Task<bool> CancelTransferAsync(string linkId, string ownerUserId, CancellationToken cancellationToken)
+    {
+        var transfer = await dbContext.VideoTransfers
+            .FirstOrDefaultAsync(t => t.Id == linkId, cancellationToken);
+
+        if (transfer == null || transfer.CreatedBy != ownerUserId)
+        {
+            return false;
+        }
+
+        if (transfer.Status != TransferStatus.Accepted)
+        {
+            return false;
+        }
+
+        transfer.Status = TransferStatus.Cancelled;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     private async Task<string> GenerateUniqueLinkIdAsync(CancellationToken cancellationToken)

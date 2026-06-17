@@ -5,10 +5,11 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TransfersService } from '../../core/api/transfers.service';
-import { TransferSummaryResponse } from '../../core/api/api-models';
+import { AcceptTransferResponse, TransferSummaryResponse } from '../../core/api/api-models';
 import { FileSizePipe } from '../../shared/format/file-size.pipe';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 
@@ -27,7 +28,12 @@ export class MyTransfers {
   readonly failed = signal(false);
   readonly items = signal<readonly TransferSummaryResponse[]>([]);
   private readonly revokingId = signal<string | null>(null);
+  private readonly approvingId = signal<string | null>(null);
+  private readonly cancellingId = signal<string | null>(null);
   readonly copiedId = signal<string | null>(null);
+
+  /** Per-transfer inline quota error from a failed Approve (409). */
+  readonly approveQuotaError = signal<{ linkId: string; required: number; available: number } | null>(null);
 
   constructor() {
     this.load();
@@ -35,6 +41,18 @@ export class MyTransfers {
 
   isPending(transfer: TransferSummaryResponse): boolean {
     return transfer.status === 'Pending';
+  }
+
+  isAccepted(transfer: TransferSummaryResponse): boolean {
+    return transfer.status === 'Accepted';
+  }
+
+  isApproving(transfer: TransferSummaryResponse): boolean {
+    return this.approvingId() === transfer.linkId;
+  }
+
+  isCancelling(transfer: TransferSummaryResponse): boolean {
+    return this.cancellingId() === transfer.linkId;
   }
 
   /** Absolute, copyable transfer URL — falls back to the current origin if the API returned a relative url. */
@@ -82,6 +100,60 @@ export class MyTransfers {
           this.revokingId.set(null);
         },
         error: () => this.revokingId.set(null),
+      });
+  }
+
+  approve(transfer: TransferSummaryResponse): void {
+    const linkId = transfer.linkId;
+    if (!linkId || this.approvingId() === linkId) {
+      return;
+    }
+    this.approveQuotaError.set(null);
+    this.approvingId.set(linkId);
+    this.transfers
+      .approveTransfer(linkId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: AcceptTransferResponse) => {
+          this.approvingId.set(null);
+          if (response.accepted) {
+            this.items.update((items) =>
+              items.map((t) => (t.linkId === linkId ? { ...t, status: 'Approved' } : t)),
+            );
+          }
+        },
+        error: (err: HttpErrorResponse) => {
+          this.approvingId.set(null);
+          if (err.status === 409) {
+            const body = err.error as AcceptTransferResponse | undefined;
+            this.approveQuotaError.set({
+              linkId,
+              required: body?.requiredBytes ?? 0,
+              available: body?.availableBytes ?? 0,
+            });
+          }
+        },
+      });
+  }
+
+  cancel(transfer: TransferSummaryResponse): void {
+    const linkId = transfer.linkId;
+    if (!linkId || this.cancellingId() === linkId) {
+      return;
+    }
+    this.cancellingId.set(linkId);
+    this.transfers
+      .cancelTransfer(linkId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.items.update((items) =>
+            items.map((t) => (t.linkId === linkId ? { ...t, status: 'Cancelled' } : t)),
+          );
+          this.cancellingId.set(null);
+          this.approveQuotaError.update((e) => (e?.linkId === linkId ? null : e));
+        },
+        error: () => this.cancellingId.set(null),
       });
   }
 

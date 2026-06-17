@@ -19,7 +19,7 @@ namespace TB.DanceDance.API.Contracts.Features.Transfers
     public class TransferSummaryResponse
     {
         public string LinkId { get; set; } = string.Empty;
-        /// <summary>Pending / Accepted / Declined / Revoked / Expired.</summary>
+        /// <summary>Pending / Accepted / Approved / Declined / Revoked / Cancelled / Expired.</summary>
         public string Status { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset ExpireAt { get; set; }
@@ -27,6 +27,7 @@ namespace TB.DanceDance.API.Contracts.Features.Transfers
         public long TotalSizeBytes { get; set; }
         public string? AcceptedByUserId { get; set; }
         public DateTimeOffset? AcceptedAt { get; set; }
+        public DateTimeOffset? ApprovedAt { get; set; }
         public IReadOnlyCollection<TransferItemInfo> Items { get; set; } = Array.Empty<TransferItemInfo>();
     }
 
