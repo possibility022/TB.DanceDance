@@ -63,7 +63,7 @@ public class VideoUploaderTests : BaseTestClass
     private async Task UploadSourceBlob(string sourceBlobId)
     {
         var toConvert = factory.GetBlobDataService(BlobContainer.VideosToConvert);
-        await toConvert.Upload(sourceBlobId, new MemoryStream(new byte[] { 1, 2, 3 }));
+        await toConvert.Upload(sourceBlobId, new MemoryStream([1, 2, 3]));
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class VideoUploaderTests : BaseTestClass
 
         // Upload a blob to the published videos container so service sees it
         var published = factory.GetBlobDataService(BlobContainer.Videos);
-        await published.Upload(blobId, new MemoryStream(new byte[] { 9, 9, 9 }));
+        await published.Upload(blobId, new MemoryStream([9, 9, 9]));
 
         var result = await uploaderService.UploadConvertedVideoAsync(v.Id, TestContext.Current.CancellationToken);
         SeedDbContext.ChangeTracker.Clear();
@@ -439,7 +439,7 @@ public class VideoUploaderTests : BaseTestClass
         // Upload the thumbnail blob so PublishThumbnailAsync can find it
         var thumbnails = factory.GetBlobDataService(BlobContainer.Thumbnails);
         var expectedBlobId = $"{v.Id}/thumbnail.jpg";
-        await thumbnails.Upload(expectedBlobId, new MemoryStream(new byte[] { 0xFF, 0xD8, 0xFF }));
+        await thumbnails.Upload(expectedBlobId, new MemoryStream([0xFF, 0xD8, 0xFF]));
 
         var result = await uploaderService.PublishThumbnailAsync(v.Id, TestContext.Current.CancellationToken);
         SeedDbContext.ChangeTracker.Clear();

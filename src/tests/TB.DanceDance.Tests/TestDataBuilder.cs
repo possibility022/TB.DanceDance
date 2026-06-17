@@ -239,7 +239,7 @@ public class VideoDataBuilder
     private CommentVisibility _commentVisibility;
     private string? _thumbnailBlobId;
 
-    private readonly List<SharedWith> _sharedWith = new();
+    private readonly List<SharedWith> _sharedWith = [];
 
     public VideoDataBuilder()
     {
@@ -455,7 +455,7 @@ public class VideoTransferDataBuilder
     private string? _acceptedByUserId;
     private DateTimeOffset? _acceptedAt;
     private DateTimeOffset? _approvedAt;
-    private readonly List<Guid> _videoIds = new();
+    private readonly List<Guid> _videoIds = [];
 
     public VideoTransferDataBuilder()
     {
