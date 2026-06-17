@@ -8,8 +8,15 @@
 
     <section class="modal-card-body">
       <p class="block">
-        Transferring <strong>gives this recording away</strong>: when the recipient opens the link and
-        accepts, the recording moves into their library and they become the owner.
+        Transferring <strong>permanently gives this recording to another user</strong> in three steps:
+      </p>
+      <ol class="block ml-5">
+        <li>You create a shareable link and send it to the recipient.</li>
+        <li>The recipient opens the link, previews the recording, and accepts.</li>
+        <li>You come back here, see their acceptance, and <strong>confirm</strong> — only then does the recording move to their library.</li>
+      </ol>
+      <p class="block has-text-grey is-size-7">
+        You can revoke the link before they accept, or cancel after they accept but before you confirm. Once you confirm, it cannot be undone.
       </p>
 
       @if (existingTransfer()) {
@@ -28,6 +35,7 @@
       } @else if (transferResult()) {
         <div class="notification is-success is-light">
           <p class="block">Transfer link created. Send it to the person you want to give this recording to.</p>
+          <p class="block has-text-grey is-size-7">Once they accept, you'll see a confirmation prompt in <strong>My Transfers</strong> — the recording won't move until you approve it there.</p>
           <div class="field has-addons">
             <div class="control is-expanded">
               <input
