@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { BehaviorSubject, of } from 'rxjs';
 
@@ -25,12 +26,18 @@ function createOidcMock() {
 describe('AuthService', () => {
   let service: AuthService;
   let oidc: ReturnType<typeof createOidcMock>;
+  let router: { url: string };
 
   beforeEach(() => {
     sessionStorage.clear();
     oidc = createOidcMock();
+    router = { url: '/' };
     TestBed.configureTestingModule({
-      providers: [AuthService, { provide: OidcSecurityService, useValue: oidc }],
+      providers: [
+        AuthService,
+        { provide: OidcSecurityService, useValue: oidc },
+        { provide: Router, useValue: router },
+      ],
     });
     service = TestBed.inject(AuthService);
   });
@@ -64,8 +71,20 @@ describe('AuthService', () => {
       expect(oidc.authorize).toHaveBeenCalledTimes(1);
     });
 
-    it('login() without a return url does not write session storage', () => {
+    it('login() without a return url stores the current url so the user returns to it', () => {
+      router.url = '/shared/abc123';
+
       service.login();
+
+      expect(sessionStorage.getItem(RETURN_URL_KEY)).toBe('/shared/abc123');
+      expect(oidc.authorize).toHaveBeenCalledTimes(1);
+    });
+
+    it('login() from the home route does not write session storage', () => {
+      router.url = '/';
+
+      service.login();
+
       expect(sessionStorage.getItem(RETURN_URL_KEY)).toBeNull();
       expect(oidc.authorize).toHaveBeenCalledTimes(1);
     });
