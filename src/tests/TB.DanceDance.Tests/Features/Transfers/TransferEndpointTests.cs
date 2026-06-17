@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Application;
 using Microsoft.EntityFrameworkCore;
 using Application.Features.AccessManagement;
 using Application.Features.Transfers;
@@ -9,9 +8,7 @@ using Domain.Entities;
 using FastEndpoints;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using NSubstitute;
-using TB.DanceDance.API.Contracts.Features.Transfers;
 using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Features.Transfers;
@@ -26,8 +23,8 @@ namespace TB.DanceDance.Tests.Features.Transfers;
 public class TransferEndpointTests : BaseTestClass
 {
     private ITransferService transferService = null!;
-    private readonly IOptions<AppOptions> appOptions = Options.Create(new AppOptions { AppWebsiteOrigin = "https://app.test" });
-
+    private ITransferService seedingTransferService = null!;
+    
     public TransferEndpointTests(DanceDbFixture danceDbFixture) : base(danceDbFixture)
     {
     }
@@ -35,6 +32,7 @@ public class TransferEndpointTests : BaseTestClass
     protected override ValueTask Initialize(DanceDbContext runtimeDbContext)
     {
         transferService = new TransferService(runtimeDbContext, new AccessService(runtimeDbContext));
+        seedingTransferService = new TransferService(SeedDbContext, new AccessService(SeedDbContext));
         return ValueTask.CompletedTask;
     }
 
@@ -43,7 +41,7 @@ public class TransferEndpointTests : BaseTestClass
         var ctx = new DefaultHttpContext();
         if (sub != null)
         {
-            var identity = new ClaimsIdentity(new[] { new Claim("sub", sub) }, "test");
+            var identity = new ClaimsIdentity([new Claim("sub", sub)], "test");
             ctx.User = new ClaimsPrincipal(identity);
         }
         foreach (var (key, value) in routeValues)
@@ -65,7 +63,7 @@ public class TransferEndpointTests : BaseTestClass
     }
 
     private async Task<VideoTransfer> CreatePendingTransfer(User sender, Video video)
-        => await transferService.CreateTransferAsync(
+        => await seedingTransferService.CreateTransferAsync(
             sender.Id, video.Id, 7, TestContext.Current.CancellationToken);
 
     [Fact]
@@ -76,7 +74,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.Add(sender);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
 
         var ep = Factory.Create<GetTransferInfoEndpoint>(Ctx("recipient", ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -147,7 +145,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
 
         var ep = Factory.Create<AcceptTransferEndpoint>(Ctx(recipient.Id, ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -181,7 +179,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         var ep = Factory.Create<ApproveTransferEndpoint>(Ctx(sender.Id, ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -200,7 +198,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient, other);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         var ep = Factory.Create<ApproveTransferEndpoint>(Ctx(other.Id, ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -234,7 +232,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         // Tighten quota before approve
         SeedDbContext.ChangeTracker.Clear();
@@ -259,7 +257,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         var ep = Factory.Create<CancelTransferEndpoint>(Ctx(sender.Id, ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -276,7 +274,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         var ep = Factory.Create<CancelTransferEndpoint>(Ctx(recipient.Id, ("linkId", transfer.Id)), transferService);
         await ep.HandleAsync(TestContext.Current.CancellationToken);
@@ -310,7 +308,7 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.Add(sender);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.RevokeTransferAsync(transfer.Id, sender.Id, TestContext.Current.CancellationToken);
 
         var videoService = Substitute.For<IVideoService>();
         var ep = Factory.Create<StreamVideoByTransferEndpoint>(
@@ -329,11 +327,11 @@ public class TransferEndpointTests : BaseTestClass
         SeedDbContext.AddRange(sender, recipient);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         var transfer = await CreatePendingTransfer(sender, video);
-        await transferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
+        await seedingTransferService.AcceptTransferAsync(transfer.Id, recipient.Id, TestContext.Current.CancellationToken);
 
         var videoService = Substitute.For<IVideoService>();
         videoService.OpenStream(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<Stream>(new MemoryStream(new byte[] { 1, 2, 3 })));
+            .Returns(Task.FromResult<Stream>(new MemoryStream([1, 2, 3])));
 
         var ep = Factory.Create<StreamVideoByTransferEndpoint>(
             Ctx(recipient.Id, ("linkId", transfer.Id), ("videoId", video.Id)), transferService, videoService);
