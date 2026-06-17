@@ -7,7 +7,7 @@ public class ContractMappersTests
     [Fact]
     public void MapToVideoInformation_MarksIsOwner_OnlyForTheUploader()
     {
-        var video = new VideoDataBuilder().UploadedBy("user-1").Build();
+        var video = new VideoDataBuilder().OwnedBy("user-1").Build();
 
         var asOwner = ContractMappers.MapToVideoInformation(video, thumbnailUrl: null, currentUserId: "user-1");
         var asOther = ContractMappers.MapToVideoInformation(video, thumbnailUrl: null, currentUserId: "user-2");

@@ -5,8 +5,9 @@ public class Video
     public string? BlobId { get; set; }
     public string Name { get; set; }
 
-    // User Id. Settable so ownership can be reassigned on video transfer accept.
-    public required string UploadedBy { get; set; }
+    public required string OwnerUserId { get; set; }
+    public required string UploadedByUserId { get; init; }
+    
     public required DateTime RecordedDateTime { get; set; }
     public required DateTime SharedDateTime { get; init; }
     public required TimeSpan? Duration { get; set; }

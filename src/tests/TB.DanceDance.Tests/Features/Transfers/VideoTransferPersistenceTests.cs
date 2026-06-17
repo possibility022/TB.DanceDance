@@ -18,8 +18,8 @@ public class VideoTransferPersistenceTests : BaseTestClass
     {
         // Arrange
         var sender = new UserDataBuilder().Build();
-        var video1 = new VideoDataBuilder().UploadedBy(sender).WithName("Video 1").Build();
-        var video2 = new VideoDataBuilder().UploadedBy(sender).WithName("Video 2").Build();
+        var video1 = new VideoDataBuilder().OwnedBy(sender).WithName("Video 1").Build();
+        var video2 = new VideoDataBuilder().OwnedBy(sender).WithName("Video 2").Build();
         var transfer = new VideoTransferDataBuilder()
             .WithId("trnsf001")
             .CreatedBy(sender)
@@ -56,7 +56,7 @@ public class VideoTransferPersistenceTests : BaseTestClass
         // Arrange
         var sender = new UserDataBuilder().Build();
         var recipient = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(sender).Build();
+        var video = new VideoDataBuilder().OwnedBy(sender).Build();
         var acceptedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
         var transfer = new VideoTransferDataBuilder()
             .WithId("trnsf002")
@@ -86,8 +86,8 @@ public class VideoTransferPersistenceTests : BaseTestClass
     {
         // Arrange
         var sender = new UserDataBuilder().Build();
-        var keep = new VideoDataBuilder().UploadedBy(sender).WithName("Keep").Build();
-        var toDelete = new VideoDataBuilder().UploadedBy(sender).WithName("Delete").Build();
+        var keep = new VideoDataBuilder().OwnedBy(sender).WithName("Keep").Build();
+        var toDelete = new VideoDataBuilder().OwnedBy(sender).WithName("Delete").Build();
         var transfer = new VideoTransferDataBuilder()
             .WithId("trnsf003")
             .CreatedBy(sender)

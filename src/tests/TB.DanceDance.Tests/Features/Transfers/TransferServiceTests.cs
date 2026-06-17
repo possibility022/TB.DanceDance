@@ -28,7 +28,7 @@ public class TransferServiceTests : BaseTestClass
     private Video AddPrivateVideo(User owner, long convertedBlobSize = 0, string? name = null)
     {
         var builder = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .Converted()
             .WithConvertedBlobSize(convertedBlobSize)
             .ShareAsPrivate(owner);
@@ -86,7 +86,7 @@ public class TransferServiceTests : BaseTestClass
     public async Task CreateTransfer_NotConverted_Throws()
     {
         var sender = new UserDataBuilder().Build();
-        var builder = new VideoDataBuilder().UploadedBy(sender).Converted(false).ShareAsPrivate(sender);
+        var builder = new VideoDataBuilder().OwnedBy(sender).Converted(false).ShareAsPrivate(sender);
         var video = builder.Build();
         SeedDbContext.AddRange(sender, video, builder.BuildShares().Single());
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -100,7 +100,7 @@ public class TransferServiceTests : BaseTestClass
     {
         var sender = new UserDataBuilder().Build();
         var group = new GroupDataBuilder().Build();
-        var builder = new VideoDataBuilder().UploadedBy(sender).Converted().ShareWithGroup(group, sender);
+        var builder = new VideoDataBuilder().OwnedBy(sender).Converted().ShareWithGroup(group, sender);
         var video = builder.Build();
         SeedDbContext.AddRange(sender, group, video, builder.BuildShares().Single());
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -142,7 +142,7 @@ public class TransferServiceTests : BaseTestClass
 
         SeedDbContext.ChangeTracker.Clear();
         var moved = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
-        Assert.Equal(recipient.Id, moved.UploadedBy);
+        Assert.Equal(recipient.Id, moved.OwnerUserId);
         Assert.True(await IsPrivateVideoOf(recipient.Id, video.Id));
         Assert.False(await IsPrivateVideoOf(sender.Id, video.Id));
 
@@ -173,7 +173,7 @@ public class TransferServiceTests : BaseTestClass
         // Ownership unchanged
         SeedDbContext.ChangeTracker.Clear();
         var reloaded = await SeedDbContext.Videos.FirstAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken);
-        Assert.Equal(sender.Id, reloaded.UploadedBy);
+        Assert.Equal(sender.Id, reloaded.OwnerUserId);
         Assert.True(await IsPrivateVideoOf(sender.Id, video.Id));
         var savedTransfer = await SeedDbContext.VideoTransfers.FirstAsync(t => t.Id == transfer.Id, TestContext.Current.CancellationToken);
         Assert.Equal(TransferStatus.Pending, savedTransfer.Status);

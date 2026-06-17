@@ -53,7 +53,7 @@ public class TransferEndpointTests : BaseTestClass
     private Video AddPrivateVideo(User owner, long convertedBlobSize = 0)
     {
         var builder = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .Converted()
             .WithConvertedBlobSize(convertedBlobSize)
             .WithBlobId($"blob-{Guid.NewGuid():N}")

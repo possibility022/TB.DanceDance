@@ -42,7 +42,7 @@ public class VideoServiceTests : BaseTestClass
     public async Task GetVideoByBlobAsync_ReturnsNull_WhenAccessDenied()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
         SeedDbContext.AddRange(user, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -57,7 +57,7 @@ public class VideoServiceTests : BaseTestClass
     public async Task GetVideoByBlobAsync_ReturnsVideo_WhenAccessGranted()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
         SeedDbContext.AddRange(user, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -73,7 +73,7 @@ public class VideoServiceTests : BaseTestClass
     public async Task RenameVideoAsync_UpdatesName_AndReturnsTrue()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithName("Old Name").Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithName("Old Name").Build();
         SeedDbContext.AddRange(user, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -95,7 +95,7 @@ public class VideoServiceTests : BaseTestClass
     public async Task GetSharingLink_ForExistingVideo_ReturnsContext_FromUploaderService()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithSourceBlobId("src-123").Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithSourceBlobId("src-123").Build();
         SeedDbContext.AddRange(user, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -135,7 +135,7 @@ public class VideoServiceTests : BaseTestClass
         SeedDbContext.ChangeTracker.Clear();
         var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
         Assert.Equal(shared.BlobId, saved.SourceBlobId);
-        Assert.Equal(user.Id, saved.UploadedBy);
+        Assert.Equal(user.Id, saved.OwnerUserId);
         Assert.False(saved.Converted);
         // SharedWith
         var link = SeedDbContext.SharedWith.Single(sw => sw.VideoId == saved.Id);
@@ -212,7 +212,7 @@ public class VideoServiceTests : BaseTestClass
         SeedDbContext.ChangeTracker.Clear();
         var saved = await SeedDbContext.Videos.AsQueryable().Where(v => v.Id == ctx.VideoId).FirstAsync(TestContext.Current.CancellationToken);
         Assert.Equal(shared.BlobId, saved.SourceBlobId);
-        Assert.Equal(user.Id, saved.UploadedBy);
+        Assert.Equal(user.Id, saved.OwnerUserId);
         Assert.Equal("MyPrivateVideo", saved.Name);
         Assert.False(saved.Converted);
 
@@ -251,7 +251,7 @@ public class VideoServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .WithCommentVisibility(CommentVisibility.Public)
             .Build();
 
@@ -280,7 +280,7 @@ public class VideoServiceTests : BaseTestClass
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().WithId("other-user-id").Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .WithCommentVisibility(CommentVisibility.Public)
             .Build();
 
@@ -345,7 +345,7 @@ public class VideoServiceTests : BaseTestClass
         var thumbnailBlobId = $"{Guid.NewGuid()}/thumbnail.jpg";
 
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .Converted()
             .WithSourceBlobId(sourceBlobId)
             .WithBlobId(convertedBlobId)
@@ -390,7 +390,7 @@ public class VideoServiceTests : BaseTestClass
         var convertedBlobId = Guid.NewGuid().ToString();
 
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .Converted()
             .WithSourceBlobId(sourceBlobId)
             .WithBlobId(convertedBlobId)
@@ -432,7 +432,7 @@ public class VideoServiceTests : BaseTestClass
         var sourceBlobId = $"src-{Guid.NewGuid():N}";
 
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .WithSourceBlobId(sourceBlobId)
             .WithBlobId(null)
             .Build();

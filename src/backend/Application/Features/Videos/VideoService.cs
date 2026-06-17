@@ -105,7 +105,8 @@ public class VideoService : IVideoService
             FileName = fileName,
             SourceBlobId = sas.BlobId,
             Name = name,
-            UploadedBy = userId,
+            OwnerUserId = userId,
+            UploadedByUserId = userId,
             Duration = null,
             RecordedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
             SharedDateTime = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc),
@@ -149,7 +150,7 @@ public class VideoService : IVideoService
         }
 
         // Only the video owner can update comment visibility
-        if (video.UploadedBy != userId)
+        if (video.OwnerUserId != userId)
         {
             return false;
         }
@@ -168,7 +169,7 @@ public class VideoService : IVideoService
             return DeleteVideoResult.NotFound;
 
         // Only the uploader may delete — stricter than the access-based rename path.
-        if (video.UploadedBy != userId)
+        if (video.OwnerUserId != userId)
             return DeleteVideoResult.Forbidden;
 
         // Capture blob ids before the row is removed.

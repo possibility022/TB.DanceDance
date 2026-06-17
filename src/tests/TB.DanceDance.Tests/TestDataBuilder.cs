@@ -226,7 +226,7 @@ public class VideoDataBuilder
     private Guid _id;
     private string? _blobId;
     private string _name;
-    private string _uploadedBy;
+    private string _ownerUserId;
     private DateTime _recorded;
     private DateTime _shared;
     private TimeSpan? _duration;
@@ -245,7 +245,7 @@ public class VideoDataBuilder
     {
         _id = Guid.NewGuid();
         _name = TestDataBuilder.RandomName("Video");
-        _uploadedBy = TestDataBuilder.RandomUserId();
+        _ownerUserId = TestDataBuilder.RandomUserId();
         _recorded = DateTime.UtcNow.AddDays(-1);
         _shared = DateTime.UtcNow;
         _duration = TestDataBuilder.RandomDuration();
@@ -261,9 +261,9 @@ public class VideoDataBuilder
     public VideoDataBuilder WithId(Guid id) { _id = id; return this; }
     public VideoDataBuilder WithBlobId(string? blobId) { _blobId = blobId; return this; }
     public VideoDataBuilder WithName(string name) { _name = name; return this; }
-    public VideoDataBuilder UploadedBy(string userId) { _uploadedBy = userId; return this; }
-    public VideoDataBuilder UploadedBy(User user) { _uploadedBy = user.Id; return this; }
-    public VideoDataBuilder UploadedBy(UserDataBuilder userBuilder) { _uploadedBy = userBuilder.UserId; return this; }
+    public VideoDataBuilder OwnedBy(string userId) { _ownerUserId = userId; return this; }
+    public VideoDataBuilder OwnedBy(User user) { _ownerUserId = user.Id; return this; }
+    public VideoDataBuilder OwnedBy(UserDataBuilder userBuilder) { _ownerUserId = userBuilder.UserId; return this; }
     public VideoDataBuilder RecordedAt(DateTime dt) { _recorded = dt; return this; }
     public VideoDataBuilder SharedAt(DateTime dt) { _shared = dt; return this; }
     public VideoDataBuilder WithDuration(TimeSpan? duration) { _duration = duration; return this; }
@@ -280,7 +280,8 @@ public class VideoDataBuilder
         Id = _id,
         BlobId = _blobId,
         Name = _name,
-        UploadedBy = _uploadedBy,
+        OwnerUserId = _ownerUserId,
+        UploadedByUserId = _ownerUserId,
         RecordedDateTime = _recorded,
         SharedDateTime = _shared,
         Duration = _duration,

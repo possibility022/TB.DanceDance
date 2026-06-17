@@ -24,7 +24,7 @@ public static class ContractMappers
             CommentVisibility = (int)video.CommentVisibility,
             ThumbnailUrl = thumbnailUrl,
             SizeBytes = video.ConvertedBlobSize,
-            IsOwner = currentUserId != null && video.UploadedBy == currentUserId
+            IsOwner = currentUserId != null && video.OwnerUserId == currentUserId
         };
     }
 

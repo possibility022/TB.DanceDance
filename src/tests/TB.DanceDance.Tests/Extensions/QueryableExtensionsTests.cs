@@ -24,7 +24,7 @@ public class QueryableExtensionsTests : BaseTestClass
         var user = new UserDataBuilder().Build();
         var videos = Enumerable.Range(0, count)
             .Select(i => new VideoDataBuilder()
-                .UploadedBy(user)
+                .OwnedBy(user)
                 .WithName($"Video{i:D2}")
                 .RecordedAt(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(i))
                 .Build())
@@ -39,7 +39,7 @@ public class QueryableExtensionsTests : BaseTestClass
 
     private IQueryable<Video> QueryFor(string userId) =>
         runtimeDbContext.Videos
-            .Where(v => v.UploadedBy == userId)
+            .Where(v => v.OwnerUserId == userId)
             .OrderBy(v => v.RecordedDateTime);
 
     // Q1: Returns the requested page slice and the total count across all pages

@@ -41,7 +41,7 @@ public class TransferService : ITransferService
         }
 
         // The sender must personally own the video, and it must be converted.
-        if (video.UploadedBy != userId)
+        if (video.OwnerUserId != userId)
         {
             throw new ArgumentException($"User {userId} does not own video {videoId}.", nameof(videoId));
         }
@@ -217,7 +217,7 @@ public class TransferService : ITransferService
         // Move ownership atomically (single SaveChanges = single transaction).
         foreach (var item in transfer.Items)
         {
-            item.Video.UploadedBy = userId;
+            item.Video.OwnerUserId = userId;
         }
 
         // Re-point the private share rows from the sender to the recipient. SharedWith.UserId is

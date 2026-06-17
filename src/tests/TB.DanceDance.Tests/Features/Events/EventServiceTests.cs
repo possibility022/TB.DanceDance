@@ -112,7 +112,7 @@ public class EventServiceTests : BaseTestClass
 
         var membershipA = userB.AssignTo(evtA);
 
-        var videoForB = new VideoDataBuilder().UploadedBy(user).Build();
+        var videoForB = new VideoDataBuilder().OwnedBy(user).Build();
         var shareToB = new VideoDataBuilder().WithId(videoForB.Id); // placeholder
 
         SeedDbContext.Add(ownerA);
@@ -145,13 +145,13 @@ public class EventServiceTests : BaseTestClass
 
         var group = new GroupDataBuilder().Build();
 
-        var videoToGroup = new VideoDataBuilder().UploadedBy(user).Build();
+        var videoToGroup = new VideoDataBuilder().OwnedBy(user).Build();
         var shareGroup = new SharedWith
         {
             Id = Guid.NewGuid(), VideoId = videoToGroup.Id, UserId = user.Id, GroupId = group.Id
         };
 
-        var videoDirect = new VideoDataBuilder().UploadedBy(user).Build();
+        var videoDirect = new VideoDataBuilder().OwnedBy(user).Build();
         var shareDirect = new SharedWith { Id = Guid.NewGuid(), VideoId = videoDirect.Id, UserId = user.Id };
 
         SeedDbContext.Add(owner);
@@ -176,7 +176,7 @@ public class EventServiceTests : BaseTestClass
         var evt = evtB.Build();
         var user = new UserDataBuilder().Build();
 
-        var vidB = new VideoDataBuilder().UploadedBy(user);
+        var vidB = new VideoDataBuilder().OwnedBy(user);
         var video = vidB.Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = evt.Id };
 
@@ -198,9 +198,9 @@ public class EventServiceTests : BaseTestClass
         var evt = evtB.Build();
         var membership = userB.AssignTo(evt);
 
-        var v1 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-3)).Build();
-        var v2 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-1)).Build();
-        var v3 = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-2)).Build();
+        var v1 = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-3)).Build();
+        var v2 = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-1)).Build();
+        var v3 = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddHours(-2)).Build();
 
         SeedDbContext.AddRange(owner, user, evt, membership, v1, v2, v3);
         SeedDbContext.AddRange(
@@ -224,7 +224,7 @@ public class EventServiceTests : BaseTestClass
         var owner = evtB.BuildOwner();
         var evt = evtB.Build();
         var membership = userB.AssignTo(evt);
-        var video = new VideoDataBuilder().UploadedBy(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).Build();
 
         SeedDbContext.AddRange(owner, user, evt, membership, video);
         SeedDbContext.AddRange(
@@ -255,8 +255,8 @@ public class EventServiceTests : BaseTestClass
         var memA = userB.AssignTo(evtA);
         var memB = userB.AssignTo(evtB);
 
-        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-5)).Build();
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-4)).Build();
+        var vA = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-5)).Build();
+        var vB = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-4)).Build();
 
         SeedDbContext.AddRange(ownerA, ownerB, user, evtA, evtB, memA, memB, vA, vB);
         SeedDbContext.AddRange(
@@ -283,7 +283,7 @@ public class EventServiceTests : BaseTestClass
 
         var created = await eventService.CreateEventAsync(evt, TestContext.Current.CancellationToken);
 
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         SeedDbContext.AddRange(video,
             new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id, EventId = created.Id });
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -304,7 +304,7 @@ public class EventServiceTests : BaseTestClass
         SeedDbContext.AddRange(owner, evt);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         SeedDbContext.AddRange(video,
             new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = owner.Id, EventId = evt.Id });
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -366,7 +366,7 @@ public class EventServiceTests : BaseTestClass
         var membership = userB.AssignTo(evt);
 
         var videos = Enumerable.Range(0, 5)
-            .Select(i => new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-10 + i)).Build())
+            .Select(i => new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(-10 + i)).Build())
             .ToArray();
         var shares = videos
             .Select(v => new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, EventId = evt.Id })

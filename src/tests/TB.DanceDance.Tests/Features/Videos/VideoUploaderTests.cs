@@ -71,9 +71,9 @@ public class VideoUploaderTests : BaseTestClass
     {
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
-        var locked = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddMinutes(-1)).Build();
+        var locked = new VideoDataBuilder().OwnedBy(user).SharedAt(DateTime.UtcNow.AddMinutes(-1)).Build();
         locked.LockedTill = DateTime.UtcNow.AddHours(1);
-        var converted = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddMinutes(-2)).Converted(true).Build();
+        var converted = new VideoDataBuilder().OwnedBy(user).SharedAt(DateTime.UtcNow.AddMinutes(-2)).Converted(true).Build();
         SeedDbContext.AddRange(user, locked, converted);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -91,19 +91,19 @@ public class VideoUploaderTests : BaseTestClass
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
         var vLocked = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(DateTime.UtcNow.AddMinutes(-30))
             .Build();
         vLocked.LockedTill = DateTime.UtcNow.AddHours(1);
 
         var vConverted = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(DateTime.UtcNow.AddMinutes(-10))
             .Converted(true)
             .Build();
 
         var vEligible = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(DateTime.UtcNow.AddDays(5))
             .Build();
 
@@ -126,7 +126,7 @@ public class VideoUploaderTests : BaseTestClass
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
         // Eligible by DB state, but its source blob was never (fully) uploaded.
-        var v = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -140,7 +140,7 @@ public class VideoUploaderTests : BaseTestClass
     {
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         await UploadSourceBlob(v.SourceBlobId);
@@ -159,8 +159,8 @@ public class VideoUploaderTests : BaseTestClass
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
         // Newer candidate (sorts first) has no uploaded blob; older candidate is fully uploaded.
-        var newerNotUploaded = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(10)).Build();
-        var olderUploaded = new VideoDataBuilder().UploadedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
+        var newerNotUploaded = new VideoDataBuilder().OwnedBy(user).SharedAt(DateTime.UtcNow.AddDays(10)).Build();
+        var olderUploaded = new VideoDataBuilder().OwnedBy(user).SharedAt(DateTime.UtcNow.AddDays(5)).Build();
         SeedDbContext.AddRange(user, newerNotUploaded, olderUploaded);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         await UploadSourceBlob(olderUploaded.SourceBlobId);
@@ -181,7 +181,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task UpdateVideoInformation_UpdatesFields_AndSavesMetadata()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -205,7 +205,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task UpdateVideoInformation_DoesNotAddMetadata_WhenNull()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -226,7 +226,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task UploadConvertedVideoAsync_ReturnsNull_WhenBlobIdNull()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(null).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).WithBlobId(null).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -238,7 +238,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task UploadConvertedVideoAsync_ReturnsNull_WhenBlobNotInPublishedContainer()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -251,7 +251,7 @@ public class VideoUploaderTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var blobId = Guid.NewGuid().ToString();
-        var v = new VideoDataBuilder().UploadedBy(user).WithBlobId(blobId).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).WithBlobId(blobId).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -293,7 +293,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task GetSasForConvertedVideoAsync_AssignsBlobId_AndPersists()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -321,7 +321,7 @@ public class VideoUploaderTests : BaseTestClass
         var sourceBlobId = Guid.NewGuid().ToString();
         var convertedBlobId = Guid.NewGuid().ToString();
         var v = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .WithSourceBlobId(sourceBlobId)
             .WithBlobId(convertedBlobId)
             .Build();
@@ -358,9 +358,9 @@ public class VideoUploaderTests : BaseTestClass
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
         // Not converted → ineligible
-        var notConverted = new VideoDataBuilder().UploadedBy(user).Converted(false).Build();
+        var notConverted = new VideoDataBuilder().OwnedBy(user).Converted(false).Build();
         // Already has thumbnail → ineligible
-        var hasThumbnail = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var hasThumbnail = new VideoDataBuilder().OwnedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
         hasThumbnail.ThumbnailBlobId = "some-thumb";
         SeedDbContext.AddRange(user, notConverted, hasThumbnail);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -375,7 +375,7 @@ public class VideoUploaderTests : BaseTestClass
         await MakeAllExistingVideosIneligible();
         var user = new UserDataBuilder().Build();
         var blobId = Guid.NewGuid().ToString();
-        var v = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(blobId).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Converted(true).WithBlobId(blobId).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -398,7 +398,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task GetSasForThumbnailUploadAsync_ReturnsSas_ForExistingVideo()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -420,7 +420,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task PublishThumbnailAsync_ReturnsFalse_WhenBlobNotUploaded()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -432,7 +432,7 @@ public class VideoUploaderTests : BaseTestClass
     public async Task PublishThumbnailAsync_SetsThumbnailBlobId_WhenBlobExists()
     {
         var user = new UserDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).Converted(true).WithBlobId(Guid.NewGuid().ToString()).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -457,7 +457,7 @@ public class VideoUploaderTests : BaseTestClass
         var sourceBlobId = Guid.NewGuid().ToString();
         var convertedBlobId = Guid.NewGuid().ToString();
         var v = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .WithSourceBlobId(sourceBlobId)
             .WithBlobId(convertedBlobId)
             .Build();

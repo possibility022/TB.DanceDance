@@ -27,7 +27,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         SeedDbContext.AddRange(owner, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -62,7 +62,7 @@ public class SharedLinkServiceTests : BaseTestClass
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().Build();
         var group = new GroupDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareWithGroup(group, owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareWithGroup(group, owner).Build();
         var groupAssignment = new AssignedToGroup
         {
             Id = Guid.NewGuid(),
@@ -99,7 +99,7 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var unauthorized = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         SeedDbContext.AddRange(owner, unauthorized, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -135,7 +135,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         SeedDbContext.AddRange(owner, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -157,7 +157,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         SeedDbContext.AddRange(owner, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -174,7 +174,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).WithName("Test Video").Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).WithName("Test Video").Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -198,7 +198,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -220,7 +220,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -255,7 +255,7 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var creator = new UserDataBuilder().Build();
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(creator)
@@ -283,7 +283,7 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(otherUser) // Created by someone else
@@ -312,7 +312,7 @@ public class SharedLinkServiceTests : BaseTestClass
         var creator = new UserDataBuilder().Build();
         var owner = new UserDataBuilder().Build();
         var unauthorized = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(creator)
@@ -356,7 +356,7 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var creator = new UserDataBuilder().Build();
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(creator)
@@ -380,8 +380,8 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var user = new UserDataBuilder().Build();
         var owner = new UserDataBuilder().Build();
-        var video1 = new VideoDataBuilder().UploadedBy(owner).WithName("Video 1").Build();
-        var video2 = new VideoDataBuilder().UploadedBy(owner).WithName("Video 2").Build();
+        var video1 = new VideoDataBuilder().OwnedBy(owner).WithName("Video 1").Build();
+        var video2 = new VideoDataBuilder().OwnedBy(owner).WithName("Video 2").Build();
         var link1 = new SharedLinkDataBuilder().WithId("link0001").ForVideo(video1).SharedBy(user).Build();
         var link2 = new SharedLinkDataBuilder().WithId("link0002").ForVideo(video2).SharedBy(user).Build();
 
@@ -405,8 +405,8 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().Build();
-        var video1 = new VideoDataBuilder().UploadedBy(owner).WithName("Owned Video 1").Build();
-        var video2 = new VideoDataBuilder().UploadedBy(owner).WithName("Owned Video 2").Build();
+        var video1 = new VideoDataBuilder().OwnedBy(owner).WithName("Owned Video 1").Build();
+        var video2 = new VideoDataBuilder().OwnedBy(owner).WithName("Owned Video 2").Build();
         // Links created by other users but for owner's videos
         var link1 = new SharedLinkDataBuilder().WithId("link0003").ForVideo(video1).SharedBy(otherUser).Build();
         var link2 = new SharedLinkDataBuilder().WithId("link0004").ForVideo(video2).SharedBy(otherUser).Build();
@@ -447,7 +447,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).Build();
         var link1 = new SharedLinkDataBuilder()
             .WithId("link0005")
             .ForVideo(video)
@@ -489,7 +489,7 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var user = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .WithName("Detailed Video")
             .WithDuration(TimeSpan.FromMinutes(5))
             .Build();
@@ -521,7 +521,7 @@ public class SharedLinkServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         SeedDbContext.AddRange(owner, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -548,7 +548,7 @@ public class SharedLinkServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .WithName("Video with Comments")
             .WithCommentVisibility(CommentVisibility.AuthenticatedOnly)
             .Build();
