@@ -25,7 +25,7 @@ namespace Infrastructure.Data.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.Sql("update video.\"Videos\" set \"OwnerUserId\" = \"UploadedByUserId\"");
+            migrationBuilder.Sql("update video.\"Videos\" set \"OwnerUserId\" = \"UploadedByUserId\";");
 
             migrationBuilder.CreateTable(
                 name: "VideoTransfers",
