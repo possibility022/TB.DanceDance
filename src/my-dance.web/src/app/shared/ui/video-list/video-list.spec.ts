@@ -47,6 +47,13 @@ describe('VideoList', () => {
     expect(el.querySelectorAll('button')).toHaveLength(2);
   });
 
+  it('passes the transferable flag down so owner cards show the Transfer action', async () => {
+    const ownerVideos = VIDEOS.map((v) => ({ ...v, isOwner: true }));
+    const el = (await setup({ videos: ownerVideos, transferable: true }))
+      .nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.video-card__transfer')).toHaveLength(2);
+  });
+
   describe('queryParams scope', () => {
     it('uses groupId when a group scope is set', async () => {
       const fixture = await setup({ videos: VIDEOS, scopeGroupId: 'g1' });
