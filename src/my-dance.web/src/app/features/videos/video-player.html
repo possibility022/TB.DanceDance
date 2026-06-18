@@ -66,12 +66,13 @@
 
   @if (streamUrl(); as src) {
     <video
-      class="is-block"
-      style="width: 100%; max-height: 70vh; background: #000"
+      class="is-block video-player__video"
+      style="width: 100%; max-height: 70vh"
       controls
       controlsList="nodownload"
       preload="metadata"
       [src]="src"
+      [attr.poster]="posterUrl()"
       [attr.aria-label]="'Recording: ' + video.name"
       (contextmenu)="$event.preventDefault()"
     >
