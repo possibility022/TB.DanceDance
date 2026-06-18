@@ -30,12 +30,22 @@
           <a class="navbar-item" routerLink="/videos" routerLinkActive="is-active" (click)="closeMenu()">
             Lesson recordings
           </a>
-          <a class="navbar-item" routerLink="/videos/my" routerLinkActive="is-active" (click)="closeMenu()">
-            My recordings
-          </a>
-          <a class="navbar-item" routerLink="/transfers" routerLinkActive="is-active" (click)="closeMenu()">
-            My transfers
-          </a>
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link" routerLink="/videos/my" routerLinkActive="is-active" (click)="closeMenu()">
+              My recordings
+            </a>
+            <div class="navbar-dropdown">
+              <a
+                class="navbar-item"
+                routerLink="transfers"
+                routerLinkActive="is-active"
+                (click)="closeMenu()"
+              >
+                Transfers
+              </a>
+            </div>
+          </div>
+
           <a class="navbar-item" routerLink="/videos/upload" routerLinkActive="is-active" (click)="closeMenu()">
             Upload
           </a>
