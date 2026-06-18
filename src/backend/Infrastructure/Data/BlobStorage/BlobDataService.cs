@@ -97,6 +97,18 @@ public class BlobDataService : IBlobDataService
         return properties.Value.ContentLength;
     }
 
+    public async Task<string?> GetContentTypeAsync(string blobId, CancellationToken cancellationToken)
+    {
+        var blobClient = container.GetBlobClient(blobId);
+        var properties = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
+        var contentType = properties.Value.ContentType;
+
+        if (string.IsNullOrEmpty(contentType) || contentType == "application/octet-stream")
+            return null;
+
+        return contentType;
+    }
+
     public Task DeleteAsync(string blobId, CancellationToken cancellationToken = default)
     {
         var client = container.GetBlobClient(blobId);

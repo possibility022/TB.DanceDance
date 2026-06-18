@@ -21,6 +21,13 @@ public enum DeleteVideoResult
 public interface IVideoService
 {
     Task<Stream> OpenStream(string blobName, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the video blob's Content-Type, falling back to "video/webm" when the
+    /// stored type is missing or the Azure default (covers blobs uploaded before
+    /// Content-Type was set on upload).
+    /// </summary>
+    Task<string> GetContentType(string blobName, CancellationToken cancellationToken);
     Task<Video?> GetVideoByBlobAsync(string userId, string blobId, CancellationToken cancellationToken);
     Task<bool> RenameVideoAsync(Guid guid, string newName, CancellationToken cancellationToken);
     Task<UploadContext> GetSharingLink(string userId, string name, string fileName, SharingWithType sharingWithType,

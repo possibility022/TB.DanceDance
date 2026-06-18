@@ -190,6 +190,22 @@ public class VideoServiceTests : BaseTestClass
     }
 
     [Fact]
+    public async Task GetContentType_FallsBackToVideoWebm_ForBlobUploadedWithoutContentType()
+    {
+        // Arrange: plain Upload() leaves Azure's default application/octet-stream content type,
+        // mirroring blobs uploaded before the converter daemon started setting Content-Type.
+        var blobSvc = factory.GetBlobDataService(BlobContainer.Videos);
+        var blobId = Guid.NewGuid().ToString();
+        await blobSvc.Upload(blobId, new MemoryStream([1, 2, 3, 4]));
+
+        // Act
+        var contentType = await videoService.GetContentType(blobId, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.Equal("video/webm", contentType);
+    }
+
+    [Fact]
     public async Task GetSharingLink_CreatesVideo_AndShare_ForPrivateVideo()
     {
         // Arrange
