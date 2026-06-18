@@ -34,6 +34,19 @@ public static class ApiRoutes
         public const string UpdateCommentSettings = $"{Base}/{{videoId:guid}}/comment-settings";
     }
 
+    public static class Competitions
+    {
+        private const string Base = $"{ApiBase}/competitions";
+
+        public const string Create = Base;
+        public const string ListMy = Base;
+        public const string Get = $"{Base}/{{competitionId:guid}}";
+        public const string Rename = $"{Base}/{{competitionId:guid}}";
+        public const string Delete = $"{Base}/{{competitionId:guid}}";
+        public const string AddVideo = $"{Base}/{{competitionId:guid}}/videos/{{videoId:guid}}";
+        public const string RemoveVideo = $"{Base}/{{competitionId:guid}}/videos/{{videoId:guid}}";
+    }
+
     public static class Converter
     {
         private const string Base = $"{ApiBase}/converter";
