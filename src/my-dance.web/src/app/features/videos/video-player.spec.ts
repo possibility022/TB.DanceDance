@@ -90,6 +90,22 @@ describe('VideoPlayer', () => {
     expect(video.getAttribute('controlsList')).toBe('nodownload');
   });
 
+  it('sets the video poster from the recording thumbnail', () => {
+    const { fixture } = createFixture({
+      video: { ...CONVERTED, thumbnailUrl: 'https://azurite/thumbnails/abc?sv=2024' },
+    });
+    const video = fixture.nativeElement.querySelector('video') as HTMLVideoElement;
+
+    expect(video.getAttribute('poster')).toBe('https://azurite/thumbnails/abc?sv=2024');
+  });
+
+  it('omits the poster attribute when the recording has no thumbnail', () => {
+    const { fixture } = createFixture({});
+    const video = fixture.nativeElement.querySelector('video') as HTMLVideoElement;
+
+    expect(video.getAttribute('poster')).toBeNull();
+  });
+
   it('does not expose a stream url for an unconverted recording', () => {
     const { component, videos } = createFixture({
       video: { videoId: 'vid1', blobId: 'blob1', converted: false },

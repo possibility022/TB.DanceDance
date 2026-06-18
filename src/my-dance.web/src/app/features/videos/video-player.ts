@@ -34,6 +34,15 @@ const SIBLINGS_PAGE_SIZE = 100;
   imports: [LongDatePipe, CommentsSection, VideoList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './video-player.html',
+  styles: `
+    /* Same placeholder fallback as video cards: visible behind the poster/frame
+       until either loads, so there's no black flash before metadata resolves. */
+    .video-player__video {
+      background:
+        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.34), transparent 24%),
+        linear-gradient(135deg, #20314f 0%, #2f6f73 56%, #f0b35a 100%);
+    }
+  `,
 })
 export class VideoPlayer {
   /** Bound from the route `:blobId` param via withComponentInputBinding(). */
@@ -64,6 +73,7 @@ export class VideoPlayer {
   private readonly videoId = signal<string | null>(null);
 
   readonly siblings = signal<readonly VideoInformation[]>([]);
+  readonly posterUrl = computed(() => this.info()?.thumbnailUrl ?? null);
 
   readonly editingName = signal(false);
   readonly nameDraft = signal('');
