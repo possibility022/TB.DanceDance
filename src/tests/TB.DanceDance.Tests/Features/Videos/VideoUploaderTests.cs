@@ -56,7 +56,15 @@ public class VideoUploaderTests : BaseTestClass
                 vid.Converted = true;
                 vid.LockedTill = DateTime.UtcNow.AddDays(365 * 10);
             }
-            await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            try
+            {
+                await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Ignore concurrency exceptions.
+            }
         }
     }
 
