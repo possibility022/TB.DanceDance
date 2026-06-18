@@ -43,5 +43,13 @@ public class Video
     /// </summary>
     public CommentVisibility CommentVisibility { get; set; } = CommentVisibility.OwnerOnly;
 
+    /// <summary>
+    /// The competition this video is grouped into, if any. Null = standalone/ungrouped.
+    /// A video belongs to at most one competition.
+    /// </summary>
+    public Guid? CompetitionId { get; set; }
+
     public ICollection<SharedWith> SharedWith { get; set; } = null!;
+
+    public Competition? Competition { get; set; }
 }

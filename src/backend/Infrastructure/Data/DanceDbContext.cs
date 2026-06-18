@@ -33,6 +33,7 @@ public class DanceDbContext : DbContext, IApplicationContext
     public DbSet<VideoTransfer> VideoTransfers { get; set; }
     public DbSet<VideoTransferItem> VideoTransferItems { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    public DbSet<Competition> Competitions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -43,6 +44,19 @@ public class DanceDbContext : DbContext, IApplicationContext
     {
         modelBuilder.Entity<Video>()
             .ToTable("Videos", Schemas.Video);
+
+        // Competition configuration (lives in the video schema, alongside Video)
+        modelBuilder.Entity<Competition>()
+            .ToTable("Competitions", Schemas.Video);
+
+        // A video belongs to at most one competition; deleting a competition detaches its
+        // videos (sets CompetitionId null) rather than cascade-deleting them.
+        modelBuilder.Entity<Video>()
+            .HasOne(v => v.Competition)
+            .WithMany(c => c.Videos)
+            .HasForeignKey(v => v.CompetitionId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<VideoMetadata>()
             .ToTable(nameof(VideoMetadata), Schemas.Video);

@@ -238,6 +238,7 @@ public class VideoDataBuilder
     private long _convertedBlobSize;
     private CommentVisibility _commentVisibility;
     private string? _thumbnailBlobId;
+    private Guid? _competitionId;
 
     private readonly List<SharedWith> _sharedWith = [];
 
@@ -274,6 +275,9 @@ public class VideoDataBuilder
     public VideoDataBuilder WithConvertedBlobSize(long size) { _convertedBlobSize = size; return this; }
     public VideoDataBuilder WithCommentVisibility(CommentVisibility visibility) { _commentVisibility = visibility; return this; }
     public VideoDataBuilder WithThumbnailBlobId(string? thumbnailBlobId) { _thumbnailBlobId = thumbnailBlobId; return this; }
+    public VideoDataBuilder InCompetition(Guid competitionId) { _competitionId = competitionId; return this; }
+    public VideoDataBuilder InCompetition(Competition competition) { _competitionId = competition.Id; return this; }
+    public VideoDataBuilder InCompetition(CompetitionDataBuilder competitionBuilder) { _competitionId = competitionBuilder.CompetitionId; return this; }
 
     public Video Build() => new Video
     {
@@ -291,7 +295,8 @@ public class VideoDataBuilder
         SourceBlobSize = _sourceBlobSize,
         ConvertedBlobSize = _convertedBlobSize,
         CommentVisibility = _commentVisibility,
-        ThumbnailBlobId = _thumbnailBlobId
+        ThumbnailBlobId = _thumbnailBlobId,
+        CompetitionId = _competitionId
     };
 
     public VideoDataBuilder ShareWithUser(string userId)
@@ -332,6 +337,52 @@ public class VideoDataBuilder
     public VideoDataBuilder ShareWithEvent(Event evt, UserDataBuilder userBuilder) => ShareWithEvent(evt, userBuilder.UserId);
 
     public IReadOnlyList<SharedWith> BuildShares() => _sharedWith.ToList();
+}
+
+public class CompetitionDataBuilder
+{
+    private Guid _id;
+    private string _name;
+    private string _ownerUserId;
+    private DateTime? _date;
+    private string? _location;
+    private CommentVisibility _commentVisibility;
+    private DateTime _createdDateTime;
+
+    public CompetitionDataBuilder()
+    {
+        _id = Guid.NewGuid();
+        _name = TestDataBuilder.RandomName("Competition");
+        _ownerUserId = TestDataBuilder.RandomUserId();
+        _date = DateTime.UtcNow.Date;
+        _location = null;
+        _commentVisibility = CommentVisibility.OwnerOnly;
+        _createdDateTime = DateTime.UtcNow;
+    }
+
+    public CompetitionDataBuilder WithId(Guid id) { _id = id; return this; }
+    public CompetitionDataBuilder WithName(string name) { _name = name; return this; }
+    public CompetitionDataBuilder OwnedBy(string userId) { _ownerUserId = userId; return this; }
+    public CompetitionDataBuilder OwnedBy(User user) { _ownerUserId = user.Id; return this; }
+    public CompetitionDataBuilder OwnedBy(UserDataBuilder userBuilder) { _ownerUserId = userBuilder.UserId; return this; }
+    public CompetitionDataBuilder OnDate(DateTime? date) { _date = date; return this; }
+    public CompetitionDataBuilder At(string? location) { _location = location; return this; }
+    public CompetitionDataBuilder WithCommentVisibility(CommentVisibility visibility) { _commentVisibility = visibility; return this; }
+    public CompetitionDataBuilder CreatedAt(DateTime createdDateTime) { _createdDateTime = createdDateTime; return this; }
+
+    public Guid CompetitionId => _id;
+    public string OwnerUserId => _ownerUserId;
+
+    public Competition Build() => new Competition
+    {
+        Id = _id,
+        Name = _name,
+        OwnerUserId = _ownerUserId,
+        Date = _date,
+        Location = _location,
+        CommentVisibility = _commentVisibility,
+        CreatedDateTime = _createdDateTime
+    };
 }
 
 public class SharedLinkDataBuilder
