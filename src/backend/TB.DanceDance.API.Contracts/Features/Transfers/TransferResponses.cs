@@ -19,7 +19,7 @@ namespace TB.DanceDance.API.Contracts.Features.Transfers
     public class TransferSummaryResponse
     {
         public string LinkId { get; set; } = string.Empty;
-        /// <summary>Pending / Accepted / Approved / Declined / Revoked / Cancelled / Expired.</summary>
+        /// <summary>Pending / Accepted / Declined / Revoked / RolledBack / Expired.</summary>
         public string Status { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset ExpireAt { get; set; }
@@ -27,7 +27,9 @@ namespace TB.DanceDance.API.Contracts.Features.Transfers
         public long TotalSizeBytes { get; set; }
         public string? AcceptedByUserId { get; set; }
         public DateTimeOffset? AcceptedAt { get; set; }
-        public DateTimeOffset? ApprovedAt { get; set; }
+        public DateTimeOffset? RolledBackAt { get; set; }
+        /// <summary>The last moment the sender can roll back an Accepted transfer; null otherwise.</summary>
+        public DateTimeOffset? RollbackDeadline { get; set; }
         public IReadOnlyCollection<TransferItemInfo> Items { get; set; } = Array.Empty<TransferItemInfo>();
     }
 
@@ -37,10 +39,12 @@ namespace TB.DanceDance.API.Contracts.Features.Transfers
     public class TransferInfoResponse
     {
         public string LinkId { get; set; } = string.Empty;
-        /// <summary>Pending / Accepted / Declined / Revoked / Expired.</summary>
+        /// <summary>Pending / Accepted / Declined / Revoked / RolledBack / Expired.</summary>
         public string Status { get; set; } = string.Empty;
         public DateTimeOffset ExpireAt { get; set; }
         public long TotalSizeBytes { get; set; }
+        /// <summary>The last moment the sender can roll back an Accepted transfer; null otherwise.</summary>
+        public DateTimeOffset? RollbackDeadline { get; set; }
         public IReadOnlyCollection<TransferItemInfo> Items { get; set; } = Array.Empty<TransferItemInfo>();
     }
 

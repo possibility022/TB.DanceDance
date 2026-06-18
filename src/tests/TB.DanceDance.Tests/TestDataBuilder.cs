@@ -454,7 +454,7 @@ public class VideoTransferDataBuilder
     private TransferStatus _status;
     private string? _acceptedByUserId;
     private DateTimeOffset? _acceptedAt;
-    private DateTimeOffset? _approvedAt;
+    private DateTimeOffset? _rolledBackAt;
     private readonly List<Guid> _videoIds = [];
 
     public VideoTransferDataBuilder()
@@ -485,10 +485,10 @@ public class VideoTransferDataBuilder
 
     public VideoTransferDataBuilder AcceptedBy(User user, DateTimeOffset? acceptedAt = null) => AcceptedBy(user.Id, acceptedAt);
 
-    public VideoTransferDataBuilder ApprovedAt(DateTimeOffset? approvedAt = null)
+    public VideoTransferDataBuilder RolledBack(DateTimeOffset? rolledBackAt = null)
     {
-        _approvedAt = approvedAt ?? DateTimeOffset.UtcNow;
-        _status = TransferStatus.Approved;
+        _rolledBackAt = rolledBackAt ?? DateTimeOffset.UtcNow;
+        _status = TransferStatus.RolledBack;
         return this;
     }
 
@@ -506,7 +506,7 @@ public class VideoTransferDataBuilder
         Status = _status,
         AcceptedByUserId = _acceptedByUserId,
         AcceptedAt = _acceptedAt,
-        ApprovedAt = _approvedAt,
+        RolledBackAt = _rolledBackAt,
         Items = _videoIds.Select(vid => new VideoTransferItem
         {
             Id = Guid.NewGuid(),

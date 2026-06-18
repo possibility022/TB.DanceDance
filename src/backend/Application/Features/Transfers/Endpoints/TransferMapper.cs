@@ -23,6 +23,14 @@ internal static class TransferMapper
         return transfer.Status.ToString();
     }
 
+    /// <summary>
+    /// The last moment the sender can roll back an Accepted transfer, or null if not applicable.
+    /// </summary>
+    public static DateTimeOffset? ResolveRollbackDeadline(VideoTransfer transfer)
+        => transfer.Status == TransferStatus.Accepted && transfer.AcceptedAt.HasValue
+            ? transfer.AcceptedAt.Value.AddDays(VideoTransfer.RollbackWindowDays)
+            : null;
+
     public static TransferItemInfo MapItem(VideoTransferItem item)
     {
         var video = item.Video;
@@ -49,7 +57,8 @@ internal static class TransferMapper
             TotalSizeBytes = items.Sum(i => i.SizeBytes),
             AcceptedByUserId = transfer.AcceptedByUserId,
             AcceptedAt = transfer.AcceptedAt,
-            ApprovedAt = transfer.ApprovedAt,
+            RolledBackAt = transfer.RolledBackAt,
+            RollbackDeadline = ResolveRollbackDeadline(transfer),
             Items = items
         };
     }
@@ -63,6 +72,7 @@ internal static class TransferMapper
             Status = ResolveStatus(transfer),
             ExpireAt = transfer.ExpireAt,
             TotalSizeBytes = items.Sum(i => i.SizeBytes),
+            RollbackDeadline = ResolveRollbackDeadline(transfer),
             Items = items
         };
     }

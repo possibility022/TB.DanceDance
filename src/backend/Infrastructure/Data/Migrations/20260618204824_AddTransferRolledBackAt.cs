@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddTransferApprovedAt : Migration
+    public partial class AddTransferRolledBackAt : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "ApprovedAt",
+                name: "RolledBackAt",
                 schema: "access",
                 table: "VideoTransfers",
                 type: "timestamp with time zone",
@@ -23,7 +23,7 @@ namespace Infrastructure.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ApprovedAt",
+                name: "RolledBackAt",
                 schema: "access",
                 table: "VideoTransfers");
         }

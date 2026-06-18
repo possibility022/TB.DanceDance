@@ -80,23 +80,16 @@ describe('TransfersService', () => {
     req.flush(null);
   });
 
-  it('approveTransfer() POSTs to the approve endpoint', () => {
-    service.approveTransfer('t1').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/transfers/t1/approve`);
+  it('rollbackTransfer() POSTs to the rollback endpoint', () => {
+    service.rollbackTransfer('t1').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/transfers/t1/rollback`);
     expect(req.request.method).toBe('POST');
-    req.flush({ accepted: true });
+    req.flush(null);
   });
 
-  it('approveTransfer() url-encodes the link id', () => {
-    service.approveTransfer('a/b').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/transfers/a%2Fb/approve`);
-    expect(req.request.method).toBe('POST');
-    req.flush({ accepted: true });
-  });
-
-  it('cancelTransfer() POSTs to the cancel endpoint', () => {
-    service.cancelTransfer('t1').subscribe();
-    const req = httpMock.expectOne(`${BASE}/api/transfers/t1/cancel`);
+  it('rollbackTransfer() url-encodes the link id', () => {
+    service.rollbackTransfer('a/b').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/transfers/a%2Fb/rollback`);
     expect(req.request.method).toBe('POST');
     req.flush(null);
   });

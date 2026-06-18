@@ -90,8 +90,7 @@ public static class ApiRoutes
         public const string GetInfo = $"{Base}/{{linkId}}";
         public const string Accept = $"{Base}/{{linkId}}/accept";
         public const string Decline = $"{Base}/{{linkId}}/decline";
-        public const string Approve = $"{Base}/{{linkId}}/approve";
-        public const string Cancel = $"{Base}/{{linkId}}/cancel";
+        public const string Rollback = $"{Base}/{{linkId}}/rollback";
         public const string Revoke = $"{Base}/{{linkId}}";
         public const string GetStream = $"{Base}/{{linkId}}/videos/{{videoId:guid}}/stream";
     }

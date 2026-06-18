@@ -1,6 +1,6 @@
 <header class="block">
   <h1 class="title">My transfers</h1>
-  <p class="subtitle">Recordings you've offered to give away. Each transfer goes through three stages: you share a link → the recipient accepts → you approve and the recording moves to their library.</p>
+  <p class="subtitle">Recordings you've offered to give away. Once the recipient accepts, ownership moves to them right away — but you can roll it back for 30 days if it was a mistake.</p>
 </header>
 
 @if (loading()) {
@@ -21,8 +21,7 @@
             class="tag"
             [class.is-warning]="isPending(transfer)"
             [class.is-info]="isAccepted(transfer)"
-            [class.is-success]="transfer.status === 'Approved'"
-            [class.is-light]="true"
+            [class.is-light]="!isPending(transfer) && !isAccepted(transfer)"
           >
             {{ transfer.status }}
           </span>
@@ -52,38 +51,22 @@
         </div>
       }
 
-      @if (isAccepted(transfer)) {
-        <div class="notification is-warning is-light mt-3" role="alert">
+      @if (canRollback(transfer)) {
+        <div class="notification is-info is-light mt-3" role="alert">
           <p class="block">
-            <strong>Recipient accepted.</strong>
-            Approving moves this recording out of your library into theirs — this can't be undone.
+            <strong>Ownership has moved to the recipient.</strong>
+            You can roll this back until {{ transfer.rollbackDeadline | longDate }} — rolling back returns the
+            recording to your library immediately and the recipient loses access.
           </p>
-          @if (approveQuotaError(); as q) {
-            @if (q.linkId === transfer.linkId) {
-              <p class="block has-text-danger">
-                Not enough storage for the recipient: needs {{ q.required | fileSize }} but only
-                {{ q.available | fileSize }} is available.
-              </p>
-            }
-          }
           <div class="buttons">
             <button
               type="button"
-              class="button is-warning"
-              [class.is-loading]="isApproving(transfer)"
-              [disabled]="isApproving(transfer) || isCancelling(transfer)"
-              (click)="approve(transfer)"
+              class="button is-info"
+              [class.is-loading]="isRollingBack(transfer)"
+              [disabled]="isRollingBack(transfer)"
+              (click)="rollback(transfer)"
             >
-              Approve
-            </button>
-            <button
-              type="button"
-              class="button is-light"
-              [class.is-loading]="isCancelling(transfer)"
-              [disabled]="isApproving(transfer) || isCancelling(transfer)"
-              (click)="cancel(transfer)"
-            >
-              Cancel
+              Roll back
             </button>
           </div>
         </div>

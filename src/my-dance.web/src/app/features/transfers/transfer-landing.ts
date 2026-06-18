@@ -18,7 +18,7 @@ import { AcceptTransferResponse, TransferInfoResponse } from '../../core/api/api
 import { FileSizePipe } from '../../shared/format/file-size.pipe';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 
-type Outcome = 'none' | 'accepted-pending' | 'approved' | 'declined';
+type Outcome = 'none' | 'accepted' | 'declined';
 
 /** Recipient-facing landing for an incoming transfer, reached at /transfer/:linkId (auth-guarded). */
 @Component({
@@ -104,7 +104,12 @@ export class TransferLanding implements OnInit {
         next: (response: AcceptTransferResponse) => {
           this.submitting.set(false);
           if (response.accepted) {
-            this.outcome.set('accepted-pending');
+            this.outcome.set('accepted');
+            // Re-fetch so info().rollbackDeadline reflects the freshly-accepted transfer.
+            this.transfers
+              .getTransfer(this.linkId())
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe((info) => this.info.set(info));
           } else {
             this.actionFailed.set(true);
           }

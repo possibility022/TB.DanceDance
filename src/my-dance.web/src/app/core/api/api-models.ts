@@ -143,7 +143,8 @@ export interface TransferSummaryResponse {
     totalSizeBytes?: number;
     acceptedByUserId?: string | undefined;
     acceptedAt?: Date | undefined;
-    approvedAt?: Date | undefined;
+    rolledBackAt?: Date | undefined;
+    rollbackDeadline?: Date | undefined;
     items?: TransferItemInfo[];
 }
 
@@ -164,6 +165,7 @@ export interface TransferInfoResponse {
     status?: string;
     expireAt?: Date;
     totalSizeBytes?: number;
+    rollbackDeadline?: Date | undefined;
     items?: TransferItemInfo[];
 }
 

@@ -449,5 +449,81 @@ public class VideoServiceTests : BaseTestClass
         Assert.False(await BlobExistsAsync(BlobContainer.VideosToConvert, sourceBlobId));
     }
 
+    [Fact]
+    public async Task DeleteVideoAsync_DuringRollbackWindow_ReturnsBlocked_AndKeepsVideo()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var sourceBlobId = $"src-{Guid.NewGuid():N}";
+        var convertedBlobId = Guid.NewGuid().ToString();
+
+        var video = new VideoDataBuilder()
+            .OwnedBy(recipient)
+            .Converted()
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(convertedBlobId)
+            .WithThumbnailBlobId($"{Guid.NewGuid()}/thumbnail.jpg") // keep it out of the thumbnail-eligible pool
+            .Build();
+
+        var transfer = new VideoTransferDataBuilder()
+            .CreatedBy(sender)
+            .WithVideo(video)
+            .AcceptedBy(recipient, DateTimeOffset.UtcNow.AddDays(-5)) // well within the 30-day window
+            .Build();
+
+        SeedDbContext.AddRange(sender, recipient, video, transfer);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await UploadBlobAsync(BlobContainer.VideosToConvert, sourceBlobId);
+        await UploadBlobAsync(BlobContainer.Videos, convertedBlobId);
+
+        var result = await videoService.DeleteVideoAsync(video.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DeleteVideoResult.RollbackPending, result);
+
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.True(await SeedDbContext.Videos.AnyAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken));
+        Assert.True(await BlobExistsAsync(BlobContainer.VideosToConvert, sourceBlobId));
+        Assert.True(await BlobExistsAsync(BlobContainer.Videos, convertedBlobId));
+    }
+
+    [Fact]
+    public async Task DeleteVideoAsync_AfterRollbackWindowExpires_Deletes()
+    {
+        var sender = new UserDataBuilder().Build();
+        var recipient = new UserDataBuilder().Build();
+        var sourceBlobId = $"src-{Guid.NewGuid():N}";
+        var convertedBlobId = Guid.NewGuid().ToString();
+
+        var video = new VideoDataBuilder()
+            .OwnedBy(recipient)
+            .Converted()
+            .WithSourceBlobId(sourceBlobId)
+            .WithBlobId(convertedBlobId)
+            .WithThumbnailBlobId($"{Guid.NewGuid()}/thumbnail.jpg") // keep it out of the thumbnail-eligible pool
+            .Build();
+
+        var transfer = new VideoTransferDataBuilder()
+            .CreatedBy(sender)
+            .WithVideo(video)
+            .AcceptedBy(recipient, DateTimeOffset.UtcNow.AddDays(-31)) // past the 30-day window
+            .Build();
+
+        SeedDbContext.AddRange(sender, recipient, video, transfer);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        await UploadBlobAsync(BlobContainer.VideosToConvert, sourceBlobId);
+        await UploadBlobAsync(BlobContainer.Videos, convertedBlobId);
+
+        var result = await videoService.DeleteVideoAsync(video.Id, recipient.Id, TestContext.Current.CancellationToken);
+
+        Assert.Equal(DeleteVideoResult.Deleted, result);
+
+        SeedDbContext.ChangeTracker.Clear();
+        Assert.False(await SeedDbContext.Videos.AnyAsync(v => v.Id == video.Id, TestContext.Current.CancellationToken));
+        Assert.False(await BlobExistsAsync(BlobContainer.VideosToConvert, sourceBlobId));
+        Assert.False(await BlobExistsAsync(BlobContainer.Videos, convertedBlobId));
+    }
+
     #endregion
 }

@@ -16,15 +16,17 @@ public enum AcceptTransferResult
 }
 
 /// <summary>
-/// Outcome of an attempt to approve a transfer.
+/// Outcome of an attempt to roll back a transfer.
 /// </summary>
-public enum ApproveTransferResult
+public enum RollbackTransferResult
 {
-    Approved,
-    /// <summary>Transfer not found, not in Accepted state, expired, or no AcceptedByUserId.</summary>
+    RolledBack,
+    /// <summary>Transfer not found or not in Accepted state.</summary>
     NotAvailable,
-    /// <summary>The approving user is not the original sender.</summary>
+    /// <summary>The user attempting the rollback is not the original sender.</summary>
     NotOwner,
+    /// <summary>The rollback window has closed.</summary>
+    WindowExpired,
 }
 
 public interface ITransferService
@@ -32,15 +34,16 @@ public interface ITransferService
     /// <summary>
     /// Creates a pending transfer of a single video from the sender to whoever accepts the link.
     /// The video must be owned by the sender, converted, private, and not already in an active
-    /// pending transfer.
+    /// pending transfer or still within another transfer's rollback window.
     /// </summary>
-    /// <exception cref="ArgumentException">Invalid input, ineligible video, or the video is already in a pending transfer.</exception>
+    /// <exception cref="ArgumentException">Invalid input, ineligible video, already in a pending
+    /// transfer, or still within a prior transfer's rollback window.</exception>
     Task<VideoTransfer> CreateTransferAsync(string userId, Guid videoId, int expirationDays, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets a transfer (with its items and videos) by link id. Returns null if the link doesn't
-    /// exist, was revoked, was declined, was cancelled, or is a Pending link past its expiry.
-    /// Accepted and Approved transfers are always returned regardless of expiry.
+    /// exist, was revoked, was declined, was rolled back, or is a Pending link past its expiry.
+    /// Accepted transfers are always returned regardless of expiry.
     /// </summary>
     Task<VideoTransfer?> GetTransferAsync(string linkId, CancellationToken cancellationToken);
 
@@ -61,24 +64,18 @@ public interface ITransferService
     Task<bool> DeclineTransferAsync(string linkId, string userId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Accepts a pending transfer: records the recipient's intention without moving ownership.
-    /// Parks the transfer in Accepted state awaiting the owner's second confirmation.
-    /// Performs a quota pre-check so the recipient learns early if their storage is too full.
+    /// Accepts a pending transfer: moves ownership of every item to the recipient atomically,
+    /// re-points the private share rows, revokes the sender's active share links for those videos,
+    /// and marks the transfer accepted. Blocked if it would exceed the recipient's storage quota.
+    /// The sender can still roll this back for <see cref="VideoTransfer.RollbackWindowDays"/> days.
     /// </summary>
     /// <exception cref="QuotaExceededException">Accepting would exceed the recipient's storage quota.</exception>
     Task<AcceptTransferResult> AcceptTransferAsync(string linkId, string userId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Owner's second approval after the recipient accepted. Performs the actual ownership move —
-    /// re-points private share rows, revokes the sender's active share links, sets Status=Approved.
-    /// Re-runs the quota check for the recipient.
+    /// Sender rolls back an Accepted transfer within the rollback window: ownership and the private
+    /// share rows move back to the sender. The sender's share links that were revoked at acceptance
+    /// time stay revoked.
     /// </summary>
-    /// <exception cref="QuotaExceededException">Approving would exceed the recipient's storage quota.</exception>
-    Task<ApproveTransferResult> ApproveTransferAsync(string linkId, string ownerUserId, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Owner cancels a transfer that the recipient has already accepted. Ownership is unchanged.
-    /// Sender-only, only from Accepted state. Returns false if not found, wrong user, or wrong state.
-    /// </summary>
-    Task<bool> CancelTransferAsync(string linkId, string ownerUserId, CancellationToken cancellationToken);
+    Task<RollbackTransferResult> RollbackTransferAsync(string linkId, string ownerUserId, CancellationToken cancellationToken);
 }

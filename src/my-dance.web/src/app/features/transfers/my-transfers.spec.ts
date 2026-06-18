@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
 import { MyTransfers } from './my-transfers';
@@ -9,14 +8,12 @@ import { TransferSummaryResponse } from '../../core/api/api-models';
 function createFixture(overrides: {
   getMyTransfers?: ReturnType<typeof vi.fn>;
   revokeTransfer?: ReturnType<typeof vi.fn>;
-  approveTransfer?: ReturnType<typeof vi.fn>;
-  cancelTransfer?: ReturnType<typeof vi.fn>;
+  rollbackTransfer?: ReturnType<typeof vi.fn>;
 }) {
   const transfers = {
     getMyTransfers: overrides.getMyTransfers ?? vi.fn(() => of({ transfers: [] })),
     revokeTransfer: overrides.revokeTransfer ?? vi.fn(() => of(void 0)),
-    approveTransfer: overrides.approveTransfer ?? vi.fn(() => of({ accepted: true })),
-    cancelTransfer: overrides.cancelTransfer ?? vi.fn(() => of(void 0)),
+    rollbackTransfer: overrides.rollbackTransfer ?? vi.fn(() => of(void 0)),
   };
 
   TestBed.configureTestingModule({
@@ -29,12 +26,15 @@ function createFixture(overrides: {
   return { fixture, transfers, component: fixture.componentInstance };
 }
 
+const FUTURE = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+const PAST = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+
 const TRANSFERS: TransferSummaryResponse[] = [
   { linkId: 't1', status: 'Pending', totalSizeBytes: 100, shareUrl: 'https://x/transfer/t1' },
-  { linkId: 't2', status: 'Accepted', totalSizeBytes: 200 },
+  { linkId: 't2', status: 'Accepted', totalSizeBytes: 200, rollbackDeadline: FUTURE },
   { linkId: 't3', status: 'Revoked', totalSizeBytes: 300 },
-  { linkId: 't4', status: 'Approved', totalSizeBytes: 400 },
-  { linkId: 't5', status: 'Cancelled', totalSizeBytes: 500 },
+  { linkId: 't4', status: 'RolledBack', totalSizeBytes: 400 },
+  { linkId: 't5', status: 'Accepted', totalSizeBytes: 500, rollbackDeadline: PAST },
 ];
 
 describe('MyTransfers', () => {
@@ -55,15 +55,22 @@ describe('MyTransfers', () => {
     expect(component.isPending({ status: 'Accepted' })).toBe(false);
     expect(component.isPending({ status: 'Revoked' })).toBe(false);
     expect(component.isPending({ status: 'Expired' })).toBe(false);
-    expect(component.isPending({ status: 'Approved' })).toBe(false);
-    expect(component.isPending({ status: 'Cancelled' })).toBe(false);
+    expect(component.isPending({ status: 'RolledBack' })).toBe(false);
   });
 
   it('isAccepted returns true only for Accepted status', () => {
     const { component } = createFixture({});
     expect(component.isAccepted({ status: 'Accepted' })).toBe(true);
     expect(component.isAccepted({ status: 'Pending' })).toBe(false);
-    expect(component.isAccepted({ status: 'Approved' })).toBe(false);
+    expect(component.isAccepted({ status: 'RolledBack' })).toBe(false);
+  });
+
+  it('canRollback is true only while Accepted and the deadline is in the future', () => {
+    const { component } = createFixture({});
+    expect(component.canRollback({ status: 'Accepted', rollbackDeadline: FUTURE })).toBe(true);
+    expect(component.canRollback({ status: 'Accepted', rollbackDeadline: PAST })).toBe(false);
+    expect(component.canRollback({ status: 'Accepted' })).toBe(false);
+    expect(component.canRollback({ status: 'Pending', rollbackDeadline: FUTURE })).toBe(false);
   });
 
   it('revoke marks the pending transfer revoked', () => {
@@ -77,56 +84,26 @@ describe('MyTransfers', () => {
     expect(component.items().find((t) => t.linkId === 't1')?.status).toBe('Revoked');
   });
 
-  it('approve calls the approve endpoint and marks the transfer Approved', () => {
+  it('rollback calls the rollback endpoint and marks the transfer RolledBack', () => {
     const { component, transfers } = createFixture({
       getMyTransfers: vi.fn(() => of({ transfers: TRANSFERS })),
     });
 
-    component.approve(TRANSFERS[1]); // t2 is Accepted
+    component.rollback(TRANSFERS[1]); // t2 is Accepted, within window
 
-    expect(transfers.approveTransfer).toHaveBeenCalledWith('t2');
-    expect(component.items().find((t) => t.linkId === 't2')?.status).toBe('Approved');
+    expect(transfers.rollbackTransfer).toHaveBeenCalledWith('t2');
+    expect(component.items().find((t) => t.linkId === 't2')?.status).toBe('RolledBack');
   });
 
-  it('approve 409 sets inline quota error for that transfer', () => {
-    const { component } = createFixture({
-      getMyTransfers: vi.fn(() => of({ transfers: TRANSFERS })),
-      approveTransfer: vi.fn(() =>
-        throwError(
-          () =>
-            new HttpErrorResponse({
-              status: 409,
-              error: { accepted: false, requiredBytes: 200, availableBytes: 50 },
-            }),
-        ),
-      ),
-    });
-
-    component.approve(TRANSFERS[1]);
-
-    const err = component.approveQuotaError();
-    expect(err?.linkId).toBe('t2');
-    expect(err?.required).toBe(200);
-    expect(err?.available).toBe(50);
-    // Status must NOT have changed
-    expect(component.items().find((t) => t.linkId === 't2')?.status).toBe('Accepted');
-  });
-
-  it('cancel marks the accepted transfer Cancelled and clears quota error', () => {
-    const { component, transfers } = createFixture({
-      getMyTransfers: vi.fn(() => of({ transfers: TRANSFERS })),
-    });
-
-    component.cancel(TRANSFERS[1]); // t2 is Accepted
-
-    expect(transfers.cancelTransfer).toHaveBeenCalledWith('t2');
-    expect(component.items().find((t) => t.linkId === 't2')?.status).toBe('Cancelled');
-    expect(component.approveQuotaError()).toBeNull();
+  it('rollback ignores a transfer with no link id', () => {
+    const { component, transfers } = createFixture({});
+    component.rollback({});
+    expect(transfers.rollbackTransfer).not.toHaveBeenCalled();
   });
 
   it('terminal statuses are neither pending nor accepted', () => {
     const { component } = createFixture({});
-    for (const status of ['Revoked', 'Declined', 'Cancelled', 'Approved', 'Expired']) {
+    for (const status of ['Revoked', 'Declined', 'RolledBack', 'Expired']) {
       expect(component.isPending({ status })).toBe(false);
       expect(component.isAccepted({ status })).toBe(false);
     }

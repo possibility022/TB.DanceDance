@@ -443,9 +443,6 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<string>("AcceptedByUserId")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("ApprovedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -454,6 +451,9 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("ExpireAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("RolledBackAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")

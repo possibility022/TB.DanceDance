@@ -18,8 +18,8 @@ const INFO: TransferInfoResponse = {
   ],
 };
 
-const INFO_ACCEPTED: TransferInfoResponse = { ...INFO, status: 'Accepted' };
-const INFO_APPROVED: TransferInfoResponse = { ...INFO, status: 'Approved' };
+const FUTURE = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+const INFO_ACCEPTED: TransferInfoResponse = { ...INFO, status: 'Accepted', rollbackDeadline: FUTURE };
 
 function createFixture(overrides: {
   getTransfer?: ReturnType<typeof vi.fn>;
@@ -66,14 +66,17 @@ describe('TransferLanding', () => {
     expect(component.failed()).toBe(true);
   });
 
-  it('accept success sets accepted-pending outcome', () => {
-    const { fixture, component, transfers } = createFixture({});
+  it('accept success sets the accepted outcome and refreshes info with the rollback deadline', () => {
+    const { fixture, component, transfers } = createFixture({
+      getTransfer: vi.fn(() => of(INFO)).mockReturnValueOnce(of(INFO)).mockReturnValueOnce(of(INFO_ACCEPTED)),
+    });
     fixture.detectChanges();
 
     component.accept();
 
     expect(transfers.acceptTransfer).toHaveBeenCalledWith('t1');
-    expect(component.outcome()).toBe('accepted-pending');
+    expect(component.outcome()).toBe('accepted');
+    expect(component.info()?.rollbackDeadline).toBe(FUTURE);
   });
 
   it('accept quota block (409) surfaces required/available bytes', () => {
@@ -117,24 +120,14 @@ describe('TransferLanding', () => {
     expect(component.outcome()).toBe('declined');
   });
 
-  it('shows waiting-for-approval when loaded with Accepted status', () => {
+  it('shows the accepted state when loaded with Accepted status (e.g. revisiting the link)', () => {
     const { fixture, component } = createFixture({
       getTransfer: vi.fn(() => of(INFO_ACCEPTED)),
     });
     fixture.detectChanges();
 
-    // The info is loaded; outcome remains 'none' but info.status drives the UI
     expect(component.info()?.status).toBe('Accepted');
-    expect(component.outcome()).toBe('none');
-  });
-
-  it('shows approved state when loaded with Approved status', () => {
-    const { fixture, component } = createFixture({
-      getTransfer: vi.fn(() => of(INFO_APPROVED)),
-    });
-    fixture.detectChanges();
-
-    expect(component.info()?.status).toBe('Approved');
+    expect(component.info()?.rollbackDeadline).toBe(FUTURE);
     expect(component.outcome()).toBe('none');
   });
 });

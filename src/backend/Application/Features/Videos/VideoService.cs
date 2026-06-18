@@ -172,6 +172,16 @@ public class VideoService : IVideoService
         if (video.OwnerUserId != userId)
             return DeleteVideoResult.Forbidden;
 
+        // A video that was transferred to this user less than RollbackWindowDays ago can still be
+        // reclaimed by the previous owner — block deletion until that window passes or a rollback happens.
+        var rollbackCutoff = DateTimeOffset.UtcNow.AddDays(-VideoTransfer.RollbackWindowDays);
+        var isWithinRollbackWindow = await dbContext.VideoTransferItems
+            .AnyAsync(i => i.VideoId == videoId
+                        && i.Transfer.Status == TransferStatus.Accepted
+                        && i.Transfer.AcceptedAt > rollbackCutoff, cancellationToken);
+        if (isWithinRollbackWindow)
+            return DeleteVideoResult.RollbackPending;
+
         // Capture blob ids before the row is removed.
         var sourceBlobId = video.SourceBlobId;
         var convertedBlobId = video.BlobId;

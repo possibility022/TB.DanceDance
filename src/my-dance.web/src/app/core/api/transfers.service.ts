@@ -54,16 +54,9 @@ export class TransfersService {
     return this.api.delete<void>(`/api/transfers/${encodeURIComponent(linkId)}`);
   }
 
-  /** Sender: approve an accepted transfer (second confirmation — moves ownership). */
-  approveTransfer(linkId: string): Observable<AcceptTransferResponse> {
-    return this.api.post<AcceptTransferResponse>(
-      `/api/transfers/${encodeURIComponent(linkId)}/approve`,
-    );
-  }
-
-  /** Sender: cancel an accepted transfer (ownership unchanged). */
-  cancelTransfer(linkId: string): Observable<void> {
-    return this.api.post<void>(`/api/transfers/${encodeURIComponent(linkId)}/cancel`);
+  /** Sender: roll back an accepted transfer within the rollback window (reclaims ownership). */
+  rollbackTransfer(linkId: string): Observable<void> {
+    return this.api.post<void>(`/api/transfers/${encodeURIComponent(linkId)}/rollback`);
   }
 
   /**

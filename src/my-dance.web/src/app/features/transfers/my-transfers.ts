@@ -5,15 +5,15 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TransfersService } from '../../core/api/transfers.service';
-import { AcceptTransferResponse, TransferSummaryResponse } from '../../core/api/api-models';
+import { TransferSummaryResponse } from '../../core/api/api-models';
 import { FileSizePipe } from '../../shared/format/file-size.pipe';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 
-/** Sender-facing list of the user's outgoing transfers, with revoke on pending ones. */
+/** Sender-facing list of the user's outgoing transfers, with revoke on pending ones and
+ * roll-back on accepted ones still inside the rollback window. */
 @Component({
   selector: 'app-my-transfers',
   imports: [FileSizePipe, LongDatePipe],
@@ -28,12 +28,8 @@ export class MyTransfers {
   readonly failed = signal(false);
   readonly items = signal<readonly TransferSummaryResponse[]>([]);
   private readonly revokingId = signal<string | null>(null);
-  private readonly approvingId = signal<string | null>(null);
-  private readonly cancellingId = signal<string | null>(null);
+  private readonly rollingBackId = signal<string | null>(null);
   readonly copiedId = signal<string | null>(null);
-
-  /** Per-transfer inline quota error from a failed Approve (409). */
-  readonly approveQuotaError = signal<{ linkId: string; required: number; available: number } | null>(null);
 
   constructor() {
     this.load();
@@ -47,12 +43,13 @@ export class MyTransfers {
     return transfer.status === 'Accepted';
   }
 
-  isApproving(transfer: TransferSummaryResponse): boolean {
-    return this.approvingId() === transfer.linkId;
+  isRollingBack(transfer: TransferSummaryResponse): boolean {
+    return this.rollingBackId() === transfer.linkId;
   }
 
-  isCancelling(transfer: TransferSummaryResponse): boolean {
-    return this.cancellingId() === transfer.linkId;
+  /** Whether the rollback window is still open for this Accepted transfer. */
+  canRollback(transfer: TransferSummaryResponse): boolean {
+    return this.isAccepted(transfer) && !!transfer.rollbackDeadline && new Date() < new Date(transfer.rollbackDeadline);
   }
 
   /** Absolute, copyable transfer URL — falls back to the current origin if the API returned a relative url. */
@@ -103,57 +100,23 @@ export class MyTransfers {
       });
   }
 
-  approve(transfer: TransferSummaryResponse): void {
+  rollback(transfer: TransferSummaryResponse): void {
     const linkId = transfer.linkId;
-    if (!linkId || this.approvingId() === linkId) {
+    if (!linkId || this.rollingBackId() === linkId) {
       return;
     }
-    this.approveQuotaError.set(null);
-    this.approvingId.set(linkId);
+    this.rollingBackId.set(linkId);
     this.transfers
-      .approveTransfer(linkId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (response: AcceptTransferResponse) => {
-          this.approvingId.set(null);
-          if (response.accepted) {
-            this.items.update((items) =>
-              items.map((t) => (t.linkId === linkId ? { ...t, status: 'Approved' } : t)),
-            );
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          this.approvingId.set(null);
-          if (err.status === 409) {
-            const body = err.error as AcceptTransferResponse | undefined;
-            this.approveQuotaError.set({
-              linkId,
-              required: body?.requiredBytes ?? 0,
-              available: body?.availableBytes ?? 0,
-            });
-          }
-        },
-      });
-  }
-
-  cancel(transfer: TransferSummaryResponse): void {
-    const linkId = transfer.linkId;
-    if (!linkId || this.cancellingId() === linkId) {
-      return;
-    }
-    this.cancellingId.set(linkId);
-    this.transfers
-      .cancelTransfer(linkId)
+      .rollbackTransfer(linkId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.items.update((items) =>
-            items.map((t) => (t.linkId === linkId ? { ...t, status: 'Cancelled' } : t)),
+            items.map((t) => (t.linkId === linkId ? { ...t, status: 'RolledBack' } : t)),
           );
-          this.cancellingId.set(null);
-          this.approveQuotaError.update((e) => (e?.linkId === linkId ? null : e));
+          this.rollingBackId.set(null);
         },
-        error: () => this.cancellingId.set(null),
+        error: () => this.rollingBackId.set(null),
       });
   }
 

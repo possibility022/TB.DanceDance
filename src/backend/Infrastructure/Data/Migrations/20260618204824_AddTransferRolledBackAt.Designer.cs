@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(DanceDbContext))]
-    [Migration("20260617220212_AddTransferApprovedAt")]
-    partial class AddTransferApprovedAt
+    [Migration("20260618204824_AddTransferRolledBackAt")]
+    partial class AddTransferRolledBackAt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -446,9 +446,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("AcceptedByUserId")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("ApprovedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -457,6 +454,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("ExpireAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("RolledBackAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
