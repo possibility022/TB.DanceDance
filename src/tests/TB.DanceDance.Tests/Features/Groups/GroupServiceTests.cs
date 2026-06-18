@@ -33,7 +33,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, v, share);
@@ -56,7 +56,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(-5)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(-5)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, v, share);
@@ -77,7 +77,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membershipA = userB.AssignTo(groupA, joinedAt);
 
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var vB = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
         var shareB = new SharedWith { Id = Guid.NewGuid(), VideoId = vB.Id, UserId = user.Id, GroupId = groupB.Id };
 
         SeedDbContext.AddRange(user, groupA, groupB, membershipA, vB, shareB);
@@ -97,7 +97,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
         var directShare = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id };
 
         SeedDbContext.AddRange(user, group, membership, v, directShare);
@@ -117,9 +117,9 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v1 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(1)).Build();
-        var v2 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(3)).Build();
-        var v3 = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddHours(2)).Build();
+        var v1 = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddHours(1)).Build();
+        var v2 = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddHours(3)).Build();
+        var v3 = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddHours(2)).Build();
 
         SeedDbContext.AddRange(user, group, membership, v1, v2, v3);
         SeedDbContext.AddRange(
@@ -143,7 +143,7 @@ public class GroupServiceTests : BaseTestClass
         var group = new GroupDataBuilder().Build();
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
 
         SeedDbContext.AddRange(user, group, membership, v);
         SeedDbContext.AddRange(
@@ -164,7 +164,7 @@ public class GroupServiceTests : BaseTestClass
     {
         var user = new UserDataBuilder().Build();
         var group = new GroupDataBuilder().Build();
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, v, share);
@@ -185,7 +185,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, v, share);
@@ -208,8 +208,8 @@ public class GroupServiceTests : BaseTestClass
         var memA = userB.AssignTo(groupA, joinedAt);
         var memB = userB.AssignTo(groupB, joinedAt);
 
-        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(2)).Build();
+        var vA = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var vB = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(2)).Build();
 
         SeedDbContext.AddRange(user, groupA, groupB, memA, memB, vA, vB);
         SeedDbContext.AddRange(
@@ -238,8 +238,8 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var memA = userB.AssignTo(groupA, joinedAt);
 
-        var vA = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
-        var vB = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(2)).Build();
+        var vA = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var vB = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(2)).Build();
 
         SeedDbContext.AddRange(user, groupA, groupB, memA, vA, vB);
         SeedDbContext.AddRange(
@@ -264,7 +264,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).WithThumbnailBlobId("thumb-1").Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).WithThumbnailBlobId("thumb-1").Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, v, share);
@@ -293,7 +293,7 @@ public class GroupServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var v = new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var v = new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(1)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, v, share);
@@ -357,7 +357,7 @@ public class GroupServiceTests : BaseTestClass
         var membership = userB.AssignTo(group, joinedAt);
 
         var videos = Enumerable.Range(0, 5)
-            .Select(i => new VideoDataBuilder().UploadedBy(user).RecordedAt(joinedAt.AddMinutes(i + 1)).Build())
+            .Select(i => new VideoDataBuilder().OwnedBy(user).RecordedAt(joinedAt.AddMinutes(i + 1)).Build())
             .ToArray();
         var shares = videos
             .Select(v => new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, GroupId = group.Id })

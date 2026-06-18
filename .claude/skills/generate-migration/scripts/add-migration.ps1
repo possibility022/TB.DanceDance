@@ -3,20 +3,20 @@
     Generate a new EF Core migration for DanceDbContext against a throwaway PostgreSQL container.
 
 .DESCRIPTION
-    One command does everything: starts a disposable postgres container (matching the
-    design-time connection string), runs `dotnet ef migrations add`, applies it to the
-    fresh database to prove it applies cleanly, then removes the container - always, even
-    if a step fails.
+    One command does everything: starts a disposable postgres container on a random host
+    port, applies existing migrations to that database, runs `dotnet ef migrations add`,
+    optionally applies the new migration to prove it applies cleanly, then removes the
+    container - always, even if a step fails.
 
     Migrations land in src/backend/Infrastructure/Data/Migrations (the project's existing
-    non-default output dir). The local stack must NOT be running, because it also binds
-    port 5432.
+    non-default output dir).
 
 .PARAMETER Name
     The migration name in PascalCase, e.g. AddCompetitions.
 
 .PARAMETER NoApply
-    Generate the migration only; skip applying it to the throwaway database.
+    Skip applying the newly generated migration after scaffolding. Existing migrations are
+    still applied before scaffolding so the throwaway database matches the current model.
 
 .EXAMPLE
     ./add-migration.ps1 -Name AddCompetitions
@@ -48,10 +48,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "dotnet ef migrations add failed." }
 
     if (-not $NoApply) {
-        Write-Host "Applying migration to the throwaway DB to validate it..." -ForegroundColor Cyan
-        dotnet ef database update --project $infra --startup-project $infra
-        if ($LASTEXITCODE -ne 0) {
-            throw "dotnet ef database update failed - the migration does not apply cleanly. Review it (or run remove-migration.ps1)."
+        try {
+            Update-MigrationDb -InfrastructureProject $infra
+        }
+        catch {
+            throw "The generated migration does not apply cleanly. Review it (or run remove-migration.ps1). Details: $_"
         }
     }
 

@@ -30,6 +30,8 @@ public class DanceDbContext : DbContext, IApplicationContext
     public DbSet<AssignedToGroup> AssingedToGroups { get; set; }
     public DbSet<AssignedToEvent> AssingedToEvents { get; set; }
     public DbSet<SharedLink> SharedLinks { get; set; }
+    public DbSet<VideoTransfer> VideoTransfers { get; set; }
+    public DbSet<VideoTransferItem> VideoTransferItems { get; set; }
     public DbSet<Comment> Comments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -128,6 +130,39 @@ public class DanceDbContext : DbContext, IApplicationContext
         
         modelBuilder.Entity<SharedLink>()
             .HasIndex(r => r.Id)
+            .IsUnique();
+
+        // Video transfer configuration (same schema as SharedLink)
+        modelBuilder.Entity<VideoTransfer>()
+            .ToTable("VideoTransfers", Schemas.Access);
+
+        modelBuilder.Entity<VideoTransfer>()
+            .HasOne<User>(e => e.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(r => r.CreatedBy)
+            .IsRequired();
+
+        modelBuilder.Entity<VideoTransfer>()
+            .HasIndex(r => r.Id)
+            .IsUnique();
+
+        modelBuilder.Entity<VideoTransferItem>()
+            .ToTable("VideoTransferItems", Schemas.Access);
+
+        modelBuilder.Entity<VideoTransferItem>()
+            .HasOne<VideoTransfer>(e => e.Transfer)
+            .WithMany(t => t.Items)
+            .HasForeignKey(r => r.TransferId)
+            .IsRequired();
+
+        modelBuilder.Entity<VideoTransferItem>()
+            .HasOne<Video>(e => e.Video)
+            .WithMany()
+            .HasForeignKey(r => r.VideoId)
+            .IsRequired();
+
+        modelBuilder.Entity<VideoTransferItem>()
+            .HasIndex(r => new { r.TransferId, r.VideoId })
             .IsUnique();
 
         // Comment configuration

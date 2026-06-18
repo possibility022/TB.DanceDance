@@ -257,7 +257,7 @@ public class AccessServiceTests : BaseTestClass
     public async Task DoesUserHasAccessAsync_ByBlob_ReturnsTrue_WhenDirectlyShared()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
         var directShare = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id };
         SeedDbContext.AddRange(user, video, directShare);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -278,7 +278,7 @@ public class AccessServiceTests : BaseTestClass
         var membership = userB.AssignTo(evt);
 
         var sharer = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(sharer).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
+        var video = new VideoDataBuilder().OwnedBy(sharer).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = sharer.Id, EventId = evt.Id };
 
         // Persist principals first to satisfy FKs, then add share
@@ -300,7 +300,7 @@ public class AccessServiceTests : BaseTestClass
         var evt = evtB.Build();
         var user = new UserDataBuilder().Build();
         var sharer = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(sharer).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var video = new VideoDataBuilder().OwnedBy(sharer).WithBlobId(Guid.NewGuid().ToString()).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = sharer.Id, EventId = evt.Id };
         SeedDbContext.AddRange(owner, evt, user, sharer, video, share);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -319,7 +319,7 @@ public class AccessServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt.AddMinutes(1)).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt.AddMinutes(1)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, video, share);
@@ -339,7 +339,7 @@ public class AccessServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt.AddMinutes(-5)).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt.AddMinutes(-5)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, video, share);
@@ -359,7 +359,7 @@ public class AccessServiceTests : BaseTestClass
         var joinedAt = DateTime.UtcNow;
         var membership = userB.AssignTo(group, joinedAt);
 
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).RecordedAt(joinedAt).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, GroupId = group.Id };
 
         SeedDbContext.AddRange(user, group, membership, video, share);
@@ -374,7 +374,7 @@ public class AccessServiceTests : BaseTestClass
     public async Task DoesUserHasAccessAsync_ByBlob_ReturnsFalse_WhenNoShares()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).WithBlobId(Guid.NewGuid().ToString()).Build();
         SeedDbContext.AddRange(user, video);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -393,7 +393,7 @@ public class AccessServiceTests : BaseTestClass
         var evt = evtB.Build();
         var membership = userB.AssignTo(evt);
 
-        var video = new VideoDataBuilder().UploadedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).RecordedAt(DateTime.UtcNow.AddMinutes(1)).Build();
         var share = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id, EventId = evt.Id };
 
         SeedDbContext.AddRange(owner, user, evt, membership, video, share);
@@ -408,7 +408,7 @@ public class AccessServiceTests : BaseTestClass
     public async Task DoesUserHasAccessAsync_ByVideoId_ReturnsTrue_WhenDirectlyShared()
     {
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).Build();
         var directShare = new SharedWith { Id = Guid.NewGuid(), VideoId = video.Id, UserId = user.Id };
         SeedDbContext.AddRange(user, video, directShare);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -426,22 +426,22 @@ public class AccessServiceTests : BaseTestClass
         var user = userB.Build();
 
         // Create 2 private videos for this user
-        var privateVideo1 = new VideoDataBuilder().UploadedBy(user).WithName("Private1").Build();
+        var privateVideo1 = new VideoDataBuilder().OwnedBy(user).WithName("Private1").Build();
         var privateShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = privateVideo1.Id, UserId = user.Id, EventId = null, GroupId = null };
 
-        var privateVideo2 = new VideoDataBuilder().UploadedBy(user).WithName("Private2").Build();
+        var privateVideo2 = new VideoDataBuilder().OwnedBy(user).WithName("Private2").Build();
         var privateShare2 = new SharedWith { Id = Guid.NewGuid(), VideoId = privateVideo2.Id, UserId = user.Id, EventId = null, GroupId = null };
 
         // Create a group video for this user (should not be returned)
         var group = new GroupDataBuilder().Build();
-        var groupVideo = new VideoDataBuilder().UploadedBy(user).WithName("GroupVideo").Build();
+        var groupVideo = new VideoDataBuilder().OwnedBy(user).WithName("GroupVideo").Build();
         var groupShare = new SharedWith { Id = Guid.NewGuid(), VideoId = groupVideo.Id, UserId = user.Id, EventId = null, GroupId = group.Id };
 
         // Create an event video for this user (should not be returned)
         var evtB = new EventDataBuilder();
         var owner = evtB.BuildOwner();
         var evt = evtB.Build();
-        var eventVideo = new VideoDataBuilder().UploadedBy(user).WithName("EventVideo").Build();
+        var eventVideo = new VideoDataBuilder().OwnedBy(user).WithName("EventVideo").Build();
         var eventShare = new SharedWith { Id = Guid.NewGuid(), VideoId = eventVideo.Id, UserId = user.Id, EventId = evt.Id, GroupId = null };
 
         SeedDbContext.AddRange(user, privateVideo1, privateShare1, privateVideo2, privateShare2,
@@ -483,10 +483,10 @@ public class AccessServiceTests : BaseTestClass
         var user1 = new UserDataBuilder().Build();
         var user2 = new UserDataBuilder().Build();
 
-        var user1Video = new VideoDataBuilder().UploadedBy(user1).WithName("User1Private").Build();
+        var user1Video = new VideoDataBuilder().OwnedBy(user1).WithName("User1Private").Build();
         var user1Share = new SharedWith { Id = Guid.NewGuid(), VideoId = user1Video.Id, UserId = user1.Id, EventId = null, GroupId = null };
 
-        var user2Video = new VideoDataBuilder().UploadedBy(user2).WithName("User2Private").Build();
+        var user2Video = new VideoDataBuilder().OwnedBy(user2).WithName("User2Private").Build();
         var user2Share = new SharedWith { Id = Guid.NewGuid(), VideoId = user2Video.Id, UserId = user2.Id, EventId = null, GroupId = null };
 
         SeedDbContext.AddRange(user1, user2, user1Video, user1Share, user2Video, user2Share);
@@ -508,7 +508,7 @@ public class AccessServiceTests : BaseTestClass
         // Arrange
         var user = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .WithName("PrivateWithSizes")
             .WithSourceBlobSize(1024)
             .WithConvertedBlobSize(2048)
@@ -535,10 +535,10 @@ public class AccessServiceTests : BaseTestClass
         // Arrange
         var user = new UserDataBuilder().Build();
 
-        var convertedVideo = new VideoDataBuilder().UploadedBy(user).WithName("Converted").Converted(true).Build();
+        var convertedVideo = new VideoDataBuilder().OwnedBy(user).WithName("Converted").Converted(true).Build();
         var convertedShare = new SharedWith { Id = Guid.NewGuid(), VideoId = convertedVideo.Id, UserId = user.Id, EventId = null, GroupId = null };
 
-        var unconvertedVideo = new VideoDataBuilder().UploadedBy(user).WithName("NotConverted").Converted(false).Build();
+        var unconvertedVideo = new VideoDataBuilder().OwnedBy(user).WithName("NotConverted").Converted(false).Build();
         var unconvertedShare = new SharedWith { Id = Guid.NewGuid(), VideoId = unconvertedVideo.Id, UserId = user.Id, EventId = null, GroupId = null };
 
         SeedDbContext.AddRange(user, convertedVideo, convertedShare, unconvertedVideo, unconvertedShare);
@@ -566,21 +566,21 @@ public class AccessServiceTests : BaseTestClass
         var evt = evtB.Build();
 
         // 3 private videos
-        var private1 = new VideoDataBuilder().UploadedBy(user).Build();
-        var private2 = new VideoDataBuilder().UploadedBy(user).Build();
-        var private3 = new VideoDataBuilder().UploadedBy(user).Build();
+        var private1 = new VideoDataBuilder().OwnedBy(user).Build();
+        var private2 = new VideoDataBuilder().OwnedBy(user).Build();
+        var private3 = new VideoDataBuilder().OwnedBy(user).Build();
         var privateShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = private1.Id, UserId = user.Id, EventId = null, GroupId = null };
         var privateShare2 = new SharedWith { Id = Guid.NewGuid(), VideoId = private2.Id, UserId = user.Id, EventId = null, GroupId = null };
         var privateShare3 = new SharedWith { Id = Guid.NewGuid(), VideoId = private3.Id, UserId = user.Id, EventId = null, GroupId = null };
 
         // 2 group videos
-        var group1 = new VideoDataBuilder().UploadedBy(user).Build();
-        var group2 = new VideoDataBuilder().UploadedBy(user).Build();
+        var group1 = new VideoDataBuilder().OwnedBy(user).Build();
+        var group2 = new VideoDataBuilder().OwnedBy(user).Build();
         var groupShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = group1.Id, UserId = user.Id, EventId = null, GroupId = group.Id };
         var groupShare2 = new SharedWith { Id = Guid.NewGuid(), VideoId = group2.Id, UserId = user.Id, EventId = null, GroupId = group.Id };
 
         // 1 event video
-        var event1 = new VideoDataBuilder().UploadedBy(user).Build();
+        var event1 = new VideoDataBuilder().OwnedBy(user).Build();
         var eventShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = event1.Id, UserId = user.Id, EventId = evt.Id, GroupId = null };
 
         SeedDbContext.AddRange(user, owner, evt, group,
@@ -606,9 +606,9 @@ public class AccessServiceTests : BaseTestClass
         // Arrange
         var user = new UserDataBuilder().Build();
 
-        var oldest = new VideoDataBuilder().UploadedBy(user).WithName("Oldest").RecordedAt(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
-        var middle = new VideoDataBuilder().UploadedBy(user).WithName("Middle").RecordedAt(new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
-        var newest = new VideoDataBuilder().UploadedBy(user).WithName("Newest").RecordedAt(new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
+        var oldest = new VideoDataBuilder().OwnedBy(user).WithName("Oldest").RecordedAt(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
+        var middle = new VideoDataBuilder().OwnedBy(user).WithName("Middle").RecordedAt(new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
+        var newest = new VideoDataBuilder().OwnedBy(user).WithName("Newest").RecordedAt(new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc)).Build();
 
         var shares = new[] { oldest, middle, newest }
             .Select(v => new SharedWith { Id = Guid.NewGuid(), VideoId = v.Id, UserId = user.Id, EventId = null, GroupId = null })
@@ -634,7 +634,7 @@ public class AccessServiceTests : BaseTestClass
         var user = userB.Build();
 
         // Create private video for this user
-        var privateVideo1 = new VideoDataBuilder().UploadedBy(user).WithName("Private1").Build();
+        var privateVideo1 = new VideoDataBuilder().OwnedBy(user).WithName("Private1").Build();
         var privateShare1 = new SharedWith { Id = Guid.NewGuid(), VideoId = privateVideo1.Id, UserId = user.Id, EventId = null, GroupId = null };
         
         SeedDbContext.AddRange(user, privateVideo1, privateShare1);

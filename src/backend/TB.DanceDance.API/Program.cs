@@ -100,7 +100,8 @@ builder.Services
 
                 var path = context.Request.Path.Value;
                 if (string.IsNullOrWhiteSpace(path) ||
-                    !path.StartsWith("/api/videos/", StringComparison.OrdinalIgnoreCase) ||
+                    (!path.StartsWith("/api/videos/", StringComparison.OrdinalIgnoreCase) &&
+                     !path.StartsWith("/api/transfers/", StringComparison.OrdinalIgnoreCase)) ||
                     (!path.EndsWith("/stream", StringComparison.OrdinalIgnoreCase) &&
                      !path.EndsWith("/thumbnail", StringComparison.OrdinalIgnoreCase)))
                 {

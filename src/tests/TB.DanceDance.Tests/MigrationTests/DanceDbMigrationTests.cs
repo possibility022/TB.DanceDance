@@ -6,7 +6,8 @@ namespace TB.DanceDance.Tests.MigrationTests;
 [TestCaseOrderer(typeof(PriorityOrderer))]
 public class DanceDbMigrationTests : IAsyncLifetime
 {
-    private readonly DanceDbFixture dbFixture = new DanceDbFixture();
+    private readonly DanceDbFixture dbFixture = new();
+    private string connectionString = string.Empty;
     
     public async ValueTask DisposeAsync()
     {
@@ -15,19 +16,19 @@ public class DanceDbMigrationTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        dbFixture.InitializeDbAtStart = false;
         await dbFixture.InitializeAsync();
+        connectionString = dbFixture.GetConnectionStringForThisClassSet(TestContext.Current);
     }
 
-    [Fact, TestPriority(2)]
+    [Fact, TestPriority(1)]
     public async Task UpMigrationsCanRun()
     {
-        await dbFixture.DbContextFactory().Database.MigrateAsync(TestContext.Current.CancellationToken);
+        await dbFixture.DbContextFactory(connectionString).Database.MigrateAsync(TestContext.Current.CancellationToken);
     }
     
-    [Fact, TestPriority(1)]
+    [Fact, TestPriority(2)]
     public async Task DownMigrationsCanRun()
     {
-        await dbFixture.DbContextFactory().Database.MigrateAsync("20230617222723_Initial", TestContext.Current.CancellationToken);
+        await dbFixture.DbContextFactory(connectionString).Database.MigrateAsync("20230617222723_Initial", TestContext.Current.CancellationToken);
     }
 }

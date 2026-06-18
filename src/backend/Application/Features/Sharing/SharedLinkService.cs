@@ -119,7 +119,7 @@ public class SharedLinkService : ISharedLinkService
         }
 
         // Check if user can revoke: either the link creator or the video owner
-        var canRevoke = link.SharedBy == userId || link.Video.UploadedBy == userId;
+        var canRevoke = link.SharedBy == userId || link.Video.OwnerUserId == userId;
 
         if (!canRevoke)
         {
@@ -138,7 +138,7 @@ public class SharedLinkService : ISharedLinkService
     {
         var links = await dbContext.SharedLinks
             .Include(l => l.Video)
-            .Where(l => l.SharedBy == userId || l.Video.UploadedBy == userId)
+            .Where(l => l.SharedBy == userId || l.Video.OwnerUserId == userId)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -181,7 +181,7 @@ public class SharedLinkService : ISharedLinkService
             return false;
         }
 
-        if (video.UploadedBy == userId)
+        if (video.OwnerUserId == userId)
         {
             return true;
         }

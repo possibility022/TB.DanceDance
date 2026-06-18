@@ -77,6 +77,15 @@ import { LongDatePipe } from '../../format/long-date.pipe';
               Share
             </button>
           }
+          @if (transferable() && video().isOwner) {
+            <button
+              type="button"
+              class="button is-warning is-light video-card__transfer"
+              (click)="transfer.emit(video())"
+            >
+              Transfer
+            </button>
+          }
           @if (deletable() && video().isOwner) {
             <button
               type="button"
@@ -264,6 +273,7 @@ import { LongDatePipe } from '../../format/long-date.pipe';
     }
 
     .video-card__share,
+    .video-card__transfer,
     .video-card__delete {
       font-weight: 600;
     }
@@ -273,6 +283,8 @@ export class VideoCard {
   readonly video = input.required<VideoInformation>();
   /** Show the Share action (e.g. in the user's own library). */
   readonly shareable = input(false);
+  /** Show the Transfer action (owner-only). */
+  readonly transferable = input(false);
   /** Show the Delete action (owner-only, e.g. in the user's own library). */
   readonly deletable = input(false);
   /** Query params carried to the player to preserve the group/event scope. */
@@ -282,6 +294,7 @@ export class VideoCard {
   /** Optional contextual label shown above the title (e.g. group name). */
   readonly badge = input('');
   readonly share = output<VideoInformation>();
+  readonly transfer = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
 
   /** A recording is watchable once conversion has produced a playable blob. */

@@ -25,7 +25,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -62,7 +62,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -99,7 +99,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -128,7 +128,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -156,7 +156,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -184,7 +184,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -213,7 +213,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -263,7 +263,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -291,7 +291,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -319,7 +319,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -352,7 +352,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(user)
@@ -384,7 +384,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -418,7 +418,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.Public)
             .Build();
@@ -454,7 +454,7 @@ public class CommentServiceTests : BaseTestClass
         var owner = new UserDataBuilder().Build();
         var viewer = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.Public)
             .Build();
@@ -489,7 +489,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.AuthenticatedOnly)
             .Build();
@@ -536,7 +536,7 @@ public class CommentServiceTests : BaseTestClass
         var owner = new UserDataBuilder().Build();
         var viewer = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.AuthenticatedOnly)
             .Build();
@@ -571,7 +571,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.OwnerOnly)
             .Build();
@@ -618,7 +618,7 @@ public class CommentServiceTests : BaseTestClass
         var owner = new UserDataBuilder().Build();
         var viewer = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.OwnerOnly)
             .Build();
@@ -663,7 +663,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var video = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .ShareAsPrivate(owner)
             .WithCommentVisibility(CommentVisibility.OwnerOnly)
             .Build();
@@ -697,7 +697,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var viewer = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -736,7 +736,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -764,7 +764,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -792,7 +792,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -819,7 +819,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().WithFirstName("John").WithLastName("Doe").Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -851,7 +851,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -901,7 +901,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -942,7 +942,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -983,7 +983,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder()
             .ForVideo(video)
             .SharedBy(owner)
@@ -1014,7 +1014,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(user).WithContent("Original").Build();
 
         SeedDbContext.AddRange(user, video, comment);
@@ -1049,7 +1049,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var author = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(author).ShareAsPrivate(author).Build();
+        var video = new VideoDataBuilder().OwnedBy(author).ShareAsPrivate(author).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(author).WithContent("Original").Build();
 
         SeedDbContext.AddRange(author, otherUser, video, comment);
@@ -1077,7 +1077,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var link = new SharedLinkDataBuilder().ForVideo(video).SharedBy(owner).Build();
         var anonymousComment =
             new CommentDataBuilder().ForVideo(video).ByAnonymous(link).WithContent("Anonymous").Build();
@@ -1122,7 +1122,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(user).Build();
 
         SeedDbContext.AddRange(user, video, comment);
@@ -1145,7 +1145,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder()
             .ForVideo(video)
             .ByUser(user)
@@ -1176,7 +1176,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var author = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(author).ShareAsPrivate(author).Build();
+        var video = new VideoDataBuilder().OwnedBy(author).ShareAsPrivate(author).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(author).Build();
 
         SeedDbContext.AddRange(author, video, comment);
@@ -1203,7 +1203,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var commenter = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(commenter).Build();
 
         SeedDbContext.AddRange(owner, commenter, video, comment);
@@ -1231,7 +1231,7 @@ public class CommentServiceTests : BaseTestClass
         var owner = new UserDataBuilder().Build();
         var author = new UserDataBuilder().Build();
         var unauthorized = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(author).Build();
 
         SeedDbContext.AddRange(owner, author, unauthorized, video, comment);
@@ -1277,7 +1277,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(user).Build();
 
         SeedDbContext.AddRange(user, video, comment);
@@ -1300,7 +1300,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Build();
 
         SeedDbContext.AddRange(owner, video, comment);
@@ -1326,7 +1326,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Build();
 
         SeedDbContext.AddRange(owner, otherUser, video, comment);
@@ -1370,7 +1370,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Hidden(false).Build();
 
         SeedDbContext.AddRange(owner, video, comment);
@@ -1393,7 +1393,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Hidden().Build();
 
         SeedDbContext.AddRange(owner, video, comment);
@@ -1420,7 +1420,7 @@ public class CommentServiceTests : BaseTestClass
         // Arrange
         var owner = new UserDataBuilder().Build();
         var otherUser = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Hidden().Build();
 
         SeedDbContext.AddRange(owner, otherUser, video, comment);
@@ -1464,7 +1464,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var owner = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(owner).ShareAsPrivate(owner).Build();
+        var video = new VideoDataBuilder().OwnedBy(owner).ShareAsPrivate(owner).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(owner).Hidden(true).Build();
 
         SeedDbContext.AddRange(owner, video, comment);
@@ -1487,7 +1487,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(user).Build();
 
         SeedDbContext.AddRange(user, video, comment);
@@ -1514,7 +1514,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(user).Build();
 
         SeedDbContext.AddRange(user, video, comment);
@@ -1548,7 +1548,7 @@ public class CommentServiceTests : BaseTestClass
     {
         // Arrange
         var user = new UserDataBuilder().Build();
-        var video = new VideoDataBuilder().UploadedBy(user).ShareAsPrivate(user).Build();
+        var video = new VideoDataBuilder().OwnedBy(user).ShareAsPrivate(user).Build();
         var comment = new CommentDataBuilder().ForVideo(video).ByUser(user).Reported(false).Build();
 
         SeedDbContext.AddRange(user, video, comment);

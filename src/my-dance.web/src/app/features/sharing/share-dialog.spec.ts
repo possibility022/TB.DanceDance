@@ -202,4 +202,5 @@ describe('ShareDialog', () => {
       expect(component.savedVisibility()).toBe(0); // unchanged on failure
     });
   });
+
 });

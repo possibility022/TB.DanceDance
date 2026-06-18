@@ -12,17 +12,17 @@ public class DanceDbFixture() : IAsyncLifetime
 
     private readonly PostgreSqlContainer container = new PostgreSqlBuilder(PostgresImage)
         .Build();
-
-    public bool InitializeDbAtStart { get; set; } = true;
     
-    public DanceDbContext DbContextFactory()
+    public DanceDbContext DbContextFactory(string connectionString)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DanceDbContext>()
-            .UseNpgsql(container.GetConnectionString());
+            .UseNpgsql(connectionString);
         
         DanceDbContext danceDbContext = new DanceDbContext(optionsBuilder.Options);
         return danceDbContext;
     }
+    
+    public string DefaultConnectionString => container.GetConnectionString();
     
     public ValueTask DisposeAsync()
     {
@@ -32,7 +32,16 @@ public class DanceDbFixture() : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await container.StartAsync();
-        if (InitializeDbAtStart)
-            await DbContextFactory().Database.EnsureCreatedAsync();
+    }
+    
+    public string GetConnectionStringForThisClassSet(ITestContext testContext)
+    {
+        var name = testContext.TestClass?.TestClassSimpleName;
+        var connectionString = container.GetConnectionString();
+        
+        if (name is null)
+            return connectionString;
+
+        return connectionString.Replace("Database=postgres", $"Database={name}");
     }
 }
