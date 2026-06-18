@@ -96,7 +96,7 @@ public class ThumbnailPipelineEndpointTests(WebAppFixture App) : TestBaseWithAss
         var owner = new UserDataBuilder().Build();
         var blobId = Guid.NewGuid().ToString();
         var videoBuilder = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .Converted()
             .WithBlobId(blobId)
             .ShareAsPrivate(owner);
@@ -158,7 +158,7 @@ public class ThumbnailPipelineEndpointTests(WebAppFixture App) : TestBaseWithAss
         var stranger = new UserDataBuilder().Build();
         var blobId = Guid.NewGuid().ToString();
         var videoBuilder = new VideoDataBuilder()
-            .UploadedBy(owner)
+            .OwnedBy(owner)
             .Converted()
             .WithBlobId(blobId)
             .WithThumbnailBlobId($"{Guid.NewGuid()}/thumbnail.jpg")
