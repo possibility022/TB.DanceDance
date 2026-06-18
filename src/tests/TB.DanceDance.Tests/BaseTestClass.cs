@@ -5,13 +5,17 @@ namespace TB.DanceDance.Tests;
 
 public abstract class BaseTestClass : IAsyncLifetime
 {
+    private readonly DanceDbFixture dbContextFixture;
     protected readonly DanceDbContext SeedDbContext;
     private readonly DanceDbContext runtimeDbContext;
+    private readonly string ConnectionString;
     
     protected BaseTestClass(DanceDbFixture dbContextFixture)
     {
-        SeedDbContext = dbContextFixture.DbContextFactory();
-        runtimeDbContext = dbContextFixture.DbContextFactory();
+        this.ConnectionString = dbContextFixture.GetConnectionStringForThisClassSet(TestContext.Current);
+        this.dbContextFixture = dbContextFixture;
+        SeedDbContext = dbContextFixture.DbContextFactory(ConnectionString);
+        runtimeDbContext = dbContextFixture.DbContextFactory(ConnectionString);
     }
 
     protected abstract ValueTask Initialize(DanceDbContext runtimeDbContext);
@@ -28,8 +32,11 @@ public abstract class BaseTestClass : IAsyncLifetime
         await SeedDbContext.DisposeAsync();
     }
 
-    public ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
-        return Initialize(runtimeDbContext);
+        var dbContext = dbContextFixture.DbContextFactory(ConnectionString);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+        
+        await Initialize(runtimeDbContext);
     }
 }
