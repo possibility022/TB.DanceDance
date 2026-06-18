@@ -13,6 +13,9 @@ namespace TB.DanceDance.API.Contracts.Models
         public int CommentVisibility { get; set; }
         public string? ThumbnailUrl { get; set; }
 
+        /// <summary>Converted blob size in bytes (0 if not yet calculated). Used for transfer totals.</summary>
+        public long SizeBytes { get; set; }
+
         /// <summary>
         /// True when the requesting user is the uploader of this video, i.e. the only user
         /// allowed to delete it. Drives owner-only actions (e.g. Delete) in the clients.

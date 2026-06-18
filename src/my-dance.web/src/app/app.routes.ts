@@ -37,6 +37,19 @@ export const routes: Routes = [
     loadComponent: () => import('./features/upload/upload').then((m) => m.Upload),
   },
   {
+    path: 'transfers',
+    title: 'My transfers · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/transfers/my-transfers').then((m) => m.MyTransfers),
+  },
+  {
+    // Stable URL — transfer links are handed out to other people (but require login).
+    path: 'transfer/:linkId',
+    title: 'Incoming transfer · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/transfers/transfer-landing').then((m) => m.TransferLanding),
+  },
+  {
     path: 'videos/requestassignment',
     title: 'Request access · Dance Dance',
     canActivate: [authGuard],

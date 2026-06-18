@@ -33,6 +33,10 @@ public class DeleteVideoEndpoint : EndpointWithoutRequest
             case DeleteVideoResult.Forbidden:
                 await Send.ForbiddenAsync(ct);
                 break;
+            case DeleteVideoResult.RollbackPending:
+                AddError("This recording can't be deleted yet — it was recently transferred and the previous owner can still reclaim it.");
+                await Send.ErrorsAsync(409, ct);
+                break;
             default:
                 await Send.NoContentAsync(ct);
                 break;

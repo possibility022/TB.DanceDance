@@ -226,7 +226,7 @@ public class VideoDataBuilder
     private Guid _id;
     private string? _blobId;
     private string _name;
-    private string _uploadedBy;
+    private string _ownerUserId;
     private DateTime _recorded;
     private DateTime _shared;
     private TimeSpan? _duration;
@@ -239,13 +239,13 @@ public class VideoDataBuilder
     private CommentVisibility _commentVisibility;
     private string? _thumbnailBlobId;
 
-    private readonly List<SharedWith> _sharedWith = new();
+    private readonly List<SharedWith> _sharedWith = [];
 
     public VideoDataBuilder()
     {
         _id = Guid.NewGuid();
         _name = TestDataBuilder.RandomName("Video");
-        _uploadedBy = TestDataBuilder.RandomUserId();
+        _ownerUserId = TestDataBuilder.RandomUserId();
         _recorded = DateTime.UtcNow.AddDays(-1);
         _shared = DateTime.UtcNow;
         _duration = TestDataBuilder.RandomDuration();
@@ -261,9 +261,9 @@ public class VideoDataBuilder
     public VideoDataBuilder WithId(Guid id) { _id = id; return this; }
     public VideoDataBuilder WithBlobId(string? blobId) { _blobId = blobId; return this; }
     public VideoDataBuilder WithName(string name) { _name = name; return this; }
-    public VideoDataBuilder UploadedBy(string userId) { _uploadedBy = userId; return this; }
-    public VideoDataBuilder UploadedBy(User user) { _uploadedBy = user.Id; return this; }
-    public VideoDataBuilder UploadedBy(UserDataBuilder userBuilder) { _uploadedBy = userBuilder.UserId; return this; }
+    public VideoDataBuilder OwnedBy(string userId) { _ownerUserId = userId; return this; }
+    public VideoDataBuilder OwnedBy(User user) { _ownerUserId = user.Id; return this; }
+    public VideoDataBuilder OwnedBy(UserDataBuilder userBuilder) { _ownerUserId = userBuilder.UserId; return this; }
     public VideoDataBuilder RecordedAt(DateTime dt) { _recorded = dt; return this; }
     public VideoDataBuilder SharedAt(DateTime dt) { _shared = dt; return this; }
     public VideoDataBuilder WithDuration(TimeSpan? duration) { _duration = duration; return this; }
@@ -280,7 +280,8 @@ public class VideoDataBuilder
         Id = _id,
         BlobId = _blobId,
         Name = _name,
-        UploadedBy = _uploadedBy,
+        OwnerUserId = _ownerUserId,
+        UploadedByUserId = _ownerUserId,
         RecordedDateTime = _recorded,
         SharedDateTime = _shared,
         Duration = _duration,
@@ -441,6 +442,77 @@ public class SharedLinkDataBuilder
         IsRevoked = _isRevoked,
         AllowComments = _allowComments,
         AllowAnonymousComments = _allowAnonymousComments
+    };
+}
+
+public class VideoTransferDataBuilder
+{
+    private string _id;
+    private string _createdBy;
+    private DateTimeOffset _createdAt;
+    private DateTimeOffset _expireAt;
+    private TransferStatus _status;
+    private string? _acceptedByUserId;
+    private DateTimeOffset? _acceptedAt;
+    private DateTimeOffset? _rolledBackAt;
+    private readonly List<Guid> _videoIds = [];
+
+    public VideoTransferDataBuilder()
+    {
+        _id = TestDataBuilder.RandomName().Substring(0, 8);
+        _createdBy = TestDataBuilder.RandomUserId();
+        _createdAt = DateTimeOffset.UtcNow;
+        _expireAt = DateTimeOffset.UtcNow.AddDays(7);
+        _status = TransferStatus.Pending;
+    }
+
+    public VideoTransferDataBuilder WithId(string id) { _id = id; return this; }
+    public VideoTransferDataBuilder CreatedBy(string userId) { _createdBy = userId; return this; }
+    public VideoTransferDataBuilder CreatedBy(User user) { _createdBy = user.Id; return this; }
+    public VideoTransferDataBuilder CreatedBy(UserDataBuilder userBuilder) { _createdBy = userBuilder.UserId; return this; }
+    public VideoTransferDataBuilder CreatedAt(DateTimeOffset createdAt) { _createdAt = createdAt; return this; }
+    public VideoTransferDataBuilder ExpiresInDays(int days) { _expireAt = _createdAt.AddDays(days); return this; }
+    public VideoTransferDataBuilder ExpiresAt(DateTimeOffset expireAt) { _expireAt = expireAt; return this; }
+    public VideoTransferDataBuilder WithStatus(TransferStatus status) { _status = status; return this; }
+
+    public VideoTransferDataBuilder AcceptedBy(string userId, DateTimeOffset? acceptedAt = null)
+    {
+        _acceptedByUserId = userId;
+        _acceptedAt = acceptedAt ?? DateTimeOffset.UtcNow;
+        _status = TransferStatus.Accepted;
+        return this;
+    }
+
+    public VideoTransferDataBuilder AcceptedBy(User user, DateTimeOffset? acceptedAt = null) => AcceptedBy(user.Id, acceptedAt);
+
+    public VideoTransferDataBuilder RolledBack(DateTimeOffset? rolledBackAt = null)
+    {
+        _rolledBackAt = rolledBackAt ?? DateTimeOffset.UtcNow;
+        _status = TransferStatus.RolledBack;
+        return this;
+    }
+
+    public VideoTransferDataBuilder WithVideo(Guid videoId) { _videoIds.Add(videoId); return this; }
+    public VideoTransferDataBuilder WithVideo(Video video) { _videoIds.Add(video.Id); return this; }
+
+    public string TransferId => _id;
+
+    public VideoTransfer Build() => new VideoTransfer
+    {
+        Id = _id,
+        CreatedBy = _createdBy,
+        CreatedAt = _createdAt,
+        ExpireAt = _expireAt,
+        Status = _status,
+        AcceptedByUserId = _acceptedByUserId,
+        AcceptedAt = _acceptedAt,
+        RolledBackAt = _rolledBackAt,
+        Items = _videoIds.Select(vid => new VideoTransferItem
+        {
+            Id = Guid.NewGuid(),
+            TransferId = _id,
+            VideoId = vid
+        }).ToList()
     };
 }
 

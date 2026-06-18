@@ -17,6 +17,7 @@ async function setup(
   video: VideoInformation,
   inputs: Partial<{
     shareable: boolean;
+    transferable: boolean;
     deletable: boolean;
     selected: boolean;
     queryParams: Record<string, string>;
@@ -134,6 +135,26 @@ describe('VideoCard', () => {
   it('hides the Delete action when not deletable even for the owner', async () => {
     const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
     expect(el.querySelector('.video-card__delete')).toBeNull();
+  });
+
+  it('shows the Transfer action only when transferable and the user owns the video', async () => {
+    const notOwner = (await setup({ ...CONVERTED, isOwner: false }, { transferable: true }))
+      .nativeElement as HTMLElement;
+    expect(notOwner.querySelector('.video-card__transfer')).toBeNull();
+
+    const owner = await setup({ ...CONVERTED, isOwner: true }, { transferable: true });
+    const button = owner.nativeElement.querySelector('.video-card__transfer') as HTMLButtonElement;
+    expect(button.textContent).toContain('Transfer');
+
+    const emitted: VideoInformation[] = [];
+    owner.componentInstance.transfer.subscribe((v) => emitted.push(v));
+    button.click();
+    expect(emitted).toEqual([{ ...CONVERTED, isOwner: true }]);
+  });
+
+  it('hides the Transfer action when not transferable even for the owner', async () => {
+    const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
+    expect(el.querySelector('.video-card__transfer')).toBeNull();
   });
 
   it('highlights the card when selected', async () => {

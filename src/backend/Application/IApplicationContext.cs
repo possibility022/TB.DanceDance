@@ -16,6 +16,8 @@ public interface IApplicationContext
     DbSet<AssignedToEvent> AssingedToEvents { get; }
     DbSet<User> Users { get; }
     DbSet<SharedLink> SharedLinks { get; }
+    DbSet<VideoTransfer> VideoTransfers { get; }
+    DbSet<VideoTransferItem> VideoTransferItems { get; }
     DbSet<Comment> Comments { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

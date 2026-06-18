@@ -5,6 +5,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { MyVideos } from './my-videos';
 import { VideosService } from '../../core/api/videos.service';
 import { SharingService } from '../../core/api/sharing.service';
+import { TransfersService } from '../../core/api/transfers.service';
 import { PagedResponseOfVideoInformation, VideoInformation } from '../../core/api/api-models';
 
 async function setup(
@@ -26,6 +27,15 @@ async function setup(
         // Injected by the embedded ShareDialog; not exercised while it is closed.
         provide: SharingService,
         useValue: { getMySharedLinks: () => of({ links: [] }) },
+      },
+      {
+        // Injected by the embedded TransferDialog; not exercised while it is closed.
+        provide: TransfersService,
+        useValue: {
+          createTransfer: () => of({ linkId: 't1' }),
+          getMyTransfers: () => of({ transfers: [] }),
+          revokeTransfer: () => of(void 0),
+        },
       },
     ],
   }).compileComponents();
@@ -112,6 +122,23 @@ describe('MyVideos', () => {
     expect(c.shareOpen()).toBe(false);
   });
 
+  it('openTransfer targets a video and opens the transfer dialog', async () => {
+    const c = (await setup()).componentInstance;
+    const video: VideoInformation = { videoId: 'v1', name: 'Samba' };
+
+    c.openTransfer(video);
+
+    expect(c.transferTarget()).toBe(video);
+    expect(c.transferOpen()).toBe(true);
+  });
+
+  it('closeTransfer hides the transfer dialog', async () => {
+    const c = (await setup()).componentInstance;
+    c.openTransfer({ videoId: 'v1' });
+    c.closeTransfer();
+    expect(c.transferOpen()).toBe(false);
+  });
+
   describe('delete', () => {
     async function setupForDelete(
       deleteVideo: (videoId: string) => Observable<void>,
@@ -135,6 +162,14 @@ describe('MyVideos', () => {
             },
           },
           { provide: SharingService, useValue: { getMySharedLinks: () => of({ links: [] }) } },
+          {
+            provide: TransfersService,
+            useValue: {
+              createTransfer: () => of({ linkId: 't1' }),
+              getMyTransfers: () => of({ transfers: [] }),
+              revokeTransfer: () => of(void 0),
+            },
+          },
         ],
       }).compileComponents();
 

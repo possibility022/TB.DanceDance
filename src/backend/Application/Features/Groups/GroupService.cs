@@ -85,7 +85,7 @@ public class GroupService : IGroupService
                     RecordedDateTime = video.RecordedDateTime,
                     Converted = video.Converted,
                     VideoId = video.Id,
-                    IsOwner = video.UploadedBy == userId,
+                    IsOwner = video.OwnerUserId == userId,
                 },
                 video.ThumbnailBlobId
             };
@@ -121,7 +121,7 @@ public class GroupService : IGroupService
                     RecordedDateTime = video.RecordedDateTime,
                     Converted = video.Converted,
                     VideoId = video.Id,
-                    IsOwner = video.UploadedBy == userId,
+                    IsOwner = video.OwnerUserId == userId,
                 },
                 video.ThumbnailBlobId
             };

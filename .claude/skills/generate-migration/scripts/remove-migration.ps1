@@ -3,12 +3,11 @@
     Revert (remove) the most recent EF Core migration for DanceDbContext.
 
 .DESCRIPTION
-    Starts a disposable postgres container, runs `dotnet ef migrations remove --force`
-    (deletes the last migration's files and reverts the model snapshot), then removes the
-    container — always, even on failure. Use this to undo a migration you just generated
-    with add-migration.ps1 but have not yet committed/shipped.
-
-    The local stack must NOT be running, because it also binds port 5432.
+    Starts a disposable postgres container on a random host port, applies all migrations to
+    that database, runs `dotnet ef migrations remove --force` (deletes the last migration's
+    files and reverts the model snapshot), then removes the container - always, even on
+    failure. Use this to undo a migration you just generated with add-migration.ps1 but
+    have not yet committed/shipped.
 
 .EXAMPLE
     ./remove-migration.ps1
@@ -24,6 +23,7 @@ Assert-DotnetEf
 
 try {
     Start-MigrationDb
+    Update-MigrationDb -InfrastructureProject $infra
 
     Write-Host "Removing the most recent migration..." -ForegroundColor Cyan
     dotnet ef migrations remove --force `

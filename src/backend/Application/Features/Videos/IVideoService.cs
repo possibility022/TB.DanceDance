@@ -15,7 +15,11 @@ public enum DeleteVideoResult
     /// <summary>The video exists but the requesting user is not its uploader.</summary>
     Forbidden,
     /// <summary>The video, its related rows and blobs were removed.</summary>
-    Deleted
+    Deleted,
+    /// <summary>The video was transferred to its current owner less than
+    /// <see cref="Domain.Entities.VideoTransfer.RollbackWindowDays"/> days ago and is still within
+    /// the original sender's rollback window.</summary>
+    RollbackPending
 }
 
 public interface IVideoService
@@ -46,6 +50,6 @@ public interface IVideoService
     /// <param name="videoId">The video ID.</param>
     /// <param name="userId">The ID of the user requesting the delete (must be the uploader).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The delete outcome (deleted, forbidden, or not found).</returns>
+    /// <returns>The delete outcome (deleted, forbidden, not found, or rollback-pending).</returns>
     Task<DeleteVideoResult> DeleteVideoAsync(Guid videoId, string userId, CancellationToken cancellationToken);
 }
