@@ -1,0 +1,65 @@
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading competition">Loading…</progress>
+} @else if (failed() || !competition()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load this competition.</p>
+    <a class="button" routerLink="/competitions">Back to competitions</a>
+  </div>
+} @else {
+  <header class="block is-flex is-justify-content-space-between is-align-items-flex-start">
+    <div>
+      <h1 class="title mb-1">{{ competition()!.name }}</h1>
+      <p class="subtitle is-6 has-text-grey">
+        @if (competition()!.location) { {{ competition()!.location }} }
+        @if (competition()!.date) { · {{ competition()!.date | longDate }} }
+      </p>
+    </div>
+    <div class="buttons">
+      <button type="button" class="button is-primary" (click)="openShare()">Share</button>
+      <button type="button" class="button" (click)="rename()">Rename</button>
+      <button type="button" class="button is-danger is-light" (click)="deleteCompetition()">Delete</button>
+    </div>
+  </header>
+
+  <section class="block">
+    <h2 class="title is-5">Recordings in this competition</h2>
+    @if (groupedVideos().length === 0) {
+      <p class="has-text-grey">No recordings grouped yet. Add some below.</p>
+    } @else {
+      @for (video of groupedVideos(); track video.videoId) {
+        <div class="box is-flex is-justify-content-space-between is-align-items-center">
+          <span>{{ video.name }}</span>
+          <button type="button" class="button is-small is-text has-text-danger" (click)="remove(video)">
+            Remove
+          </button>
+        </div>
+      }
+    }
+  </section>
+
+  <section class="block">
+    <h2 class="title is-5">Add recordings</h2>
+    @if (addError(); as error) {
+      <div class="notification is-warning is-light" role="alert">{{ error }}</div>
+    }
+    @if (addableVideos().length === 0) {
+      <p class="has-text-grey">No more of your recordings are available to add.</p>
+    } @else {
+      @for (video of addableVideos(); track video.videoId) {
+        <div class="box is-flex is-justify-content-space-between is-align-items-center">
+          <span>{{ video.name }}</span>
+          <button type="button" class="button is-small is-primary is-light" (click)="add(video)">
+            Add
+          </button>
+        </div>
+      }
+    }
+  </section>
+
+  <app-share-dialog
+    [competitionId]="competition()!.id ?? ''"
+    [videoName]="competition()!.name ?? ''"
+    [open]="shareOpen()"
+    (closed)="closeShare()"
+  />
+}

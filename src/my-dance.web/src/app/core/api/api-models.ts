@@ -177,6 +177,8 @@ export interface SharedLinkResponse {
     linkId?: string;
     videoId?: string;
     videoName?: string;
+    competitionId?: string | undefined;
+    competitionName?: string | undefined;
     createdAt?: Date;
     expireAt?: Date;
     isRevoked?: boolean;
@@ -203,6 +205,50 @@ export interface SharedVideoInfoResponse {
     commentVisibility?: number;
     allowCommentsOnThisLink?: boolean;
     allowAnonymousCommentsOnThisLink?: boolean;
+    isCompetition?: boolean;
+    videos?: SharedVideoItem[];
+}
+
+export interface SharedVideoItem {
+    videoId?: string;
+    name?: string;
+    duration?: string | undefined;
+    recordedDateTime?: Date;
+}
+
+export interface CreateCompetitionRequest {
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+}
+
+export interface RenameCompetitionRequest {
+    newName?: string;
+}
+
+export interface CompetitionSummaryResponse {
+    id?: string;
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+    createdDateTime?: Date;
+    videoCount?: number;
+}
+
+export interface CompetitionResponse {
+    id?: string;
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+    createdDateTime?: Date;
+    videos?: VideoInformation[];
+}
+
+export interface ListMyCompetitionsResponse {
+    competitions?: CompetitionSummaryResponse[];
 }
 
 export interface PagedResponseOfVideoFromGroupInformation {
