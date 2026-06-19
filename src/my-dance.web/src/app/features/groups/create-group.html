@@ -1,0 +1,51 @@
+<header class="block">
+  <h1 class="title">Create a group</h1>
+  <p class="subtitle">You'll become the first admin and can manage members and admins.</p>
+</header>
+
+@if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    We couldn't create the group. Please try again.
+  </div>
+}
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="box">
+  <div class="field">
+    <label class="label" for="group-name">Name</label>
+    <div class="control">
+      <input id="group-name" class="input" type="text" formControlName="name" autocomplete="off" />
+    </div>
+    @if (form.controls.name.touched && form.controls.name.invalid) {
+      <p class="help is-danger">Group name must be at least 3 characters long.</p>
+    }
+  </div>
+
+  <div class="field">
+    <label class="label" for="season-start">Season start</label>
+    <div class="control">
+      <input id="season-start" class="input" type="date" formControlName="seasonStart" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="season-end">Season end</label>
+    <div class="control">
+      <input id="season-end" class="input" type="date" formControlName="seasonEnd" />
+    </div>
+    @if (seasonOrderInvalid()) {
+      <p class="help is-danger">Season start must be on or before season end.</p>
+    }
+  </div>
+
+  <div class="field">
+    <div class="control">
+      <button
+        type="submit"
+        class="button is-primary"
+        [disabled]="form.invalid || seasonOrderInvalid() || submitting()"
+      >
+        Create group
+      </button>
+    </div>
+  </div>
+</form>

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 
 import { AccessService } from '../../core/api/access.service';
 import { EventModel, GroupModel } from '../../core/api/api-models';
@@ -8,7 +9,7 @@ import { SeasonPipe } from '../../shared/format/season.pipe';
 
 @Component({
   selector: 'app-request-access',
-  imports: [LongDatePipe, SeasonPipe],
+  imports: [LongDatePipe, SeasonPipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './request-access.html',
 })
@@ -27,6 +28,13 @@ export class RequestAccess {
   readonly availableGroups = signal<readonly GroupModel[]>([]);
   readonly availableEvents = signal<readonly EventModel[]>([]);
   readonly pendingCount = signal(0);
+
+  /** Ids of assigned groups the user administers (surfaces a "Manage" link). */
+  readonly administeredGroupIds = signal<ReadonlySet<string>>(new Set());
+
+  isAdministered(groupId: string | undefined): boolean {
+    return !!groupId && this.administeredGroupIds().has(groupId);
+  }
 
   readonly checkedEvents = signal<ReadonlySet<string>>(new Set());
   readonly checkedGroups = signal<ReadonlySet<string>>(new Set());
@@ -54,6 +62,7 @@ export class RequestAccess {
           this.pendingCount.set(
             (response.pending?.groups?.length ?? 0) + (response.pending?.events?.length ?? 0),
           );
+          this.administeredGroupIds.set(new Set(response.administeredGroupIds ?? []));
           this.resetSelection();
           this.loading.set(false);
         },

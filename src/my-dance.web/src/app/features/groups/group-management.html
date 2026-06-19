@@ -1,0 +1,133 @@
+<header class="block">
+  <h1 class="title">Group management</h1>
+  <p class="subtitle">Manage pending requests, members, and admins for this group.</p>
+</header>
+
+<section class="box">
+  <h2 class="title is-5">Pending requests</h2>
+  <app-access-requests />
+</section>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading group">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn't load this group. You may not be an admin.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else {
+  <section class="box">
+    <h2 class="title is-5">Members</h2>
+    @if (members().length === 0) {
+      <p class="has-text-grey">This group has no members yet.</p>
+    } @else {
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Email</th>
+              <th>Joined</th>
+              <th class="has-text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of members(); track member.userId ?? $index) {
+              <tr>
+                <td>{{ memberName(member) }}</td>
+                <td>{{ member.email }}</td>
+                <td>
+                  <input
+                    class="input is-small"
+                    type="date"
+                    aria-label="Join date"
+                    [value]="joinDateValue(member)"
+                    (change)="setJoinDate(member.userId ?? '', $any($event.target).value)"
+                  />
+                </td>
+                <td class="has-text-right">
+                  <div class="buttons are-small is-justify-content-flex-end">
+                    <button
+                      type="button"
+                      class="button is-link is-light"
+                      [disabled]="processingMemberId() !== null"
+                      (click)="saveJoinDate(member)"
+                    >
+                      Save date
+                    </button>
+                    <button
+                      type="button"
+                      class="button is-danger is-light"
+                      [disabled]="processingMemberId() !== null"
+                      (click)="removeMember(member)"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="box">
+    <h2 class="title is-5">Admins</h2>
+    @if (!canRemoveAdmin()) {
+      <p class="help">A group must always have at least one admin.</p>
+    }
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped">
+        <thead>
+          <tr>
+            <th>Admin</th>
+            <th>Email</th>
+            <th class="has-text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (admin of admins(); track admin.userId ?? $index) {
+            <tr>
+              <td>{{ memberName(admin) }}</td>
+              <td>{{ admin.email }}</td>
+              <td class="has-text-right">
+                <button
+                  type="button"
+                  class="button is-small is-danger is-light"
+                  [disabled]="!canRemoveAdmin() || processingAdminId() !== null"
+                  (click)="removeAdmin(admin)"
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <form class="field has-addons" (ngSubmit)="addAdmin()">
+      <div class="control is-expanded">
+        <input
+          class="input"
+          type="text"
+          aria-label="User id to add as admin"
+          placeholder="User id"
+          [value]="newAdminUserId()"
+          (input)="newAdminUserId.set($any($event.target).value)"
+        />
+      </div>
+      <div class="control">
+        <button
+          type="submit"
+          class="button is-primary"
+          [disabled]="!newAdminUserId().trim() || addingAdmin()"
+        >
+          Add admin
+        </button>
+      </div>
+    </form>
+  </section>
+}
