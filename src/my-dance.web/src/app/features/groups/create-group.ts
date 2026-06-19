@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -27,9 +27,12 @@ export class CreateGroup {
     seasonEnd: ['', Validators.required],
   });
 
+  /** Reactive view of the form value so derived signals recompute as the user types. */
+  private readonly value = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+
   /** True when both dates are set and the start is after the end. */
   readonly seasonOrderInvalid = computed(() => {
-    const { seasonStart, seasonEnd } = this.form.getRawValue();
+    const { seasonStart, seasonEnd } = this.value();
     return !!seasonStart && !!seasonEnd && seasonStart > seasonEnd;
   });
 

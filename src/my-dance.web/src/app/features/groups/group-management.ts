@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
@@ -13,7 +22,7 @@ import { AccessRequests } from '../access/access-requests';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './group-management.html',
 })
-export class GroupManagement {
+export class GroupManagement implements OnInit {
   /** Route param (`groups/:groupId/manage`). */
   readonly groupId = input.required<string>();
 
@@ -37,7 +46,7 @@ export class GroupManagement {
   /** A group must always keep at least one admin, so the last one can't be removed. */
   readonly canRemoveAdmin = computed(() => this.admins().length > 1);
 
-  constructor() {
+  ngOnInit(): void {
     this.load();
   }
 
