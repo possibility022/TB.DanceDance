@@ -216,41 +216,6 @@ export interface SharedVideoItem {
     recordedDateTime?: Date;
 }
 
-export interface CreateCompetitionRequest {
-    name?: string;
-    date?: Date | undefined;
-    location?: string | undefined;
-    commentVisibility?: number;
-}
-
-export interface RenameCompetitionRequest {
-    newName?: string;
-}
-
-export interface CompetitionSummaryResponse {
-    id?: string;
-    name?: string;
-    date?: Date | undefined;
-    location?: string | undefined;
-    commentVisibility?: number;
-    createdDateTime?: Date;
-    videoCount?: number;
-}
-
-export interface CompetitionResponse {
-    id?: string;
-    name?: string;
-    date?: Date | undefined;
-    location?: string | undefined;
-    commentVisibility?: number;
-    createdDateTime?: Date;
-    videos?: VideoInformation[];
-}
-
-export interface ListMyCompetitionsResponse {
-    competitions?: CompetitionSummaryResponse[];
-}
-
 export interface PagedResponseOfVideoFromGroupInformation {
     items?: VideoFromGroupInformation[];
     totalCount?: number;
@@ -284,6 +249,41 @@ export interface EventModel {
 }
 
 export interface ListEventVideosRequest extends PagedRequest {
+}
+
+export interface CompetitionResponse {
+    id?: string;
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+    createdDateTime?: Date;
+    videos?: VideoInformation[];
+}
+
+export interface CreateCompetitionRequest {
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+}
+
+export interface ListMyCompetitionsResponse {
+    competitions?: CompetitionSummaryResponse[];
+}
+
+export interface CompetitionSummaryResponse {
+    id?: string;
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+    createdDateTime?: Date;
+    videoCount?: number;
+}
+
+export interface RenameCompetitionRequest {
+    newName?: string;
 }
 
 export interface CommentResponse {
