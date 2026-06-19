@@ -68,7 +68,8 @@ internal static class CommentMapper
         return new CommentResponse
         {
             Id = comment.Id,
-            VideoId = comment.VideoId,
+            // Guid.Empty for competition (combined-thread) comments, which have no single video.
+            VideoId = comment.VideoId ?? System.Guid.Empty,
             AuthorName = authorName,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,

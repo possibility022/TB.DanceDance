@@ -388,7 +388,8 @@ public class CompetitionDataBuilder
 public class SharedLinkDataBuilder
 {
     private string _id;
-    private Guid _videoId;
+    private Guid? _videoId;
+    private Guid? _competitionId;
     private string _sharedBy;
     private DateTimeOffset _createdAt;
     private DateTimeOffset _expireAt;
@@ -400,6 +401,7 @@ public class SharedLinkDataBuilder
     {
         _id = TestDataBuilder.RandomName().Substring(0, 8 + 4); // 8-char placeholder
         _videoId = Guid.NewGuid();
+        _competitionId = null;
         _sharedBy = TestDataBuilder.RandomUserId();
         _createdAt = DateTimeOffset.UtcNow;
         _expireAt = DateTimeOffset.UtcNow.AddDays(7);
@@ -417,12 +419,35 @@ public class SharedLinkDataBuilder
     public SharedLinkDataBuilder ForVideo(Guid videoId)
     {
         _videoId = videoId;
+        _competitionId = null;
         return this;
     }
 
     public SharedLinkDataBuilder ForVideo(Video video)
     {
         _videoId = video.Id;
+        _competitionId = null;
+        return this;
+    }
+
+    public SharedLinkDataBuilder ForCompetition(Guid competitionId)
+    {
+        _competitionId = competitionId;
+        _videoId = null;
+        return this;
+    }
+
+    public SharedLinkDataBuilder ForCompetition(Competition competition)
+    {
+        _competitionId = competition.Id;
+        _videoId = null;
+        return this;
+    }
+
+    public SharedLinkDataBuilder ForCompetition(CompetitionDataBuilder competitionBuilder)
+    {
+        _competitionId = competitionBuilder.CompetitionId;
+        _videoId = null;
         return this;
     }
 
@@ -487,6 +512,7 @@ public class SharedLinkDataBuilder
     {
         Id = _id,
         VideoId = _videoId,
+        CompetitionId = _competitionId,
         SharedBy = _sharedBy,
         CreatedAt = _createdAt,
         ExpireAt = _expireAt,
@@ -570,7 +596,8 @@ public class VideoTransferDataBuilder
 public class CommentDataBuilder
 {
     private Guid _id;
-    private Guid _videoId;
+    private Guid? _videoId;
+    private Guid? _competitionId;
     private string? _userId;
     private string? _sharedLinkId;
     private string _content;
@@ -586,6 +613,7 @@ public class CommentDataBuilder
     {
         _id = Guid.NewGuid();
         _videoId = Guid.NewGuid();
+        _competitionId = null;
         _userId = null; // Can be null for anonymous
         _sharedLinkId = null;
         _content = TestDataBuilder.RandomName("Comment content");
@@ -617,12 +645,28 @@ public class CommentDataBuilder
     public CommentDataBuilder ForVideo(Guid videoId)
     {
         _videoId = videoId;
+        _competitionId = null;
         return this;
     }
 
     public CommentDataBuilder ForVideo(Video video)
     {
         _videoId = video.Id;
+        _competitionId = null;
+        return this;
+    }
+
+    public CommentDataBuilder ForCompetition(Guid competitionId)
+    {
+        _competitionId = competitionId;
+        _videoId = null;
+        return this;
+    }
+
+    public CommentDataBuilder ForCompetition(Competition competition)
+    {
+        _competitionId = competition.Id;
+        _videoId = null;
         return this;
     }
 
@@ -708,6 +752,7 @@ public class CommentDataBuilder
         {
             Id = _id,
             VideoId = _videoId,
+            CompetitionId = _competitionId,
             UserId = _userId,
             SharedLinkId = _sharedLinkId,
             Content = _content,

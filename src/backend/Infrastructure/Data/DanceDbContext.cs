@@ -193,13 +193,26 @@ public class DanceDbContext : DbContext, IApplicationContext
 
         // Comment configuration
         modelBuilder.Entity<Comment>()
-            .ToTable("Comments", Schemas.Comments);
+            .ToTable("Comments", Schemas.Comments, t => t.HasCheckConstraint(
+                "CK_Comments_VideoOrCompetition",
+                "(\"VideoId\" IS NOT NULL) <> (\"CompetitionId\" IS NOT NULL)"));
 
+        // A comment belongs to either a single video or a competition's combined thread. Both FKs are
+        // optional at the column level (the check constraint enforces exactly-one), and deleting the
+        // target removes its comments.
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.Video)
             .WithMany()
             .HasForeignKey(c => c.VideoId)
-            .IsRequired();
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Competition)
+            .WithMany()
+            .HasForeignKey(c => c.CompetitionId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.User)
