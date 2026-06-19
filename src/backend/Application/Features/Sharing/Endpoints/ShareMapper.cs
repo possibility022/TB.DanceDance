@@ -1,4 +1,5 @@
 using Domain.Entities;
+using TB.DanceDance.API.Contracts.Features.Sharing;
 using SharedLinkResponse = TB.DanceDance.API.Contracts.Features.Sharing.SharedLinkResponse;
 using SharedVideoInfoResponse = TB.DanceDance.API.Contracts.Features.Sharing.SharedVideoInfoResponse;
 
@@ -20,8 +21,10 @@ namespace Application.Features.Sharing.Endpoints
             return new SharedLinkResponse
             {
                 LinkId = link.Id,
-                VideoId = link.VideoId,
+                VideoId = link.VideoId ?? System.Guid.Empty,
                 VideoName = link.Video?.Name ?? string.Empty,
+                CompetitionId = link.CompetitionId,
+                CompetitionName = link.Competition?.Name,
                 CreatedAt = link.CreatedAt,
                 ExpireAt = link.ExpireAt,
                 IsRevoked = link.IsRevoked,
@@ -47,7 +50,39 @@ namespace Application.Features.Sharing.Endpoints
                 RecordedDateTime = video.RecordedDateTime,
                 CommentVisibility = (int)video.CommentVisibility,
                 AllowCommentsOnThisLink = link.AllowComments,
-                AllowAnonymousCommentsOnThisLink = link.AllowAnonymousComments
+                AllowAnonymousCommentsOnThisLink = link.AllowAnonymousComments,
+                IsCompetition = false
+            };
+        }
+
+        /// <summary>
+        /// Projects the competition behind a shared link to the anonymous-facing info response: the
+        /// competition metadata plus all of its videos, combined with this link's comment settings.
+        /// </summary>
+        public static SharedVideoInfoResponse MapToSharedCompetitionInfoResponse(SharedLink link)
+        {
+            var competition = link.Competition!;
+
+            return new SharedVideoInfoResponse
+            {
+                VideoId = System.Guid.Empty,
+                Name = competition.Name,
+                Duration = null,
+                RecordedDateTime = competition.Date ?? competition.CreatedDateTime,
+                CommentVisibility = (int)competition.CommentVisibility,
+                AllowCommentsOnThisLink = link.AllowComments,
+                AllowAnonymousCommentsOnThisLink = link.AllowAnonymousComments,
+                IsCompetition = true,
+                Videos = (competition.Videos ?? new System.Collections.Generic.List<Video>())
+                    .OrderBy(v => v.RecordedDateTime)
+                    .Select(v => new SharedVideoItem
+                    {
+                        VideoId = v.Id,
+                        Name = v.Name,
+                        Duration = v.Duration,
+                        RecordedDateTime = v.RecordedDateTime
+                    })
+                    .ToArray()
             };
         }
     }

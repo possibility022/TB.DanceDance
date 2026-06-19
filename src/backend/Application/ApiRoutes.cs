@@ -88,10 +88,12 @@ public static class ApiRoutes
         private const string Base = $"{ApiBase}/share";
 
         public const string Create = $"{ApiBase}/videos/{{videoId:guid}}/share";
+        public const string CreateForCompetition = $"{ApiBase}/competitions/{{competitionId:guid}}/share";
         public const string Revoke = $"{Base}/{{linkId}}";
         public const string ListMy = $"{Base}/my";
         public const string GetInfo = $"{Base}/{{linkId}}";
         public const string GetStream = $"{Base}/{{linkId}}/stream";
+        public const string GetVideoStream = $"{Base}/{{linkId}}/videos/{{videoId:guid}}/stream";
     }
 
     public static class Transfer

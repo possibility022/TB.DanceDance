@@ -18,12 +18,26 @@ public interface ISharedLinkService
     Task<SharedLink> CreateSharedLinkAsync(Guid videoId, string userId, int expirationDays, bool allowComments, bool allowAnonymousComments, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets a video by its shared link ID. Returns null if link doesn't exist, is expired, or is revoked.
+    /// Creates a shared link that targets a whole competition. The user must own the competition.
+    /// </summary>
+    /// <exception cref="ArgumentException">If expiration days is out of range, the competition is not found, or the user is not its owner.</exception>
+    Task<SharedLink> CreateCompetitionSharedLinkAsync(Guid competitionId, string userId, int expirationDays, bool allowComments, bool allowAnonymousComments, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets a video by its shared link ID. Returns null if link doesn't exist, is expired, is revoked,
+    /// or doesn't target a single video.
     /// </summary>
     /// <param name="linkId">The short link ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The video if link is valid and active, null otherwise</returns>
     Task<Video?> GetVideoBySharedLinkAsync(string linkId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Resolves a specific video that is reachable through a shared link: either the link's single
+    /// target video (when videoId matches) or one of the videos in the link's competition. Returns
+    /// null if the link is invalid/expired/revoked or the video is not reachable through the link.
+    /// </summary>
+    Task<Video?> GetVideoForSharedLinkAsync(string linkId, Guid videoId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Revokes a shared link. User must be the link creator or the video owner.

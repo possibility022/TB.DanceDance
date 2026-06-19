@@ -68,8 +68,15 @@ public class CommentService : ICommentService
             throw new ArgumentException("Shared link is expired or revoked.", nameof(linkId));
         }
 
+        // Competition-targeted links don't carry a single video; the combined-thread handling is
+        // added in a later slice. For now, only video links accept comments.
+        if (link.VideoId is null)
+        {
+            throw new ArgumentException("This shared link does not target a video.", nameof(linkId));
+        }
+
         // Get videoId from the link
-        var videoId = link.VideoId;
+        var videoId = link.VideoId.Value;
 
         // Check if comments are allowed on this link
         if (!link.AllowComments)
@@ -128,7 +135,9 @@ public class CommentService : ICommentService
             .Include(l => l.Video)
             .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
 
-        if (link == null || link.ExpireAt <= DateTimeOffset.UtcNow || link.IsRevoked)
+        // Competition-targeted links resolve to a combined thread in a later slice; here only
+        // video links return comments.
+        if (link == null || link.ExpireAt <= DateTimeOffset.UtcNow || link.IsRevoked || link.Video == null)
         {
             return (Array.Empty<Comment>(), 0);
         }

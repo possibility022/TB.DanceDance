@@ -26,13 +26,15 @@ namespace Application.Features.Sharing.Endpoints
             var linkId = Route<string>("linkId") ?? string.Empty;
             var link = await sharedLinkService.GetSharedLinkAsync(linkId, ct);
 
-            if (link == null || link.Video == null)
+            if (link == null || (link.Video == null && link.Competition == null))
             {
                 await Send.NotFoundAsync(ct);
                 return;
             }
 
-            var response = ShareMapper.MapToSharedVideoInfoResponse(link);
+            var response = link.Competition != null
+                ? ShareMapper.MapToSharedCompetitionInfoResponse(link)
+                : ShareMapper.MapToSharedVideoInfoResponse(link);
             await Send.OkAsync(response, ct);
         }
     }

@@ -128,14 +128,26 @@ public class DanceDbContext : DbContext, IApplicationContext
             .ToTable("Users", Schemas.Access);
 
         modelBuilder.Entity<SharedLink>()
-            .ToTable("SharedLinks", Schemas.Access);
-        
+            .ToTable("SharedLinks", Schemas.Access, t => t.HasCheckConstraint(
+                "CK_SharedLinks_VideoOrCompetition",
+                "(\"VideoId\" IS NOT NULL) <> (\"CompetitionId\" IS NOT NULL)"));
+
+        // A link targets either a single video or a competition. Both FKs are optional at the column
+        // level (the check constraint enforces exactly-one), and deleting the target removes its links.
         modelBuilder.Entity<SharedLink>()
             .HasOne<Video>(e => e.Video)
             .WithMany()
             .HasForeignKey(r => r.VideoId)
-            .IsRequired();
-        
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SharedLink>()
+            .HasOne<Competition>(e => e.Competition)
+            .WithMany()
+            .HasForeignKey(r => r.CompetitionId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<SharedLink>()
             .HasOne<User>(e => e.SharedByUser)
             .WithMany()
