@@ -63,6 +63,26 @@ public interface ICommentService
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Retrieves a page of comments for the combined thread of a competition, directly by id
+    /// (not via a shared link). Owner-only — a competition has no group/event-style access, so
+    /// unlike the video overload this always returns the full (incl. hidden) thread.
+    /// </summary>
+    /// <param name="userId">The ID of the user requesting the comments</param>
+    /// <param name="competitionId">The competition id</param>
+    /// <param name="pageNumber">The 1-based page number to retrieve</param>
+    /// <param name="pageSize">The number of comments per page</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The page of comments for the competition's combined thread and the total count</returns>
+    /// <exception cref="ArgumentException">If the competition does not exist</exception>
+    /// <exception cref="UnauthorizedAccessException">If the user is not the competition's owner</exception>
+    Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForCompetitionAsync(
+        string userId,
+        Guid competitionId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Updates a comment. Only the authenticated comment author can update their own comments.
     /// </summary>
     /// <param name="commentId">The comment ID</param>

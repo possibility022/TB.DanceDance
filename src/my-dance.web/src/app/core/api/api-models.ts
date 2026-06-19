@@ -317,6 +317,9 @@ export interface PagedResponseOfCommentResponse {
 export interface ListCommentsByLinkRequest extends PagedRequest {
 }
 
+export interface ListCommentsForCompetitionRequest extends PagedRequest {
+}
+
 export interface ListCommentsForVideoRequest extends PagedRequest {
 }
 

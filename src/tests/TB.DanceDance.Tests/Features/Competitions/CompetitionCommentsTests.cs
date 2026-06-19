@@ -1,6 +1,10 @@
+using System.Security.Claims;
 using Application.Features.Comments;
+using Application.Features.Comments.Endpoints;
 using Domain.Entities;
+using FastEndpoints;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Features.Competitions;
@@ -46,6 +50,19 @@ public class CompetitionCommentsTests : BaseTestClass
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         SeedDbContext.ChangeTracker.Clear();
         return new Seeded(owner.Build(), competition, link, teacher.Build(), viewer.Build(), stranger.Build());
+    }
+
+    private static DefaultHttpContext Ctx(string? sub, params (string Key, object Value)[] routeValues)
+    {
+        var ctx = new DefaultHttpContext();
+        if (sub != null)
+        {
+            var identity = new ClaimsIdentity([new Claim("sub", sub)], "test");
+            ctx.User = new ClaimsPrincipal(identity);
+        }
+        foreach (var (key, value) in routeValues)
+            ctx.Request.RouteValues[key] = value;
+        return ctx;
     }
 
     [Fact]
@@ -156,6 +173,75 @@ public class CompetitionCommentsTests : BaseTestClass
         var reported = await commentService.ReportCommentAsync(comment.Id, "spam", TestContext.Current.CancellationToken);
 
         Assert.True(reported);
+    }
+
+    [Fact]
+    public async Task GetCommentsForCompetition_DirectByOwner_ReturnsFullThreadIncludingHidden()
+    {
+        var s = await SeedCompetition(CommentVisibility.OwnerOnly);
+        var visible = await commentService.CreateCommentAsync(s.Teacher.Id, s.Link.Id, "visible", null, null, TestContext.Current.CancellationToken);
+        await commentService.CreateCommentAsync(null, s.Link.Id, "hidden one", "Coach", "anon-2", TestContext.Current.CancellationToken);
+        var toHide = (await commentService.GetCommentsForVideoAsync(s.Owner.Id, null, s.Link.Id, 1, 50, TestContext.Current.CancellationToken))
+            .Items.First(c => c.Id != visible.Id);
+        await commentService.HideCommentAsync(toHide.Id, s.Owner.Id, TestContext.Current.CancellationToken);
+
+        var (comments, total) = await commentService.GetCommentsForCompetitionAsync(
+            s.Owner.Id, s.Competition.Id, 1, 50, TestContext.Current.CancellationToken);
+
+        // Owner sees both comments, including the hidden one — same as the link-based owner view.
+        Assert.Equal(2, total);
+        Assert.Equal(2, comments.Count);
+    }
+
+    [Fact]
+    public async Task GetCommentsForCompetition_NonOwner_ThrowsUnauthorized()
+    {
+        var s = await SeedCompetition(CommentVisibility.Public);
+        await commentService.CreateCommentAsync(s.Teacher.Id, s.Link.Id, "feedback", null, null, TestContext.Current.CancellationToken);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => commentService.GetCommentsForCompetitionAsync(
+            s.Stranger.Id, s.Competition.Id, 1, 50, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetCommentsForCompetition_UnknownCompetition_ThrowsArgumentException()
+    {
+        var s = await SeedCompetition(CommentVisibility.Public);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => commentService.GetCommentsForCompetitionAsync(
+            s.Owner.Id, Guid.NewGuid(), 1, 50, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ListCommentsForCompetitionEndpoint_MapsCanModerate_TrueForOwner()
+    {
+        var s = await SeedCompetition(CommentVisibility.Public);
+        await commentService.CreateCommentAsync(s.Teacher.Id, s.Link.Id, "feedback", null, null, TestContext.Current.CancellationToken);
+
+        var ep = Factory.Create<ListCommentsForCompetitionEndpoint>(
+            Ctx(s.Owner.Id, ("competitionId", s.Competition.Id)), commentService);
+        await ep.HandleAsync(new(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(200, ep.HttpContext.Response.StatusCode);
+        Assert.NotNull(ep.Response);
+        Assert.Single(ep.Response.Items);
+        // Regression: CanModerate must consider the *competition* owner, not just a video owner —
+        // competition comments have no Video, so a naive Video-only check always returns false.
+        var mapped = ep.Response.Items.Single();
+        Assert.True(mapped.CanModerate);
+        Assert.False(mapped.IsReported);
+    }
+
+    [Fact]
+    public async Task ListCommentsForCompetitionEndpoint_NonOwner_Returns401()
+    {
+        var s = await SeedCompetition(CommentVisibility.Public);
+
+        var ep = Factory.Create<ListCommentsForCompetitionEndpoint>(
+            Ctx(s.Stranger.Id, ("competitionId", s.Competition.Id)), commentService);
+        await ep.HandleAsync(new(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(401, ep.HttpContext.Response.StatusCode);
     }
 
     [Fact]

@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { CompetitionDetail } from './competition-detail';
 import { CompetitionsService } from '../../core/api/competitions.service';
 import { VideosService } from '../../core/api/videos.service';
+import { CommentsService } from '../../core/api/comments.service';
 
 interface Overrides {
   getCompetition?: ReturnType<typeof vi.fn>;
@@ -13,6 +14,7 @@ interface Overrides {
   addVideo?: ReturnType<typeof vi.fn>;
   removeVideo?: ReturnType<typeof vi.fn>;
   getMyVideos?: ReturnType<typeof vi.fn>;
+  getCommentsForCompetition?: ReturnType<typeof vi.fn>;
 }
 
 function createFixture(overrides: Overrides = {}) {
@@ -39,12 +41,22 @@ function createFixture(overrides: Overrides = {}) {
         }),
       ),
   };
+  const comments = {
+    getCommentsForCompetition:
+      overrides.getCommentsForCompetition ?? vi.fn(() => of({ items: [], totalCount: 0 })),
+    updateComment: vi.fn(() => of(void 0)),
+    deleteComment: vi.fn(() => of(void 0)),
+    hideComment: vi.fn(() => of(void 0)),
+    unhideComment: vi.fn(() => of(void 0)),
+    reportComment: vi.fn(() => of(void 0)),
+  };
   TestBed.configureTestingModule({
     imports: [CompetitionDetail],
     providers: [
       provideRouter([]),
       { provide: CompetitionsService, useValue: competitions },
       { provide: VideosService, useValue: videos },
+      { provide: CommentsService, useValue: comments },
     ],
   });
 
@@ -54,7 +66,14 @@ function createFixture(overrides: Overrides = {}) {
   const fixture = TestBed.createComponent(CompetitionDetail);
   fixture.componentRef.setInput('competitionId', 'c1');
   fixture.detectChanges();
-  return { fixture, competitions, videos, router: { navigate }, component: fixture.componentInstance };
+  return {
+    fixture,
+    competitions,
+    videos,
+    comments,
+    router: { navigate },
+    component: fixture.componentInstance,
+  };
 }
 
 describe('CompetitionDetail', () => {
@@ -132,5 +151,63 @@ describe('CompetitionDetail', () => {
     expect(component.shareOpen()).toBe(true);
     component.closeShare();
     expect(component.shareOpen()).toBe(false);
+  });
+
+  describe('comments', () => {
+    it('loads the combined thread for the competition', () => {
+      const getCommentsForCompetition = vi.fn(() =>
+        of({ items: [{ id: 'cm1', content: 'Great work!' }], totalCount: 1 }),
+      );
+      const { component, comments } = createFixture({ getCommentsForCompetition });
+      expect(comments.getCommentsForCompetition).toHaveBeenCalledWith('c1', 1, 20);
+      expect(component.commentList()).toHaveLength(1);
+    });
+
+    it('loadMoreComments() appends the next page', () => {
+      const getCommentsForCompetition = vi
+        .fn()
+        .mockReturnValueOnce(of({ items: [{ id: 'cm1' }], totalCount: 2 }))
+        .mockReturnValueOnce(of({ items: [{ id: 'cm2' }], totalCount: 2 }));
+      const { component } = createFixture({ getCommentsForCompetition });
+
+      expect(component.canLoadMoreComments()).toBe(true);
+      component.loadMoreComments();
+
+      expect(getCommentsForCompetition).toHaveBeenCalledWith('c1', 2, 20);
+      expect(component.commentList().map((c) => c.id)).toEqual(['cm1', 'cm2']);
+      expect(component.canLoadMoreComments()).toBe(false);
+    });
+
+    it('onHideComment() hides then reloads the thread', () => {
+      const { component, comments } = createFixture();
+      component.onHideComment('cm1');
+      expect(comments.hideComment).toHaveBeenCalledWith('cm1');
+      // Reload happens after the mutation resolves.
+      expect(comments.getCommentsForCompetition).toHaveBeenCalledTimes(2);
+    });
+
+    it('onUnhideComment() unhides then reloads the thread', () => {
+      const { component, comments } = createFixture();
+      component.onUnhideComment('cm1');
+      expect(comments.unhideComment).toHaveBeenCalledWith('cm1');
+    });
+
+    it('onRemoveComment() deletes then reloads the thread', () => {
+      const { component, comments } = createFixture();
+      component.onRemoveComment('cm1');
+      expect(comments.deleteComment).toHaveBeenCalledWith('cm1');
+    });
+
+    it('onSaveEdit() updates then reloads the thread', () => {
+      const { component, comments } = createFixture();
+      component.onSaveEdit({ commentId: 'cm1', content: 'edited' });
+      expect(comments.updateComment).toHaveBeenCalledWith('cm1', { content: 'edited' });
+    });
+
+    it('onReportComment() reports then reloads the thread', () => {
+      const { component, comments } = createFixture();
+      component.onReportComment({ commentId: 'cm1', reason: 'spam' });
+      expect(comments.reportComment).toHaveBeenCalledWith('cm1', { reason: 'spam' });
+    });
   });
 });

@@ -28,9 +28,13 @@ public class CommentService : ICommentService
             ? c => c.VideoId == videoId
             : c => c.CompetitionId == competitionId;
 
+    // Video/Competition are included explicitly (not left to incidental EF change-tracker fixup) so
+    // CommentMapper.MapToResponse can always resolve the thread owner for CanModerate/IsReported.
     private IQueryable<Comment> QueryAllComments(Guid? videoId, Guid? competitionId) =>
         dbContext.Comments
             .Include(c => c.User)
+            .Include(c => c.Video)
+            .Include(c => c.Competition)
             .Where(ThreadPredicate(videoId, competitionId))
             .OrderBy(c => c.CreatedAt);
     
@@ -247,6 +251,32 @@ public class CommentService : ICommentService
 
         return await QueryCommentsBase(userId, anonymousId, video.OwnerUserId, video.CommentVisibility,
             video.Id, null, pageNumber, pageSize, cancellationToken);
+    }
+
+    public async Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForCompetitionAsync(
+        string userId,
+        Guid competitionId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var competition = await dbContext.Competitions
+            .FirstOrDefaultAsync(c => c.Id == competitionId, cancellationToken);
+
+        if (competition == null)
+        {
+            throw new ArgumentException($"Competition {competitionId} was not found.", nameof(competitionId));
+        }
+
+        if (competition.OwnerUserId != userId)
+        {
+            throw new UnauthorizedAccessException("No access to the competition.");
+        }
+
+        // Always the owner branch of QueryCommentsBase, so this returns the full thread (incl. hidden).
+        return await QueryCommentsBase(userId, anonymousId: null, competition.OwnerUserId,
+            competition.CommentVisibility, videoId: null, competitionId: competition.Id,
+            pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<bool> UpdateCommentAsync(

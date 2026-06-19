@@ -36,6 +36,18 @@ export class CommentsService {
     );
   }
 
+  /** Owner: a page of the combined comment thread for a competition. */
+  getCommentsForCompetition(
+    competitionId: string,
+    page: number,
+    pageSize: number,
+  ): Observable<PagedResponseOfCommentResponse> {
+    return this.api.get<PagedResponseOfCommentResponse>(
+      `/api/comments/competition/${encodeURIComponent(competitionId)}`,
+      { params: { page, pageSize } },
+    );
+  }
+
   /** A page of comments on a shared link (public). */
   getCommentsByLink(linkId: string, page: number, pageSize: number): Observable<PagedResponseOfCommentResponse> {
     return this.api.get<PagedResponseOfCommentResponse>(

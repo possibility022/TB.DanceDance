@@ -28,13 +28,36 @@
     } @else {
       @for (video of groupedVideos(); track video.videoId) {
         <div class="box is-flex is-justify-content-space-between is-align-items-center">
-          <span>{{ video.name }}</span>
+          @if (video.converted && video.blobId) {
+            <a [routerLink]="['/videos', video.blobId]">{{ video.name }}</a>
+          } @else {
+            <span>
+              {{ video.name }}
+              <span class="tag is-warning is-light is-small ml-1">Processing&hellip;</span>
+            </span>
+          }
           <button type="button" class="button is-small is-text has-text-danger" (click)="remove(video)">
             Remove
           </button>
         </div>
       }
     }
+  </section>
+
+  <section class="block">
+    <h2 class="title is-5">Feedback</h2>
+    <app-comments-section
+      [comments]="commentList()"
+      [canCompose]="false"
+      [canLoadMore]="canLoadMoreComments()"
+      [loadingMore]="loadingMoreComments()"
+      (loadMore)="loadMoreComments()"
+      (saveEdit)="onSaveEdit($event)"
+      (remove)="onRemoveComment($event)"
+      (hide)="onHideComment($event)"
+      (unhide)="onUnhideComment($event)"
+      (report)="onReportComment($event)"
+    />
   </section>
 
   <section class="block">

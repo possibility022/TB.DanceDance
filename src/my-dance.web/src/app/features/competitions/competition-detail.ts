@@ -11,19 +11,23 @@ import {
 import { DOCUMENT } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 
 import { CompetitionsService } from '../../core/api/competitions.service';
 import { VideosService } from '../../core/api/videos.service';
-import { CompetitionResponse, VideoInformation } from '../../core/api/api-models';
+import { CommentsService } from '../../core/api/comments.service';
+import { CommentResponse, CompetitionResponse, VideoInformation } from '../../core/api/api-models';
 import { ShareDialog } from '../sharing/share-dialog';
+import { CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 
 const PAGE_SIZE = 100;
+const COMMENTS_PAGE_SIZE = 20;
 
 /** A single competition: rename, delete, share, and manage its grouped recordings. */
 @Component({
   selector: 'app-competition-detail',
-  imports: [ShareDialog, RouterLink, LongDatePipe],
+  imports: [ShareDialog, CommentsSection, RouterLink, LongDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-detail.html',
 })
@@ -33,6 +37,7 @@ export class CompetitionDetail {
 
   private readonly competitions = inject(CompetitionsService);
   private readonly videos = inject(VideosService);
+  private readonly comments = inject(CommentsService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly doc = inject(DOCUMENT);
@@ -45,6 +50,11 @@ export class CompetitionDetail {
   readonly myVideos = signal<readonly VideoInformation[]>([]);
   readonly addError = signal<string | null>(null);
   readonly shareOpen = signal(false);
+
+  readonly commentList = signal<readonly CommentResponse[]>([]);
+  readonly loadingMoreComments = signal(false);
+  readonly canLoadMoreComments = signal(false);
+  private currentCommentsPage = 0;
 
   readonly groupedVideos = computed(() => this.competition()?.videos ?? []);
   readonly addableVideos = computed(() => {
@@ -85,6 +95,98 @@ export class CompetitionDetail {
         next: (response) => this.myVideos.set(response.items ?? []),
         error: () => this.myVideos.set([]),
       });
+
+    this.loadComments(id);
+  }
+
+  private loadComments(competitionId: string): void {
+    this.comments
+      .getCommentsForCompetition(competitionId, 1, COMMENTS_PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = response.items ?? [];
+          this.commentList.set(items);
+          this.currentCommentsPage = 1;
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+        },
+        // Comments are non-critical; leave the list empty on failure.
+        error: () => {
+          this.commentList.set([]);
+          this.canLoadMoreComments.set(false);
+        },
+      });
+  }
+
+  loadMoreComments(): void {
+    const competitionId = this.competitionId();
+    if (!competitionId || this.loadingMoreComments() || !this.canLoadMoreComments()) {
+      return;
+    }
+
+    this.loadingMoreComments.set(true);
+    const nextPage = this.currentCommentsPage + 1;
+
+    this.comments
+      .getCommentsForCompetition(competitionId, nextPage, COMMENTS_PAGE_SIZE)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = [...this.commentList(), ...(response.items ?? [])];
+          this.commentList.set(items);
+          this.currentCommentsPage = nextPage;
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+          this.loadingMoreComments.set(false);
+        },
+        error: () => this.loadingMoreComments.set(false),
+      });
+  }
+
+  /** Refetches everything currently shown (rather than collapsing back to page 1) so a mutation doesn't hide already-loaded comments. */
+  private reloadLoadedComments(): void {
+    const competitionId = this.competitionId();
+    if (!competitionId) {
+      return;
+    }
+    const pageSize = this.currentCommentsPage * COMMENTS_PAGE_SIZE;
+
+    this.comments
+      .getCommentsForCompetition(competitionId, 1, pageSize)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const items = response.items ?? [];
+          this.commentList.set(items);
+          this.canLoadMoreComments.set(items.length < (response.totalCount ?? 0));
+        },
+        error: () => this.commentList.set([]),
+      });
+  }
+
+  private afterCommentMutation(action$: Observable<void>): void {
+    action$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.reloadLoadedComments(),
+    });
+  }
+
+  onSaveEdit({ commentId, content }: CommentEdit): void {
+    this.afterCommentMutation(this.comments.updateComment(commentId, { content }));
+  }
+
+  onRemoveComment(commentId: string): void {
+    this.afterCommentMutation(this.comments.deleteComment(commentId));
+  }
+
+  onHideComment(commentId: string): void {
+    this.afterCommentMutation(this.comments.hideComment(commentId));
+  }
+
+  onUnhideComment(commentId: string): void {
+    this.afterCommentMutation(this.comments.unhideComment(commentId));
+  }
+
+  onReportComment({ commentId, reason }: CommentReport): void {
+    this.afterCommentMutation(this.comments.reportComment(commentId, { reason }));
   }
 
   rename(): void {

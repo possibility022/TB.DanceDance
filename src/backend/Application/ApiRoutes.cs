@@ -74,6 +74,7 @@ public static class ApiRoutes
         private const string Base = $"{ApiBase}/comments";
 
         public const string ListCommentsForVideo = $"{Base}/video/{{videoId:guid}}";
+        public const string ListCommentsForCompetition = $"{Base}/competition/{{competitionId:guid}}";
         public const string Create = $"{ApiBase}/share/{{linkId}}/comments";
         public const string ListByLink = $"{ApiBase}/share/{{linkId}}/comments";
         public const string Update = $"{Base}/{{commentId:guid}}";
