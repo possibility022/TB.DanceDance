@@ -55,7 +55,7 @@ internal static class CommentMapper
     /// <param name="anonymousId">SHA-256 of the viewer's anonymous id, used to detect anonymous authorship.</param>
     public static CommentResponse MapToResponse(Comment comment, string? currentUserId, byte[]? anonymousId)
     {
-        var isVideoOwner = comment.Video?.UploadedBy == currentUserId;
+        var isVideoOwner = comment.Video?.OwnerUserId == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
         var isAnonymousAuthor = comment.ShaOfAnonymousId?.SequenceEqual(anonymousId) ?? false;
 

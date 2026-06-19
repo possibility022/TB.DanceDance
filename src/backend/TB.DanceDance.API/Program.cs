@@ -5,9 +5,12 @@ using FastEndpoints.ClientGen;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NJsonSchema.CodeGeneration.TypeScript;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using TB.DanceDance.API;
 using TB.DanceDance.API.Contracts.ApiResources;
+
+[assembly: InternalsVisibleTo("TB.DanceDance.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,7 +100,8 @@ builder.Services
 
                 var path = context.Request.Path.Value;
                 if (string.IsNullOrWhiteSpace(path) ||
-                    !path.StartsWith("/api/videos/", StringComparison.OrdinalIgnoreCase) ||
+                    (!path.StartsWith("/api/videos/", StringComparison.OrdinalIgnoreCase) &&
+                     !path.StartsWith("/api/transfers/", StringComparison.OrdinalIgnoreCase)) ||
                     (!path.EndsWith("/stream", StringComparison.OrdinalIgnoreCase) &&
                      !path.EndsWith("/thumbnail", StringComparison.OrdinalIgnoreCase)))
                 {

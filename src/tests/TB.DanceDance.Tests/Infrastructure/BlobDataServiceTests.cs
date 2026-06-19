@@ -37,7 +37,7 @@ public class BlobDataServiceTests
         // Arrange
         var blobService = factory.GetBlobDataService(BlobContainer.Videos);
         var blobId = Guid.NewGuid().ToString();
-        await blobService.Upload(blobId, new MemoryStream(Array.Empty<byte>()));
+        await blobService.Upload(blobId, new MemoryStream([]));
 
         // Act
         var size = await blobService.GetBlobSizeAsync(blobId);

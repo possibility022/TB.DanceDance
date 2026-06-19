@@ -1,6 +1,7 @@
 using Application.Features.AccessManagement;
 using Application.Features.Events;
 using Application.Features.Sharing;
+using Application.Features.Transfers;
 using Application.Features.Videos;
 using Application.Features.Groups;
 using Application.Features.Comments;
@@ -30,6 +31,7 @@ public static class DependencyInjection
             services.AddCommentsFeature();
 
             services.AddSharingFeature();
+            services.AddTransfersFeature();
             services.AddGroupsFeature();
             services.AddEventsFeature();
             services.AddAccessManagementFeature();

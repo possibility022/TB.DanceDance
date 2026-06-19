@@ -15,8 +15,10 @@
     [videos]="items()"
     emptyMessage="You haven’t uploaded any recordings yet."
     [shareable]="true"
+    [transferable]="true"
     [deletable]="true"
     (share)="openShare($event)"
+    (transfer)="openTransfer($event)"
     (deleteVideo)="onDelete($event)"
   />
 
@@ -41,4 +43,11 @@
   [commentVisibility]="shareTarget()?.commentVisibility ?? 0"
   [open]="shareOpen()"
   (closed)="closeShare()"
+/>
+
+<app-transfer-dialog
+  [videoId]="transferTarget()?.videoId ?? ''"
+  [videoName]="transferTarget()?.name ?? ''"
+  [open]="transferOpen()"
+  (closed)="closeTransfer()"
 />

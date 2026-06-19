@@ -144,7 +144,7 @@ public class DanceDanceApiClientTests : IDisposable
             VideoId = Guid.NewGuid(),
             RecordedDateTime = DateTime.UtcNow,
             Duration = TimeSpan.FromMinutes(2),
-            Metadata = new byte[] { 10, 20, 30 }
+            Metadata = [10, 20, 30]
         };
 
         await danceApiClient.UploadVideoToTransformInformation(req, CancellationToken.None);

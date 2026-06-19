@@ -19,10 +19,12 @@ import { VideoCard } from '../video-card/video-card';
             <app-video-card
               [video]="video"
               [shareable]="shareable()"
+              [transferable]="transferable()"
               [deletable]="deletable()"
               [queryParams]="queryParams()"
               [selected]="!!selectedBlobId() && video.blobId === selectedBlobId()"
               (share)="share.emit($event)"
+              (transfer)="transfer.emit($event)"
               (deleteVideo)="deleteVideo.emit($event)"
             />
           </div>
@@ -35,6 +37,7 @@ export class VideoList {
   readonly videos = input.required<readonly VideoInformation[]>();
   readonly emptyMessage = input('No recordings yet.');
   readonly shareable = input(false);
+  readonly transferable = input(false);
   /** Show a per-card Delete action (owner-only). */
   readonly deletable = input(false);
   /** Scope carried to the player so it can show a sibling playlist. */
@@ -43,6 +46,7 @@ export class VideoList {
   /** Highlight the currently-playing recording (blob id). */
   readonly selectedBlobId = input<string>('');
   readonly share = output<VideoInformation>();
+  readonly transfer = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
 
   readonly queryParams = computed<Params>(() => {

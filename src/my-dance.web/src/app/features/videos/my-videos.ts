@@ -6,12 +6,13 @@ import { VideosService } from '../../core/api/videos.service';
 import { VideoInformation } from '../../core/api/api-models';
 import { VideoList } from '../../shared/ui/video-list/video-list';
 import { ShareDialog } from '../sharing/share-dialog';
+import { TransferDialog } from '../transfers/transfer-dialog';
 
 const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-my-videos',
-  imports: [VideoList, ShareDialog],
+  imports: [VideoList, ShareDialog, TransferDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './my-videos.html',
 })
@@ -31,6 +32,9 @@ export class MyVideos {
 
   readonly shareTarget = signal<VideoInformation | null>(null);
   readonly shareOpen = signal(false);
+
+  readonly transferTarget = signal<VideoInformation | null>(null);
+  readonly transferOpen = signal(false);
 
   constructor() {
     this.load();
@@ -90,6 +94,15 @@ export class MyVideos {
 
   closeShare(): void {
     this.shareOpen.set(false);
+  }
+
+  openTransfer(video: VideoInformation): void {
+    this.transferTarget.set(video);
+    this.transferOpen.set(true);
+  }
+
+  closeTransfer(): void {
+    this.transferOpen.set(false);
   }
 
   onDelete(video: VideoInformation): void {

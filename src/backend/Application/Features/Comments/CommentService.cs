@@ -145,7 +145,7 @@ public class CommentService : ICommentService
         CancellationToken cancellationToken)
     {
         // Check if user is the video owner
-        var isVideoOwner = userId != null && video.UploadedBy == userId;
+        var isVideoOwner = userId != null && video.OwnerUserId == userId;
         var videoId = video.Id;
 
         // Video owner always sees all comments (including hidden ones)
@@ -305,7 +305,7 @@ public class CommentService : ICommentService
 
         // Check if user can delete: either the comment author or the video owner
         var isAuthor = !string.IsNullOrEmpty(userId) && comment.UserId == userId;
-        var isVideoOwner = comment.Video.UploadedBy == userId;
+        var isVideoOwner = comment.Video.OwnerUserId == userId;
         bool shaMatches = CheckAnonymousIdMatch(anonymousId, comment);
         
         if (!isAuthor && !isVideoOwner && !shaMatches)
@@ -333,7 +333,7 @@ public class CommentService : ICommentService
         }
 
         // Only video owner can hide comments
-        if (comment.Video.UploadedBy != videoOwnerId)
+        if (comment.Video.OwnerUserId != videoOwnerId)
         {
             return false;
         }
@@ -358,7 +358,7 @@ public class CommentService : ICommentService
         }
 
         // Only video owner can unhide comments
-        if (comment.Video.UploadedBy != videoOwnerId)
+        if (comment.Video.OwnerUserId != videoOwnerId)
         {
             return false;
         }

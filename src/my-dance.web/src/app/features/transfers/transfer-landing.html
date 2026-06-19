@@ -1,0 +1,80 @@
+<header class="block">
+  <h1 class="title">Incoming transfer</h1>
+  <p class="subtitle">Someone wants to give you these recordings. Accepting moves them into your library right away.</p>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading transfer">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-warning is-light" role="alert">
+    This transfer link is no longer valid. It may have expired, been revoked, or already been handled.
+  </div>
+} @else if (outcome() === 'accepted' || info()?.status === 'Accepted') {
+  <div class="notification is-success is-light" role="status">
+    <p class="block">This recording is now yours.</p>
+    @if (info()?.rollbackDeadline; as deadline) {
+      <p class="block is-size-7 has-text-grey">
+        The original owner can reclaim it until {{ deadline | longDate }} if this was a mistake.
+      </p>
+    }
+    <a class="button is-primary" routerLink="/videos/my">Go to my recordings</a>
+  </div>
+} @else if (outcome() === 'declined') {
+  <div class="notification is-light" role="status">You declined this transfer.</div>
+} @else if (info(); as transfer) {
+  <p class="block">
+    <strong>{{ transfer.items?.length ?? 0 }}</strong>
+    recording{{ (transfer.items?.length ?? 0) === 1 ? '' : 's' }} ·
+    {{ transfer.totalSizeBytes | fileSize }} total. Accepting adds this to your storage.
+  </p>
+
+  @if (quotaError(); as q) {
+    <div class="notification is-danger is-light" role="alert">
+      Not enough storage to accept: needs {{ q.required | fileSize }} but only
+      {{ q.available | fileSize }} is available. Free up space and try again.
+    </div>
+  }
+  @if (actionFailed()) {
+    <div class="notification is-danger is-light" role="alert">
+      Something went wrong. Please try again.
+    </div>
+  }
+
+  <div class="columns is-multiline">
+    @for (item of transfer.items ?? []; track item.videoId) {
+      <div class="column is-half">
+        <div class="box">
+          <h3 class="title is-6">{{ item.name || 'Untitled recording' }}</h3>
+          <p class="is-size-7 has-text-grey">
+            {{ item.recordedDateTime | longDate }} · {{ item.sizeBytes | fileSize }}
+          </p>
+          @if (streamUrl(item.videoId); as url) {
+            <video class="transfer-preview" controls preload="none" [src]="url"></video>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="buttons">
+    <button
+      type="button"
+      class="button is-primary"
+      [class.is-loading]="submitting()"
+      [disabled]="submitting()"
+      (click)="accept()"
+    >
+      Accept
+    </button>
+    @if (transfer.status === 'Pending') {
+      <button
+        type="button"
+        class="button"
+        [disabled]="submitting()"
+        (click)="decline()"
+      >
+        Decline
+      </button>
+    }
+  </div>
+}

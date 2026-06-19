@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Domain.Entities;
+﻿using Domain.Entities;
 
 namespace TB.DanceDance.Tests;
 
@@ -25,7 +24,7 @@ public static class TestDataFactory
 
         // Create one video uploaded by the user and share it with the group
         var videoB = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(joinedAt.AddMinutes(1));
         var video = videoB.Build();
         var groupShare = videoB.ShareWithGroup(group, user).BuildShares().Single();
@@ -61,14 +60,14 @@ public static class TestDataFactory
 
         // Video shared BEFORE join
         var videoBeforeB = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(joinedAt.AddMinutes(-10));
         var videoBefore = videoBeforeB.Build();
         var shareBefore = videoBeforeB.ShareWithGroup(group, user).BuildShares().Single();
 
         // Video shared AFTER join
         var videoAfterB = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(joinedAt.AddMinutes(10));
         var videoAfter = videoAfterB.Build();
         var shareAfter = videoAfterB.ShareWithGroup(group, user).BuildShares().Single();
@@ -96,7 +95,7 @@ public static class TestDataFactory
 
         // Create one video uploaded by the user and share it with the event
         var videoB = new VideoDataBuilder()
-            .UploadedBy(user)
+            .OwnedBy(user)
             .SharedAt(DateTime.UtcNow.AddMinutes(1));
         var video = videoB.Build();
         var eventShare = videoB.ShareWithEvent(evt, user).BuildShares().Single();
