@@ -23,6 +23,7 @@ function createFixture(opts: {
     getSharedVideo:
       opts.getSharedVideo ?? vi.fn(() => of(opts.info ?? { videoId: 'v1', name: 'Shared' })),
     sharedStreamUrl: vi.fn(() => 'https://api/stream'),
+    sharedVideoStreamUrl: vi.fn((linkId: string, videoId: string) => `https://api/stream/${videoId}`),
   };
   const comments = {
     getCommentsByLink: opts.getCommentsByLink ?? vi.fn(() => of({ items: [], totalCount: 0 })),
@@ -65,6 +66,34 @@ describe('SharedLinkViewer', () => {
     const { component } = createFixture({ getSharedVideo: vi.fn(() => throwError(() => new Error('gone'))) });
     expect(component.failed()).toBe(true);
     expect(component.loading()).toBe(false);
+  });
+
+  it('renders a competition link as multiple videos with per-video stream urls', () => {
+    const { component, comments } = createFixture({
+      info: {
+        name: 'Nationals',
+        isCompetition: true,
+        allowCommentsOnThisLink: true,
+        videos: [
+          { videoId: 'v1', name: 'Round 1' },
+          { videoId: 'v2', name: 'Round 2' },
+        ],
+      },
+    });
+
+    expect(component.isCompetition()).toBe(true);
+    const videos = component.competitionVideos();
+    expect(videos).toHaveLength(2);
+    expect(videos[0]).toMatchObject({ videoId: 'v1', url: 'https://api/stream/v1' });
+    expect(videos[1]).toMatchObject({ videoId: 'v2', url: 'https://api/stream/v2' });
+    // Still one combined thread, loaded by link id.
+    expect(comments.getCommentsByLink).toHaveBeenCalledWith('link-1', 1, 20);
+  });
+
+  it('treats a single-video link as not a competition', () => {
+    const { component } = createFixture({ info: { videoId: 'v1', name: 'Shared', isCompetition: false } });
+    expect(component.isCompetition()).toBe(false);
+    expect(component.competitionVideos()).toHaveLength(0);
   });
 
   describe('canCompose', () => {
