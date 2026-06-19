@@ -10,6 +10,12 @@ public static class ApiRoutes
 
         public const string Videos = $"{Base}/videos";
         public const string VideosForGroup = $"{Base}/{{groupId:guid}}/videos";
+
+        public const string Create = Base;
+        public const string Admins = $"{Base}/{{groupId:guid}}/admins";
+        public const string AdminById = $"{Base}/{{groupId:guid}}/admins/{{userId}}";
+        public const string Members = $"{Base}/{{groupId:guid}}/members";
+        public const string MemberById = $"{Base}/{{groupId:guid}}/members/{{userId}}";
     }
     
     public static class Events

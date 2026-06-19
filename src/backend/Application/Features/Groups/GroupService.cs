@@ -1,6 +1,7 @@
 ﻿using Application.Domain.Models;
 using Application.Extensions;
 using Application.Features.Videos;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
 using TB.DanceDance.API.Contracts.Models;
@@ -23,7 +24,139 @@ public class GroupService : IGroupService
     {
         return await dbContext.Groups.ToListAsync(cancellationToken);
     }
-    
+
+    public Task<bool> IsGroupAdmin(Guid groupId, string userId, CancellationToken cancellationToken)
+    {
+        return dbContext.GroupsAdmins
+            .AnyAsync(ga => ga.GroupId == groupId && ga.UserId == userId, cancellationToken);
+    }
+
+    public Task<Guid[]> GetAdministeredGroupIdsAsync(string userId, CancellationToken cancellationToken)
+    {
+        return dbContext.GroupsAdmins
+            .Where(ga => ga.UserId == userId)
+            .Select(ga => ga.GroupId)
+            .ToArrayAsync(cancellationToken);
+    }
+
+    public async Task<Group> CreateGroupAsync(string name, DateOnly seasonStart, DateOnly seasonEnd, string creatorUserId, CancellationToken cancellationToken)
+    {
+        var group = new Group
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            SeasonStart = seasonStart,
+            SeasonEnd = seasonEnd,
+        };
+
+        dbContext.Groups.Add(group);
+        dbContext.GroupsAdmins.Add(new GroupAdmin
+        {
+            Id = Guid.NewGuid(),
+            GroupId = group.Id,
+            UserId = creatorUserId,
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return group;
+    }
+
+    public Task<GroupAdminModel[]> GetAdminsAsync(Guid groupId, CancellationToken cancellationToken)
+    {
+        var q = from ga in dbContext.GroupsAdmins
+                join u in dbContext.Users on ga.UserId equals u.Id
+                where ga.GroupId == groupId
+                orderby u.LastName, u.FirstName
+                select new GroupAdminModel
+                {
+                    UserId = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                };
+
+        return q.ToArrayAsync(cancellationToken);
+    }
+
+    public async Task<bool> AddAdminAsync(Guid groupId, string userId, CancellationToken cancellationToken)
+    {
+        var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+        if (!userExists)
+            return false;
+
+        var alreadyAdmin = await dbContext.GroupsAdmins
+            .AnyAsync(ga => ga.GroupId == groupId && ga.UserId == userId, cancellationToken);
+        if (alreadyAdmin)
+            return true;
+
+        dbContext.GroupsAdmins.Add(new GroupAdmin
+        {
+            Id = Guid.NewGuid(),
+            GroupId = groupId,
+            UserId = userId,
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<RemoveGroupAdminResult> RemoveAdminAsync(Guid groupId, string userId, CancellationToken cancellationToken)
+    {
+        var admin = await dbContext.GroupsAdmins
+            .FirstOrDefaultAsync(ga => ga.GroupId == groupId && ga.UserId == userId, cancellationToken);
+        if (admin is null)
+            return RemoveGroupAdminResult.NotAnAdmin;
+
+        var adminCount = await dbContext.GroupsAdmins.CountAsync(ga => ga.GroupId == groupId, cancellationToken);
+        if (adminCount <= 1)
+            return RemoveGroupAdminResult.BlockedLastAdmin;
+
+        dbContext.GroupsAdmins.Remove(admin);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return RemoveGroupAdminResult.Removed;
+    }
+
+    public Task<GroupMemberModel[]> GetMembersAsync(Guid groupId, CancellationToken cancellationToken)
+    {
+        var q = from a in dbContext.AssingedToGroups
+                join u in dbContext.Users on a.UserId equals u.Id
+                where a.GroupId == groupId
+                orderby u.LastName, u.FirstName
+                select new GroupMemberModel
+                {
+                    UserId = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                    WhenJoined = a.WhenJoined,
+                };
+
+        return q.ToArrayAsync(cancellationToken);
+    }
+
+    public async Task<bool> UpdateMemberJoinedAsync(Guid groupId, string userId, DateTime whenJoined, CancellationToken cancellationToken)
+    {
+        var membership = await dbContext.AssingedToGroups
+            .FirstOrDefaultAsync(a => a.GroupId == groupId && a.UserId == userId, cancellationToken);
+        if (membership is null)
+            return false;
+
+        membership.WhenJoined = whenJoined;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> RemoveMemberAsync(Guid groupId, string userId, CancellationToken cancellationToken)
+    {
+        var membership = await dbContext.AssingedToGroups
+            .FirstOrDefaultAsync(a => a.GroupId == groupId && a.UserId == userId, cancellationToken);
+        if (membership is null)
+            return false;
+
+        dbContext.AssingedToGroups.Remove(membership);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     [Obsolete]
     public Task<VideoFromGroupInfo[]> GetUserVideosForGroup(string userId, Guid groupId, CancellationToken cancellationToken)
     {
