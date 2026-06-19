@@ -41,7 +41,8 @@ namespace Application.Features.Sharing.Endpoints
             }
 
             var stream = await videoService.OpenStream(video.BlobId, ct);
-            await Send.StreamAsync(stream, contentType: "video/mp4", enableRangeProcessing: true, cancellation: ct);
+            var contentType = await videoService.GetContentType(video.BlobId, ct);
+            await Send.StreamAsync(stream, contentType: contentType, enableRangeProcessing: true, cancellation: ct);
         }
     }
 }

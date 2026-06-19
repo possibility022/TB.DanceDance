@@ -13,6 +13,13 @@ public interface IBlobDataService
     Task<long> GetBlobSizeAsync(string blobId);
 
     /// <summary>
+    /// Returns the blob's stored Content-Type, or null when it has none / is the Azure
+    /// default ("application/octet-stream") — callers should fall back to a sensible
+    /// default in that case (e.g. for blobs uploaded before Content-Type was set on upload).
+    /// </summary>
+    Task<string?> GetContentTypeAsync(string blobId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Deletes the blob (including snapshots) if it exists. No-op when the blob is absent.
     /// </summary>
     Task DeleteAsync(string blobId, CancellationToken cancellationToken = default);

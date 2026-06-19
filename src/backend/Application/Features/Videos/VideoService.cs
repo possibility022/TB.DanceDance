@@ -47,6 +47,12 @@ public class VideoService : IVideoService
         return blobService.OpenStream(blobName, cancellationToken);
     }
 
+    public async Task<string> GetContentType(string blobName, CancellationToken cancellationToken)
+    {
+        var contentType = await blobService.GetContentTypeAsync(blobName, cancellationToken);
+        return contentType ?? "video/webm";
+    }
+
     public async Task<bool> RenameVideoAsync(Guid guid, string newName, CancellationToken cancellationToken)
     {
         var video = await dbContext.Videos.FirstOrDefaultAsync(r => r.Id == guid, cancellationToken: cancellationToken);

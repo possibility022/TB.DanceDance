@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using System.Net.Http.Json;
 using System.Text.Json;
 using TB.DanceDance.API.Contracts.Features.Videos.Converter;
@@ -92,7 +93,10 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
         // Same host rewrite as in GetVideoToConvertAsync — SAS upload URL may also contain
         // 127.0.0.1 from the API's development blob connection string.
         var cloudBlockBlob = new BlobClient(RewriteBlobUrl(new Uri(body.Sas)));
-        await cloudBlockBlob.UploadAsync(content, token);
+        await cloudBlockBlob.UploadAsync(content, new BlobUploadOptions
+        {
+            HttpHeaders = new BlobHttpHeaders { ContentType = "video/webm" }
+        }, token);
     }
 
     public async Task PublishTransformedVideo(Guid videoId, CancellationToken token)
@@ -130,7 +134,10 @@ internal class DanceDanceApiClient : IDanceDanceApiClient
             throw new NullReferenceException("Deserialized body is null.");
 
         var cloudBlockBlob = new BlobClient(RewriteBlobUrl(new Uri(body.Sas)));
-        await cloudBlockBlob.UploadAsync(content, token);
+        await cloudBlockBlob.UploadAsync(content, new BlobUploadOptions
+        {
+            HttpHeaders = new BlobHttpHeaders { ContentType = "image/jpeg" }
+        }, token);
     }
 
     public async Task PublishThumbnail(Guid videoId, CancellationToken token)
