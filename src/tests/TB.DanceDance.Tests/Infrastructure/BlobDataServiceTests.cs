@@ -78,6 +78,35 @@ public class BlobDataServiceTests
     }
 
     [Fact]
+    public async Task GetContentTypeAsync_ReturnsNull_ForBlobUploadedWithoutContentType()
+    {
+        // Arrange — plain Upload() sets no headers, so Azure defaults to application/octet-stream.
+        var blobService = factory.GetBlobDataService(BlobContainer.Videos);
+        var blobId = Guid.NewGuid().ToString();
+        await blobService.Upload(blobId, new MemoryStream(new byte[10]));
+
+        // Act
+        var contentType = await blobService.GetContentTypeAsync(blobId, CancellationToken.None);
+
+        // Assert
+        Assert.Null(contentType);
+    }
+
+    [Fact]
+    public async Task GetContentTypeAsync_Throws_ForNonExistentBlob()
+    {
+        // Arrange
+        var blobService = factory.GetBlobDataService(BlobContainer.Videos);
+        var nonExistentBlobId = Guid.NewGuid().ToString();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<Azure.RequestFailedException>(async () =>
+        {
+            await blobService.GetContentTypeAsync(nonExistentBlobId, CancellationToken.None);
+        });
+    }
+
+    [Fact]
     public void GetReadSas_WithExplicitExpiry_ProducesByteIdenticalUrls_ForSameExpiry()
     {
         // Arrange
