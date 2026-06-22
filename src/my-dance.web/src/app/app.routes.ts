@@ -44,6 +44,19 @@ export const routes: Routes = [
     loadComponent: () => import('./features/transfers/my-transfers').then((m) => m.MyTransfers),
   },
   {
+    path: 'competitions',
+    title: 'Competitions · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/competitions/competitions').then((m) => m.Competitions),
+  },
+  {
+    path: 'competitions/:competitionId',
+    title: 'Competition · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/competitions/competition-detail').then((m) => m.CompetitionDetail),
+  },
+  {
     // Stable URL — transfer links are handed out to other people (but require login).
     // autoLoginPartialRoutesGuard preserves this exact URL (incl. query string) through
     // the OIDC login round trip.
@@ -77,6 +90,26 @@ export const routes: Routes = [
     title: 'Access requests · Dance Dance',
     canActivate: [autoLoginPartialRoutesGuard, adminGuard],
     loadComponent: () => import('./features/access/access-requests').then((m) => m.AccessRequests),
+  },
+  {
+    path: 'groups/create',
+    title: 'Create group · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/create-group').then((m) => m.CreateGroup),
+  },
+  {
+    // Lists the groups the current user administers; select one to manage it.
+    path: 'groups/manage',
+    title: 'Manage groups · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/groups-list').then((m) => m.GroupsList),
+  },
+  {
+    // Admin-only management for a single group; server enforces the admin check.
+    path: 'groups/:groupId/manage',
+    title: 'Group management · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/group-management').then((m) => m.GroupManagement),
   },
 
   // --- OIDC plumbing (public) ---

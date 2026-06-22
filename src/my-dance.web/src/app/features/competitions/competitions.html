@@ -1,0 +1,43 @@
+<header class="block level">
+  <div class="level-left">
+    <div>
+      <h1 class="title">Competitions</h1>
+      <p class="subtitle">Group your private recordings and share them as one feedback thread.</p>
+    </div>
+  </div>
+  <div class="level-right">
+    <button type="button" class="button is-primary" (click)="openCreateModal()">Add competition</button>
+  </div>
+</header>
+
+<app-competition-create-dialog
+  [open]="createModalOpen()"
+  (closed)="closeCreateModal()"
+  (created)="onCompetitionCreated()"
+/>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading competitions">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load your competitions.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else if (items().length === 0) {
+  <p class="has-text-grey">You haven’t created any competitions yet.</p>
+} @else {
+  <div class="columns is-multiline">
+    @for (competition of items(); track competition.id) {
+      <div class="column is-one-third-desktop is-half-tablet">
+        <a class="box is-block" [routerLink]="['/competitions', competition.id]">
+          <h3 class="title is-6 mb-2">{{ competition.name }}</h3>
+          <p class="is-size-7 has-text-grey">
+            {{ competition.videoCount }} recording{{ competition.videoCount === 1 ? '' : 's' }}
+            @if (competition.location) { · {{ competition.location }} }
+            @if (competition.date) { · {{ competition.date | longDate }} }
+          </p>
+        </a>
+      </div>
+    }
+  </div>
+}

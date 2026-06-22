@@ -177,6 +177,8 @@ export interface SharedLinkResponse {
     linkId?: string;
     videoId?: string;
     videoName?: string;
+    competitionId?: string | undefined;
+    competitionName?: string | undefined;
     createdAt?: Date;
     expireAt?: Date;
     isRevoked?: boolean;
@@ -203,6 +205,33 @@ export interface SharedVideoInfoResponse {
     commentVisibility?: number;
     allowCommentsOnThisLink?: boolean;
     allowAnonymousCommentsOnThisLink?: boolean;
+    isCompetition?: boolean;
+    videos?: SharedVideoItem[];
+}
+
+export interface SharedVideoItem {
+    videoId?: string;
+    name?: string;
+    duration?: string | undefined;
+    recordedDateTime?: Date;
+}
+
+export interface AddGroupAdminRequest {
+    userId?: string;
+}
+
+export interface CreateGroupResponse {
+    id?: string;
+}
+
+export interface CreateGroupRequest {
+    name: string;
+    seasonStart: Date;
+    seasonEnd: Date;
+}
+
+export interface ListMyGroupsResponse {
+    groups?: GroupModel[];
 }
 
 export interface PagedResponseOfVideoFromGroupInformation {
@@ -220,7 +249,34 @@ export interface VideoFromGroupInformation extends VideoInformation {
 export interface ListAllGroupVideosRequest extends PagedRequest {
 }
 
+export interface ListGroupAdminsResponse {
+    admins?: GroupAdminModel[];
+}
+
+export interface GroupAdminModel {
+    userId?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+}
+
+export interface ListGroupMembersResponse {
+    members?: GroupMemberModel[];
+}
+
+export interface GroupMemberModel {
+    userId?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    whenJoined?: Date;
+}
+
 export interface ListGroupVideosRequest extends PagedRequest {
+}
+
+export interface UpdateGroupMemberRequest {
+    whenJoined?: Date;
 }
 
 export interface CreateNewEventResponse {
@@ -238,6 +294,41 @@ export interface EventModel {
 }
 
 export interface ListEventVideosRequest extends PagedRequest {
+}
+
+export interface CompetitionResponse {
+    id?: string;
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+    createdDateTime?: Date;
+    videos?: VideoInformation[];
+}
+
+export interface CreateCompetitionRequest {
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+}
+
+export interface ListMyCompetitionsResponse {
+    competitions?: CompetitionSummaryResponse[];
+}
+
+export interface CompetitionSummaryResponse {
+    id?: string;
+    name?: string;
+    date?: Date | undefined;
+    location?: string | undefined;
+    commentVisibility?: number;
+    createdDateTime?: Date;
+    videoCount?: number;
+}
+
+export interface RenameCompetitionRequest {
+    newName?: string;
 }
 
 export interface CommentResponse {
@@ -269,6 +360,9 @@ export interface PagedResponseOfCommentResponse {
 }
 
 export interface ListCommentsByLinkRequest extends PagedRequest {
+}
+
+export interface ListCommentsForCompetitionRequest extends PagedRequest {
 }
 
 export interface ListCommentsForVideoRequest extends PagedRequest {
@@ -318,6 +412,7 @@ export interface GetUserAccessResponse {
     assigned?: GetUserAccessSet;
     available?: GetUserAccessSet;
     pending?: ListUserAccessPending;
+    administeredGroupIds?: string[];
 }
 
 export interface GetUserAccessSet {

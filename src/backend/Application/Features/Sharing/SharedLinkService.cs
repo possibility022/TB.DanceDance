@@ -87,6 +87,63 @@ public class SharedLinkService : ISharedLinkService
         return sharedLink;
     }
 
+    public async Task<SharedLink> CreateCompetitionSharedLinkAsync(
+        Guid competitionId,
+        string userId,
+        int expirationDays,
+        bool allowComments,
+        bool allowAnonymousComments,
+        CancellationToken cancellationToken)
+    {
+        if (expirationDays < MinExpirationDays || expirationDays > MaxExpirationDays)
+        {
+            throw new ArgumentException(
+                $"Expiration days must be between {MinExpirationDays} and {MaxExpirationDays}.",
+                nameof(expirationDays));
+        }
+
+        var competition = await dbContext.Competitions
+            .FirstOrDefaultAsync(c => c.Id == competitionId, cancellationToken);
+
+        if (competition == null || competition.OwnerUserId != userId)
+        {
+            // Don't leak existence to non-owners.
+            throw new ArgumentException($"Competition {competitionId} was not found.", nameof(competitionId));
+        }
+
+        string linkId = GenerateUniqueLinkId();
+        int retries = 0;
+
+        while (await dbContext.SharedLinks.AnyAsync(l => l.Id == linkId, cancellationToken) && retries < MaxRetries)
+        {
+            linkId = GenerateUniqueLinkId();
+            retries++;
+        }
+
+        if (retries >= MaxRetries)
+        {
+            throw new InvalidOperationException("Failed to generate unique link ID after maximum retries.");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var sharedLink = new SharedLink
+        {
+            Id = linkId,
+            CompetitionId = competitionId,
+            SharedBy = userId,
+            CreatedAt = now,
+            ExpireAt = now.AddDays(expirationDays),
+            IsRevoked = false,
+            AllowComments = allowComments,
+            AllowAnonymousComments = allowAnonymousComments
+        };
+
+        dbContext.SharedLinks.Add(sharedLink);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return sharedLink;
+    }
+
     public async Task<Video?> GetVideoBySharedLinkAsync(string linkId, CancellationToken cancellationToken)
     {
         var link = await dbContext.SharedLinks
@@ -107,10 +164,39 @@ public class SharedLinkService : ISharedLinkService
         return link.Video;
     }
 
+    public async Task<Video?> GetVideoForSharedLinkAsync(string linkId, Guid videoId, CancellationToken cancellationToken)
+    {
+        var link = await dbContext.SharedLinks
+            .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
+
+        if (link == null || link.ExpireAt <= DateTimeOffset.UtcNow || link.IsRevoked)
+        {
+            return null;
+        }
+
+        // Single-video link: the requested video must be that video.
+        if (link.VideoId != null)
+        {
+            return link.VideoId == videoId
+                ? await dbContext.Videos.FirstOrDefaultAsync(v => v.Id == videoId, cancellationToken)
+                : null;
+        }
+
+        // Competition link: the requested video must belong to that competition.
+        if (link.CompetitionId != null)
+        {
+            return await dbContext.Videos
+                .FirstOrDefaultAsync(v => v.Id == videoId && v.CompetitionId == link.CompetitionId, cancellationToken);
+        }
+
+        return null;
+    }
+
     public async Task<bool> RevokeSharedLinkAsync(string linkId, string userId, CancellationToken cancellationToken)
     {
         var link = await dbContext.SharedLinks
             .Include(l => l.Video)
+            .Include(l => l.Competition)
             .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
 
         if (link == null)
@@ -118,8 +204,10 @@ public class SharedLinkService : ISharedLinkService
             return false;
         }
 
-        // Check if user can revoke: either the link creator or the video owner
-        var canRevoke = link.SharedBy == userId || link.Video.OwnerUserId == userId;
+        // Check if user can revoke: the link creator, or the owner of the targeted video/competition.
+        var canRevoke = link.SharedBy == userId
+            || link.Video?.OwnerUserId == userId
+            || link.Competition?.OwnerUserId == userId;
 
         if (!canRevoke)
         {
@@ -138,7 +226,10 @@ public class SharedLinkService : ISharedLinkService
     {
         var links = await dbContext.SharedLinks
             .Include(l => l.Video)
-            .Where(l => l.SharedBy == userId || l.Video.OwnerUserId == userId)
+            .Include(l => l.Competition)
+            .Where(l => l.SharedBy == userId
+                     || l.Video!.OwnerUserId == userId
+                     || l.Competition!.OwnerUserId == userId)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -149,6 +240,8 @@ public class SharedLinkService : ISharedLinkService
     {
         var link = await dbContext.SharedLinks
             .Include(l => l.Video)
+            .Include(l => l.Competition!)
+                .ThenInclude(c => c.Videos)
             .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
 
         if (link == null)

@@ -5,6 +5,7 @@ using Application.Features.Transfers;
 using Application.Features.Videos;
 using Application.Features.Groups;
 using Application.Features.Comments;
+using Application.Features.Competitions;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Builder;
@@ -36,6 +37,7 @@ public static class DependencyInjection
             services.AddEventsFeature();
             services.AddAccessManagementFeature();
             services.AddVideosFeature();
+            services.AddCompetitionsFeature();
 
             // FastEndpoints discovery. The endpoint classes live in this (Application) assembly, so
             // point discovery at it explicitly rather than relying on AppDomain scanning.

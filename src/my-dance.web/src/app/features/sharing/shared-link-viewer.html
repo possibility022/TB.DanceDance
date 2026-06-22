@@ -15,7 +15,31 @@
     </p>
   </header>
 
-  @if (streamUrl(); as src) {
+  @if (isCompetition()) {
+    @for (item of competitionVideos(); track item.videoId) {
+      <div class="block">
+        <h2 class="title is-5 mb-2">{{ item.name }}</h2>
+        <p class="is-size-7 has-text-grey mb-2">
+          {{ item.recordedDateTime | longDate }}
+          @if (item.duration) {
+            · {{ item.duration }}
+          }
+        </p>
+        <video
+          class="is-block"
+          style="width: 100%; max-height: 70vh; background: #000;"
+          controls
+          preload="metadata"
+          [src]="item.url"
+          [attr.aria-label]="'Recording: ' + item.name"
+        >
+          Your browser doesn’t support embedded video.
+        </video>
+      </div>
+    } @empty {
+      <p class="has-text-grey">This competition has no recordings yet.</p>
+    }
+  } @else if (streamUrl(); as src) {
     <video
       class="is-block"
       style="width: 100%; max-height: 70vh; background: #000;"

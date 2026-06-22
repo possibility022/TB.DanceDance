@@ -22,8 +22,8 @@ DO $$
             INSERT INTO access."Events" ("Id", "Name", "Date", "Type", "Owner") VALUES ('25fac427-1332-4fd8-98b1-5ae572b8da01', 'Warsztaty - Rama - 2022', '2022-10-01 00:00:00.000000 +00:00', 0, userId);
             INSERT INTO access."Events" ("Id", "Name", "Date", "Type", "Owner") VALUES ('6e78f313-7fcc-497e-b8c4-c87a6a9551e9', 'Warsztaty - Footworki - 2022', '2022-07-02 00:00:00.000000 +00:00', 0, userId);
 
-            INSERT INTO access."Groups" ("Id", "Name") VALUES ('2a7554e4-0dc3-4f92-be4c-e4463adf1cee', 'Czwartki 21:30');
-            INSERT INTO access."Groups" ("Id", "Name") VALUES ('7c30e3cc-e6d8-4cf7-8b64-eba68efa5366', 'Środy 18:00');
+            INSERT INTO access."Groups" ("Id", "Name", "SeasonStart", "SeasonEnd") VALUES ('2a7554e4-0dc3-4f92-be4c-e4463adf1cee', 'Czwartki 21:30', '2023-09-01', '2024-08-31');
+            INSERT INTO access."Groups" ("Id", "Name", "SeasonStart", "SeasonEnd") VALUES ('7c30e3cc-e6d8-4cf7-8b64-eba68efa5366', 'Środy 18:00', '2023-10-01', '2024-09-30');
 
             INSERT INTO access."SharedWith" ("Id", "VideoId", "UserId", "EventId", "GroupId") VALUES (gen_random_uuid(), 'a48b84e0-cc0e-4557-a9e8-25d96aed36e8', userId, null, '2a7554e4-0dc3-4f92-be4c-e4463adf1cee');
             INSERT INTO access."SharedWith" ("Id", "VideoId", "UserId", "EventId", "GroupId") VALUES (gen_random_uuid(), '34bfea40-4ea3-40b3-9f22-444c2416c74a', userId, null, '2a7554e4-0dc3-4f92-be4c-e4463adf1cee');

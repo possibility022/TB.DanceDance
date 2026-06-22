@@ -3,6 +3,38 @@
   <p class="subtitle">Your private library and shareable links.</p>
 </header>
 
+<section class="block">
+  <div class="level mb-3">
+    <div class="level-left">
+      <h2 class="title is-5">Competitions</h2>
+    </div>
+    <div class="level-right">
+      <a class="button is-small" routerLink="/competitions">View all</a>
+    </div>
+  </div>
+
+  @if (competitionsLoading()) {
+    <progress class="progress is-small is-primary" max="100" aria-label="Loading competitions">Loading…</progress>
+  } @else if (latestCompetitions().length === 0) {
+    <p class="has-text-grey is-size-7">You haven’t created any competitions yet.</p>
+  } @else {
+    <div class="columns is-multiline">
+      @for (competition of latestCompetitions(); track competition.id) {
+        <div class="column is-one-third-desktop is-half-tablet">
+          <a class="box is-block" [routerLink]="['/competitions', competition.id]">
+            <h3 class="title is-6 mb-2">{{ competition.name }}</h3>
+            <p class="is-size-7 has-text-grey">
+              {{ competition.videoCount }} recording{{ competition.videoCount === 1 ? '' : 's' }}
+              @if (competition.location) { · {{ competition.location }} }
+              @if (competition.date) { · {{ competition.date | longDate }} }
+            </p>
+          </a>
+        </div>
+      }
+    </div>
+  }
+</section>
+
 @if (loading()) {
   <progress class="progress is-primary" max="100" aria-label="Loading recordings">Loading…</progress>
 } @else if (failed()) {

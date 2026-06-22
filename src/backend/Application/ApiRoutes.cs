@@ -10,6 +10,13 @@ public static class ApiRoutes
 
         public const string Videos = $"{Base}/videos";
         public const string VideosForGroup = $"{Base}/{{groupId:guid}}/videos";
+
+        public const string Create = Base;
+        public const string My = $"{Base}/my";
+        public const string Admins = $"{Base}/{{groupId:guid}}/admins";
+        public const string AdminById = $"{Base}/{{groupId:guid}}/admins/{{userId}}";
+        public const string Members = $"{Base}/{{groupId:guid}}/members";
+        public const string MemberById = $"{Base}/{{groupId:guid}}/members/{{userId}}";
     }
     
     public static class Events
@@ -32,6 +39,19 @@ public static class ApiRoutes
         public const string GetUploadUrl = $"{Base}/upload";
         public const string RefreshUploadUrl = $"{Base}/upload/{{videoId:guid}}";
         public const string UpdateCommentSettings = $"{Base}/{{videoId:guid}}/comment-settings";
+    }
+
+    public static class Competitions
+    {
+        private const string Base = $"{ApiBase}/competitions";
+
+        public const string Create = Base;
+        public const string ListMy = Base;
+        public const string Get = $"{Base}/{{competitionId:guid}}";
+        public const string Rename = $"{Base}/{{competitionId:guid}}";
+        public const string Delete = $"{Base}/{{competitionId:guid}}";
+        public const string AddVideo = $"{Base}/{{competitionId:guid}}/videos/{{videoId:guid}}";
+        public const string RemoveVideo = $"{Base}/{{competitionId:guid}}/videos/{{videoId:guid}}";
     }
 
     public static class Converter
@@ -61,6 +81,7 @@ public static class ApiRoutes
         private const string Base = $"{ApiBase}/comments";
 
         public const string ListCommentsForVideo = $"{Base}/video/{{videoId:guid}}";
+        public const string ListCommentsForCompetition = $"{Base}/competition/{{competitionId:guid}}";
         public const string Create = $"{ApiBase}/share/{{linkId}}/comments";
         public const string ListByLink = $"{ApiBase}/share/{{linkId}}/comments";
         public const string Update = $"{Base}/{{commentId:guid}}";
@@ -75,10 +96,12 @@ public static class ApiRoutes
         private const string Base = $"{ApiBase}/share";
 
         public const string Create = $"{ApiBase}/videos/{{videoId:guid}}/share";
+        public const string CreateForCompetition = $"{ApiBase}/competitions/{{competitionId:guid}}/share";
         public const string Revoke = $"{Base}/{{linkId}}";
         public const string ListMy = $"{Base}/my";
         public const string GetInfo = $"{Base}/{{linkId}}";
         public const string GetStream = $"{Base}/{{linkId}}/stream";
+        public const string GetVideoStream = $"{Base}/{{linkId}}/videos/{{videoId:guid}}/stream";
     }
 
     public static class Transfer

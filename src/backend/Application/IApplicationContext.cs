@@ -19,6 +19,7 @@ public interface IApplicationContext
     DbSet<VideoTransfer> VideoTransfers { get; }
     DbSet<VideoTransferItem> VideoTransferItems { get; }
     DbSet<Comment> Comments { get; }
+    DbSet<Competition> Competitions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

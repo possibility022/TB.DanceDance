@@ -94,5 +94,14 @@ describe('Navbar', () => {
       (fixture.nativeElement.querySelector('.navbar-end button') as HTMLButtonElement).click();
       expect(logout).toHaveBeenCalledTimes(1);
     });
+
+    it('shows a "Manage groups" link under Access when signed in', () => {
+      authed.set(true);
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      const link = el.querySelector('a[href="/groups/manage"]');
+      expect(link?.textContent).toContain('Manage groups');
+    });
   });
 });

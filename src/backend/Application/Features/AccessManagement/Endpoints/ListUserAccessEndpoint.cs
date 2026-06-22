@@ -40,6 +40,7 @@ public class GetUserAccessEndpoint : EndpointWithoutRequest<GetUserAccessRespons
         var listOfEvents = await eventService.GetAllEvents(ct);
         var listOfGroups = await groupService.GetAllGroups(ct);
         var myPendingRequests = await accessManagementService.GetPendingUserRequests(user, ct);
+        var administeredGroupIds = await groupService.GetAdministeredGroupIdsAsync(user, ct);
 
         var response = new GetUserAccessResponse
         {
@@ -67,6 +68,7 @@ public class GetUserAccessEndpoint : EndpointWithoutRequest<GetUserAccessRespons
                 Events = myPendingRequests.Events,
                 Groups = myPendingRequests.Groups,
             },
+            AdministeredGroupIds = administeredGroupIds,
         };
 
         await Send.OkAsync(response, ct);

@@ -47,4 +47,14 @@ export class SharingService {
   sharedStreamUrl(linkId: string): string {
     return this.api.url(`/api/share/${encodeURIComponent(linkId)}/stream`);
   }
+
+  /**
+   * Public stream URL for one specific recording reachable through a link
+   * (the link's single video, or one of its competition's videos).
+   */
+  sharedVideoStreamUrl(linkId: string, videoId: string): string {
+    return this.api.url(
+      `/api/share/${encodeURIComponent(linkId)}/videos/${encodeURIComponent(videoId)}/stream`,
+    );
+  }
 }

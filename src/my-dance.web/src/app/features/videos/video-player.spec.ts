@@ -8,6 +8,7 @@ import { VideoPlayer } from './video-player';
 import { VideosService } from '../../core/api/videos.service';
 import { GroupsService } from '../../core/api/groups.service';
 import { EventsService } from '../../core/api/events.service';
+import { CompetitionsService } from '../../core/api/competitions.service';
 import { CommentsService } from '../../core/api/comments.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { VideoInformation } from '../../core/api/api-models';
@@ -26,9 +27,11 @@ function createFixture(opts: {
   deleteVideo?: ReturnType<typeof vi.fn>;
   getVideosForGroup?: ReturnType<typeof vi.fn>;
   getEventVideos?: ReturnType<typeof vi.fn>;
+  getCompetition?: ReturnType<typeof vi.fn>;
   getCommentsForVideo?: ReturnType<typeof vi.fn>;
   groupId?: string;
   eventId?: string;
+  competitionId?: string;
 }) {
   const video = opts.video === undefined ? CONVERTED : opts.video;
   const videos = {
@@ -39,6 +42,7 @@ function createFixture(opts: {
   };
   const groups = { getVideosForGroup: opts.getVideosForGroup ?? vi.fn(() => of({ items: [] })) };
   const events = { getEventVideos: opts.getEventVideos ?? vi.fn(() => of({ items: [] })) };
+  const competitions = { getCompetition: opts.getCompetition ?? vi.fn(() => of({ videos: [] })) };
   const comments = {
     getCommentsForVideo: opts.getCommentsForVideo ?? vi.fn(() => of({ items: [], totalCount: 0 })),
     updateComment: vi.fn(() => of(void 0)),
@@ -57,6 +61,7 @@ function createFixture(opts: {
       { provide: VideosService, useValue: videos },
       { provide: GroupsService, useValue: groups },
       { provide: EventsService, useValue: events },
+      { provide: CompetitionsService, useValue: competitions },
       { provide: CommentsService, useValue: comments },
       { provide: AuthService, useValue: auth },
       { provide: ViewportScroller, useValue: viewport },
@@ -67,8 +72,19 @@ function createFixture(opts: {
   fixture.componentRef.setInput('blobId', 'blob1');
   if (opts.groupId) fixture.componentRef.setInput('groupId', opts.groupId);
   if (opts.eventId) fixture.componentRef.setInput('eventId', opts.eventId);
+  if (opts.competitionId) fixture.componentRef.setInput('competitionId', opts.competitionId);
   fixture.detectChanges();
-  return { fixture, videos, groups, events, comments, auth, viewport, component: fixture.componentInstance };
+  return {
+    fixture,
+    videos,
+    groups,
+    events,
+    competitions,
+    comments,
+    auth,
+    viewport,
+    component: fixture.componentInstance,
+  };
 }
 
 describe('VideoPlayer', () => {
@@ -137,6 +153,15 @@ describe('VideoPlayer', () => {
       expect(component.siblings()).toHaveLength(1);
     });
 
+    it('loads competition siblings when only a competition scope is provided', () => {
+      const getCompetition = vi.fn(() =>
+        of({ videos: [{ videoId: 'a' }, { videoId: 'b' }, { videoId: 'c' }] }),
+      );
+      const { component, competitions } = createFixture({ competitionId: 'c1', getCompetition });
+      expect(competitions.getCompetition).toHaveBeenCalledWith('c1');
+      expect(component.siblings()).toHaveLength(3);
+    });
+
     it('scrolls back to the top when switching to a sibling recording', () => {
       const { fixture, viewport } = createFixture({
         groupId: 'g1',
@@ -161,6 +186,18 @@ describe('VideoPlayer', () => {
       const getVideosForGroup = vi.fn(() => throwError(() => new Error('x')));
       const { component } = createFixture({ groupId: 'g1', getVideosForGroup });
       expect(component.siblings()).toEqual([]);
+    });
+
+    it('labels the sibling tab for the active group scope', () => {
+      expect(createFixture({ groupId: 'g1' }).component.siblingScope()).toBe('group');
+    });
+
+    it('labels the sibling tab for the active event scope', () => {
+      expect(createFixture({ eventId: 'e1' }).component.siblingScope()).toBe('event');
+    });
+
+    it('labels the sibling tab for the active competition scope', () => {
+      expect(createFixture({ competitionId: 'c1' }).component.siblingScope()).toBe('competition');
     });
   });
 

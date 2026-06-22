@@ -1,0 +1,27 @@
+<header class="block">
+  <h1 class="title">Manage groups</h1>
+  <p class="subtitle">Select a group to manage its members and admins.</p>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading groups">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn't load your groups.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else if (items().length === 0) {
+  <p class="has-text-grey">You don't administer any groups yet.</p>
+} @else {
+  <div class="box">
+    @for (group of items(); track group.id) {
+      <a
+        class="button is-fullwidth is-justify-content-space-between mb-2"
+        [routerLink]="['/groups', group.id, 'manage']"
+      >
+        <span>{{ group.name }}</span>
+        <span class="is-size-7 has-text-grey">{{ group.seasonStart | seasonRange: group.seasonEnd }}</span>
+      </a>
+    }
+  </div>
+}

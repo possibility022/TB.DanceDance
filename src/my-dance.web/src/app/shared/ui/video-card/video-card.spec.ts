@@ -19,6 +19,8 @@ async function setup(
     shareable: boolean;
     transferable: boolean;
     deletable: boolean;
+    addable: boolean;
+    removable: boolean;
     selected: boolean;
     queryParams: Record<string, string>;
     badge: string;
@@ -155,6 +157,46 @@ describe('VideoCard', () => {
   it('hides the Transfer action when not transferable even for the owner', async () => {
     const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
     expect(el.querySelector('.video-card__transfer')).toBeNull();
+  });
+
+  it('shows the Add action only when addable and the user owns the video', async () => {
+    const notOwner = (await setup({ ...CONVERTED, isOwner: false }, { addable: true }))
+      .nativeElement as HTMLElement;
+    expect(notOwner.querySelector('.video-card__add')).toBeNull();
+
+    const owner = await setup({ ...CONVERTED, isOwner: true }, { addable: true });
+    const button = owner.nativeElement.querySelector('.video-card__add') as HTMLButtonElement;
+    expect(button.textContent).toContain('Add');
+
+    const emitted: VideoInformation[] = [];
+    owner.componentInstance.add.subscribe((v) => emitted.push(v));
+    button.click();
+    expect(emitted).toEqual([{ ...CONVERTED, isOwner: true }]);
+  });
+
+  it('hides the Add action when not addable even for the owner', async () => {
+    const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
+    expect(el.querySelector('.video-card__add')).toBeNull();
+  });
+
+  it('shows the Remove action only when removable and the user owns the video', async () => {
+    const notOwner = (await setup({ ...CONVERTED, isOwner: false }, { removable: true }))
+      .nativeElement as HTMLElement;
+    expect(notOwner.querySelector('.video-card__remove')).toBeNull();
+
+    const owner = await setup({ ...CONVERTED, isOwner: true }, { removable: true });
+    const button = owner.nativeElement.querySelector('.video-card__remove') as HTMLButtonElement;
+    expect(button.textContent).toContain('Remove');
+
+    const emitted: VideoInformation[] = [];
+    owner.componentInstance.remove.subscribe((v) => emitted.push(v));
+    button.click();
+    expect(emitted).toEqual([{ ...CONVERTED, isOwner: true }]);
+  });
+
+  it('hides the Remove action when not removable even for the owner', async () => {
+    const el = (await setup({ ...CONVERTED, isOwner: true })).nativeElement as HTMLElement;
+    expect(el.querySelector('.video-card__remove')).toBeNull();
   });
 
   it('highlights the card when selected', async () => {
