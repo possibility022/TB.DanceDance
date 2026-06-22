@@ -48,4 +48,68 @@ describe('GroupsService', () => {
 
     expect(response).toEqual({ items: [{ videoId: '1' }], totalCount: 1, pageNumber: 1, pageSize: 20 });
   });
+
+  it('createGroup() POSTs to /api/groups', () => {
+    const body = { name: 'Beginners', seasonStart: new Date('2024-09-01'), seasonEnd: new Date('2025-08-31') };
+    service.createGroup(body).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(body);
+    req.flush({ id: 'g1' });
+  });
+
+  it('listMyGroups() GETs the groups the current user administers', () => {
+    let response;
+    service.listMyGroups().subscribe((r) => (response = r));
+    const req = httpMock.expectOne(`${BASE}/api/groups/my`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ groups: [{ id: 'g1', name: 'Beginners' }] });
+
+    expect(response).toEqual({ groups: [{ id: 'g1', name: 'Beginners' }] });
+  });
+
+  it('listAdmins() GETs the group admins', () => {
+    service.listAdmins('g1').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups/g1/admins`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ admins: [] });
+  });
+
+  it('addAdmin() POSTs the user id to the admins collection', () => {
+    service.addAdmin('g1', { userId: 'u2' }).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups/g1/admins`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ userId: 'u2' });
+    req.flush(null);
+  });
+
+  it('removeAdmin() DELETEs the admin', () => {
+    service.removeAdmin('g1', 'u2').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups/g1/admins/u2`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
+
+  it('listMembers() GETs the group members', () => {
+    service.listMembers('g1').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups/g1/members`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ members: [] });
+  });
+
+  it('updateMember() PUTs the new join date', () => {
+    const body = { whenJoined: new Date('2024-01-02') };
+    service.updateMember('g1', 'u2', body).subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups/g1/members/u2`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(body);
+    req.flush(null);
+  });
+
+  it('removeMember() DELETEs the membership', () => {
+    service.removeMember('g1', 'u2').subscribe();
+    const req = httpMock.expectOne(`${BASE}/api/groups/g1/members/u2`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
 });

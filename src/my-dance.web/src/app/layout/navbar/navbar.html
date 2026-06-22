@@ -77,6 +77,23 @@
               >
                 Manage access requests
               </a>
+              <hr class="navbar-divider" />
+              <a
+                class="navbar-item"
+                routerLink="/groups/create"
+                routerLinkActive="is-active"
+                (click)="closeMenu()"
+              >
+                Create group
+              </a>
+              <a
+                class="navbar-item"
+                routerLink="/groups/manage"
+                routerLinkActive="is-active"
+                (click)="closeMenu()"
+              >
+                Manage groups
+              </a>
             </div>
           </div>
         }

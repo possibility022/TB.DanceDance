@@ -88,6 +88,26 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () => import('./features/access/access-requests').then((m) => m.AccessRequests),
   },
+  {
+    path: 'groups/create',
+    title: 'Create group · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/create-group').then((m) => m.CreateGroup),
+  },
+  {
+    // Lists the groups the current user administers; select one to manage it.
+    path: 'groups/manage',
+    title: 'Manage groups · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/groups-list').then((m) => m.GroupsList),
+  },
+  {
+    // Admin-only management for a single group; server enforces the admin check.
+    path: 'groups/:groupId/manage',
+    title: 'Group management · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/group-management').then((m) => m.GroupManagement),
+  },
 
   // --- OIDC plumbing (public) ---
   {

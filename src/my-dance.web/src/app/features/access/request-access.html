@@ -92,7 +92,13 @@
       <div class="content">
         <ul>
           @for (group of assignedGroups(); track group.id ?? $index) {
-            <li>{{ group.name }} <span class="has-text-grey">({{ group.seasonStart | season: group.seasonEnd }})</span></li>
+            <li>
+              {{ group.name }}
+              <span class="has-text-grey">({{ group.seasonStart | season: group.seasonEnd }})</span>
+              @if (isAdministered(group.id)) {
+                <a class="ml-2" [routerLink]="['/groups', group.id, 'manage']">Manage</a>
+              }
+            </li>
           }
           @for (event of assignedEvents(); track event.id ?? $index) {
             <li>{{ event.name }} <span class="has-text-grey">· {{ event.date | longDate }}</span></li>
