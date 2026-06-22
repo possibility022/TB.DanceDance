@@ -39,6 +39,23 @@ public class GroupService : IGroupService
             .ToArrayAsync(cancellationToken);
     }
 
+    public Task<GroupModel[]> GetAdministeredGroupsAsync(string userId, CancellationToken cancellationToken)
+    {
+        var q = from ga in dbContext.GroupsAdmins
+                join g in dbContext.Groups on ga.GroupId equals g.Id
+                where ga.UserId == userId
+                orderby g.Name
+                select new GroupModel
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    SeasonStart = g.SeasonStart.ToDateTime(TimeOnly.MinValue),
+                    SeasonEnd = g.SeasonEnd.ToDateTime(TimeOnly.MinValue),
+                };
+
+        return q.ToArrayAsync(cancellationToken);
+    }
+
     public async Task<Group> CreateGroupAsync(string name, DateOnly seasonStart, DateOnly seasonEnd, string creatorUserId, CancellationToken cancellationToken)
     {
         var group = new Group

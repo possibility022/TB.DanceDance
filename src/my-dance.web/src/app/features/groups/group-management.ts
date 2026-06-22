@@ -12,13 +12,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
 import { GroupsService } from '../../core/api/groups.service';
-import { GroupAdminModel, GroupMemberModel } from '../../core/api/api-models';
+import { GroupAdminModel, GroupMemberModel, GroupModel } from '../../core/api/api-models';
+import { SeasonRangePipe } from '../../shared/format/season-range.pipe';
 import { AccessRequests } from '../access/access-requests';
 
 /** Per-group admin screen: pending requests, members, and admins. Admin-only (server-enforced). */
 @Component({
   selector: 'app-group-management',
-  imports: [AccessRequests],
+  imports: [AccessRequests, SeasonRangePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './group-management.html',
 })
@@ -32,6 +33,7 @@ export class GroupManagement implements OnInit {
   readonly loading = signal(true);
   readonly failed = signal(false);
 
+  readonly group = signal<GroupModel | null>(null);
   readonly admins = signal<readonly GroupAdminModel[]>([]);
   readonly members = signal<readonly GroupMemberModel[]>([]);
 
@@ -57,12 +59,14 @@ export class GroupManagement implements OnInit {
     forkJoin({
       admins: this.groups.listAdmins(this.groupId()),
       members: this.groups.listMembers(this.groupId()),
+      myGroups: this.groups.listMyGroups(),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ admins, members }) => {
+        next: ({ admins, members, myGroups }) => {
           this.admins.set(admins.admins ?? []);
           this.members.set(members.members ?? []);
+          this.group.set((myGroups.groups ?? []).find((g) => g.id === this.groupId()) ?? null);
           this.editedJoinDates.set({});
           this.loading.set(false);
         },

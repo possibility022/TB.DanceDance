@@ -1,5 +1,12 @@
 <header class="block">
-  <h1 class="title">Group management</h1>
+  <h1 class="title">
+    {{ group()?.name ?? 'Group management' }}
+    @if (group()) {
+      <span class="is-size-6 has-text-grey has-text-weight-normal">
+        ({{ group()!.seasonStart | seasonRange: group()!.seasonEnd }})
+      </span>
+    }
+  </h1>
   <p class="subtitle">Manage pending requests, members, and admins for this group.</p>
 </header>
 

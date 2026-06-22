@@ -80,6 +80,25 @@ public class GroupManagementEndpointTests : BaseTestClass
     }
 
     [Fact]
+    public async Task ListMyGroups_ReturnsOnlyAdministeredGroups()
+    {
+        var (group, admin, member) = await SeedGroupWithAdminAndMember();
+
+        var ep = Factory.Create<ListMyGroupsEndpoint>(Ctx(admin.Id), groupService);
+        await ep.HandleAsync(Ct);
+
+        Assert.Equal(200, ep.HttpContext.Response.StatusCode);
+        var returned = Assert.Single(ep.Response.Groups);
+        Assert.Equal(group.Id, returned.Id);
+
+        var epForMember = Factory.Create<ListMyGroupsEndpoint>(Ctx(member.Id), groupService);
+        await epForMember.HandleAsync(Ct);
+
+        Assert.Equal(200, epForMember.HttpContext.Response.StatusCode);
+        Assert.Empty(epForMember.Response.Groups);
+    }
+
+    [Fact]
     public async Task ListAdmins_NonAdmin_Returns403()
     {
         var (group, _, member) = await SeedGroupWithAdminAndMember();

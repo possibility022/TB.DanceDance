@@ -8,6 +8,7 @@ import { AccessService } from '../../core/api/access.service';
 interface Overrides {
   admins?: { userId?: string; firstName?: string; lastName?: string; email?: string }[];
   members?: { userId?: string; email?: string; whenJoined?: Date }[];
+  myGroups?: { id?: string; name?: string; seasonStart?: Date; seasonEnd?: Date }[];
   addAdmin?: ReturnType<typeof vi.fn>;
   removeAdmin?: ReturnType<typeof vi.fn>;
   updateMember?: ReturnType<typeof vi.fn>;
@@ -18,6 +19,13 @@ function createFixture(overrides: Overrides = {}) {
   const groups = {
     listAdmins: vi.fn(() => of({ admins: overrides.admins ?? [{ userId: 'a1', email: 'a1@x' }] })),
     listMembers: vi.fn(() => of({ members: overrides.members ?? [{ userId: 'm1', email: 'm1@x' }] })),
+    listMyGroups: vi.fn(() =>
+      of({
+        groups: overrides.myGroups ?? [
+          { id: 'g1', name: 'Beginners', seasonStart: new Date('2024-09-01'), seasonEnd: new Date('2025-08-31') },
+        ],
+      }),
+    ),
     addAdmin: overrides.addAdmin ?? vi.fn(() => of(void 0)),
     removeAdmin: overrides.removeAdmin ?? vi.fn(() => of(void 0)),
     updateMember: overrides.updateMember ?? vi.fn(() => of(void 0)),
@@ -50,6 +58,13 @@ describe('GroupManagement', () => {
     expect(component.loading()).toBe(false);
     expect(component.admins()).toHaveLength(1);
     expect(component.members()).toHaveLength(1);
+  });
+
+  it('shows the group name and season in the header', () => {
+    const { fixture } = createFixture();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('h1')?.textContent).toContain('Beginners');
+    expect(el.querySelector('h1')?.textContent).toContain('Sep 2024 – Aug 2025');
   });
 
   it('disallows removing the only admin (last-admin guard)', () => {

@@ -8,6 +8,7 @@ import {
   CreateGroupResponse,
   ListGroupAdminsResponse,
   ListGroupMembersResponse,
+  ListMyGroupsResponse,
   PagedResponseOfVideoFromGroupInformation,
   UpdateGroupMemberRequest,
 } from './api-models';
@@ -42,6 +43,11 @@ export class GroupsService {
   /** Create a group; the caller becomes its first admin. */
   createGroup(request: CreateGroupRequest): Observable<CreateGroupResponse> {
     return this.api.post<CreateGroupResponse>('/api/groups', request);
+  }
+
+  /** Groups the current user administers. */
+  listMyGroups(): Observable<ListMyGroupsResponse> {
+    return this.api.get<ListMyGroupsResponse>('/api/groups/my');
   }
 
   /** Admin: list a group's admins. */

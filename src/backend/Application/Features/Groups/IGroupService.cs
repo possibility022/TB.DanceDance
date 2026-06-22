@@ -14,6 +14,9 @@ public interface IGroupService
     /// <summary>Ids of the groups the user administers (used to surface management entry points).</summary>
     Task<Guid[]> GetAdministeredGroupIdsAsync(string userId, CancellationToken cancellationToken);
 
+    /// <summary>The groups the user administers, with full group details (used for the "my groups" navigation entry point).</summary>
+    Task<GroupModel[]> GetAdministeredGroupsAsync(string userId, CancellationToken cancellationToken);
+
     /// <summary>Creates a group and records the creator as its first admin in one transaction.</summary>
     Task<Group> CreateGroupAsync(string name, DateOnly seasonStart, DateOnly seasonEnd, string creatorUserId, CancellationToken cancellationToken);
 

@@ -61,6 +61,35 @@ public class GroupManagementServiceTests : BaseTestClass
     }
 
     [Fact]
+    public async Task GetAdministeredGroupsAsync_ReturnsOnlyGroupsWhereUserIsAdmin()
+    {
+        var user = new UserDataBuilder().Build();
+        var administered = new GroupDataBuilder().Build();
+        var other = new GroupDataBuilder().Build();
+        SeedDbContext.AddRange(user, administered, other,
+            new GroupAdmin { Id = Guid.NewGuid(), UserId = user.Id, GroupId = administered.Id });
+        await SeedDbContext.SaveChangesAsync(Ct);
+
+        var groups = await groupService.GetAdministeredGroupsAsync(user.Id, Ct);
+
+        var group = Assert.Single(groups);
+        Assert.Equal(administered.Id, group.Id);
+        Assert.Equal(administered.Name, group.Name);
+    }
+
+    [Fact]
+    public async Task GetAdministeredGroupsAsync_ReturnsEmpty_WhenUserAdministersNoGroups()
+    {
+        var user = new UserDataBuilder().Build();
+        SeedDbContext.Add(user);
+        await SeedDbContext.SaveChangesAsync(Ct);
+
+        var groups = await groupService.GetAdministeredGroupsAsync(user.Id, Ct);
+
+        Assert.Empty(groups);
+    }
+
+    [Fact]
     public async Task AddAdminAsync_IsIdempotent_AndRejectsUnknownUser()
     {
         var admin = new UserDataBuilder().Build();

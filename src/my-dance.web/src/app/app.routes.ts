@@ -82,6 +82,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/groups/create-group').then((m) => m.CreateGroup),
   },
   {
+    // Lists the groups the current user administers; select one to manage it.
+    path: 'groups/manage',
+    title: 'Manage groups · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/groups/groups-list').then((m) => m.GroupsList),
+  },
+  {
     // Admin-only management for a single group; server enforces the admin check.
     path: 'groups/:groupId/manage',
     title: 'Group management · Dance Dance',

@@ -219,6 +219,10 @@ export interface CreateGroupRequest {
     seasonEnd: Date;
 }
 
+export interface ListMyGroupsResponse {
+    groups?: GroupModel[];
+}
+
 export interface PagedResponseOfVideoFromGroupInformation {
     items?: VideoFromGroupInformation[];
     totalCount?: number;

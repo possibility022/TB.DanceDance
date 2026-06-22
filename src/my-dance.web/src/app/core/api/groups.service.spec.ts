@@ -58,6 +58,16 @@ describe('GroupsService', () => {
     req.flush({ id: 'g1' });
   });
 
+  it('listMyGroups() GETs the groups the current user administers', () => {
+    let response;
+    service.listMyGroups().subscribe((r) => (response = r));
+    const req = httpMock.expectOne(`${BASE}/api/groups/my`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ groups: [{ id: 'g1', name: 'Beginners' }] });
+
+    expect(response).toEqual({ groups: [{ id: 'g1', name: 'Beginners' }] });
+  });
+
   it('listAdmins() GETs the group admins', () => {
     service.listAdmins('g1').subscribe();
     const req = httpMock.expectOne(`${BASE}/api/groups/g1/admins`);
