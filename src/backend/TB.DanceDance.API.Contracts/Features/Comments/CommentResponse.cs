@@ -10,6 +10,10 @@ namespace TB.DanceDance.API.Contracts.Features.Comments
     public class ListCommentsByLinkRequest : PagedRequest
     {
     }
+
+    public class ListCommentsForCompetitionRequest : PagedRequest
+    {
+    }
     
     public class CommentResponse
     {

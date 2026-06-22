@@ -21,11 +21,16 @@ import { VideoCard } from '../video-card/video-card';
               [shareable]="shareable()"
               [transferable]="transferable()"
               [deletable]="deletable()"
+              [addable]="addable()"
+              [removable]="removable()"
               [queryParams]="queryParams()"
               [selected]="!!selectedBlobId() && video.blobId === selectedBlobId()"
+              [badge]="badges().get(video.videoId ?? '') ?? ''"
               (share)="share.emit($event)"
               (transfer)="transfer.emit($event)"
               (deleteVideo)="deleteVideo.emit($event)"
+              (add)="add.emit($event)"
+              (remove)="remove.emit($event)"
             />
           </div>
         }
@@ -40,14 +45,23 @@ export class VideoList {
   readonly transferable = input(false);
   /** Show a per-card Delete action (owner-only). */
   readonly deletable = input(false);
+  /** Show a per-card Add action (owner-only, e.g. recordings available to add to a competition). */
+  readonly addable = input(false);
+  /** Show a per-card Remove action (owner-only, e.g. detaching a recording from a competition). */
+  readonly removable = input(false);
+  /** Per-video badge text (e.g. flagging a recording already grouped into another competition), keyed by videoId. */
+  readonly badges = input<ReadonlyMap<string, string>>(new Map());
   /** Scope carried to the player so it can show a sibling playlist. */
   readonly scopeGroupId = input<string>('');
   readonly scopeEventId = input<string>('');
+  readonly scopeCompetitionId = input<string>('');
   /** Highlight the currently-playing recording (blob id). */
   readonly selectedBlobId = input<string>('');
   readonly share = output<VideoInformation>();
   readonly transfer = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
+  readonly add = output<VideoInformation>();
+  readonly remove = output<VideoInformation>();
 
   readonly queryParams = computed<Params>(() => {
     if (this.scopeGroupId()) {
@@ -55,6 +69,9 @@ export class VideoList {
     }
     if (this.scopeEventId()) {
       return { eventId: this.scopeEventId() };
+    }
+    if (this.scopeCompetitionId()) {
+      return { competitionId: this.scopeCompetitionId() };
     }
     return {};
   });

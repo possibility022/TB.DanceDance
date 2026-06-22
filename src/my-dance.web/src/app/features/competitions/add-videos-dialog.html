@@ -1,0 +1,24 @@
+<div class="modal" [class.is-active]="open()" role="dialog" aria-modal="true" aria-labelledby="add-videos-title">
+  <div class="modal-background" (click)="close()"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title" id="add-videos-title">Add recordings</p>
+      <button type="button" class="delete" aria-label="Close dialog" (click)="close()"></button>
+    </header>
+    <section class="modal-card-body">
+      @if (error(); as message) {
+        <div class="notification is-warning is-light" role="alert">{{ message }}</div>
+      }
+      <app-video-list
+        [videos]="videos()"
+        [addable]="true"
+        [badges]="badges()"
+        (add)="add.emit($event)"
+        emptyMessage="No more of your recordings are available to add."
+      />
+    </section>
+    <footer class="modal-card-foot">
+      <button type="button" class="button is-primary" (click)="close()">Done</button>
+    </footer>
+  </div>
+</div>

@@ -21,10 +21,21 @@ public class CommentService : ICommentService
     }
     
     
-    private IQueryable<Comment> QueryAllComments(Guid videoId) =>
+    // A comment thread is keyed off either a single video or a whole competition. These helpers let
+    // the same visibility logic serve both kinds of thread.
+    private static Expression<Func<Comment, bool>> ThreadPredicate(Guid? videoId, Guid? competitionId) =>
+        videoId is not null
+            ? c => c.VideoId == videoId
+            : c => c.CompetitionId == competitionId;
+
+    // Video/Competition are included explicitly (not left to incidental EF change-tracker fixup) so
+    // CommentMapper.MapToResponse can always resolve the thread owner for CanModerate/IsReported.
+    private IQueryable<Comment> QueryAllComments(Guid? videoId, Guid? competitionId) =>
         dbContext.Comments
             .Include(c => c.User)
-            .Where(c => c.VideoId == videoId)
+            .Include(c => c.Video)
+            .Include(c => c.Competition)
+            .Where(ThreadPredicate(videoId, competitionId))
             .OrderBy(c => c.CreatedAt);
     
 
@@ -52,9 +63,10 @@ public class CommentService : ICommentService
         if (string.IsNullOrWhiteSpace(authorName) && string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException("Either userId or authorName must be provided for comments.", nameof(authorName));
 
-        // Get the shared link with video info
+        // Get the shared link with its target (video or competition)
         var link = await dbContext.SharedLinks
             .Include(l => l.Video)
+            .Include(l => l.Competition)
             .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
 
         if (link == null)
@@ -68,8 +80,11 @@ public class CommentService : ICommentService
             throw new ArgumentException("Shared link is expired or revoked.", nameof(linkId));
         }
 
-        // Get videoId from the link
-        var videoId = link.VideoId;
+        // The link targets either a single video or a whole competition (combined thread).
+        if (link.VideoId is null && link.CompetitionId is null)
+        {
+            throw new ArgumentException("This shared link does not target a video or competition.", nameof(linkId));
+        }
 
         // Check if comments are allowed on this link
         if (!link.AllowComments)
@@ -91,11 +106,12 @@ public class CommentService : ICommentService
         if (string.IsNullOrEmpty(userId) && !string.IsNullOrWhiteSpace(anonymousId))
             hashOfAnonymousId = SHA256.HashData(Encoding.UTF8.GetBytes(anonymousId));
 
-        // Create the comment
+        // Create the comment, keyed off the link's target (video or competition).
         var comment = new Comment
         {
             Id = Guid.NewGuid(),
-            VideoId = videoId,
+            VideoId = link.VideoId,
+            CompetitionId = link.CompetitionId,
             UserId = userId, // null for anonymous, populated for authenticated
             SharedLinkId = linkId,
             Content = content,
@@ -126,6 +142,7 @@ public class CommentService : ICommentService
         // Validate the shared link exists and is valid
         var link = await dbContext.SharedLinks
             .Include(l => l.Video)
+            .Include(l => l.Competition)
             .FirstOrDefaultAsync(l => l.Id == linkId, cancellationToken);
 
         if (link == null || link.ExpireAt <= DateTimeOffset.UtcNow || link.IsRevoked)
@@ -133,25 +150,40 @@ public class CommentService : ICommentService
             return (Array.Empty<Comment>(), 0);
         }
 
-        return await QueryCommentsBase(userId, anonymousId, link.Video, pageNumber, pageSize, cancellationToken);
+        // Resolve the thread's owner + visibility from the link's target (video or competition).
+        if (link.Video != null)
+        {
+            return await QueryCommentsBase(userId, anonymousId, link.Video.OwnerUserId,
+                link.Video.CommentVisibility, link.Video.Id, null, pageNumber, pageSize, cancellationToken);
+        }
+
+        if (link.Competition != null)
+        {
+            return await QueryCommentsBase(userId, anonymousId, link.Competition.OwnerUserId,
+                link.Competition.CommentVisibility, null, link.Competition.Id, pageNumber, pageSize, cancellationToken);
+        }
+
+        return (Array.Empty<Comment>(), 0);
     }
 
     private async Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> QueryCommentsBase(
         string? userId,
         string? anonymousId,
-        Video video,
+        string ownerUserId,
+        CommentVisibility commentVisibility,
+        Guid? videoId,
+        Guid? competitionId,
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        // Check if user is the video owner
-        var isVideoOwner = userId != null && video.OwnerUserId == userId;
-        var videoId = video.Id;
+        // Check if user is the thread owner (video owner or competition owner)
+        var isOwner = userId != null && ownerUserId == userId;
 
-        // Video owner always sees all comments (including hidden ones)
-        if (isVideoOwner)
+        // The owner always sees all comments (including hidden ones)
+        if (isOwner)
         {
-            return await QueryAllComments(videoId)
+            return await QueryAllComments(videoId, competitionId)
                 .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
         }
 
@@ -169,8 +201,8 @@ public class CommentService : ICommentService
             predicate = predicate.Or(c => c.UserId == userId);
         }
 
-        // Apply visibility rules based on video's CommentVisibility setting
-        switch (video.CommentVisibility)
+        // Apply visibility rules based on the thread's CommentVisibility setting
+        switch (commentVisibility)
         {
             case CommentVisibility.OwnerOnly:
                 // Only owner can see comments (and we already handled that case above)
@@ -198,7 +230,7 @@ public class CommentService : ICommentService
 
         // Get non-hidden comments
         return await baseQuery!
-            .Where(c => c.VideoId == videoId)
+            .Where(ThreadPredicate(videoId, competitionId))
             .OrderBy(c => c.CreatedAt)
             .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
@@ -217,7 +249,34 @@ public class CommentService : ICommentService
 
         var video = await dbContext.Videos.FirstAsync(v => v.Id == videoId, cancellationToken);
 
-        return await QueryCommentsBase(userId, anonymousId, video, pageNumber, pageSize, cancellationToken);
+        return await QueryCommentsBase(userId, anonymousId, video.OwnerUserId, video.CommentVisibility,
+            video.Id, null, pageNumber, pageSize, cancellationToken);
+    }
+
+    public async Task<(IReadOnlyCollection<Comment> Items, int TotalCount)> GetCommentsForCompetitionAsync(
+        string userId,
+        Guid competitionId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var competition = await dbContext.Competitions
+            .FirstOrDefaultAsync(c => c.Id == competitionId, cancellationToken);
+
+        if (competition == null)
+        {
+            throw new ArgumentException($"Competition {competitionId} was not found.", nameof(competitionId));
+        }
+
+        if (competition.OwnerUserId != userId)
+        {
+            throw new UnauthorizedAccessException("No access to the competition.");
+        }
+
+        // Always the owner branch of QueryCommentsBase, so this returns the full thread (incl. hidden).
+        return await QueryCommentsBase(userId, anonymousId: null, competition.OwnerUserId,
+            competition.CommentVisibility, videoId: null, competitionId: competition.Id,
+            pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<bool> UpdateCommentAsync(
@@ -270,6 +329,13 @@ public class CommentService : ICommentService
         return false;
     }
 
+    /// <summary>
+    /// The owner of a comment's thread: the video owner for a per-video comment, or the competition
+    /// owner for a competition (combined-thread) comment. Requires the Video/Competition nav loaded.
+    /// </summary>
+    private static string? ThreadOwnerOf(Comment comment) =>
+        comment.Video?.OwnerUserId ?? comment.Competition?.OwnerUserId;
+
     private static bool CheckAnonymousIdMatch(string? anonymousId, Comment comment)
     {
         byte[]? anonymousIdBytes = null;
@@ -296,6 +362,7 @@ public class CommentService : ICommentService
         
         var comment = await dbContext.Comments
             .Include(c => c.Video)
+            .Include(c => c.Competition)
             .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
 
         if (comment == null)
@@ -303,12 +370,12 @@ public class CommentService : ICommentService
             return false;
         }
 
-        // Check if user can delete: either the comment author or the video owner
+        // Check if user can delete: the comment author or the thread owner (video/competition owner)
         var isAuthor = !string.IsNullOrEmpty(userId) && comment.UserId == userId;
-        var isVideoOwner = comment.Video.OwnerUserId == userId;
+        var isThreadOwner = userId != null && ThreadOwnerOf(comment) == userId;
         bool shaMatches = CheckAnonymousIdMatch(anonymousId, comment);
-        
-        if (!isAuthor && !isVideoOwner && !shaMatches)
+
+        if (!isAuthor && !isThreadOwner && !shaMatches)
         {
             return false;
         }
@@ -325,6 +392,7 @@ public class CommentService : ICommentService
     {
         var comment = await dbContext.Comments
             .Include(c => c.Video)
+            .Include(c => c.Competition)
             .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
 
         if (comment == null)
@@ -332,8 +400,8 @@ public class CommentService : ICommentService
             return false;
         }
 
-        // Only video owner can hide comments
-        if (comment.Video.OwnerUserId != videoOwnerId)
+        // Only the thread owner (video/competition owner) can hide comments
+        if (ThreadOwnerOf(comment) != videoOwnerId)
         {
             return false;
         }
@@ -350,6 +418,7 @@ public class CommentService : ICommentService
     {
         var comment = await dbContext.Comments
             .Include(c => c.Video)
+            .Include(c => c.Competition)
             .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
 
         if (comment == null)
@@ -357,8 +426,8 @@ public class CommentService : ICommentService
             return false;
         }
 
-        // Only video owner can unhide comments
-        if (comment.Video.OwnerUserId != videoOwnerId)
+        // Only the thread owner (video/competition owner) can unhide comments
+        if (ThreadOwnerOf(comment) != videoOwnerId)
         {
             return false;
         }

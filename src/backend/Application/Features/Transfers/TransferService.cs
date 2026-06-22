@@ -262,7 +262,7 @@ public class TransferService : ITransferService
 
         // Revoke the sender's active share links for the transferred videos.
         var activeLinks = await dbContext.SharedLinks
-            .Where(l => videoIds.Contains(l.VideoId) && !l.IsRevoked)
+            .Where(l => l.VideoId != null && videoIds.Contains(l.VideoId.Value) && !l.IsRevoked)
             .ToListAsync(cancellationToken);
         foreach (var link in activeLinks)
         {

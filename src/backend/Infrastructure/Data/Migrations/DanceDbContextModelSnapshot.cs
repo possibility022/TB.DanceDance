@@ -79,6 +79,9 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid?>("CompetitionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -112,10 +115,12 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("VideoId")
+                    b.Property<Guid?>("VideoId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompetitionId");
 
                     b.HasIndex("SharedLinkId");
 
@@ -123,7 +128,41 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("Comments", "comments");
+                    b.ToTable("Comments", "comments", t =>
+                        {
+                            t.HasCheckConstraint("CK_Comments_VideoOrCompetition", "(\"VideoId\" IS NOT NULL) <> (\"CompetitionId\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entities.Competition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CommentVisibility")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OwnerUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Competitions", "video");
                 });
 
             modelBuilder.Entity("Domain.Entities.Event", b =>
@@ -266,6 +305,9 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<bool>("AllowComments")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("CompetitionId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -279,10 +321,12 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("VideoId")
+                    b.Property<Guid?>("VideoId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompetitionId");
 
                     b.HasIndex("Id")
                         .IsUnique();
@@ -291,7 +335,10 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
                     b.HasIndex("VideoId");
 
-                    b.ToTable("SharedLinks", "access");
+                    b.ToTable("SharedLinks", "access", t =>
+                        {
+                            t.HasCheckConstraint("CK_SharedLinks_VideoOrCompetition", "(\"VideoId\" IS NOT NULL) <> (\"CompetitionId\" IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.SharedWith", b =>
@@ -363,6 +410,9 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Property<int>("CommentVisibility")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("CompetitionId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("Converted")
                         .HasColumnType("boolean");
 
@@ -408,6 +458,8 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompetitionId");
 
                     b.ToTable("Videos", "video");
                 });
@@ -532,6 +584,11 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
             modelBuilder.Entity("Domain.Entities.Comment", b =>
                 {
+                    b.HasOne("Domain.Entities.Competition", "Competition")
+                        .WithMany()
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Domain.Entities.SharedLink", "SharedLink")
                         .WithMany()
                         .HasForeignKey("SharedLinkId");
@@ -543,8 +600,9 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.HasOne("Domain.Entities.Video", "Video")
                         .WithMany()
                         .HasForeignKey("VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Competition");
 
                     b.Navigation("SharedLink");
 
@@ -609,6 +667,11 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
 
             modelBuilder.Entity("Domain.Entities.SharedLink", b =>
                 {
+                    b.HasOne("Domain.Entities.Competition", "Competition")
+                        .WithMany()
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Domain.Entities.User", "SharedByUser")
                         .WithMany()
                         .HasForeignKey("SharedBy")
@@ -618,8 +681,9 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.HasOne("Domain.Entities.Video", "Video")
                         .WithMany()
                         .HasForeignKey("VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Competition");
 
                     b.Navigation("SharedByUser");
 
@@ -655,6 +719,16 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Video");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Video", b =>
+                {
+                    b.HasOne("Domain.Entities.Competition", "Competition")
+                        .WithMany("Videos")
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Competition");
                 });
 
             modelBuilder.Entity("Domain.Entities.VideoMetadata", b =>
@@ -694,6 +768,11 @@ namespace TB.DanceDance.Data.PostgreSQL.Migrations
                     b.Navigation("Transfer");
 
                     b.Navigation("Video");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Competition", b =>
+                {
+                    b.Navigation("Videos");
                 });
 
             modelBuilder.Entity("Domain.Entities.Event", b =>

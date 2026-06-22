@@ -1,0 +1,69 @@
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading competition">Loading…</progress>
+} @else if (failed() || !competition()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn’t load this competition.</p>
+    <a class="button" routerLink="/competitions">Back to competitions</a>
+  </div>
+} @else {
+  <header class="block is-flex is-justify-content-space-between is-align-items-flex-start">
+    <div>
+      <h1 class="title mb-1">{{ competition()!.name }}</h1>
+      <p class="subtitle is-6 has-text-grey">
+        @if (competition()!.location) { {{ competition()!.location }} }
+        @if (competition()!.date) { · {{ competition()!.date | longDate }} }
+      </p>
+    </div>
+    <div class="buttons">
+      <button type="button" class="button is-primary" (click)="openShare()">Share</button>
+      <button type="button" class="button" (click)="rename()">Rename</button>
+      <button type="button" class="button is-danger is-light" (click)="deleteCompetition()">Delete</button>
+    </div>
+  </header>
+
+  <section class="block">
+    <div class="is-flex is-justify-content-space-between is-align-items-center mb-2">
+      <h2 class="title is-5 mb-0">Recordings in this competition</h2>
+      <button type="button" class="button is-primary is-light" (click)="openAddDialog()">Add recordings</button>
+    </div>
+    <app-video-list
+      [videos]="groupedVideos()"
+      [scopeCompetitionId]="competitionId()"
+      [removable]="true"
+      (remove)="remove($event)"
+      emptyMessage="No recordings grouped yet. Use “Add recordings” to get started."
+    />
+  </section>
+
+  <app-add-videos-dialog
+    [open]="addDialogOpen()"
+    [videos]="addableVideos()"
+    [badges]="otherCompetitionBadges()"
+    [error]="addError()"
+    (add)="add($event)"
+    (closed)="closeAddDialog()"
+  />
+
+  <section class="block">
+    <h2 class="title is-5">Feedback</h2>
+    <app-comments-section
+      [comments]="commentList()"
+      [canCompose]="false"
+      [canLoadMore]="canLoadMoreComments()"
+      [loadingMore]="loadingMoreComments()"
+      (loadMore)="loadMoreComments()"
+      (saveEdit)="onSaveEdit($event)"
+      (remove)="onRemoveComment($event)"
+      (hide)="onHideComment($event)"
+      (unhide)="onUnhideComment($event)"
+      (report)="onReportComment($event)"
+    />
+  </section>
+
+  <app-share-dialog
+    [competitionId]="competition()!.id ?? ''"
+    [videoName]="competition()!.name ?? ''"
+    [open]="shareOpen()"
+    (closed)="closeShare()"
+  />
+}

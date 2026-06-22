@@ -1,23 +1,28 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { VideosService } from '../../core/api/videos.service';
-import { VideoInformation } from '../../core/api/api-models';
+import { CompetitionsService } from '../../core/api/competitions.service';
+import { CompetitionSummaryResponse, VideoInformation } from '../../core/api/api-models';
 import { VideoList } from '../../shared/ui/video-list/video-list';
+import { LongDatePipe } from '../../shared/format/long-date.pipe';
 import { ShareDialog } from '../sharing/share-dialog';
 import { TransferDialog } from '../transfers/transfer-dialog';
 
 const PAGE_SIZE = 20;
+const COMPETITIONS_PREVIEW_COUNT = 5;
 
 @Component({
   selector: 'app-my-videos',
-  imports: [VideoList, ShareDialog, TransferDialog],
+  imports: [RouterLink, LongDatePipe, VideoList, ShareDialog, TransferDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './my-videos.html',
 })
 export class MyVideos {
   private readonly videos = inject(VideosService);
+  private readonly competitions = inject(CompetitionsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly doc = inject(DOCUMENT);
 
@@ -36,8 +41,28 @@ export class MyVideos {
   readonly transferTarget = signal<VideoInformation | null>(null);
   readonly transferOpen = signal(false);
 
+  readonly competitionsLoading = signal(true);
+  readonly latestCompetitions = signal<readonly CompetitionSummaryResponse[]>([]);
+
   constructor() {
     this.load();
+    this.loadCompetitions();
+  }
+
+  loadCompetitions(): void {
+    this.competitionsLoading.set(true);
+    this.competitions
+      .getMyCompetitions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.latestCompetitions.set(
+            (response.competitions ?? []).slice(0, COMPETITIONS_PREVIEW_COUNT),
+          );
+          this.competitionsLoading.set(false);
+        },
+        error: () => this.competitionsLoading.set(false),
+      });
   }
 
   load(): void {
