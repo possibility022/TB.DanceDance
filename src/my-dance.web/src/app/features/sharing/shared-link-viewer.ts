@@ -16,7 +16,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AnonymousIdService } from '../../core/anonymous-id.service';
 import { CommentsService } from '../../core/api/comments.service';
 import { SharingService } from '../../core/api/sharing.service';
-import { CommentResponse, SharedVideoInfoResponse } from '../../core/api/api-models';
+import { CommentResponse, SharedVideoInfoResponse, SharedVideoItem } from '../../core/api/api-models';
 import { CommentDraft, CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
 
@@ -51,6 +51,20 @@ export class SharedLinkViewer implements OnInit {
   readonly canLoadMoreComments = signal(false);
   private currentCommentsPage = 0;
   readonly submitting = signal(false);
+
+  /** True when the link targets a whole competition (multiple videos, one combined thread). */
+  readonly isCompetition = computed(() => !!this.info()?.isCompetition);
+
+  /** The competition's videos paired with their per-video stream URL under this link. */
+  readonly competitionVideos = computed<readonly (SharedVideoItem & { url: string })[]>(() => {
+    const info = this.info();
+    if (!info?.isCompetition) {
+      return [];
+    }
+    return (info.videos ?? [])
+      .filter((v): v is SharedVideoItem & { videoId: string } => !!v.videoId)
+      .map((v) => ({ ...v, url: this.sharing.sharedVideoStreamUrl(this.linkId(), v.videoId) }));
+  });
 
   readonly canCompose = computed(() => {
     const info = this.info();

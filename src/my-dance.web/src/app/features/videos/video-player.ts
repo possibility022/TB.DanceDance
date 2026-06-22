@@ -12,12 +12,13 @@ import { DOCUMENT } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ViewportScroller } from '@angular/common';
-import { Observable, forkJoin } from 'rxjs';
+import { Observable, forkJoin, map } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { CommentsService } from '../../core/api/comments.service';
 import { GroupsService } from '../../core/api/groups.service';
 import { EventsService } from '../../core/api/events.service';
+import { CompetitionsService } from '../../core/api/competitions.service';
 import { VideosService } from '../../core/api/videos.service';
 import { CommentResponse, VideoInformation } from '../../core/api/api-models';
 import { CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
@@ -50,10 +51,12 @@ export class VideoPlayer {
   /** Optional scope (query params) — drives the sibling "playlist". */
   readonly groupId = input<string>('');
   readonly eventId = input<string>('');
+  readonly competitionId = input<string>('');
 
   private readonly videos = inject(VideosService);
   private readonly groups = inject(GroupsService);
   private readonly events = inject(EventsService);
+  private readonly competitions = inject(CompetitionsService);
   private readonly comments = inject(CommentsService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -74,6 +77,10 @@ export class VideoPlayer {
 
   readonly siblings = signal<readonly VideoInformation[]>([]);
   readonly posterUrl = computed(() => this.info()?.thumbnailUrl ?? null);
+  /** Which scope is currently driving the sibling "playlist" tab label. */
+  readonly siblingScope = computed<'group' | 'event' | 'competition'>(() =>
+    this.groupId() ? 'group' : this.eventId() ? 'event' : 'competition',
+  );
 
   readonly editingName = signal(false);
   readonly nameDraft = signal('');
@@ -103,6 +110,7 @@ export class VideoPlayer {
     effect(() => {
       this.groupId();
       this.eventId();
+      this.competitionId();
       this.loadSiblings();
     });
   }
@@ -141,16 +149,24 @@ export class VideoPlayer {
 
   private loadSiblings(): void {
     const request$ = this.groupId()
-      ? this.groups.getVideosForGroup(this.groupId(), 1, SIBLINGS_PAGE_SIZE)
+      ? this.groups
+          .getVideosForGroup(this.groupId(), 1, SIBLINGS_PAGE_SIZE)
+          .pipe(map((response) => response.items ?? []))
       : this.eventId()
-        ? this.events.getEventVideos(this.eventId(), 1, SIBLINGS_PAGE_SIZE)
-        : null;
+        ? this.events
+            .getEventVideos(this.eventId(), 1, SIBLINGS_PAGE_SIZE)
+            .pipe(map((response) => response.items ?? []))
+        : this.competitionId()
+          ? this.competitions
+              .getCompetition(this.competitionId())
+              .pipe(map((response) => response.videos ?? []))
+          : null;
     if (!request$) {
       this.siblings.set([]);
       return;
     }
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => this.siblings.set(response.items ?? []),
+      next: (items) => this.siblings.set(items),
       error: () => this.siblings.set([]),
     });
   }

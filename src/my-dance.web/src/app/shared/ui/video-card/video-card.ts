@@ -95,6 +95,24 @@ import { LongDatePipe } from '../../format/long-date.pipe';
               Delete
             </button>
           }
+          @if (addable() && video().isOwner) {
+            <button
+              type="button"
+              class="button is-primary is-light video-card__add"
+              (click)="add.emit(video())"
+            >
+              Add
+            </button>
+          }
+          @if (removable() && video().isOwner) {
+            <button
+              type="button"
+              class="button is-light video-card__remove"
+              (click)="remove.emit(video())"
+            >
+              Remove
+            </button>
+          }
         </div>
       </div>
     </article>
@@ -274,7 +292,9 @@ import { LongDatePipe } from '../../format/long-date.pipe';
 
     .video-card__share,
     .video-card__transfer,
-    .video-card__delete {
+    .video-card__delete,
+    .video-card__add,
+    .video-card__remove {
       font-weight: 600;
     }
   `,
@@ -287,7 +307,11 @@ export class VideoCard {
   readonly transferable = input(false);
   /** Show the Delete action (owner-only, e.g. in the user's own library). */
   readonly deletable = input(false);
-  /** Query params carried to the player to preserve the group/event scope. */
+  /** Show the Add action (owner-only, e.g. recordings available to add to a competition). */
+  readonly addable = input(false);
+  /** Show the Remove action (owner-only, e.g. detaching a recording from a competition). */
+  readonly removable = input(false);
+  /** Query params carried to the player to preserve the group/event/competition scope. */
   readonly queryParams = input<Params>({});
   /** Highlight this card as the currently-playing recording. */
   readonly selected = input(false);
@@ -296,6 +320,8 @@ export class VideoCard {
   readonly share = output<VideoInformation>();
   readonly transfer = output<VideoInformation>();
   readonly deleteVideo = output<VideoInformation>();
+  readonly add = output<VideoInformation>();
+  readonly remove = output<VideoInformation>();
 
   /** A recording is watchable once conversion has produced a playable blob. */
   readonly watchable = computed(() => this.video().converted && !!this.video().blobId);

@@ -54,6 +54,27 @@ describe('VideoList', () => {
     expect(el.querySelectorAll('.video-card__transfer')).toHaveLength(2);
   });
 
+  it('passes the addable flag down so owner cards show the Add action', async () => {
+    const ownerVideos = VIDEOS.map((v) => ({ ...v, isOwner: true }));
+    const el = (await setup({ videos: ownerVideos, addable: true })).nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.video-card__add')).toHaveLength(2);
+  });
+
+  it('passes the removable flag down so owner cards show the Remove action', async () => {
+    const ownerVideos = VIDEOS.map((v) => ({ ...v, isOwner: true }));
+    const el = (await setup({ videos: ownerVideos, removable: true }))
+      .nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.video-card__remove')).toHaveLength(2);
+  });
+
+  it('passes a per-video badge through when one is set for that video id', async () => {
+    const el = (
+      await setup({ videos: VIDEOS, badges: new Map([['v1', 'Also in Nationals']]) })
+    ).nativeElement as HTMLElement;
+    const badges = [...el.querySelectorAll('.video-card__badge')].map((b) => b.textContent?.trim());
+    expect(badges).toEqual(['Also in Nationals']);
+  });
+
   describe('queryParams scope', () => {
     it('uses groupId when a group scope is set', async () => {
       const fixture = await setup({ videos: VIDEOS, scopeGroupId: 'g1' });
@@ -63,6 +84,11 @@ describe('VideoList', () => {
     it('uses eventId when only an event scope is set', async () => {
       const fixture = await setup({ videos: VIDEOS, scopeEventId: 'e1' });
       expect(fixture.componentInstance.queryParams()).toEqual({ eventId: 'e1' });
+    });
+
+    it('uses competitionId when only a competition scope is set', async () => {
+      const fixture = await setup({ videos: VIDEOS, scopeCompetitionId: 'c1' });
+      expect(fixture.componentInstance.queryParams()).toEqual({ competitionId: 'c1' });
     });
 
     it('prefers the group scope when both are set', async () => {

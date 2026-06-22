@@ -99,12 +99,7 @@
               (keydown.enter)="setTab('recordings')"
               (keydown.space)="$event.preventDefault(); setTab('recordings')"
             >
-              More from this
-              @if (groupId()) {
-                group
-              } @else {
-                event
-              }
+              More from this {{ siblingScope() }}
               <span class="tag is-light ml-2">{{ siblings().length }}</span>
             </a>
           </li>
@@ -135,6 +130,7 @@
           [videos]="siblings()"
           [scopeGroupId]="groupId()"
           [scopeEventId]="eventId()"
+          [scopeCompetitionId]="competitionId()"
           [selectedBlobId]="blobId()"
         />
       </div>

@@ -48,14 +48,16 @@ internal static class CommentMapper
 
     /// <summary>
     /// Projects a comment to its API response, computing the per-viewer flags (ownership, moderation).
-    /// Moderation fields are only populated for the video owner.
+    /// Moderation fields are only populated for the thread owner — the video owner for a per-video
+    /// comment, or the competition owner for a combined-thread comment.
     /// </summary>
-    /// <param name="comment">The comment entity.</param>
+    /// <param name="comment">The comment entity (with its Video/Competition nav loaded).</param>
     /// <param name="currentUserId">The authenticated viewer's id, or null when anonymous.</param>
     /// <param name="anonymousId">SHA-256 of the viewer's anonymous id, used to detect anonymous authorship.</param>
     public static CommentResponse MapToResponse(Comment comment, string? currentUserId, byte[]? anonymousId)
     {
-        var isVideoOwner = comment.Video?.OwnerUserId == currentUserId;
+        var threadOwnerId = comment.Video?.OwnerUserId ?? comment.Competition?.OwnerUserId;
+        var isThreadOwner = currentUserId != null && threadOwnerId == currentUserId;
         var isAuthor = comment.UserId == currentUserId && currentUserId != null;
         var isAnonymousAuthor = comment.ShaOfAnonymousId?.SequenceEqual(anonymousId) ?? false;
 
@@ -68,18 +70,19 @@ internal static class CommentMapper
         return new CommentResponse
         {
             Id = comment.Id,
-            VideoId = comment.VideoId,
+            // Guid.Empty for competition (combined-thread) comments, which have no single video.
+            VideoId = comment.VideoId ?? System.Guid.Empty,
             AuthorName = authorName,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             IsHidden = comment.IsHidden,
             PostedAsAnonymous = comment.PostedAsAnonymous,
-            // Only populate moderation fields for video owner
-            IsReported = isVideoOwner ? comment.IsReported : null,
-            ReportedReason = isVideoOwner ? comment.ReportedReason : null,
+            // Only populate moderation fields for the thread owner
+            IsReported = isThreadOwner ? comment.IsReported : null,
+            ReportedReason = isThreadOwner ? comment.ReportedReason : null,
             IsOwn = isAuthor || isAnonymousAuthor,
-            CanModerate = isVideoOwner
+            CanModerate = isThreadOwner
         };
     }
 }

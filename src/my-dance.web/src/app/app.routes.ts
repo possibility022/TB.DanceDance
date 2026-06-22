@@ -43,6 +43,19 @@ export const routes: Routes = [
     loadComponent: () => import('./features/transfers/my-transfers').then((m) => m.MyTransfers),
   },
   {
+    path: 'competitions',
+    title: 'Competitions · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/competitions/competitions').then((m) => m.Competitions),
+  },
+  {
+    path: 'competitions/:competitionId',
+    title: 'Competition · Dance Dance',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/competitions/competition-detail').then((m) => m.CompetitionDetail),
+  },
+  {
     // Stable URL — transfer links are handed out to other people (but require login).
     path: 'transfer/:linkId',
     title: 'Incoming transfer · Dance Dance',

@@ -8,9 +8,16 @@ public class Comment
     public Guid Id { get; set; }
 
     /// <summary>
-    /// The video this comment belongs to.
+    /// The video this comment belongs to, if it's a per-video comment. Exactly one of
+    /// <see cref="VideoId"/> / <see cref="CompetitionId"/> is set.
     /// </summary>
-    public Guid VideoId { get; set; }
+    public Guid? VideoId { get; set; }
+
+    /// <summary>
+    /// The competition this comment belongs to, if it's part of a competition's combined thread.
+    /// Exactly one of <see cref="VideoId"/> / <see cref="CompetitionId"/> is set.
+    /// </summary>
+    public Guid? CompetitionId { get; set; }
 
     /// <summary>
     /// The authenticated user who created this comment. Null for anonymous comments.
@@ -70,6 +77,7 @@ public class Comment
 
     // Navigation properties
     public User? User { get; set; }
-    public Video Video { get; set; } = null!;
+    public Video? Video { get; set; }
+    public Competition? Competition { get; set; }
     public SharedLink? SharedLink { get; set; }
 }

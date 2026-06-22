@@ -4,6 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 
 import { MyVideos } from './my-videos';
 import { VideosService } from '../../core/api/videos.service';
+import { CompetitionsService } from '../../core/api/competitions.service';
 import { SharingService } from '../../core/api/sharing.service';
 import { TransfersService } from '../../core/api/transfers.service';
 import { PagedResponseOfVideoInformation, VideoInformation } from '../../core/api/api-models';
@@ -22,6 +23,10 @@ async function setup(
           getMyVideos: getMyVideos ?? (() => my ?? of({ items: [], totalCount: 0 })),
           updateCommentSettings: () => of(void 0),
         },
+      },
+      {
+        provide: CompetitionsService,
+        useValue: { getMyCompetitions: () => of({ competitions: [] }) },
       },
       {
         // Injected by the embedded ShareDialog; not exercised while it is closed.
@@ -57,6 +62,33 @@ describe('MyVideos', () => {
     const c = (await setup(throwError(() => new Error('boom')))).componentInstance;
     expect(c.failed()).toBe(true);
     expect(c.loading()).toBe(false);
+  });
+
+  it('shows at most the 5 latest competitions', async () => {
+    const competitions = Array.from({ length: 8 }, (_, i) => ({ id: `c${i}`, name: `Comp ${i}` }));
+    await TestBed.configureTestingModule({
+      imports: [MyVideos],
+      providers: [
+        provideRouter([]),
+        { provide: VideosService, useValue: { getMyVideos: () => of({ items: [], totalCount: 0 }) } },
+        { provide: CompetitionsService, useValue: { getMyCompetitions: () => of({ competitions }) } },
+        { provide: SharingService, useValue: { getMySharedLinks: () => of({ links: [] }) } },
+        {
+          provide: TransfersService,
+          useValue: {
+            createTransfer: () => of({ linkId: 't1' }),
+            getMyTransfers: () => of({ transfers: [] }),
+            revokeTransfer: () => of(void 0),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(MyVideos);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.latestCompetitions()).toHaveLength(5);
+    expect(fixture.componentInstance.competitionsLoading()).toBe(false);
   });
 
   it('exposes canLoadMore when there are more items than the first page returned', async () => {
@@ -160,6 +192,10 @@ describe('MyVideos', () => {
                 }),
               deleteVideo,
             },
+          },
+          {
+            provide: CompetitionsService,
+            useValue: { getMyCompetitions: () => of({ competitions: [] }) },
           },
           { provide: SharingService, useValue: { getMySharedLinks: () => of({ links: [] }) } },
           {
