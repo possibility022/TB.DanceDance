@@ -5,9 +5,12 @@ using FastEndpoints.ClientGen;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NJsonSchema.CodeGeneration.TypeScript;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using TB.DanceDance.API;
 using TB.DanceDance.API.Contracts.ApiResources;
+
+[assembly: InternalsVisibleTo("TB.DanceDance.Tests")]
 
 var builder = WebApplication.CreateBuilder(args);
 
