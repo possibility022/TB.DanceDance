@@ -22,27 +22,27 @@
   </header>
 
   <section class="block">
-    <h2 class="title is-5">Recordings in this competition</h2>
-    @if (groupedVideos().length === 0) {
-      <p class="has-text-grey">No recordings grouped yet. Add some below.</p>
-    } @else {
-      @for (video of groupedVideos(); track video.videoId) {
-        <div class="box is-flex is-justify-content-space-between is-align-items-center">
-          @if (video.converted && video.blobId) {
-            <a [routerLink]="['/videos', video.blobId]">{{ video.name }}</a>
-          } @else {
-            <span>
-              {{ video.name }}
-              <span class="tag is-warning is-light is-small ml-1">Processing&hellip;</span>
-            </span>
-          }
-          <button type="button" class="button is-small is-text has-text-danger" (click)="remove(video)">
-            Remove
-          </button>
-        </div>
-      }
-    }
+    <div class="is-flex is-justify-content-space-between is-align-items-center mb-2">
+      <h2 class="title is-5 mb-0">Recordings in this competition</h2>
+      <button type="button" class="button is-primary is-light" (click)="openAddDialog()">Add recordings</button>
+    </div>
+    <app-video-list
+      [videos]="groupedVideos()"
+      [scopeCompetitionId]="competitionId()"
+      [removable]="true"
+      (remove)="remove($event)"
+      emptyMessage="No recordings grouped yet. Use “Add recordings” to get started."
+    />
   </section>
+
+  <app-add-videos-dialog
+    [open]="addDialogOpen()"
+    [videos]="addableVideos()"
+    [badges]="otherCompetitionBadges()"
+    [error]="addError()"
+    (add)="add($event)"
+    (closed)="closeAddDialog()"
+  />
 
   <section class="block">
     <h2 class="title is-5">Feedback</h2>
@@ -58,25 +58,6 @@
       (unhide)="onUnhideComment($event)"
       (report)="onReportComment($event)"
     />
-  </section>
-
-  <section class="block">
-    <h2 class="title is-5">Add recordings</h2>
-    @if (addError(); as error) {
-      <div class="notification is-warning is-light" role="alert">{{ error }}</div>
-    }
-    @if (addableVideos().length === 0) {
-      <p class="has-text-grey">No more of your recordings are available to add.</p>
-    } @else {
-      @for (video of addableVideos(); track video.videoId) {
-        <div class="box is-flex is-justify-content-space-between is-align-items-center">
-          <span>{{ video.name }}</span>
-          <button type="button" class="button is-small is-primary is-light" (click)="add(video)">
-            Add
-          </button>
-        </div>
-      }
-    }
   </section>
 
   <app-share-dialog

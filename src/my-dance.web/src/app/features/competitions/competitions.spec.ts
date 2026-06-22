@@ -7,7 +7,6 @@ import { CompetitionsService } from '../../core/api/competitions.service';
 
 interface Overrides {
   getMyCompetitions?: ReturnType<typeof vi.fn>;
-  createCompetition?: ReturnType<typeof vi.fn>;
 }
 
 function createFixture(overrides: Overrides = {}) {
@@ -15,7 +14,7 @@ function createFixture(overrides: Overrides = {}) {
     getMyCompetitions:
       overrides.getMyCompetitions ??
       vi.fn(() => of({ competitions: [{ id: 'c1', name: 'Nationals', videoCount: 2 }] })),
-    createCompetition: overrides.createCompetition ?? vi.fn(() => of({ id: 'c2' })),
+    createCompetition: vi.fn(() => of({ id: 'c2' })),
   };
 
   TestBed.configureTestingModule({
@@ -42,33 +41,20 @@ describe('Competitions', () => {
     expect(component.failed()).toBe(true);
   });
 
-  it('does not submit an invalid (empty name) form', () => {
-    const { component, competitions } = createFixture();
-    component.create();
-    expect(competitions.createCompetition).not.toHaveBeenCalled();
+  it('openCreateModal() and closeCreateModal() toggle the create modal', () => {
+    const { component } = createFixture();
+    expect(component.createModalOpen()).toBe(false);
+    component.openCreateModal();
+    expect(component.createModalOpen()).toBe(true);
+    component.closeCreateModal();
+    expect(component.createModalOpen()).toBe(false);
   });
 
-  it('create() posts the form and reloads', () => {
+  it('onCompetitionCreated() closes the modal and reloads the list', () => {
     const { component, competitions } = createFixture();
-    component.form.setValue({ name: 'Worlds', location: 'Paris', commentVisibility: 1 });
-    component.create();
-    expect(competitions.createCompetition).toHaveBeenCalledWith({
-      name: 'Worlds',
-      location: 'Paris',
-      commentVisibility: 1,
-    });
-    // Reloaded the list after creating.
+    component.openCreateModal();
+    component.onCompetitionCreated();
+    expect(component.createModalOpen()).toBe(false);
     expect(competitions.getMyCompetitions).toHaveBeenCalledTimes(2);
-  });
-
-  it('create() omits an empty location', () => {
-    const { component, competitions } = createFixture();
-    component.form.setValue({ name: 'Worlds', location: '', commentVisibility: 1 });
-    component.create();
-    expect(competitions.createCompetition).toHaveBeenCalledWith({
-      name: 'Worlds',
-      location: undefined,
-      commentVisibility: 1,
-    });
   });
 });

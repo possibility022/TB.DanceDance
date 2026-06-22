@@ -11,7 +11,7 @@ import {
 import { DOCUMENT } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, switchMap } from 'rxjs';
 
 import { CompetitionsService } from '../../core/api/competitions.service';
 import { VideosService } from '../../core/api/videos.service';
@@ -20,6 +20,8 @@ import { CommentResponse, CompetitionResponse, VideoInformation } from '../../co
 import { ShareDialog } from '../sharing/share-dialog';
 import { CommentEdit, CommentReport, CommentsSection } from '../comments/comments-section';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
+import { VideoList } from '../../shared/ui/video-list/video-list';
+import { AddVideosDialog } from './add-videos-dialog';
 
 const PAGE_SIZE = 100;
 const COMMENTS_PAGE_SIZE = 20;
@@ -27,7 +29,7 @@ const COMMENTS_PAGE_SIZE = 20;
 /** A single competition: rename, delete, share, and manage its grouped recordings. */
 @Component({
   selector: 'app-competition-detail',
-  imports: [ShareDialog, CommentsSection, RouterLink, LongDatePipe],
+  imports: [ShareDialog, CommentsSection, RouterLink, LongDatePipe, VideoList, AddVideosDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './competition-detail.html',
 })
@@ -49,7 +51,20 @@ export class CompetitionDetail {
   /** The owner's recordings available to add (those not already in this competition). */
   readonly myVideos = signal<readonly VideoInformation[]>([]);
   readonly addError = signal<string | null>(null);
+  readonly addDialogOpen = signal(false);
   readonly shareOpen = signal(false);
+
+  /** The other competition (id + name) a recording is already grouped into, keyed by videoId. */
+  readonly otherCompetitionMemberships = signal<ReadonlyMap<string, { id: string; name: string }>>(
+    new Map(),
+  );
+  readonly otherCompetitionBadges = computed(() => {
+    const badges = new Map<string, string>();
+    for (const [videoId, { name }] of this.otherCompetitionMemberships()) {
+      badges.set(videoId, `Also in ${name}`);
+    }
+    return badges;
+  });
 
   readonly commentList = signal<readonly CommentResponse[]>([]);
   readonly loadingMoreComments = signal(false);
@@ -97,6 +112,45 @@ export class CompetitionDetail {
       });
 
     this.loadComments(id);
+    this.loadOtherCompetitionMemberships(id);
+  }
+
+  /** Tracks recordings already grouped into a different competition, so they can be moved over with a warning. */
+  private loadOtherCompetitionMemberships(currentCompetitionId: string): void {
+    this.competitions
+      .getMyCompetitions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const others = (response.competitions ?? []).filter(
+            (c) => c.id && c.id !== currentCompetitionId && (c.videoCount ?? 0) > 0,
+          );
+          if (others.length === 0) {
+            this.otherCompetitionMemberships.set(new Map());
+            return;
+          }
+          forkJoin(others.map((c) => this.competitions.getCompetition(c.id!)))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (details) => {
+                const memberships = new Map<string, { id: string; name: string }>();
+                for (const detail of details) {
+                  if (!detail.id || !detail.name) {
+                    continue;
+                  }
+                  for (const video of detail.videos ?? []) {
+                    if (video.videoId) {
+                      memberships.set(video.videoId, { id: detail.id, name: detail.name });
+                    }
+                  }
+                }
+                this.otherCompetitionMemberships.set(memberships);
+              },
+              error: () => this.otherCompetitionMemberships.set(new Map()),
+            });
+        },
+        error: () => this.otherCompetitionMemberships.set(new Map()),
+      });
   }
 
   private loadComments(competitionId: string): void {
@@ -227,20 +281,38 @@ export class CompetitionDetail {
     if (!competitionId || !video.videoId) {
       return;
     }
+    const videoId = video.videoId;
+    const otherCompetition = this.otherCompetitionMemberships().get(videoId);
+    if (otherCompetition) {
+      const confirmed = this.doc.defaultView?.confirm(
+        `“${video.name}” is already in “${otherCompetition.name}”. Move it here too? It will be removed from “${otherCompetition.name}”.`,
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
     this.addError.set(null);
-    this.competitions
-      .addVideo(competitionId, video.videoId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () =>
-          this.competition.update((c) =>
-            c ? { ...c, videos: [...(c.videos ?? []), video] } : c,
-          ),
-        error: () =>
-          this.addError.set(
-            `Couldn’t add “${video.name}”. It may already belong to another competition.`,
-          ),
-      });
+    const add$ = otherCompetition
+      ? this.competitions
+          .removeVideo(otherCompetition.id, videoId)
+          .pipe(switchMap(() => this.competitions.addVideo(competitionId, videoId)))
+      : this.competitions.addVideo(competitionId, videoId);
+    add$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.competition.update((c) => (c ? { ...c, videos: [...(c.videos ?? []), video] } : c));
+        if (otherCompetition) {
+          this.otherCompetitionMemberships.update((map) => {
+            const next = new Map(map);
+            next.delete(videoId);
+            return next;
+          });
+        }
+      },
+      error: () =>
+        this.addError.set(
+          `Couldn’t add “${video.name}”. It may already belong to another competition.`,
+        ),
+    });
   }
 
   deleteCompetition(): void {
@@ -268,5 +340,14 @@ export class CompetitionDetail {
 
   closeShare(): void {
     this.shareOpen.set(false);
+  }
+
+  openAddDialog(): void {
+    this.addError.set(null);
+    this.addDialogOpen.set(true);
+  }
+
+  closeAddDialog(): void {
+    this.addDialogOpen.set(false);
   }
 }

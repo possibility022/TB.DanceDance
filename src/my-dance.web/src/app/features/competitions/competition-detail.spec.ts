@@ -15,6 +15,7 @@ interface Overrides {
   removeVideo?: ReturnType<typeof vi.fn>;
   getMyVideos?: ReturnType<typeof vi.fn>;
   getCommentsForCompetition?: ReturnType<typeof vi.fn>;
+  getMyCompetitions?: ReturnType<typeof vi.fn>;
 }
 
 function createFixture(overrides: Overrides = {}) {
@@ -28,6 +29,7 @@ function createFixture(overrides: Overrides = {}) {
     deleteCompetition: overrides.deleteCompetition ?? vi.fn(() => of(void 0)),
     addVideo: overrides.addVideo ?? vi.fn(() => of(void 0)),
     removeVideo: overrides.removeVideo ?? vi.fn(() => of(void 0)),
+    getMyCompetitions: overrides.getMyCompetitions ?? vi.fn(() => of({ competitions: [] })),
   };
   const videos = {
     getMyVideos:
@@ -151,6 +153,73 @@ describe('CompetitionDetail', () => {
     expect(component.shareOpen()).toBe(true);
     component.closeShare();
     expect(component.shareOpen()).toBe(false);
+  });
+
+  it('openAddDialog()/closeAddDialog() toggle the add dialog and clear errors', () => {
+    const { component } = createFixture();
+    component.addError.set('boom');
+    component.openAddDialog();
+    expect(component.addDialogOpen()).toBe(true);
+    expect(component.addError()).toBeNull();
+    component.closeAddDialog();
+    expect(component.addDialogOpen()).toBe(false);
+  });
+
+  describe('other-competition warning', () => {
+    it('flags recordings that already belong to a different competition', () => {
+      const getMyCompetitions = vi.fn(() =>
+        of({ competitions: [{ id: 'c2', name: 'Worlds', videoCount: 1 }] }),
+      );
+      const getCompetition = vi
+        .fn()
+        .mockReturnValueOnce(
+          of({ id: 'c1', name: 'Nationals', videos: [{ videoId: 'v1', name: 'Round 1' }] }),
+        )
+        .mockReturnValueOnce(of({ id: 'c2', name: 'Worlds', videos: [{ videoId: 'v2', name: 'Round 2' }] }));
+      const { component } = createFixture({ getMyCompetitions, getCompetition });
+
+      expect(component.otherCompetitionBadges().get('v2')).toBe('Also in Worlds');
+    });
+
+    it('asks for confirmation before adding a video already in another competition', () => {
+      const getMyCompetitions = vi.fn(() =>
+        of({ competitions: [{ id: 'c2', name: 'Worlds', videoCount: 1 }] }),
+      );
+      const getCompetition = vi
+        .fn()
+        .mockReturnValueOnce(
+          of({ id: 'c1', name: 'Nationals', videos: [{ videoId: 'v1', name: 'Round 1' }] }),
+        )
+        .mockReturnValueOnce(of({ id: 'c2', name: 'Worlds', videos: [{ videoId: 'v2', name: 'Round 2' }] }));
+      const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+      const { component, competitions } = createFixture({ getMyCompetitions, getCompetition });
+
+      component.add({ videoId: 'v2', name: 'Round 2' });
+
+      expect(confirm).toHaveBeenCalled();
+      expect(competitions.addVideo).not.toHaveBeenCalled();
+    });
+
+    it('adds the video when the user confirms', () => {
+      const getMyCompetitions = vi.fn(() =>
+        of({ competitions: [{ id: 'c2', name: 'Worlds', videoCount: 1 }] }),
+      );
+      const getCompetition = vi
+        .fn()
+        .mockReturnValueOnce(
+          of({ id: 'c1', name: 'Nationals', videos: [{ videoId: 'v1', name: 'Round 1' }] }),
+        )
+        .mockReturnValueOnce(of({ id: 'c2', name: 'Worlds', videos: [{ videoId: 'v2', name: 'Round 2' }] }));
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      const { component, competitions } = createFixture({ getMyCompetitions, getCompetition });
+
+      component.add({ videoId: 'v2', name: 'Round 2' });
+
+      expect(competitions.removeVideo).toHaveBeenCalledWith('c2', 'v2');
+      expect(competitions.addVideo).toHaveBeenCalledWith('c1', 'v2');
+      expect(component.groupedVideos().map((v) => v.videoId)).toContain('v2');
+      expect(component.otherCompetitionBadges().has('v2')).toBe(false);
+    });
   });
 
   describe('comments', () => {
