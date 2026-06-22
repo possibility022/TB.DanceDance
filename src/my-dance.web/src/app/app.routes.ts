@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
+import { autoLoginPartialRoutesGuard } from 'angular-auth-oidc-client';
 
-import { adminGuard, authGuard } from './core/auth/auth.guard';
+import { adminGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   // --- Public ---
@@ -21,38 +22,40 @@ export const routes: Routes = [
   {
     path: 'videos',
     title: 'Lesson recordings · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/videos/group-videos').then((m) => m.GroupVideos),
   },
   {
     path: 'videos/my',
     title: 'My recordings · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/videos/my-videos').then((m) => m.MyVideos),
   },
   {
     path: 'videos/upload',
     title: 'Upload · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/upload/upload').then((m) => m.Upload),
   },
   {
     path: 'transfers',
     title: 'My transfers · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/transfers/my-transfers').then((m) => m.MyTransfers),
   },
   {
     // Stable URL — transfer links are handed out to other people (but require login).
+    // autoLoginPartialRoutesGuard preserves this exact URL (incl. query string) through
+    // the OIDC login round trip.
     path: 'transfer/:linkId',
     title: 'Incoming transfer · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/transfers/transfer-landing').then((m) => m.TransferLanding),
   },
   {
     path: 'videos/requestassignment',
     title: 'Request access · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/access/request-access').then((m) => m.RequestAccess),
   },
   {
@@ -60,19 +63,19 @@ export const routes: Routes = [
     // Param is the blob id — the key the stream/info endpoints use.
     path: 'videos/:blobId',
     title: 'Watch · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/videos/video-player').then((m) => m.VideoPlayer),
   },
   {
     path: 'events',
     title: 'Events · Dance Dance',
-    canActivate: [authGuard],
+    canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/events/events').then((m) => m.Events),
   },
   {
     path: 'access/requestedaccesses',
     title: 'Access requests · Dance Dance',
-    canActivate: [adminGuard],
+    canActivate: [autoLoginPartialRoutesGuard, adminGuard],
     loadComponent: () => import('./features/access/access-requests').then((m) => m.AccessRequests),
   },
 
