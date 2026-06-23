@@ -5,7 +5,7 @@ description: "Task list for Invite via Single-Use Link"
 
 # Tasks: Invite via Single-Use Link
 
-**Input**: Design documents from `/specs/008-invite-links/`
+**Input**: Design documents from `/specs/012-invite-links/`
 
 **Prerequisites**: [plan.md](./plan.md), [spec.md](./spec.md), [research.md](./research.md), [data-model.md](./data-model.md), [contracts/invite-links.http](./contracts/invite-links.http), [quickstart.md](./quickstart.md)
 

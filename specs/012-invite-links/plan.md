@@ -1,8 +1,8 @@
 # Implementation Plan: Invite via Single-Use Link
 
-**Branch**: `008-invite-links` | **Date**: 2026-06-24 | **Spec**: [spec.md](./spec.md)
+**Branch**: `012-invite-links` | **Date**: 2026-06-24 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Feature specification from `/specs/008-invite-links/spec.md`
+**Input**: Feature specification from `/specs/012-invite-links/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
@@ -48,7 +48,7 @@ No violations — Complexity Tracking section is not needed.
 ### Documentation (this feature)
 
 ```text
-specs/008-invite-links/
+specs/012-invite-links/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)

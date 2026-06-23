@@ -1,6 +1,6 @@
 # Feature Specification: Invite via Single-Use Link
 
-**Feature Branch**: `008-invite-links`
+**Feature Branch**: `012-invite-links`
 
 **Created**: 2026-06-23
 
