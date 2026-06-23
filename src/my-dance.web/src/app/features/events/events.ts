@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AccessService } from '../../core/api/access.service';
@@ -31,7 +31,7 @@ const VIDEOS_PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-events',
-  imports: [ReactiveFormsModule, LongDatePipe, VideoList, UploadDialog],
+  imports: [ReactiveFormsModule, RouterLink, LongDatePipe, VideoList, UploadDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './events.html',
   styles: `

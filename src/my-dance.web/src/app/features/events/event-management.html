@@ -1,0 +1,70 @@
+<header class="block">
+  <h1 class="title">Event invite links</h1>
+  <p class="subtitle">Generate a single-use link to invite someone to this event, or revoke one you no longer need.</p>
+</header>
+
+<section class="box">
+  <h2 class="title is-5">Generate a new link</h2>
+  <button type="button" class="button is-primary" [class.is-loading]="generating()" [disabled]="generating()" (click)="generateInviteLink()">
+    Generate invite link
+  </button>
+
+  @if (newLinkUrl(); as url) {
+    <div class="notification is-success is-light mt-3" role="status">
+      <p class="block">Share this link — it can be used once:</p>
+      <code>{{ url }}</code>
+    </div>
+  }
+</section>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading invite links">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-danger is-light" role="alert">
+    <p class="block">We couldn't load this event's invite links. You may not be its owner.</p>
+    <button type="button" class="button is-danger" (click)="load()">Try again</button>
+  </div>
+} @else {
+  <section class="box">
+    <h2 class="title is-5">Outstanding links</h2>
+    @if (links().length === 0) {
+      <p class="has-text-grey">No invite links yet.</p>
+    } @else {
+      <div class="table-container">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Expires</th>
+              <th>Redeemed</th>
+              <th class="has-text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (link of links(); track link.id) {
+              <tr>
+                <td>{{ link.status }}</td>
+                <td>{{ link.createdAt | longDate }}</td>
+                <td>{{ link.expireAt | longDate }}</td>
+                <td>{{ link.redeemedAt ? (link.redeemedAt | longDate) : '—' }}</td>
+                <td class="has-text-right">
+                  @if (link.status === 'Active' || link.status === 'Expired') {
+                    <button
+                      type="button"
+                      class="button is-small is-danger is-light"
+                      [disabled]="processingLinkId() !== null"
+                      (click)="revoke(link)"
+                    >
+                      Revoke
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

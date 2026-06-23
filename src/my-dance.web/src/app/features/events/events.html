@@ -30,6 +30,9 @@
         <button type="button" class="button is-primary is-small" (click)="openUploadDialog()">
           Upload
         </button>
+        <a class="button is-light is-small" [routerLink]="['/events', event.id, 'manage']">
+          Manage invites
+        </a>
       </div>
     </div>
 

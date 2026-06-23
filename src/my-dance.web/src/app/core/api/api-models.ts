@@ -434,3 +434,33 @@ export interface RequestAccessGroupModel {
     id?: string;
     joinedDate?: Date;
 }
+
+export interface InviteLinkModel {
+    id?: string;
+    url?: string;
+    groupId?: string | undefined;
+    eventId?: string | undefined;
+    createdBy?: string;
+    createdAt?: Date;
+    expireAt?: Date;
+    /** Active / Redeemed / Revoked / Expired. */
+    status?: string;
+    redeemedByUserId?: string | undefined;
+    redeemedAt?: Date | undefined;
+}
+
+export interface ListInviteLinksResponse {
+    inviteLinks?: InviteLinkModel[];
+}
+
+export interface InviteLinkInfoModel {
+    id?: string;
+    /** "Group" or "Event". */
+    targetType?: string;
+    targetName?: string;
+    isRedeemable?: boolean;
+}
+
+export interface RedeemInviteLinkResponse {
+    alreadyMember?: boolean;
+}

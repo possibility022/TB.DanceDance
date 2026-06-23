@@ -1,5 +1,6 @@
 using Application.Features.AccessManagement;
 using Application.Features.Events;
+using Application.Features.Invites;
 using Application.Features.Sharing;
 using Application.Features.Transfers;
 using Application.Features.Videos;
@@ -38,6 +39,7 @@ public static class DependencyInjection
             services.AddAccessManagementFeature();
             services.AddVideosFeature();
             services.AddCompetitionsFeature();
+            services.AddInvitesFeature();
 
             // FastEndpoints discovery. The endpoint classes live in this (Application) assembly, so
             // point discovery at it explicitly rather than relying on AppDomain scanning.

@@ -98,4 +98,7 @@ public class WebAppFixture : AppFixture<ApiHost::Program>
         client.DefaultRequestHeaders.Add(ScopeHeader, scope);
         return client;
     }
+
+    /// <summary>A client with no auth headers at all, for exercising signed-out/anonymous behavior.</summary>
+    public HttpClient CreateAnonymousClient() => CreateClient();
 }

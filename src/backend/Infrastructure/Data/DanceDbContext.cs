@@ -34,6 +34,7 @@ public class DanceDbContext : DbContext, IApplicationContext
     public DbSet<VideoTransferItem> VideoTransferItems { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Competition> Competitions { get; set; }
+    public DbSet<InviteLink> InviteLinks { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -239,6 +240,40 @@ public class DanceDbContext : DbContext, IApplicationContext
         modelBuilder.Entity<Comment>()
             .Property(c => c.ShaOfAnonymousId)
             .HasMaxLength(32)
+            .IsRequired(false);
+
+        // Invite link configuration (same schema as SharedLink/VideoTransfer)
+        modelBuilder.Entity<InviteLink>()
+            .ToTable("InviteLinks", Schemas.Access, t => t.HasCheckConstraint(
+                "CK_InviteLinks_GroupOrEvent",
+                "(\"GroupId\" IS NOT NULL) <> (\"EventId\" IS NOT NULL)"));
+
+        // A link targets either a group or an event. Both FKs are optional at the column level
+        // (the check constraint enforces exactly-one), and deleting the target removes its links.
+        modelBuilder.Entity<InviteLink>()
+            .HasOne(e => e.Group)
+            .WithMany()
+            .HasForeignKey(r => r.GroupId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<InviteLink>()
+            .HasOne(e => e.Event)
+            .WithMany()
+            .HasForeignKey(r => r.EventId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<InviteLink>()
+            .HasOne(e => e.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(r => r.CreatedBy)
+            .IsRequired();
+
+        modelBuilder.Entity<InviteLink>()
+            .HasOne(e => e.RedeemedByUser)
+            .WithMany()
+            .HasForeignKey(r => r.RedeemedByUserId)
             .IsRequired(false);
 
         base.OnModelCreating(modelBuilder);

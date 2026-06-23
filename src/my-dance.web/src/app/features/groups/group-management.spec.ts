@@ -4,11 +4,13 @@ import { of } from 'rxjs';
 import { GroupManagement } from './group-management';
 import { GroupsService } from '../../core/api/groups.service';
 import { AccessService } from '../../core/api/access.service';
+import { InviteLinksService } from '../../core/api/invite-links.service';
 
 interface Overrides {
   admins?: { userId?: string; firstName?: string; lastName?: string; email?: string }[];
   members?: { userId?: string; email?: string; whenJoined?: Date }[];
   myGroups?: { id?: string; name?: string; seasonStart?: Date; seasonEnd?: Date }[];
+  inviteLinks?: { id?: string; status?: string }[];
   addAdmin?: ReturnType<typeof vi.fn>;
   removeAdmin?: ReturnType<typeof vi.fn>;
   updateMember?: ReturnType<typeof vi.fn>;
@@ -35,12 +37,18 @@ function createFixture(overrides: Overrides = {}) {
     listAccessRequests: vi.fn(() => of({ accessRequests: [] })),
     approveAccessRequest: vi.fn(() => of(void 0)),
   };
+  const inviteLinks = {
+    listForGroup: vi.fn(() => of({ inviteLinks: overrides.inviteLinks ?? [] })),
+    createForGroup: vi.fn(() => of({ id: 'l1', url: 'https://example.test/invite/l1' })),
+    revoke: vi.fn(() => of(void 0)),
+  };
 
   TestBed.configureTestingModule({
     imports: [GroupManagement],
     providers: [
       { provide: GroupsService, useValue: groups },
       { provide: AccessService, useValue: access },
+      { provide: InviteLinksService, useValue: inviteLinks },
     ],
   });
 
