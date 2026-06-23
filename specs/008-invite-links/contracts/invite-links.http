@@ -1,0 +1,75 @@
+### REMEMBER TO CALL GET TOKEN FROM token.http
+### This file documents the planned request/response contract for the invite-links feature.
+### It follows the same convention as src/backend/Application/httpRequests/sharedLinks.http
+### and transfers.http; it is not (yet) a real file under that directory.
+
+### Create a group invite link — caller must be an admin of {{groupId}} (FR-001, FR-003)
+@groupId = 7c30e3cc-e6d8-4cf7-8b64-eba68efa5366
+POST https://localhost:7068/api/groups/{{groupId}}/invite-links
+Authorization: Bearer {{token}}
+
+### Create an event invite link — caller must be the owner/admin of {{eventId}} (FR-002, FR-003)
+@eventId = c4029eb1-23ad-417b-9a3b-1b2ad4751c0b
+POST https://localhost:7068/api/events/{{eventId}}/invite-links
+Authorization: Bearer {{token}}
+
+### -> 200 OK, both of the above return the same shape:
+### {
+###   "id": "34UEWTMW",
+###   "url": "https://localhost:3000/invite/34UEWTMW",
+###   "groupId": "7c30e3cc-e6d8-4cf7-8b64-eba68efa5366",
+###   "eventId": null,
+###   "createdBy": "user-id",
+###   "createdAt": "2026-06-24T12:00:00Z",
+###   "expireAt": "2026-07-01T12:00:00Z",
+###   "status": "Active",
+###   "redeemedByUserId": null,
+###   "redeemedAt": null
+### }
+
+###
+### List a group's invite links — any current admin, regardless of who created each link (FR-008)
+GET https://localhost:7068/api/groups/{{groupId}}/invite-links
+Authorization: Bearer {{token}}
+
+###
+### List an event's invite links (FR-008)
+GET https://localhost:7068/api/events/{{eventId}}/invite-links
+Authorization: Bearer {{token}}
+
+### -> 200 OK: InviteLinkResponse[] (same shape as create)
+
+###
+### Get invite-link info — public/anonymous, used by the landing page before the user signs in
+### so it can show "you've been invited to join <name>" even when signed out (FR-005, FR-012).
+@inviteLinkId = 34UEWTMW
+GET https://localhost:7068/api/invite-links/{{inviteLinkId}}
+
+### -> 200 OK while Active and unexpired:
+### {
+###   "id": "34UEWTMW",
+###   "targetType": "Group",
+###   "targetName": "Beginner WCS Fall 2026",
+###   "isRedeemable": true
+### }
+### -> 200 OK once Redeemed/Revoked/expired: { ..., "isRedeemable": false }
+### -> 404 Not Found if the id doesn't exist at all
+
+###
+### Redeem an invite link — requires sign-in (FR-012); first caller to redeem wins (FR-004, FR-011)
+POST https://localhost:7068/api/invite-links/{{inviteLinkId}}/redeem
+Authorization: Bearer {{token}}
+
+### -> 200 OK { "alreadyMember": false } on first successful redemption
+### -> 200 OK { "alreadyMember": true } if the caller was already a member/had access (FR-010, no-op)
+### -> 409 Conflict if the link was already redeemed by someone else, revoked, or expired (FR-005)
+### -> 401 Unauthorized if not signed in
+
+###
+### Revoke an invite link — any current admin of the target group/event, not only its creator (FR-007)
+DELETE https://localhost:7068/api/invite-links/{{inviteLinkId}}
+Authorization: Bearer {{token}}
+
+### -> 204 No Content on success
+### -> 409 Conflict if the link was already redeemed (revocation has no effect — User Story 4, scenario 3)
+### -> 403 Forbidden if the caller isn't a current admin of the target group/event

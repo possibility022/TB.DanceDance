@@ -137,3 +137,9 @@ Angular 22, standalone components, signals, zoneless, OnPush. See `src/my-dance.
 Backend integration tests require Docker (Testcontainers pulls PostgreSQL and Azurite images on first run). Tests are in `src/tests/TB.DanceDance.Tests/` and use xunit v3, NSubstitute, and WireMock.Net for HTTP mocking.
 
 CI runs via `.github/workflows/pr-gated.yaml` and validates API, frontend, mobile, converter, and initializer on every PR.
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+at specs/008-invite-links/plan.md
+<!-- SPECKIT END -->
