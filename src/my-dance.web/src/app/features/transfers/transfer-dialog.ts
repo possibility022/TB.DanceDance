@@ -14,13 +14,15 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { TransfersService } from '../../core/api/transfers.service';
 import { TransferSummaryResponse } from '../../core/api/api-models';
+import { CopyLink } from '../../shared/ui/copy-link/copy-link';
+import { buildShareMessage } from '../../shared/share/share-message';
 
 const DEFAULT_EXPIRATION_DAYS = 7;
 
 /** Modal: create a transfer link that gives ownership of a single recording to the recipient. */
 @Component({
   selector: 'app-transfer-dialog',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CopyLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-dialog.html',
 })
@@ -44,7 +46,6 @@ export class TransferDialog {
   readonly transferring = signal(false);
   readonly transferFailed = signal(false);
   readonly transferResult = signal<TransferSummaryResponse | null>(null);
-  readonly copied = signal(false);
 
   readonly existingTransfer = signal<TransferSummaryResponse | null>(null);
   readonly revoking = signal(false);
@@ -56,6 +57,11 @@ export class TransferDialog {
     if (/^https?:\/\//i.test(url)) return url;
     return `${window.location.origin}/transfer/${result.linkId ?? ''}`;
   });
+
+  /** A warm, ready-to-send message offering this recording to the recipient. */
+  readonly shareMessage = computed(() =>
+    buildShareMessage('transfer', this.videoName(), this.shareUrl()),
+  );
 
   constructor() {
     effect(() => {
@@ -100,16 +106,9 @@ export class TransferDialog {
       });
   }
 
-  copy(): void {
-    const url = this.shareUrl();
-    if (!url) return;
-    void navigator.clipboard?.writeText(url).then(() => this.copied.set(true));
-  }
-
   close(): void {
     this.transferResult.set(null);
     this.transferFailed.set(false);
-    this.copied.set(false);
     this.existingTransfer.set(null);
     this.revoking.set(false);
     this.transferForm.reset({ expirationDays: DEFAULT_EXPIRATION_DAYS });

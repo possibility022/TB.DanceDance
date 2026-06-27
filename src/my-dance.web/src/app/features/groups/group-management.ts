@@ -21,12 +21,14 @@ import {
 } from '../../core/api/api-models';
 import { SeasonRangePipe } from '../../shared/format/season-range.pipe';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
+import { CopyLink } from '../../shared/ui/copy-link/copy-link';
+import { buildShareMessage } from '../../shared/share/share-message';
 import { AccessRequests } from '../access/access-requests';
 
 /** Per-group admin screen: pending requests, members, admins, and invite links. Admin-only (server-enforced). */
 @Component({
   selector: 'app-group-management',
-  imports: [AccessRequests, SeasonRangePipe, LongDatePipe],
+  imports: [AccessRequests, SeasonRangePipe, LongDatePipe, CopyLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './group-management.html',
 })
@@ -132,8 +134,16 @@ export class GroupManagement implements OnInit {
       });
   }
 
+  /** A warm, ready-to-send invite message naming this group. */
+  inviteMessage(url: string): string {
+    return buildShareMessage('group', this.group()?.name, url);
+  }
+
   memberName(entry: GroupAdminModel | GroupMemberModel): string {
-    return [entry.firstName, entry.lastName].filter(Boolean).join(' ').trim() || (entry.email ?? 'Unknown');
+    return (
+      [entry.firstName, entry.lastName].filter(Boolean).join(' ').trim() ||
+      (entry.email ?? 'Unknown')
+    );
   }
 
   /** A member's join date as a `yyyy-MM-dd` string for the date input. */

@@ -1,22 +1,18 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { TransfersService } from '../../core/api/transfers.service';
 import { TransferSummaryResponse } from '../../core/api/api-models';
 import { FileSizePipe } from '../../shared/format/file-size.pipe';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
+import { CopyLink } from '../../shared/ui/copy-link/copy-link';
+import { buildShareMessage } from '../../shared/share/share-message';
 
 /** Sender-facing list of the user's outgoing transfers, with revoke on pending ones and
  * roll-back on accepted ones still inside the rollback window. */
 @Component({
   selector: 'app-my-transfers',
-  imports: [FileSizePipe, LongDatePipe],
+  imports: [FileSizePipe, LongDatePipe, CopyLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './my-transfers.html',
 })
@@ -29,7 +25,6 @@ export class MyTransfers {
   readonly items = signal<readonly TransferSummaryResponse[]>([]);
   private readonly revokingId = signal<string | null>(null);
   private readonly rollingBackId = signal<string | null>(null);
-  readonly copiedId = signal<string | null>(null);
 
   constructor() {
     this.load();
@@ -49,7 +44,11 @@ export class MyTransfers {
 
   /** Whether the rollback window is still open for this Accepted transfer. */
   canRollback(transfer: TransferSummaryResponse): boolean {
-    return this.isAccepted(transfer) && !!transfer.rollbackDeadline && new Date() < new Date(transfer.rollbackDeadline);
+    return (
+      this.isAccepted(transfer) &&
+      !!transfer.rollbackDeadline &&
+      new Date() < new Date(transfer.rollbackDeadline)
+    );
   }
 
   /** Absolute, copyable transfer URL — falls back to the current origin if the API returned a relative url. */
@@ -59,6 +58,14 @@ export class MyTransfers {
       return url;
     }
     return `${window.location.origin}/transfer/${transfer.linkId ?? ''}`;
+  }
+
+  /** A warm, ready-to-send message offering this transfer's recording(s) to the recipient. */
+  shareMessage(transfer: TransferSummaryResponse): string {
+    const items = transfer.items ?? [];
+    const first = items[0]?.name;
+    const title = first && items.length > 1 ? `${first} (+${items.length - 1} more)` : first;
+    return buildShareMessage('transfer', title, this.shareUrl(transfer));
   }
 
   load(): void {
@@ -118,15 +125,5 @@ export class MyTransfers {
         },
         error: () => this.rollingBackId.set(null),
       });
-  }
-
-  copy(transfer: TransferSummaryResponse): void {
-    const url = this.shareUrl(transfer);
-    if (!url) {
-      return;
-    }
-    void navigator.clipboard?.writeText(url).then(() => {
-      this.copiedId.set(transfer.linkId ?? null);
-    });
   }
 }

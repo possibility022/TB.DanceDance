@@ -1,0 +1,66 @@
+<section class="hero is-medium landing-hero">
+  <div class="hero-body">
+    <div class="container has-text-centered">
+      <h1 class="title is-1 landing-hero__title">Dance Dance</h1>
+      <hr class="landing-hero__rule" aria-hidden="true" />
+      <p class="subtitle is-4 landing-hero__lead">
+        All your dance recordings in one place — organised by class, event, and competition. Share
+        with your coach or peers for feedback with a single link.
+      </p>
+      <button type="button" class="button is-primary is-medium" (click)="login()">Log in</button>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <p class="landing-intro has-text-centered is-size-5 has-text-grey">
+      Here is what you can do once you sign in.
+    </p>
+
+    <div class="columns is-variable is-6 mt-5">
+      @for (capability of capabilities; track capability.title) {
+        <div class="column">
+          <article class="landing-capability has-text-centered">
+            <span class="landing-capability__icon" aria-hidden="true">
+              @switch (capability.icon) {
+                @case ('trophy') {
+                  <svg viewBox="0 0 24 24" width="40" height="40" focusable="false">
+                    <path
+                      fill="currentColor"
+                      d="M18 4V2H6v2H2v4a5 5 0 0 0 4.9 5 6 6 0 0 0 4.1 2.9V19H8v2h8v-2h-3v-3.1A6 6 0 0 0 17.1 13 5 5 0 0 0 22 8V4h-4ZM4 8V6h2v4.8A3 3 0 0 1 4 8Zm16 0a3 3 0 0 1-2 2.8V6h2v2Z"
+                    />
+                  </svg>
+                }
+                @case ('library') {
+                  <svg viewBox="0 0 24 24" width="40" height="40" focusable="false">
+                    <path
+                      fill="currentColor"
+                      d="M4 4h3v16H4V4Zm4 0h3v16H8V4Zm8.2.5 2.9.8L15 20.7l-2.9-.8L16.2 4.5Z"
+                    />
+                  </svg>
+                }
+                @case ('collection') {
+                  <svg viewBox="0 0 24 24" width="40" height="40" focusable="false">
+                    <path
+                      fill="currentColor"
+                      d="M4 6h16v12H4V6Zm2 2v8h12V8H6Zm4 1.5 5 2.5-5 2.5v-5Z"
+                    />
+                  </svg>
+                }
+              }
+            </span>
+            <h2 class="title is-5">{{ capability.title }}</h2>
+            <p class="content">{{ capability.description }}</p>
+          </article>
+        </div>
+      }
+    </div>
+
+    <div class="has-text-centered mt-5">
+      <button type="button" class="button is-primary is-medium" (click)="login()">
+        Log in to get started
+      </button>
+    </div>
+  </div>
+</section>

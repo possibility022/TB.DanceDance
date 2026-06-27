@@ -8,14 +8,16 @@
 
     <section class="modal-card-body">
       <p class="block">
-        Transferring <strong>gives this recording away</strong>: once the recipient opens the link and
-        accepts, ownership moves to them immediately. If this was a mistake, you can roll it back from
-        <strong>My Transfers</strong> for 30 days after they accept.
+        Transferring <strong>gives this recording away</strong>: once the recipient opens the link
+        and accepts, ownership moves to them immediately. If this was a mistake, you can roll it
+        back from <strong>My Transfers</strong> for 30 days after they accept.
       </p>
 
       @if (existingTransfer()) {
         <div class="notification is-warning is-light">
-          <p class="block">This recording already has a pending transfer. Revoke it to create a new one.</p>
+          <p class="block">
+            This recording already has a pending transfer. Revoke it to create a new one.
+          </p>
           <button
             type="button"
             class="button is-warning"
@@ -28,24 +30,14 @@
         </div>
       } @else if (transferResult()) {
         <div class="notification is-success is-light">
-          <p class="block">Transfer link created. Send it to the person you want to give this recording to.</p>
-          <p class="block has-text-grey is-size-7">Once they accept, you can still roll it back from <strong>My Transfers</strong> for 30 days.</p>
-          <div class="field has-addons">
-            <div class="control is-expanded">
-              <input
-                class="input is-small"
-                type="text"
-                readonly
-                [value]="shareUrl()"
-                aria-label="Transfer link"
-              />
-            </div>
-            <div class="control">
-              <button type="button" class="button is-small" (click)="copy()">
-                {{ copied() ? 'Copied' : 'Copy' }}
-              </button>
-            </div>
-          </div>
+          <p class="block">
+            Transfer link created. Send it to the person you want to give this recording to.
+          </p>
+          <p class="block has-text-grey is-size-7">
+            Once they accept, you can still roll it back from <strong>My Transfers</strong> for 30
+            days.
+          </p>
+          <app-copy-link [url]="shareUrl()" [message]="shareMessage()" />
         </div>
       } @else {
         <form [formGroup]="transferForm" (ngSubmit)="transfer()">
