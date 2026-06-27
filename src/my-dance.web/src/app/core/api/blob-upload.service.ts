@@ -1,6 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, InjectionToken, inject } from '@angular/core';
 import { BlockBlobClient } from '@azure/storage-blob';
 import { Observable } from 'rxjs';
+
+/** The slice of {@link BlockBlobClient} this service depends on. */
+export type UploadClient = Pick<BlockBlobClient, 'uploadData'>;
+
+/**
+ * Builds the Azure blob client for a SAS URL. Injectable so tests can supply a
+ * fake without mocking the `@azure/storage-blob` module (module mocking proved
+ * unreliable across environments).
+ */
+export const BLOCK_BLOB_CLIENT_FACTORY = new InjectionToken<(sasUrl: string) => UploadClient>(
+  'BLOCK_BLOB_CLIENT_FACTORY',
+  { providedIn: 'root', factory: () => (sasUrl: string) => new BlockBlobClient(sasUrl) },
+);
 
 /**
  * Uploads a file directly to Azure Blob Storage using a SAS URL issued by the
@@ -14,9 +27,11 @@ import { Observable } from 'rxjs';
  */
 @Injectable({ providedIn: 'root' })
 export class BlobUploadService {
+  private readonly createClient = inject(BLOCK_BLOB_CLIENT_FACTORY);
+
   upload(sasUrl: string, file: File): Observable<number> {
     return new Observable<number>((subscriber) => {
-      const client = new BlockBlobClient(sasUrl);
+      const client = this.createClient(sasUrl);
       const controller = new AbortController();
 
       client

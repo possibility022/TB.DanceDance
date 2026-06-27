@@ -1,32 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
-import { BlobUploadService } from './blob-upload.service';
+import { BLOCK_BLOB_CLIENT_FACTORY, BlobUploadService, UploadClient } from './blob-upload.service';
 
 const SAS = 'https://blob.test/container/blob?sig=abc';
 
-/** Captures the options passed to uploadData so a test can drive onProgress. */
-interface UploadCall {
-  data: unknown;
-  options: {
-    abortSignal?: AbortSignal;
-    blobHTTPHeaders?: { blobContentType?: string };
-    onProgress?: (event: { loadedBytes: number }) => void;
-  };
+/** Options uploadData receives; captured so tests can drive onProgress. */
+interface UploadOptions {
+  abortSignal?: AbortSignal;
+  blobHTTPHeaders?: { blobContentType?: string };
+  onProgress?: (event: { loadedBytes: number }) => void;
 }
 
-// Hoisted so the mock factory (which vitest lifts above this file's imports)
-// can reference the spy without hitting it in the temporal dead zone.
-const { uploadData } = vi.hoisted(() => ({
-  uploadData: vi.fn<(data: unknown, options: UploadCall['options']) => Promise<unknown>>(),
-}));
-
-vi.mock('@azure/storage-blob', () => ({
-  BlockBlobClient: class {
-    constructor(public readonly url: string) {}
-    uploadData = uploadData;
-  },
-}));
+const uploadData =
+  vi.fn<(data: unknown, options: UploadOptions) => Promise<unknown>>();
 
 /** A File whose reported size we can set without allocating the bytes. */
 function fakeFile(size: number, type = 'video/mp4'): File {
@@ -53,7 +40,15 @@ describe('BlobUploadService', () => {
 
   beforeEach(() => {
     uploadData.mockReset();
-    TestBed.configureTestingModule({ providers: [BlobUploadService] });
+    TestBed.configureTestingModule({
+      providers: [
+        BlobUploadService,
+        {
+          provide: BLOCK_BLOB_CLIENT_FACTORY,
+          useValue: () => ({ uploadData }) as unknown as UploadClient,
+        },
+      ],
+    });
     service = TestBed.inject(BlobUploadService);
   });
 
