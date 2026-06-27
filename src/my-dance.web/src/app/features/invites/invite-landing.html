@@ -1,0 +1,49 @@
+<header class="block">
+  <h1 class="title">You've been invited</h1>
+</header>
+
+@if (loading()) {
+  <progress class="progress is-primary" max="100" aria-label="Loading invite">Loading…</progress>
+} @else if (failed()) {
+  <div class="notification is-warning is-light" role="alert">
+    This invite link isn't recognized. Double-check the link you were given.
+  </div>
+} @else if (outcome() === 'redeemed' || outcome() === 'alreadyMember') {
+  <div class="notification is-success is-light" role="status">
+    @if (outcome() === 'alreadyMember') {
+      <p class="block">You're already a member — nothing more to do.</p>
+    } @else {
+      <p class="block">You've joined {{ info()?.targetName }}.</p>
+    }
+    <a class="button is-primary" routerLink="/">Go to Dance Dance</a>
+  </div>
+} @else if (info(); as invite) {
+  @if (!invite.isRedeemable) {
+    <div class="notification is-warning is-light" role="alert">
+      This invite link has already been used, expired, or been revoked.
+    </div>
+  } @else if (!isAuthenticated()) {
+    <div class="notification is-light" role="alert">
+      <p class="block">
+        You've been invited to join <strong>{{ invite.targetName }}</strong>. Sign in to accept.
+      </p>
+      <button type="button" class="button is-primary" (click)="signIn()">Sign in to accept</button>
+    </div>
+  } @else {
+    @if (redeemFailed()) {
+      <div class="notification is-danger is-light" role="alert">
+        Something went wrong. Please try again.
+      </div>
+    }
+    <p class="block">Joining <strong>{{ invite.targetName }}</strong>…</p>
+    <button
+      type="button"
+      class="button is-primary"
+      [class.is-loading]="submitting()"
+      [disabled]="submitting()"
+      (click)="redeem()"
+    >
+      Accept invite
+    </button>
+  }
+}

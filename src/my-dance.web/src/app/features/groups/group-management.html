@@ -137,4 +137,66 @@
       </div>
     </form>
   </section>
+
+  <section class="box">
+    <h2 class="title is-5">Invite links</h2>
+    <p class="help">Generate a single-use link to invite someone into this group, or revoke one you no longer need.</p>
+
+    <button
+      type="button"
+      class="button is-primary"
+      [class.is-loading]="generatingInviteLink()"
+      [disabled]="generatingInviteLink()"
+      (click)="generateInviteLink()"
+    >
+      Generate invite link
+    </button>
+
+    @if (newInviteLinkUrl(); as url) {
+      <div class="notification is-success is-light mt-3" role="status">
+        <p class="block">Share this link — it can be used once:</p>
+        <code>{{ url }}</code>
+      </div>
+    }
+
+    @if (inviteLinksList().length === 0) {
+      <p class="has-text-grey mt-3">No invite links yet.</p>
+    } @else {
+      <div class="table-container mt-3">
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Expires</th>
+              <th>Redeemed</th>
+              <th class="has-text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (link of inviteLinksList(); track link.id) {
+              <tr>
+                <td>{{ link.status }}</td>
+                <td>{{ link.createdAt | longDate }}</td>
+                <td>{{ link.expireAt | longDate }}</td>
+                <td>{{ link.redeemedAt ? (link.redeemedAt | longDate) : '—' }}</td>
+                <td class="has-text-right">
+                  @if (link.status === 'Active' || link.status === 'Expired') {
+                    <button
+                      type="button"
+                      class="button is-small is-danger is-light"
+                      [disabled]="processingInviteLinkId() !== null"
+                      (click)="revokeInviteLink(link)"
+                    >
+                      Revoke
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
 }

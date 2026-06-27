@@ -766,3 +766,62 @@ public class CommentDataBuilder
         };
     }
 }
+
+public class InviteLinkDataBuilder
+{
+    private string _id;
+    private Guid? _groupId;
+    private Guid? _eventId;
+    private string _createdBy;
+    private DateTimeOffset _createdAt;
+    private DateTimeOffset _expireAt;
+    private InviteLinkStatus _status;
+    private string? _redeemedByUserId;
+    private DateTimeOffset? _redeemedAt;
+
+    public InviteLinkDataBuilder()
+    {
+        _id = TestDataBuilder.RandomName().Substring(0, 8);
+        _createdBy = TestDataBuilder.RandomUserId();
+        _createdAt = DateTimeOffset.UtcNow;
+        _expireAt = DateTimeOffset.UtcNow.AddDays(InviteLink.ExpirationDays);
+        _status = InviteLinkStatus.Active;
+    }
+
+    public InviteLinkDataBuilder WithId(string id) { _id = id; return this; }
+    public InviteLinkDataBuilder ForGroup(Guid groupId) { _groupId = groupId; _eventId = null; return this; }
+    public InviteLinkDataBuilder ForGroup(Group group) { _groupId = group.Id; _eventId = null; return this; }
+    public InviteLinkDataBuilder ForEvent(Guid eventId) { _eventId = eventId; _groupId = null; return this; }
+    public InviteLinkDataBuilder ForEvent(Event evt) { _eventId = evt.Id; _groupId = null; return this; }
+    public InviteLinkDataBuilder CreatedBy(string userId) { _createdBy = userId; return this; }
+    public InviteLinkDataBuilder CreatedBy(User user) { _createdBy = user.Id; return this; }
+    public InviteLinkDataBuilder CreatedAt(DateTimeOffset createdAt) { _createdAt = createdAt; return this; }
+    public InviteLinkDataBuilder ExpiresAt(DateTimeOffset expireAt) { _expireAt = expireAt; return this; }
+    public InviteLinkDataBuilder ExpiresInDays(int days) { _expireAt = _createdAt.AddDays(days); return this; }
+    public InviteLinkDataBuilder WithStatus(InviteLinkStatus status) { _status = status; return this; }
+
+    public InviteLinkDataBuilder RedeemedBy(string userId, DateTimeOffset? redeemedAt = null)
+    {
+        _redeemedByUserId = userId;
+        _redeemedAt = redeemedAt ?? DateTimeOffset.UtcNow;
+        _status = InviteLinkStatus.Redeemed;
+        return this;
+    }
+
+    public InviteLinkDataBuilder RedeemedBy(User user, DateTimeOffset? redeemedAt = null) => RedeemedBy(user.Id, redeemedAt);
+
+    public string LinkId => _id;
+
+    public InviteLink Build() => new InviteLink
+    {
+        Id = _id,
+        GroupId = _groupId,
+        EventId = _eventId,
+        CreatedBy = _createdBy,
+        CreatedAt = _createdAt,
+        ExpireAt = _expireAt,
+        Status = _status,
+        RedeemedByUserId = _redeemedByUserId,
+        RedeemedAt = _redeemedAt,
+    };
+}

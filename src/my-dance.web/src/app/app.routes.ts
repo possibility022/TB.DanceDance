@@ -66,6 +66,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/transfers/transfer-landing').then((m) => m.TransferLanding),
   },
   {
+    // Stable URL — invite links are handed out to other people. Deliberately NO auth guard:
+    // FR-012 requires showing a "please sign in" message rather than an automatic redirect.
+    path: 'invite/:linkId',
+    title: 'Invite · Dance Dance',
+    loadComponent: () => import('./features/invites/invite-landing').then((m) => m.InviteLanding),
+  },
+  {
     path: 'videos/requestassignment',
     title: 'Request access · Dance Dance',
     canActivate: [autoLoginPartialRoutesGuard],
@@ -84,6 +91,14 @@ export const routes: Routes = [
     title: 'Events · Dance Dance',
     canActivate: [autoLoginPartialRoutesGuard],
     loadComponent: () => import('./features/events/events').then((m) => m.Events),
+  },
+  {
+    // Admin-only invite-link management for a single event; server enforces the owner check.
+    path: 'events/:eventId/manage',
+    title: 'Event management · Dance Dance',
+    canActivate: [autoLoginPartialRoutesGuard],
+    loadComponent: () =>
+      import('./features/events/event-management').then((m) => m.EventManagement),
   },
   {
     path: 'access/requestedaccesses',

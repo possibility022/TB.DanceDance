@@ -12,14 +12,21 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
 import { GroupsService } from '../../core/api/groups.service';
-import { GroupAdminModel, GroupMemberModel, GroupModel } from '../../core/api/api-models';
+import { InviteLinksService } from '../../core/api/invite-links.service';
+import {
+  GroupAdminModel,
+  GroupMemberModel,
+  GroupModel,
+  InviteLinkModel,
+} from '../../core/api/api-models';
 import { SeasonRangePipe } from '../../shared/format/season-range.pipe';
+import { LongDatePipe } from '../../shared/format/long-date.pipe';
 import { AccessRequests } from '../access/access-requests';
 
-/** Per-group admin screen: pending requests, members, and admins. Admin-only (server-enforced). */
+/** Per-group admin screen: pending requests, members, admins, and invite links. Admin-only (server-enforced). */
 @Component({
   selector: 'app-group-management',
-  imports: [AccessRequests, SeasonRangePipe],
+  imports: [AccessRequests, SeasonRangePipe, LongDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './group-management.html',
 })
@@ -28,6 +35,7 @@ export class GroupManagement implements OnInit {
   readonly groupId = input.required<string>();
 
   private readonly groups = inject(GroupsService);
+  private readonly inviteLinks = inject(InviteLinksService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(true);
@@ -41,6 +49,11 @@ export class GroupManagement implements OnInit {
   readonly addingAdmin = signal(false);
   readonly processingAdminId = signal<string | null>(null);
   readonly processingMemberId = signal<string | null>(null);
+
+  readonly inviteLinksList = signal<readonly InviteLinkModel[]>([]);
+  readonly generatingInviteLink = signal(false);
+  readonly newInviteLinkUrl = signal<string | null>(null);
+  readonly processingInviteLinkId = signal<string | null>(null);
 
   /** Pending edits to member join dates, keyed by user id (`yyyy-MM-dd`). */
   readonly editedJoinDates = signal<Readonly<Record<string, string>>>({});
@@ -60,13 +73,15 @@ export class GroupManagement implements OnInit {
       admins: this.groups.listAdmins(this.groupId()),
       members: this.groups.listMembers(this.groupId()),
       myGroups: this.groups.listMyGroups(),
+      inviteLinks: this.inviteLinks.listForGroup(this.groupId()),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ admins, members, myGroups }) => {
+        next: ({ admins, members, myGroups, inviteLinks }) => {
           this.admins.set(admins.admins ?? []);
           this.members.set(members.members ?? []);
           this.group.set((myGroups.groups ?? []).find((g) => g.id === this.groupId()) ?? null);
+          this.inviteLinksList.set(inviteLinks.inviteLinks ?? []);
           this.editedJoinDates.set({});
           this.loading.set(false);
         },
@@ -74,6 +89,46 @@ export class GroupManagement implements OnInit {
           this.failed.set(true);
           this.loading.set(false);
         },
+      });
+  }
+
+  generateInviteLink(): void {
+    if (this.generatingInviteLink()) {
+      return;
+    }
+    this.generatingInviteLink.set(true);
+    this.newInviteLinkUrl.set(null);
+
+    this.inviteLinks
+      .createForGroup(this.groupId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (link) => {
+          this.generatingInviteLink.set(false);
+          this.newInviteLinkUrl.set(link.url ?? null);
+          this.load();
+        },
+        error: () => this.generatingInviteLink.set(false),
+      });
+  }
+
+  revokeInviteLink(link: InviteLinkModel): void {
+    if (!link.id || this.processingInviteLinkId()) {
+      return;
+    }
+    if (!window.confirm('Revoke this invite link? It can no longer be used to join.')) {
+      return;
+    }
+    this.processingInviteLinkId.set(link.id);
+    this.inviteLinks
+      .revoke(link.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.processingInviteLinkId.set(null);
+          this.load();
+        },
+        error: () => this.processingInviteLinkId.set(null),
       });
   }
 

@@ -17,14 +17,16 @@ public static class ApiRoutes
         public const string AdminById = $"{Base}/{{groupId:guid}}/admins/{{userId}}";
         public const string Members = $"{Base}/{{groupId:guid}}/members";
         public const string MemberById = $"{Base}/{{groupId:guid}}/members/{{userId}}";
+        public const string InviteLinks = $"{Base}/{{groupId:guid}}/invite-links";
     }
-    
+
     public static class Events
     {
         private const string Base = $"{ApiBase}/events";
 
         public const string AddEvent = $"{Base}";
         public const string Videos = $"{Base}/{{eventId:guid}}/videos";
+        public const string InviteLinks = $"{Base}/{{eventId:guid}}/invite-links";
     }
 
     public static class Video
@@ -116,5 +118,14 @@ public static class ApiRoutes
         public const string Rollback = $"{Base}/{{linkId}}/rollback";
         public const string Revoke = $"{Base}/{{linkId}}";
         public const string GetStream = $"{Base}/{{linkId}}/videos/{{videoId:guid}}/stream";
+    }
+
+    public static class InviteLink
+    {
+        private const string Base = $"{ApiBase}/invite-links";
+
+        public const string GetInfo = $"{Base}/{{linkId}}";
+        public const string Redeem = $"{Base}/{{linkId}}/redeem";
+        public const string Revoke = $"{Base}/{{linkId}}";
     }
 }
