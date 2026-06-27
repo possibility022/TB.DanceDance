@@ -1,6 +1,9 @@
 <header class="block">
   <h1 class="title">My transfers</h1>
-  <p class="subtitle">Recordings you've offered to give away. Once the recipient accepts, ownership moves to them right away — but you can roll it back for 30 days if it was a mistake.</p>
+  <p class="subtitle">
+    Recordings you've offered to give away. Once the recipient accepts, ownership moves to them
+    right away — but you can roll it back for 30 days if it was a mistake.
+  </p>
 </header>
 
 @if (loading()) {
@@ -26,7 +29,9 @@
             {{ transfer.status }}
           </span>
           <span class="ml-2">
-            {{ transfer.items?.length ?? 0 }} recording{{ (transfer.items?.length ?? 0) === 1 ? '' : 's' }}
+            {{ transfer.items?.length ?? 0 }} recording{{
+              (transfer.items?.length ?? 0) === 1 ? '' : 's'
+            }}
             · {{ transfer.totalSizeBytes | fileSize }}
           </span>
         </div>
@@ -34,20 +39,19 @@
       </div>
 
       @if (isPending(transfer)) {
-        <div class="field has-addons mt-3">
-          <div class="control is-expanded">
-            <input class="input is-small" type="text" readonly [value]="shareUrl(transfer)" aria-label="Transfer link" />
-          </div>
-          <div class="control">
-            <button type="button" class="button is-small" (click)="copy(transfer)">
-              {{ copiedId() === transfer.linkId ? 'Copied' : 'Copy' }}
-            </button>
-          </div>
-          <div class="control">
-            <button type="button" class="button is-small is-danger is-light" (click)="revoke(transfer)">
-              Revoke
-            </button>
-          </div>
+        <div class="is-flex is-align-items-flex-start mt-3" style="gap: 0.5rem">
+          <app-copy-link
+            class="is-flex-grow-1"
+            [url]="shareUrl(transfer)"
+            [message]="shareMessage(transfer)"
+          />
+          <button
+            type="button"
+            class="button is-small is-danger is-light"
+            (click)="revoke(transfer)"
+          >
+            Revoke
+          </button>
         </div>
       }
 
@@ -55,8 +59,8 @@
         <div class="notification is-info is-light mt-3" role="alert">
           <p class="block">
             <strong>Ownership has moved to the recipient.</strong>
-            You can roll this back until {{ transfer.rollbackDeadline | longDate }} — rolling back returns the
-            recording to your library immediately and the recipient loses access.
+            You can roll this back until {{ transfer.rollbackDeadline | longDate }} — rolling back
+            returns the recording to your library immediately and the recipient loses access.
           </p>
           <div class="buttons">
             <button

@@ -19,6 +19,8 @@ import { VideosService } from '../../core/api/videos.service';
 import { SharedLinkResponse } from '../../core/api/api-models';
 import { CommentVisibility, COMMENT_VISIBILITY_LABELS } from '../../shared/format/enums';
 import { LongDatePipe } from '../../shared/format/long-date.pipe';
+import { CopyLink } from '../../shared/ui/copy-link/copy-link';
+import { buildShareMessage } from '../../shared/share/share-message';
 
 const DEFAULT_EXPIRATION_DAYS = 7;
 
@@ -31,7 +33,7 @@ const VISIBILITY_OPTIONS = [
 /** Modal: create and manage shared links for a single recording. */
 @Component({
   selector: 'app-share-dialog',
-  imports: [ReactiveFormsModule, LongDatePipe],
+  imports: [ReactiveFormsModule, LongDatePipe, CopyLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './share-dialog.html',
 })
@@ -56,14 +58,16 @@ export class ShareDialog {
   readonly isCompetition = computed(() => !!this.competitionId());
 
   readonly form = this.fb.nonNullable.group({
-    expirationDays: [DEFAULT_EXPIRATION_DAYS, [Validators.required, Validators.min(1), Validators.max(365)]],
+    expirationDays: [
+      DEFAULT_EXPIRATION_DAYS,
+      [Validators.required, Validators.min(1), Validators.max(365)],
+    ],
     allowComments: [true],
     allowAnonymousComments: [false],
   });
 
   readonly links = signal<readonly SharedLinkResponse[]>([]);
   readonly creating = signal(false);
-  readonly copiedLinkId = signal<string | null>(null);
 
   /** Current saved visibility, and the (possibly changed) selection. */
   readonly savedVisibility = linkedSignal(() => this.commentVisibility());
@@ -80,6 +84,13 @@ export class ShareDialog {
 
   shareUrl(link: SharedLinkResponse): string {
     return link.shareUrl || `${window.location.origin}/shared/${link.linkId}`;
+  }
+
+  /** A warm, ready-to-send message for this link, naming the recording or competition. */
+  messageFor(link: SharedLinkResponse): string {
+    return this.isCompetition()
+      ? buildShareMessage('competition', link.competitionName, this.shareUrl(link))
+      : buildShareMessage('video', link.videoName || this.videoName(), this.shareUrl(link));
   }
 
   create(): void {
@@ -128,14 +139,7 @@ export class ShareDialog {
       .subscribe({ next: () => this.loadLinks() });
   }
 
-  copy(link: SharedLinkResponse): void {
-    void navigator.clipboard?.writeText(this.shareUrl(link)).then(() => {
-      this.copiedLinkId.set(link.linkId ?? null);
-    });
-  }
-
   close(): void {
-    this.copiedLinkId.set(null);
     this.closed.emit();
   }
 

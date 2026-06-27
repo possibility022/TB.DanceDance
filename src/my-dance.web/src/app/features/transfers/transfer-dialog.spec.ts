@@ -149,7 +149,6 @@ describe('TransferDialog', () => {
       open(fixture);
       component.transfer();
       component.transferFailed.set(true);
-      component.copied.set(true);
 
       let emitted = false;
       component.closed.subscribe(() => (emitted = true));
@@ -157,7 +156,6 @@ describe('TransferDialog', () => {
 
       expect(component.transferResult()).toBeNull();
       expect(component.transferFailed()).toBe(false);
-      expect(component.copied()).toBe(false);
       expect(component.existingTransfer()).toBeNull();
       expect(component.transferForm.getRawValue()).toEqual({ expirationDays: 7 });
       expect(emitted).toBe(true);

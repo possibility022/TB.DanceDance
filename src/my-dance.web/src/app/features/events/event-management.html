@@ -1,24 +1,34 @@
 <header class="block">
   <h1 class="title">Event invite links</h1>
-  <p class="subtitle">Generate a single-use link to invite someone to this event, or revoke one you no longer need.</p>
+  <p class="subtitle">
+    Generate a single-use link to invite someone to this event, or revoke one you no longer need.
+  </p>
 </header>
 
 <section class="box">
   <h2 class="title is-5">Generate a new link</h2>
-  <button type="button" class="button is-primary" [class.is-loading]="generating()" [disabled]="generating()" (click)="generateInviteLink()">
+  <button
+    type="button"
+    class="button is-primary"
+    [class.is-loading]="generating()"
+    [disabled]="generating()"
+    (click)="generateInviteLink()"
+  >
     Generate invite link
   </button>
 
   @if (newLinkUrl(); as url) {
     <div class="notification is-success is-light mt-3" role="status">
       <p class="block">Share this link — it can be used once:</p>
-      <code>{{ url }}</code>
+      <app-copy-link [url]="url" [message]="inviteMessage(url)" />
     </div>
   }
 </section>
 
 @if (loading()) {
-  <progress class="progress is-primary" max="100" aria-label="Loading invite links">Loading…</progress>
+  <progress class="progress is-primary" max="100" aria-label="Loading invite links">
+    Loading…
+  </progress>
 } @else if (failed()) {
   <div class="notification is-danger is-light" role="alert">
     <p class="block">We couldn't load this event's invite links. You may not be its owner.</p>
@@ -38,6 +48,7 @@
               <th>Created</th>
               <th>Expires</th>
               <th>Redeemed</th>
+              <th>Link</th>
               <th class="has-text-right">Actions</th>
             </tr>
           </thead>
@@ -48,6 +59,11 @@
                 <td>{{ link.createdAt | longDate }}</td>
                 <td>{{ link.expireAt | longDate }}</td>
                 <td>{{ link.redeemedAt ? (link.redeemedAt | longDate) : '—' }}</td>
+                <td>
+                  @if (link.status === 'Active' && link.url) {
+                    <app-copy-link [url]="link.url" [message]="inviteMessage(link.url)" />
+                  }
+                </td>
                 <td class="has-text-right">
                   @if (link.status === 'Active' || link.status === 'Expired') {
                     <button

@@ -144,31 +144,25 @@ describe('ShareDialog', () => {
     });
   });
 
-  describe('copy / close', () => {
-    it('copies the share url and marks the link as copied', async () => {
-      const writeText = vi.fn(() => Promise.resolve());
-      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-
+  describe('message / close', () => {
+    it('builds a friendly share message naming the recording', () => {
       const { fixture, component } = createFixture({});
+      fixture.componentRef.setInput('videoName', 'Tango Basics');
       open(fixture);
 
-      component.copy({ linkId: 'l1', shareUrl: 'https://x/y' });
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(writeText).toHaveBeenCalledWith('https://x/y');
-      expect(component.copiedLinkId()).toBe('l1');
+      const message = component.messageFor({ linkId: 'l1', shareUrl: 'https://x/y' });
+      expect(message).toContain('“Tango Basics”');
+      expect(message).toContain('https://x/y');
     });
 
-    it('close() clears the copied state and emits closed', () => {
+    it('close() emits closed', () => {
       const { fixture, component } = createFixture({});
       open(fixture);
-      component.copiedLinkId.set('l1');
 
       let emitted = false;
       component.closed.subscribe(() => (emitted = true));
       component.close();
 
-      expect(component.copiedLinkId()).toBeNull();
       expect(emitted).toBe(true);
     });
   });
@@ -202,5 +196,4 @@ describe('ShareDialog', () => {
       expect(component.savedVisibility()).toBe(0); // unchanged on failure
     });
   });
-
 });
