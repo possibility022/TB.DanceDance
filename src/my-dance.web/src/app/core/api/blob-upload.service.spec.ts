@@ -15,7 +15,11 @@ interface UploadCall {
   };
 }
 
-const uploadData = vi.fn<(data: unknown, options: UploadCall['options']) => Promise<unknown>>();
+// Hoisted so the mock factory (which vitest lifts above this file's imports)
+// can reference the spy without hitting it in the temporal dead zone.
+const { uploadData } = vi.hoisted(() => ({
+  uploadData: vi.fn<(data: unknown, options: UploadCall['options']) => Promise<unknown>>(),
+}));
 
 vi.mock('@azure/storage-blob', () => ({
   BlockBlobClient: class {
