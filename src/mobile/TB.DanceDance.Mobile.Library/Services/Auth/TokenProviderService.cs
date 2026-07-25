@@ -20,7 +20,7 @@ public class TokenProviderService : ITokenProviderService
         this.authority = (builder.Host, builder.Port);
     }
 
-    private async Task<SecurityToken?> FetchAccessToken()
+    private async Task<SecurityToken?> FetchAccessToken(bool allowInteractiveLogin)
     {
         try
         {
@@ -51,6 +51,9 @@ public class TokenProviderService : ITokenProviderService
             Log.Error(ex, "Could not get token silently");
         }
 
+        if (!allowInteractiveLogin)
+            return null;
+
         var response = await oidcClient.LoginAsync();
 
         if (response?.IsError == false)
@@ -75,10 +78,22 @@ public class TokenProviderService : ITokenProviderService
     /// <returns>Valid access token or null if login failed.</returns>
     public async Task<string?> GetAccessToken()
     {
-        if (tokenStorage.Token?.AccessToken == null 
-            || tokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(-5))
+        if (tokenStorage.Token?.AccessToken == null
+            || tokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(5))
         {
-            var token = await FetchAccessToken();
+            var token = await FetchAccessToken(allowInteractiveLogin: true);
+            return token?.AccessToken;
+        }
+
+        return tokenStorage.Token.AccessToken;
+    }
+
+    public async Task<string?> GetAccessTokenSilently()
+    {
+        if (tokenStorage.Token?.AccessToken == null
+            || tokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(5))
+        {
+            var token = await FetchAccessToken(allowInteractiveLogin: false);
             return token?.AccessToken;
         }
 
@@ -88,7 +103,7 @@ public class TokenProviderService : ITokenProviderService
     public string? GetValidAccessTokenNoFetch()
     {
         if (tokenStorage.Token?.AccessToken == null
-            || tokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(-1))
+            || tokenStorage.Token.AccessTokenExpiration < DateTimeOffset.Now.AddMinutes(1))
             return null;
         
         return tokenStorage.Token.AccessToken;
@@ -100,6 +115,8 @@ public class TokenProviderService : ITokenProviderService
 public interface ITokenProviderService
 {
     public Task<string?> GetAccessToken();
+
+    public Task<string?> GetAccessTokenSilently();
 
     public string? GetValidAccessTokenNoFetch();
 

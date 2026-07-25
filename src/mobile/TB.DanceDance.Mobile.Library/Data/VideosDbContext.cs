@@ -11,4 +11,10 @@ public class VideosDbContext : DbContext
     }
 
     public DbSet<VideosToUpload> VideosToUpload { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<VideosToUpload>()
+            .HasIndex(x => new { x.State, x.NextAttemptAtUtc });
+    }
 }

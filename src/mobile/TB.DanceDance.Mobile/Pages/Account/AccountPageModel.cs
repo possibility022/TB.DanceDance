@@ -4,6 +4,7 @@ using Nalu;
 using System.Text;
 using System.Text.Json;
 using TB.DanceDance.Mobile.Library.Services.Auth;
+using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.Pages.Access;
 
 namespace TB.DanceDance.Mobile.Pages.Account;
@@ -12,13 +13,16 @@ public partial class AccountPageModel : ObservableObject, IAppearingAware
 {
     private readonly INavigationService navigationService;
     private readonly TokenStorage primaryTokenStorage;
+    private readonly IUploadScheduler uploadScheduler;
 
     public AccountPageModel(
         INavigationService navigationService,
-        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage)
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage,
+        IUploadScheduler uploadScheduler)
     {
         this.navigationService = navigationService;
         this.primaryTokenStorage = primaryTokenStorage;
+        this.uploadScheduler = uploadScheduler;
     }
 
     [ObservableProperty]
@@ -40,10 +44,8 @@ public partial class AccountPageModel : ObservableObject, IAppearingAware
     [RelayCommand]
     private async Task Logout()
     {
+        await uploadScheduler.CancelAsync();
         primaryTokenStorage.ClearToken();
-#if ANDROID
-        UploadForegroundService.StopService();
-#endif
         await navigationService.GoToAsync(Navigation.Absolute().Root<MainPageViewModel>());
     }
 

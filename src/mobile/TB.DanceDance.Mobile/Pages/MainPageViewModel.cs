@@ -12,14 +12,17 @@ public partial class MainPageViewModel : ObservableObject, IAppearingAware
     private readonly IServiceProvider serviceProvider;
     private readonly INavigationService navigationService;
     private readonly TokenStorage primaryTokenStorage;
+    private readonly IUploadScheduler uploadScheduler;
 
     public MainPageViewModel(IServiceProvider serviceProvider,
         INavigationService navigationService,
-        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage)
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)] TokenStorage primaryTokenStorage,
+        IUploadScheduler uploadScheduler)
     {
         this.serviceProvider = serviceProvider;
         this.navigationService = navigationService;
         this.primaryTokenStorage = primaryTokenStorage;
+        this.uploadScheduler = uploadScheduler;
     }
 
     [ObservableProperty] private bool loginEnabled = true;
@@ -58,9 +61,7 @@ public partial class MainPageViewModel : ObservableObject, IAppearingAware
 
             if (await IsAlreadyLoggedIn())
             {
-#if ANDROID
-                UploadForegroundService.StartService();
-#endif
+                await uploadScheduler.ScheduleAsync();
                 await GoToHomeTab();
             }
         }

@@ -1,9 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Threading.Channels;
-using TB.DanceDance.API.Contracts.Features.Videos;
-using TB.DanceDance.API.Contracts.Models;
-using TB.DanceDance.Mobile.Library.Data;
-using TB.DanceDance.Mobile.Library.Data.Models.Storage;
+﻿using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -11,139 +6,37 @@ namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 public class VideoUploader : IVideoUploader
 {
     private readonly BlobUploader uploader;
-    private readonly IDanceHttpApiClient apiClient;
-    private readonly VideosDbContext dbContext;
-    private readonly Channel<UploadProgressEvent> notificationChannel;
 
-    private FileInfo? currentlyUploadedFile;
-
-    public VideoUploader(IDanceHttpApiClient apiClient, VideosDbContext dbContext,
-        Channel<UploadProgressEvent> notificationChannel, NetworkAddressResolver networkAddressResolver)
+    public VideoUploader(NetworkAddressResolver networkAddressResolver)
     {
         uploader = new BlobUploader(networkAddressResolver);
-        uploader.UploadProgress += _uploaderOnUploadProgress;
-        this.apiClient = apiClient;
-        this.dbContext = dbContext;
-        this.notificationChannel = notificationChannel;
     }
 
-    ~VideoUploader()
-    {
-        uploader.UploadProgress -= _uploaderOnUploadProgress;
-    }
-
-    private void _uploaderOnUploadProgress(object? sender, int e)
-    {
-        if (currentlyUploadedFile is not null)
-        {
-            notificationChannel.Writer.WriteAsync(new UploadProgressEvent()
-            {
-                FileName = currentlyUploadedFile.Name, FileSize = currentlyUploadedFile.Length, SendBytes = e
-            });
-        }
-    }
-
-    public async Task Upload(VideosToUpload videoToUpload, CancellationToken token)
+    public async Task Upload(
+        VideosToUpload videoToUpload,
+        IProgress<long>? progress,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(videoToUpload);
 
-        if (videoToUpload.Uploaded)
+        if (videoToUpload.State == UploadJobState.Completed || videoToUpload.Uploaded)
             return;
 
-        if (videoToUpload.Sas == null)
-            throw new Exception("Sas is null"); //todo
+        if (string.IsNullOrWhiteSpace(videoToUpload.Sas))
+            throw new InvalidOperationException("The upload job does not have a SAS URL.");
 
-        if (videoToUpload.SasExpireAt < DateTime.Now.AddMinutes(-5))
-            throw new Exception("Sas expired"); //todo
+        if (videoToUpload.SasExpireAt <= DateTime.UtcNow.AddMinutes(5))
+            throw new InvalidOperationException("The upload SAS URL has expired.");
 
-        currentlyUploadedFile = new FileInfo(videoToUpload.FullFileName);
-        await using var fileStream = currentlyUploadedFile.OpenRead();
-        await uploader.UploadAsync(fileStream, new Uri(videoToUpload.Sas), token);
+        var file = new FileInfo(videoToUpload.FullFileName);
+        if (!file.Exists)
+            throw new FileNotFoundException("The staged video file is missing.", file.FullName);
 
-        videoToUpload.Uploaded = true;
+        await using var fileStream = file.OpenRead();
+        await uploader.UploadAsync(
+            fileStream,
+            new Uri(videoToUpload.Sas),
+            cancellationToken,
+            progress);
     }
-
-    public async Task AddToUploadList(string? name, string filePath, Guid groupId, CancellationToken token)
-    {
-        var fileInfo = new FileInfo(filePath);
-        if (string.IsNullOrWhiteSpace(name))
-            name = fileInfo.Name;
-
-        var existingEntry =
-            await dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
-                cancellationToken: token);
-
-        if (existingEntry?.Uploaded == true)
-            return;
-
-        var uploadInformation = await apiClient.GetUploadInformation(fileInfo.Name,
-            name,
-            SharingWithType.Group,
-            groupId,
-            fileInfo.CreationTimeUtc
-        );
-
-        if (uploadInformation == null)
-            throw new Exception("Upload Information could not be found");
-
-        dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
-        await dbContext.SaveChangesAsync(token);
-        StartUploading();
-    }
-
-    private void StartUploading()
-    {
-#if ANDROID
-        UploadForegroundService.StartService();
-#endif
-    }
-
-    private static VideosToUpload MapToEntity(FileInfo fileInfo, ProduceUploadUrlResponse uploadInformation)
-    {
-        return new VideosToUpload()
-        {
-            Id = Guid.NewGuid(),
-            FileName = fileInfo.Name,
-            Uploaded = false,
-            FullFileName = fileInfo.FullName,
-            Sas = uploadInformation.Sas,
-            RemoteVideoId = uploadInformation.VideoId,
-            SasExpireAt = uploadInformation.ExpireAt.UtcDateTime,
-        };
-    }
-
-    private async Task AddToUploadList(string filePath, Guid? groupOrEventId, SharingWithType sharingWith, CancellationToken token)
-    {
-        FileInfo fileInfo = new FileInfo(filePath);
-
-        var existingEntry =
-            await dbContext.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == filePath,
-                cancellationToken: token);
-
-        if (existingEntry?.Uploaded == true)
-            return;
-
-        var uploadInformation = await apiClient.GetUploadInformation(fileInfo.Name,
-            fileInfo.Name,
-            sharingWith,
-            groupOrEventId,
-            fileInfo.CreationTimeUtc
-        );
-
-        if (uploadInformation == null)
-            throw new Exception("Upload Information could not be found");
-
-        dbContext.VideosToUpload.Add(MapToEntity(fileInfo, uploadInformation));
-        await dbContext.SaveChangesAsync(token);
-        StartUploading();
-    }
-
-    public Task UploadVideoToGroup(string filePath, Guid groupId, CancellationToken token)
-        => AddToUploadList(filePath, groupId, SharingWithType.Group, token);
-
-    public Task UploadVideoToEvent(string filePath, Guid eventId, CancellationToken token)
-        => AddToUploadList(filePath, eventId, SharingWithType.Event, token);
-
-    public Task UploadVideoToPrivate(string fullPath, CancellationToken token)
-        => AddToUploadList(fullPath, null, SharingWithType.Private, token);
 }

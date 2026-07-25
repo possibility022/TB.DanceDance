@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Sas;
 using Microsoft.Maui.Devices;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -96,6 +97,47 @@ public class BlobUploaderTests : IAsyncLifetime
 
         // Check if the content is correct
         Assert.Equal(ms.ToArray(), downloadedMs.ToArray());
+    }
+
+    [Fact]
+    public async Task Upload_ResumesPartialFinalBlock_AndCommitsIt()
+    {
+        var blob = client.GetBlobClient(Guid.NewGuid().ToString());
+        var uri = GenerateSas(blob);
+        var bytes = Enumerable.Range(0, 137).Select(value => (byte)value).ToArray();
+        var blockId = Convert.ToBase64String(BitConverter.GetBytes(0));
+        await using (var staged = new MemoryStream(bytes))
+            await new BlockBlobClient(uri).StageBlockAsync(
+                blockId,
+                staged,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        await using var source = new MemoryStream(bytes);
+        await blobUploader.UploadAsync(source, uri, TestContext.Current.CancellationToken);
+
+        var downloaded = await blob.DownloadContentAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(bytes, downloaded.Value.Content.ToArray());
+    }
+
+    [Fact]
+    public async Task Upload_AlreadyCommittedBlob_ReportsExactLengthWithoutReupload()
+    {
+        var blob = client.GetBlobClient(Guid.NewGuid().ToString());
+        var uri = GenerateSas(blob);
+        var bytes = Enumerable.Range(0, 137).Select(value => (byte)value).ToArray();
+        await using (var first = new MemoryStream(bytes))
+            await blobUploader.UploadAsync(first, uri, TestContext.Current.CancellationToken);
+
+        long reported = -1;
+        var progress = new InlineProgress<long>(value => reported = value);
+        await using var retry = new MemoryStream(bytes);
+        await blobUploader.UploadAsync(
+            retry,
+            uri,
+            TestContext.Current.CancellationToken,
+            progress);
+
+        Assert.Equal(bytes.Length, reported);
     }
 
     private static void WriteDataBytes(MemoryStream ms)
