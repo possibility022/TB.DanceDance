@@ -27,6 +27,24 @@ public class TokenDelegatingHandlerTests : IDisposable
         secondaryTokenProvider.GetAccessToken().Returns("access_token");
     }
 
+    [Fact]
+    public async Task SendAsync_BackgroundScope_NeverStartsInteractiveLogin()
+    {
+        tokenProvider.GetAccessTokenSilently().Returns((string?)null);
+        var handler = new TokenDelegatingHandler(tokenProvider)
+        {
+            InnerHandler = new HttpClientHandler()
+        };
+        httpClient = new HttpClient(handler);
+        using var scope = BackgroundAuthenticationContext.RequireSilentAuthentication();
+
+        await Assert.ThrowsAsync<BackgroundAuthenticationRequiredException>(
+            () => httpClient.GetAsync(server.Url!, TestContext.Current.CancellationToken));
+
+        await tokenProvider.Received(1).GetAccessTokenSilently();
+        await tokenProvider.DidNotReceive().GetAccessToken();
+    }
+
     public void Dispose()
     {
         server.Dispose();

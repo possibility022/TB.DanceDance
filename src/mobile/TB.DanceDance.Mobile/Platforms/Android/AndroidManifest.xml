@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+		  xmlns:tools="http://schemas.android.com/tools">
 	<application android:allowBackup="false" android:supportsRtl="true" android:networkSecurityConfig="@xml/network_security_config">
+		<service android:name="androidx.work.impl.foreground.SystemForegroundService"
+				 android:foregroundServiceType="dataSync"
+				 tools:node="merge" />
 		<service android:name="communityToolkit.maui.media.services" android:stopWithTask="true" android:exported="false" android:enabled="true" android:foregroundServiceType="mediaPlayback">
 			<intent-filter>
 				<action android:name="androidx.media3.session.MediaSessionService"/>

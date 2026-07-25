@@ -86,12 +86,14 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         }
     }
 
-    public async Task<RefreshUploadUrlResponse> RefreshUploadUrl(Guid videoId)
+    public async Task<RefreshUploadUrlResponse> RefreshUploadUrl(
+        Guid videoId,
+        CancellationToken cancellationToken = default)
     {
-        var response = await httpClient.GetAsync($"/api/videos/upload/{videoId}");
+        var response = await httpClient.GetAsync($"/api/videos/upload/{videoId}", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<RefreshUploadUrlResponse>();
+        var content = await response.Content.ReadFromJsonAsync<RefreshUploadUrlResponse>(cancellationToken);
         return content!;
     }
 
@@ -100,7 +102,8 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         string nameOfVideo,
         SharingWithType sharingWith,
         Guid? sharedWithId,
-        DateTime recordedTimeUtc
+        DateTime recordedTimeUtc,
+        CancellationToken cancellationToken = default
         )
     {
         ProduceUploadUrlRequest request = new()
@@ -112,10 +115,10 @@ public class DanceHttpApiClient : IDanceHttpApiClient
             RecordedTimeUtc = recordedTimeUtc
         };
 
-        var response = await httpClient.PostAsJsonAsync("/api/videos/upload", request);
+        var response = await httpClient.PostAsJsonAsync("/api/videos/upload", request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<ProduceUploadUrlResponse>();
+        var content = await response.Content.ReadFromJsonAsync<ProduceUploadUrlResponse>(cancellationToken);
         return content;
     }
 

@@ -20,7 +20,13 @@ public class TokenDelegatingHandler : DelegatingHandler
         
         var provider = authorityA!.Value.Value;
         
-        var token = await provider.GetAccessToken();
+        var token = BackgroundAuthenticationContext.IsSilentAuthenticationRequired
+            ? await provider.GetAccessTokenSilently()
+            : await provider.GetAccessToken();
+
+        if (token is null)
+            throw new BackgroundAuthenticationRequiredException();
+
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var res = await base.SendAsync(request, cancellationToken);

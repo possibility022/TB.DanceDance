@@ -15,13 +15,16 @@ public interface IDanceHttpApiClient
     Task RequestAccess(RequestAccessRequest accessRequest);
     Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize);
     Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize);
-    Task<RefreshUploadUrlResponse> RefreshUploadUrl(Guid videoId);
+    Task<RefreshUploadUrlResponse> RefreshUploadUrl(
+        Guid videoId,
+        CancellationToken cancellationToken = default);
     Task<ProduceUploadUrlResponse?> GetUploadInformation(
         string fileName,
         string nameOfVideo,
         SharingWithType sharingWith,
         Guid? sharedWithId,
-        DateTime recordedTimeUtc
+        DateTime recordedTimeUtc,
+        CancellationToken cancellationToken = default
     );
     Task<Stream> GetStream(string videoBlobId);
     (Uri uri, string authToken) GetVideoUri(string videoBlobId);

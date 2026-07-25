@@ -1,180 +1,164 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Maui.Devices;
 using NSubstitute;
-using System.Threading.Channels;
 using TB.DanceDance.API.Contracts.Features.Videos;
-using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
-using TB.DanceDance.Mobile.Library.Services.Network;
 
 namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
-public class VideoUploaderTests
+public class UploadQueueServiceTests : IDisposable
 {
-    private static VideosDbContext CreateDb()
-    {
-        var options = new DbContextOptionsBuilder<VideosDbContext>()
-            .UseInMemoryDatabase(databaseName: $"vids-{Guid.NewGuid()}")
-            .Options;
-        return new VideosDbContext(options);
-    }
-
-    private static (VideoUploader uploader, VideosDbContext db, IDanceHttpApiClient api) CreateSut()
-    {
-        var db = CreateDb();
-        var api = Substitute.For<IDanceHttpApiClient>();
-        var channel = Channel.CreateUnbounded<UploadProgressEvent>();
-        var resolver = new NetworkAddressResolver(DevicePlatform.WinUI);
-        var uploader = new VideoUploader(api, db, channel, resolver);
-        return (uploader, db, api);
-    }
+    private readonly string stagingDirectory =
+        Path.Combine(Path.GetTempPath(), $"upload-queue-{Guid.NewGuid():N}");
 
     [Fact]
-    public async Task AddToUploadList_WithNullName_UsesFileName_PersistsAndCallsApi()
+    public async Task Enqueue_CopiesAllValidFiles_AndSchedulesOnce()
     {
-        var (uploader, db, api) = CreateSut();
+        var factory = new TestVideosDbContextFactory();
+        var scheduler = Substitute.For<IUploadScheduler>();
+        var service = CreateService(factory, scheduler);
+        var first = CreateFile([1, 2, 3]);
+        var second = CreateFile([4, 5]);
 
-        // Arrange temp file
-        var temp = Path.GetTempFileName();
         try
         {
-            var groupId = Guid.NewGuid();
-            var uploadInfo = new ProduceUploadUrlResponse
+            var results = await service.EnqueueAsync(
+            [
+                new UploadQueueRequest(first, SharingWithType.Private),
+                new UploadQueueRequest(second, SharingWithType.Group, Guid.NewGuid())
+            ]);
+
+            Assert.All(results, result => Assert.True(result.Succeeded));
+            await using var db = factory.CreateDbContext();
+            var jobs = await db.VideosToUpload.OrderBy(x => x.CreatedAtUtc).ToListAsync();
+            Assert.Equal(2, jobs.Count);
+            Assert.All(jobs, job =>
             {
-                Sas = "https://example/sas", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(2)
-            };
-            api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Group, groupId,
-                    Arg.Any<DateTime>())
-                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(uploadInfo));
-
-            // Act
-            await uploader.AddToUploadList(null, temp, groupId, CancellationToken.None);
-
-            // Assert persisted
-            var row = await db.VideosToUpload.FirstOrDefaultAsync(r => r.FullFileName == temp,
-                cancellationToken: TestContext.Current.CancellationToken);
-            Assert.NotNull(row);
-            Assert.Equal(Path.GetFileName(temp), row!.FileName);
-            Assert.Equal(uploadInfo.Sas, row.Sas);
-            Assert.Equal(uploadInfo.VideoId, row.RemoteVideoId);
-            Assert.True(row.SasExpireAt > DateTime.UtcNow);
-
-            await api.Received(1).GetUploadInformation(Path.GetFileName(temp), Path.GetFileName(temp),
-                SharingWithType.Group, groupId, Arg.Any<DateTime>());
+                Assert.Equal(UploadJobState.PendingRegistration, job.State);
+                Assert.True(job.OwnsFile);
+                Assert.True(File.Exists(job.FullFileName));
+                Assert.Equal(Guid.Empty, job.RemoteVideoId);
+            });
+            await scheduler.Received(1).ScheduleAsync(Arg.Any<CancellationToken>());
         }
         finally
         {
-            File.Delete(temp);
+            File.Delete(first);
+            File.Delete(second);
         }
     }
 
     [Fact]
-    public async Task AddToUploadList_Skips_WhenExistingUploadedTrue()
+    public async Task Enqueue_BadFile_DoesNotPreventLaterFile()
     {
-        var (uploader, db, api) = CreateSut();
-        var temp = Path.GetTempFileName();
+        var factory = new TestVideosDbContextFactory();
+        var scheduler = Substitute.For<IUploadScheduler>();
+        var service = CreateService(factory, scheduler);
+        var valid = CreateFile([7, 8, 9]);
+
         try
         {
-            var existing = new VideosToUpload
+            var results = await service.EnqueueAsync(
+            [
+                new UploadQueueRequest(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()), SharingWithType.Private),
+                new UploadQueueRequest(valid, SharingWithType.Event, Guid.NewGuid())
+            ]);
+
+            Assert.False(results[0].Succeeded);
+            Assert.True(results[1].Succeeded);
+            await using var db = factory.CreateDbContext();
+            Assert.Single(await db.VideosToUpload.ToListAsync());
+            await scheduler.Received(1).ScheduleAsync(Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            File.Delete(valid);
+        }
+    }
+
+    [Fact]
+    public async Task Retry_ReusesExistingRemoteVideo()
+    {
+        var factory = new TestVideosDbContextFactory();
+        var scheduler = Substitute.For<IUploadScheduler>();
+        var service = CreateService(factory, scheduler);
+        var remoteId = Guid.NewGuid();
+
+        await using (var db = factory.CreateDbContext())
+        {
+            db.VideosToUpload.Add(new VideosToUpload
             {
                 Id = Guid.NewGuid(),
-                FullFileName = temp,
-                FileName = Path.GetFileName(temp),
-                Uploaded = true,
-                RemoteVideoId = Guid.NewGuid(),
-                Sas = "s",
-                SasExpireAt = DateTime.UtcNow.AddHours(1)
-            };
-            db.VideosToUpload.Add(existing);
-            await db.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-            await uploader.AddToUploadList("ignored", temp, Guid.NewGuid(), CancellationToken.None);
-
-            await api.DidNotReceiveWithAnyArgs()
-                .GetUploadInformation(null!, null!, default!, Guid.Empty, default);
-            Assert.Equal(1, db.VideosToUpload.Count());
+                FileName = "video.mp4",
+                FullFileName = "video.mp4",
+                RemoteVideoId = remoteId,
+                State = UploadJobState.Failed
+            });
+            await db.SaveChangesAsync();
         }
-        finally
+
+        Guid id;
+        await using (var db = factory.CreateDbContext())
+            id = (await db.VideosToUpload.SingleAsync()).Id;
+
+        await service.RetryAsync(id);
+
+        await using (var db = factory.CreateDbContext())
         {
-            File.Delete(temp);
+            var job = await db.VideosToUpload.SingleAsync();
+            Assert.Equal(remoteId, job.RemoteVideoId);
+            Assert.Equal(UploadJobState.PendingUpload, job.State);
         }
     }
 
     [Fact]
-    public async Task UploadVideoToGroup_PassesCorrectSharingType()
+    public async Task Cancel_StopsCurrentWork_DeletesOwnedFile_AndReschedulesRemainingQueue()
     {
-        var (uploader, db, api) = CreateSut();
-        var temp = Path.GetTempFileName();
+        var factory = new TestVideosDbContextFactory();
+        var scheduler = Substitute.For<IUploadScheduler>();
+        var service = CreateService(factory, scheduler);
+        var source = CreateFile([1, 2, 3]);
+
         try
         {
-            var groupId = Guid.NewGuid();
-            var uploadInfo = new ProduceUploadUrlResponse
-            {
-                Sas = "https://example/sas", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
-            };
+            var result = Assert.Single(await service.EnqueueAsync(
+            [
+                new UploadQueueRequest(source, SharingWithType.Private)
+            ]));
+            string stagedPath;
+            await using (var db = factory.CreateDbContext())
+                stagedPath = (await db.VideosToUpload.SingleAsync()).FullFileName;
 
-            api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Group, groupId,
-                    Arg.Any<DateTime>())
-                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(uploadInfo));
+            await service.CancelAsync(result.JobId!.Value);
 
-            await uploader.UploadVideoToGroup(temp, groupId, CancellationToken.None);
-
-            await api.Received(1).GetUploadInformation(Path.GetFileName(temp), Path.GetFileName(temp),
-                SharingWithType.Group, groupId, Arg.Any<DateTime>());
+            await using (var db = factory.CreateDbContext())
+                Assert.Equal(UploadJobState.Cancelled, (await db.VideosToUpload.SingleAsync()).State);
+            Assert.False(File.Exists(stagedPath));
+            await scheduler.Received(1).CancelAsync(Arg.Any<CancellationToken>());
+            await scheduler.Received(2).ScheduleAsync(Arg.Any<CancellationToken>());
         }
         finally
         {
-            File.Delete(temp);
+            File.Delete(source);
         }
     }
 
-    [Fact]
-    public async Task UploadVideoToEvent_PassesCorrectSharingType()
+    private UploadQueueService CreateService(
+        TestVideosDbContextFactory factory,
+        IUploadScheduler scheduler) =>
+        new(factory, scheduler, new UploadQueueOptions { StagingDirectory = stagingDirectory });
+
+    private static string CreateFile(byte[] content)
     {
-        var (uploader, db, api) = CreateSut();
-        var temp = Path.GetTempFileName();
-        try
-        {
-            var eventId = Guid.NewGuid();
-            var uploadInfo = new ProduceUploadUrlResponse
-            {
-                Sas = "https://example/sas", VideoId = Guid.NewGuid(), ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
-            };
-
-            api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Event, eventId,
-                    Arg.Any<DateTime>())
-                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(uploadInfo));
-
-            await uploader.UploadVideoToEvent(temp, eventId, CancellationToken.None);
-
-            await api.Received(1).GetUploadInformation(Path.GetFileName(temp), Path.GetFileName(temp),
-                SharingWithType.Event, eventId, Arg.Any<DateTime>());
-        }
-        finally
-        {
-            File.Delete(temp);
-        }
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.mp4");
+        File.WriteAllBytes(path, content);
+        return path;
     }
 
-    [Fact]
-    public async Task AddToUploadList_Throws_WhenUploadInformationNull()
+    public void Dispose()
     {
-        var (uploader, db, api) = CreateSut();
-        var temp = Path.GetTempFileName();
-        try
-        {
-            var groupId = Guid.NewGuid();
-            api.GetUploadInformation(Arg.Any<string>(), Arg.Any<string>(), SharingWithType.Group, groupId,
-                    Arg.Any<DateTime>())
-                .Returns(Task.FromResult<ProduceUploadUrlResponse?>(null));
-
-            await Assert.ThrowsAsync<Exception>(() =>
-                uploader.AddToUploadList("n", temp, groupId, CancellationToken.None));
-        }
-        finally
-        {
-            File.Delete(temp);
-        }
+        if (Directory.Exists(stagingDirectory))
+            Directory.Delete(stagingDirectory, recursive: true);
+        GC.SuppressFinalize(this);
     }
 }

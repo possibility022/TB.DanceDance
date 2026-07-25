@@ -6,7 +6,6 @@ using Microsoft.Maui.LifecycleEvents;
 using Nalu;
 using Serilog;
 using Serilog.Events;
-using System.Threading.Channels;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -43,14 +42,6 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
-            .ConfigureLifecycleEvents(events =>
-            {
-#if ANDROID
-    events.AddAndroid(android => android
-        .OnResume(e => ManageUploading())
-        .OnCreate((e,x) => ManageUploading()));
-#endif
-            })
             .UseMauiCommunityToolkitMediaElement(false)
             .UseMauiCommunityToolkit()
             .UseNaluLayouts()
@@ -95,13 +86,19 @@ public static class MauiProgram
         Log.Logger = serilogConfig.CreateLogger();
         builder.Services.AddSerilog(Log.Logger);
 
-        var networker = new NetworkStatusMonitor();
-        builder.Services.AddSingleton<NetworkStatusMonitor>(networker);
         builder.Services.AddScoped<UploadWorker>();
+        builder.Services.AddSingleton<UploadExecutionGate>();
+        builder.Services.AddSingleton<IUploadNetworkSettings, UploadNetworkSettings>();
 #if ANDROID
-        builder.Services.AddSingleton<IPlatformNotification, UploadForegroundService>();
+        builder.Services.AddSingleton<IUploadScheduler, AndroidUploadScheduler>();
+#else
+        builder.Services.AddSingleton<IUploadScheduler, InProcessUploadScheduler>();
 #endif
-        builder.Services.AddSingleton(Channel.CreateUnbounded<UploadProgressEvent>());
+        builder.Services.AddSingleton(new UploadQueueOptions
+        {
+            StagingDirectory = Path.Combine(FileSystem.AppDataDirectory, "upload-queue")
+        });
+        builder.Services.AddScoped<IUploadQueueService, UploadQueueService>();
 
         builder.Services.AddTransient<VideoProvider>();
         builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
@@ -133,7 +130,7 @@ public static class MauiProgram
         builder.Services.AddTransientPopup<SharingPopup, SharingPopupViewModel>();
 
 
-        builder.Services.AddDbContext<VideosDbContext>(options =>
+        builder.Services.AddDbContextFactory<VideosDbContext>(options =>
         {
             options.UseSqlite(Constants.VideosDatabasePath);
         });
@@ -145,12 +142,5 @@ public static class MauiProgram
 
 
         return builder.Build();
-    }
-
-    private static void ManageUploading()
-    {
-#if ANDROID
-        NetworkStatusMonitor.ManageBackgroundService(Connectivity.Current.NetworkAccess, Connectivity.Current.ConnectionProfiles);
-#endif
     }
 }

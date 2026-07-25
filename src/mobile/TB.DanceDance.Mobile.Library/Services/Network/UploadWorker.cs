@@ -1,237 +1,313 @@
 ﻿using Azure;
-using Microsoft.Maui.Networking;
-using System.Threading.Channels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
+using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.Library.Services.Network;
 
-public class UploadWorker : IDisposable
+public enum UploadRunResult
 {
-    private readonly VideosDbContext dbContext;
-    private readonly IVideoUploader videoUploader;
-    private readonly IDanceHttpApiClient apiClient;
-    private readonly Channel<UploadProgressEvent> uploadProgressChannel;
-    private IPlatformNotification? platformNotification;
-    private CancellationTokenSource? mainLoopCanncellationTokenSource;
-    private CancellationTokenSource? currentVideoProcessCancellationSource;
-    
-    private bool isPaused = false;
-    private readonly SemaphoreSlim pauseLock = new(0, 1);
-    private TimeSpan delay = TimeSpan.Zero;
-    
-    public UploadWorker(VideosDbContext dbContext, 
-        IVideoUploader videoUploader,
-        IDanceHttpApiClient apiClient,
-        Channel<UploadProgressEvent> uploadProgressChannel)
+    Complete,
+    Retry
+}
+
+public sealed class UploadWorker(
+    IDbContextFactory<VideosDbContext> dbContextFactory,
+    IVideoUploader videoUploader,
+    IDanceHttpApiClient apiClient,
+    [FromKeyedServices(TokenStorage.PrimaryStorageKey)] ITokenProviderService tokenProvider,
+    UploadExecutionGate executionGate)
+{
+    private const int MaxAttempts = 8;
+
+    public async Task<UploadRunResult> Work(
+        IProgress<UploadProgressEvent>? progress,
+        CancellationToken cancellationToken)
     {
-        this.dbContext = dbContext;
-        this.videoUploader = videoUploader;
-        this.apiClient = apiClient;
-        this.uploadProgressChannel = uploadProgressChannel;
+        using var execution = await executionGate.EnterAsync(cancellationToken);
+        using var authentication = BackgroundAuthenticationContext.RequireSilentAuthentication();
+
+        if (await tokenProvider.GetAccessTokenSilently() is null)
+        {
+            await MarkRunnableJobsWaitingForAuthentication(cancellationToken);
+            return UploadRunResult.Retry;
+        }
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var now = DateTime.UtcNow;
+            var job = await dbContext.VideosToUpload
+                .Where(x => !x.CancellationRequested)
+                .Where(x => x.State == UploadJobState.PendingRegistration
+                            || x.State == UploadJobState.PendingUpload
+                            || x.State == UploadJobState.Uploading
+                            || x.State == UploadJobState.RetryScheduled
+                            || x.State == UploadJobState.WaitingForAuthentication)
+                .Where(x => x.NextAttemptAtUtc == null || x.NextAttemptAtUtc <= now)
+                .OrderBy(x => x.CreatedAtUtc)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (job is null)
+                return await HasDeferredJobs(dbContext, cancellationToken)
+                    ? UploadRunResult.Retry
+                    : UploadRunResult.Complete;
+
+            await ProcessJob(dbContext, job, progress, cancellationToken);
+            if (job.State == UploadJobState.WaitingForAuthentication)
+                return UploadRunResult.Retry;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return UploadRunResult.Retry;
+    }
+
+    private async Task ProcessJob(
+        VideosDbContext dbContext,
+        VideosToUpload job,
+        IProgress<UploadProgressEvent>? progress,
+        CancellationToken cancellationToken)
+    {
         try
         {
-            Connectivity.ConnectivityChanged += ConnectivityOnConnectivityChanged;
+            if (job.FileSize <= 0 && File.Exists(job.FullFileName))
+                job.FileSize = new FileInfo(job.FullFileName).Length;
+
+            job.State = job.RemoteVideoId == Guid.Empty
+                ? UploadJobState.PendingRegistration
+                : UploadJobState.Uploading;
+            job.UpdatedAtUtc = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            if (job.RemoteVideoId == Guid.Empty)
+                await RegisterUpload(dbContext, job, cancellationToken);
+
+            if (job.SasExpireAt <= DateTime.UtcNow.AddMinutes(5))
+                await RefreshSas(dbContext, job, cancellationToken);
+
+            job.State = UploadJobState.Uploading;
+            job.UpdatedAtUtc = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            var byteProgress = new InlineProgress<long>(bytes =>
+            {
+                job.UploadedBytes = bytes;
+                PersistProgress(job.Id, bytes);
+                progress?.Report(new UploadProgressEvent
+                {
+                    FileName = job.FileName,
+                    FileSize = job.FileSize,
+                    SendBytes = bytes
+                });
+            });
+
+            try
+            {
+                await videoUploader.Upload(job, byteProgress, cancellationToken);
+            }
+            catch (RequestFailedException ex) when (ex.Status == 403)
+            {
+                await RefreshSas(dbContext, job, cancellationToken);
+                await videoUploader.Upload(job, byteProgress, cancellationToken);
+            }
+
+            job.Uploaded = true;
+            job.UploadedBytes = job.FileSize;
+            job.State = UploadJobState.Completed;
+            job.LastError = null;
+            job.NextAttemptAtUtc = null;
+            job.UpdatedAtUtc = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            if (DeleteOwnedFile(job))
+            {
+                job.OwnsFile = false;
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
         }
-        catch (Exception)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // In test or non-platform environments, Connectivity may not be implemented.
-            Serilog.Log.Debug("Connectivity not available in this environment; skipping subscription.");
+            await dbContext.Entry(job).ReloadAsync(CancellationToken.None);
+            if (!job.CancellationRequested && job.State != UploadJobState.Cancelled)
+            {
+                job.State = job.RemoteVideoId == Guid.Empty
+                    ? UploadJobState.PendingRegistration
+                    : UploadJobState.PendingUpload;
+                job.UpdatedAtUtc = DateTime.UtcNow;
+                await SaveWithoutCancellation(dbContext);
+            }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await RecordFailure(dbContext, job, ex, cancellationToken);
         }
     }
 
-    public void SetPlatformNotification(IPlatformNotification? notification)
+    private async Task RegisterUpload(
+        VideosDbContext dbContext,
+        VideosToUpload job,
+        CancellationToken cancellationToken)
     {
-        this.platformNotification = notification;
+        var uploadInformation = await apiClient.GetUploadInformation(
+            job.FileName,
+            string.IsNullOrWhiteSpace(job.VideoName) ? job.FileName : job.VideoName,
+            job.SharingWithType,
+            job.SharedWithId,
+            job.RecordedTimeUtc,
+            cancellationToken);
+
+        if (uploadInformation is null)
+            throw new HttpRequestException("The API did not return upload information.");
+
+        job.RemoteVideoId = uploadInformation.VideoId;
+        job.Sas = uploadInformation.Sas;
+        job.SasExpireAt = uploadInformation.ExpireAt.UtcDateTime;
+        job.State = UploadJobState.PendingUpload;
+        job.UpdatedAtUtc = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private void ConnectivityOnConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
+    private async Task RefreshSas(
+        VideosDbContext dbContext,
+        VideosToUpload job,
+        CancellationToken cancellationToken)
     {
-        if (e.NetworkAccess == NetworkAccess.Internet && e.ConnectionProfiles.Contains(ConnectionProfile.WiFi))
+        var refreshed = await apiClient.RefreshUploadUrl(job.RemoteVideoId, cancellationToken);
+        job.Sas = refreshed.Sas;
+        job.SasExpireAt = refreshed.ExpireAt.UtcDateTime;
+        job.UpdatedAtUtc = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task RecordFailure(
+        VideosDbContext dbContext,
+        VideosToUpload job,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        job.AttemptCount++;
+        job.LastError = exception.Message;
+        job.UpdatedAtUtc = DateTime.UtcNow;
+
+        if (IsAuthenticationFailure(exception))
         {
-            Resume();
+            job.State = UploadJobState.WaitingForAuthentication;
+            job.NextAttemptAtUtc = null;
+        }
+        else if (IsPermanentFailure(exception) || job.AttemptCount >= MaxAttempts)
+        {
+            job.State = UploadJobState.Failed;
+            job.NextAttemptAtUtc = null;
         }
         else
         {
-            Paused();
+            job.State = UploadJobState.RetryScheduled;
+            var delayMinutes = Math.Min(Math.Pow(2, job.AttemptCount - 1), 360);
+            job.NextAttemptAtUtc = DateTime.UtcNow.AddMinutes(delayMinutes);
         }
+
+        Serilog.Log.Warning(exception, "Upload job {JobId} entered state {State}", job.Id, job.State);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task Work(CancellationToken token)
+    private async Task MarkRunnableJobsWaitingForAuthentication(CancellationToken cancellationToken)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var jobs = await dbContext.VideosToUpload
+            .Where(x => x.State == UploadJobState.PendingRegistration
+                        || x.State == UploadJobState.PendingUpload
+                        || x.State == UploadJobState.Uploading
+                        || x.State == UploadJobState.RetryScheduled)
+            .ToListAsync(cancellationToken);
+
+        foreach (var job in jobs)
+        {
+            job.State = UploadJobState.WaitingForAuthentication;
+            job.LastError = "Sign in to continue uploading.";
+            job.UpdatedAtUtc = DateTime.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static Task<bool> HasDeferredJobs(
+        VideosDbContext dbContext,
+        CancellationToken cancellationToken) =>
+        dbContext.VideosToUpload.AnyAsync(
+            x => x.State == UploadJobState.RetryScheduled
+                 || x.State == UploadJobState.WaitingForNetwork,
+            cancellationToken);
+
+    private static bool IsAuthenticationFailure(Exception exception) =>
+        exception is BackgroundAuthenticationRequiredException
+        || exception is HttpRequestException
+        {
+            StatusCode: HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
+        };
+
+    private static bool IsPermanentFailure(Exception exception) =>
+        exception is FileNotFoundException
+            or DirectoryNotFoundException
+            or UnauthorizedAccessException
+            or UriFormatException
+        || exception is HttpRequestException
+        {
+            StatusCode: >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
+                and not HttpStatusCode.RequestTimeout
+                and not HttpStatusCode.TooManyRequests
+                and not HttpStatusCode.Unauthorized
+                and not HttpStatusCode.Forbidden
+        };
+
+    private static async Task SaveWithoutCancellation(VideosDbContext dbContext)
     {
         try
         {
-            mainLoopCanncellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-            Serilog.Log.Information("Starting looking for videos to upload.");
-
-            var monitorProgressProcess = MonitorProgress(mainLoopCanncellationTokenSource!.Token);
-
-            while (mainLoopCanncellationTokenSource!.IsCancellationRequested == false)
-            {
-                var videos = dbContext.VideosToUpload
-                    .Where(r => r.Uploaded == false)
-                    .ToArray();
-                
-                if (videos.Length == 0)
-                    break;
-
-                foreach (var vid in videos)
-                {
-                    await DelayIfRequired();
-                    currentVideoProcessCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(mainLoopCanncellationTokenSource.Token);
-                    
-                    await Upload(vid, currentVideoProcessCancellationSource.Token);
-                    
-                    currentVideoProcessCancellationSource.Dispose();
-                    currentVideoProcessCancellationSource = null;
-                }
-            }
-
-            // Do NOT complete the channel: it is shared (a DI singleton) across
-            // upload sessions, so completing it would close it permanently and
-            // break progress reporting for every subsequent upload. End the
-            // monitor by cancelling instead, then deliver any tail messages it
-            // didn't drain before cancellation.
-            Serilog.Log.Debug("Requesting cancellation on {token}.", mainLoopCanncellationTokenSource.Token.GetHashCode());
-            await mainLoopCanncellationTokenSource.CancelAsync();
-            await monitorProgressProcess;
-            DrainProgress();
-
-            platformNotification?.UploadCompleteNotification();
-
-            Serilog.Log.Information("All videos uploaded.");
+            await dbContext.SaveChangesAsync(CancellationToken.None);
         }
         catch (Exception ex)
         {
-            Serilog.Log.Information(ex, "Foreground Service Exception.");
+            Serilog.Log.Warning(ex, "Could not persist upload cancellation state.");
         }
     }
 
-    private async Task MonitorProgress(CancellationToken cancellationToken)
+    private void PersistProgress(Guid jobId, long uploadedBytes)
     {
         try
         {
-            Serilog.Log.Debug("Cancellation status of token {token} - {status}.", cancellationToken.GetHashCode(),
-                cancellationToken.IsCancellationRequested);
-            while (await uploadProgressChannel.Reader.WaitToReadAsync(cancellationToken))
-            {
-                var message = await uploadProgressChannel.Reader.ReadAsync(cancellationToken);
-                platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // nothing to do
-        }
-    }
+            using var dbContext = dbContextFactory.CreateDbContext();
+            var persisted = dbContext.VideosToUpload.Find(jobId);
+            if (persisted is null)
+                return;
 
-    /// <summary>
-    /// Forwards any progress messages still buffered after the monitor stopped,
-    /// so the final state isn't lost when the loop ends.
-    /// </summary>
-    private void DrainProgress()
-    {
-        while (uploadProgressChannel.Reader.TryRead(out var message))
-            platformNotification?.UploadProgressNotification(message.FileName, message.SendBytes, message.FileSize);
-    }
-
-    private async Task Upload(VideosToUpload video, CancellationToken token)
-    {
-        try
-        {
-            delay = TimeSpan.Zero;
-            Serilog.Log.Information("Uploading one video.");
-            if (video.SasExpireAt < DateTime.UtcNow.AddMinutes(-6))
-                await RefreshSas(video);
-            
-            await videoUploader.Upload(video, token);
-            video.Uploaded = true;
-            Serilog.Log.Information("Video uploaded.");
-
-            // ReSharper disable once MethodSupportsCancellation
-            await dbContext.SaveChangesAsync();
-        }
-        catch (TaskCanceledException)
-        {
-            // Nothing to do, wait for resume
-        }
-        catch (RequestFailedException requestFailedException)
-        {
-            if (requestFailedException.Status == 403)
-            {
-                await RefreshSas(video);
-            }
+            persisted.UploadedBytes = uploadedBytes;
+            persisted.UpdatedAtUtc = DateTime.UtcNow;
+            dbContext.SaveChanges();
         }
         catch (Exception ex)
         {
-            delay = TimeSpan.FromMinutes(1);
-            Serilog.Log.Warning(ex, "Foreground Service Exception.");
+            Serilog.Log.Debug(ex, "Could not persist progress for upload job {JobId}", jobId);
         }
     }
 
-    private async Task RefreshSas(VideosToUpload videoToUpload)
+    private static bool DeleteOwnedFile(VideosToUpload job)
     {
-        var newUrl = await apiClient.RefreshUploadUrl(videoToUpload.RemoteVideoId);
-        videoToUpload.Sas = newUrl.Sas;
-        videoToUpload.SasExpireAt = newUrl.ExpireAt.DateTime;
-    }
-    
-    private async Task DelayIfRequired()
-    {
+        if (!job.OwnsFile)
+            return false;
+
         try
         {
-            if (isPaused)
-            {
-                await pauseLock.WaitAsync(mainLoopCanncellationTokenSource!.Token);
-            }
-            else
-            {
-                await Task.Delay(delay, mainLoopCanncellationTokenSource!.Token);
-            }
+            File.Delete(job.FullFileName);
+            return true;
         }
-        catch (TaskCanceledException)
+        catch (Exception ex)
         {
-            // nothing to do here
+            Serilog.Log.Warning(ex, "Could not delete completed upload file {Path}", job.FullFileName);
+            return false;
         }
-    }
-    
-    private void Paused()
-    {
-        isPaused = true;
-        currentVideoProcessCancellationSource?.Cancel();
-        platformNotification?.UploadPausedNotification();
-    }
-
-    private void Resume()
-    {
-        isPaused = false;
-        if (pauseLock.CurrentCount < 1)
-            pauseLock.Release();
-    }
-
-    private void ReleaseUnmanagedResources()
-    {
-        try
-        {
-            Connectivity.ConnectivityChanged -= ConnectivityOnConnectivityChanged;
-        }
-        catch (Exception)
-        {
-            // ignore
-        }
-        this.currentVideoProcessCancellationSource?.Dispose();
-        this.mainLoopCanncellationTokenSource?.Dispose();
-    }
-
-    public void Dispose()
-    {
-        ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
-    }
-
-    ~UploadWorker()
-    {
-        ReleaseUnmanagedResources();
     }
 }

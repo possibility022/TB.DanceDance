@@ -1,11 +1,10 @@
 ﻿using Azure;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using System.Threading.Channels;
+using System.Net;
 using TB.DanceDance.API.Contracts.Features.Videos;
-using TB.DanceDance.API.Contracts.Models;
-using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
+using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 using TB.DanceDance.Mobile.Library.Services.Network;
 
@@ -13,209 +12,283 @@ namespace TB.DanceDance.Mobile.Tests.IntegrationTests;
 
 public class UploadWorkerTests
 {
-    private static VideosDbContext CreateDb()
+    private static (
+        UploadWorker Worker,
+        TestVideosDbContextFactory Factory,
+        IVideoUploader Uploader,
+        IDanceHttpApiClient Api,
+        ITokenProviderService TokenProvider) CreateSut(bool authenticated = true)
     {
-        var options = new DbContextOptionsBuilder<VideosDbContext>()
-            .UseInMemoryDatabase(databaseName: $"vids-{Guid.NewGuid()}")
-            .Options;
-        return new VideosDbContext(options);
-    }
-
-    private static (UploadWorker worker,
-        VideosDbContext db,
-        IVideoUploader uploader,
-        IDanceHttpApiClient api,
-        IPlatformNotification platform,
-        Channel<UploadProgressEvent> channel) CreateSut()
-    {
-        var db = CreateDb();
+        var factory = new TestVideosDbContextFactory();
         var uploader = Substitute.For<IVideoUploader>();
         var api = Substitute.For<IDanceHttpApiClient>();
-        var platform = Substitute.For<IPlatformNotification>();
-        var channel = Channel.CreateUnbounded<UploadProgressEvent>();
-        var worker = new UploadWorker(db, uploader, api, channel);
-        worker.SetPlatformNotification(platform);
-        return (worker, db, uploader, api, platform, channel);
+        var tokenProvider = Substitute.For<ITokenProviderService>();
+        tokenProvider.GetAccessTokenSilently().Returns(authenticated ? "token" : null);
+        return (
+            new UploadWorker(factory, uploader, api, tokenProvider, new UploadExecutionGate()),
+            factory,
+            uploader,
+            api,
+            tokenProvider);
     }
 
-    [Fact(Timeout = 10000)]
-    public async Task Work_NoVideos_Completes_And_Notifies()
+    [Fact]
+    public async Task Work_NoJobs_Completes()
     {
-        var (worker, db, uploader, api, platform, channel) = CreateSut();
+        var sut = CreateSut();
 
-        await worker.Work(TestContext.Current.CancellationToken);
+        var result = await sut.Worker.Work(null, TestContext.Current.CancellationToken);
 
-        await uploader.DidNotReceiveWithAnyArgs().Upload(null!, TestContext.Current.CancellationToken);
-        platform.Received(1).UploadCompleteNotification();
+        Assert.Equal(UploadRunResult.Complete, result);
+        await sut.Uploader.DidNotReceiveWithAnyArgs()
+            .Upload(null!, null, TestContext.Current.CancellationToken);
     }
 
-    [Fact(Timeout = 10000)]
-    public async Task Work_UploadsAllPending_Videos_MarkUploaded_And_Saves()
+    [Fact]
+    public async Task Work_RegistersAndUploadsEveryPendingJob()
     {
-        var (worker, db, uploader, api, platform, channel) = CreateSut();
+        var sut = CreateSut();
+        var first = CreateJob();
+        var second = CreateJob();
+        await AddJobs(sut.Factory, first, second);
+        sut.Api.GetUploadInformation(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<SharingWithType>(),
+                Arg.Any<Guid?>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(
+                UploadInformation(),
+                UploadInformation());
 
-        // Arrange two pending videos with valid SAS
-        var v1 = new VideosToUpload
+        var result = await sut.Worker.Work(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(UploadRunResult.Complete, result);
+        await sut.Uploader.Received(2)
+            .Upload(Arg.Any<VideosToUpload>(), Arg.Any<IProgress<long>>(), Arg.Any<CancellationToken>());
+        await using var db = sut.Factory.CreateDbContext();
+        Assert.All(await db.VideosToUpload.ToListAsync(), job =>
         {
-            Id = Guid.NewGuid(),
-            FileName = "a.mp4",
-            FullFileName = Path.GetTempFileName(),
-            Uploaded = false,
-            RemoteVideoId = Guid.NewGuid(),
-            Sas = "https://example/sas1",
-            SasExpireAt = DateTime.UtcNow.AddHours(1)
-        };
-        var v2 = new VideosToUpload
-        {
-            Id = Guid.NewGuid(),
-            FileName = "b.mp4",
-            FullFileName = Path.GetTempFileName(),
-            Uploaded = false,
-            RemoteVideoId = Guid.NewGuid(),
-            Sas = "https://example/sas2",
-            SasExpireAt = DateTime.UtcNow.AddHours(2)
-        };
-        db.VideosToUpload.AddRange(v1, v2);
-        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        await worker.Work(TestContext.Current.CancellationToken);
-
-        await uploader.Received(2).Upload(Arg.Any<VideosToUpload>(), Arg.Any<CancellationToken>());
-        var rows = await db.VideosToUpload.AsNoTracking()
-            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
-        Assert.All(rows, r => Assert.True(r.Uploaded));
-        platform.Received(1).UploadCompleteNotification();
-
-        // cleanup temp files
-        File.Delete(v1.FullFileName);
-        File.Delete(v2.FullFileName);
+            Assert.Equal(UploadJobState.Completed, job.State);
+            Assert.True(job.Uploaded);
+        });
     }
 
-    [Fact(Timeout = 1000)]
-    public async Task Work_ExpiredSas_Refreshes_And_UpdatesValues()
+    [Fact]
+    public async Task Work_RetryDoesNotRegisterASecondServerVideo()
     {
-        var (worker, db, uploader, api, platform, channel) = CreateSut();
-        var id = Guid.NewGuid();
-        var v = new VideosToUpload
-        {
-            Id = Guid.NewGuid(),
-            FileName = "c.mp4",
-            FullFileName = Path.GetTempFileName(),
-            Uploaded = false,
-            RemoteVideoId = id,
-            Sas = "old-sas",
-            SasExpireAt = DateTime.UtcNow.AddHours(-2) // expired
-        };
-        db.VideosToUpload.Add(v);
-        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var sut = CreateSut();
+        var job = CreateJob();
+        await AddJobs(sut.Factory, job);
+        var uploadInformation = UploadInformation();
+        sut.Api.GetUploadInformation(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<SharingWithType>(),
+                Arg.Any<Guid?>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(uploadInformation);
+        sut.Uploader.Upload(
+                Arg.Any<VideosToUpload>(),
+                Arg.Any<IProgress<long>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(
+                Task.FromException(new RequestFailedException(500, "temporary")),
+                Task.CompletedTask);
 
+        Assert.Equal(
+            UploadRunResult.Retry,
+            await sut.Worker.Work(null, TestContext.Current.CancellationToken));
+
+        await using (var db = sut.Factory.CreateDbContext())
+        {
+            var persisted = await db.VideosToUpload.SingleAsync();
+            Assert.Equal(uploadInformation.VideoId, persisted.RemoteVideoId);
+            persisted.NextAttemptAtUtc = DateTime.UtcNow.AddSeconds(-1);
+            await db.SaveChangesAsync();
+        }
+
+        Assert.Equal(
+            UploadRunResult.Complete,
+            await sut.Worker.Work(null, TestContext.Current.CancellationToken));
+        await sut.Api.Received(1).GetUploadInformation(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<SharingWithType>(),
+            Arg.Any<Guid?>(),
+            Arg.Any<DateTime>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Work_ExpiredSas_PersistsRefreshBeforeUpload()
+    {
+        var sut = CreateSut();
+        var job = CreateJob(registered: true);
+        job.SasExpireAt = DateTime.UtcNow.AddMinutes(-1);
+        await AddJobs(sut.Factory, job);
         var refreshed = new RefreshUploadUrlResponse
         {
-            VideoId = id, Sas = "https://example/new-sas", ExpireAt = DateTimeOffset.UtcNow.AddHours(3)
+            VideoId = job.RemoteVideoId,
+            Sas = "https://example/new-sas",
+            ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
         };
-        api.RefreshUploadUrl(id).Returns(Task.FromResult(refreshed));
+        sut.Api.RefreshUploadUrl(job.RemoteVideoId, Arg.Any<CancellationToken>()).Returns(refreshed);
 
-        await worker.Work(TestContext.Current.CancellationToken);
+        await sut.Worker.Work(null, TestContext.Current.CancellationToken);
 
-        await api.Received(1).RefreshUploadUrl(id);
-        var updated = await db.VideosToUpload.FirstAsync(cancellationToken: TestContext.Current.CancellationToken);
-        Assert.Equal("https://example/new-sas", updated.Sas);
-        Assert.True(updated.SasExpireAt > DateTime.UtcNow);
-        Assert.True(updated.Uploaded);
-
-        File.Delete(v.FullFileName);
+        await using var db = sut.Factory.CreateDbContext();
+        var persisted = await db.VideosToUpload.SingleAsync();
+        Assert.Equal(refreshed.Sas, persisted.Sas);
+        Assert.Equal(UploadJobState.Completed, persisted.State);
     }
 
-    [Fact(Timeout = 1000)]
-    public async Task Work_On403_RefreshesSas_Then_UploadsSuccessfully()
+    [Fact]
+    public async Task Work_ProcessRestart_ResumesJobLeftUploading()
     {
-        var (worker, db, uploader, api, platform, channel) = CreateSut();
-        var id = Guid.NewGuid();
-        var v = new VideosToUpload
+        var sut = CreateSut();
+        var job = CreateJob(registered: true);
+        job.State = UploadJobState.Uploading;
+        await AddJobs(sut.Factory, job);
+
+        var result = await sut.Worker.Work(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(UploadRunResult.Complete, result);
+        await sut.Api.DidNotReceiveWithAnyArgs().GetUploadInformation(
+            null!, null!, default, null, default);
+        await using var db = sut.Factory.CreateDbContext();
+        Assert.Equal(UploadJobState.Completed, (await db.VideosToUpload.SingleAsync()).State);
+    }
+
+    [Fact]
+    public async Task Work_MissingFileFailsPermanently_AndContinues()
+    {
+        var sut = CreateSut();
+        var missing = CreateJob(registered: true);
+        missing.FullFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        var valid = CreateJob(registered: true);
+        await AddJobs(sut.Factory, missing, valid);
+        sut.Uploader.Upload(
+                Arg.Is<VideosToUpload>(job => job.Id == missing.Id),
+                Arg.Any<IProgress<long>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new FileNotFoundException()));
+
+        var result = await sut.Worker.Work(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(UploadRunResult.Complete, result);
+        await using var db = sut.Factory.CreateDbContext();
+        Assert.Equal(UploadJobState.Failed, (await db.VideosToUpload.FindAsync(missing.Id))!.State);
+        Assert.Equal(UploadJobState.Completed, (await db.VideosToUpload.FindAsync(valid.Id))!.State);
+    }
+
+    [Fact]
+    public async Task Work_NoSilentToken_WaitsForAuthenticationWithoutCallingApi()
+    {
+        var sut = CreateSut(authenticated: false);
+        var job = CreateJob();
+        await AddJobs(sut.Factory, job);
+
+        var result = await sut.Worker.Work(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(UploadRunResult.Retry, result);
+        await sut.Api.DidNotReceiveWithAnyArgs().GetUploadInformation(
+            null!, null!, default, null, default);
+        await using var db = sut.Factory.CreateDbContext();
+        Assert.Equal(
+            UploadJobState.WaitingForAuthentication,
+            (await db.VideosToUpload.SingleAsync()).State);
+    }
+
+    [Fact]
+    public async Task Work_ApiUnauthorized_ReturnsRetryWithoutSpinning()
+    {
+        var sut = CreateSut();
+        await AddJobs(sut.Factory, CreateJob());
+        sut.Api.GetUploadInformation(
+                Arg.Any<string>(),
+                Arg.Any<string>(),
+                Arg.Any<SharingWithType>(),
+                Arg.Any<Guid?>(),
+                Arg.Any<DateTime>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<ProduceUploadUrlResponse?>(
+                new HttpRequestException("Unauthorized", null, HttpStatusCode.Unauthorized)));
+
+        var result = await sut.Worker.Work(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal(UploadRunResult.Retry, result);
+        await sut.Api.Received(1).GetUploadInformation(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<SharingWithType>(),
+            Arg.Any<Guid?>(),
+            Arg.Any<DateTime>(),
+            Arg.Any<CancellationToken>());
+        await using var db = sut.Factory.CreateDbContext();
+        Assert.Equal(
+            UploadJobState.WaitingForAuthentication,
+            (await db.VideosToUpload.SingleAsync()).State);
+    }
+
+    [Fact]
+    public async Task Work_ForwardsExactProgress()
+    {
+        var sut = CreateSut();
+        var job = CreateJob(registered: true);
+        job.FileSize = 100;
+        await AddJobs(sut.Factory, job);
+        sut.Uploader.Upload(
+                Arg.Any<VideosToUpload>(),
+                Arg.Any<IProgress<long>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(call =>
+            {
+                call.Arg<IProgress<long>>().Report(40);
+                return Task.CompletedTask;
+            });
+        var messages = new List<UploadProgressEvent>();
+
+        await sut.Worker.Work(
+            new InlineProgress<UploadProgressEvent>(messages.Add),
+            TestContext.Current.CancellationToken);
+
+        Assert.Contains(messages, message => message.SendBytes == 40 && message.FileSize == 100);
+    }
+
+    private static VideosToUpload CreateJob(bool registered = false) =>
+        new()
         {
             Id = Guid.NewGuid(),
-            FileName = "d.mp4",
+            FileName = $"{Guid.NewGuid():N}.mp4",
+            VideoName = "Dance video",
             FullFileName = Path.GetTempFileName(),
-            Uploaded = false,
-            RemoteVideoId = id,
-            Sas = "sas1",
-            SasExpireAt = DateTime.UtcNow.AddHours(2)
+            FileSize = 10,
+            State = registered ? UploadJobState.PendingUpload : UploadJobState.PendingRegistration,
+            RemoteVideoId = registered ? Guid.NewGuid() : Guid.Empty,
+            Sas = registered ? "https://example/upload?sas=1" : string.Empty,
+            SasExpireAt = registered ? DateTime.UtcNow.AddHours(1) : default,
+            SharingWithType = SharingWithType.Private,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
         };
-        db.VideosToUpload.Add(v);
-        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // First call throws 403, then success
-        uploader.Upload(Arg.Any<VideosToUpload>(), Arg.Any<CancellationToken>())
-            .Returns(ci => Task.FromException(new RequestFailedException(403, "Forbidden")),
-                ci => Task.CompletedTask);
-
-        var refreshed = new RefreshUploadUrlResponse
+    private static ProduceUploadUrlResponse UploadInformation() =>
+        new()
         {
-            VideoId = id, Sas = "sas2", ExpireAt = DateTimeOffset.UtcNow.AddHours(3)
+            Sas = "https://example/upload?sas=1",
+            VideoId = Guid.NewGuid(),
+            ExpireAt = DateTimeOffset.UtcNow.AddHours(1)
         };
-        api.RefreshUploadUrl(id).Returns(Task.FromResult(refreshed));
 
-        await worker.Work(TestContext.Current.CancellationToken);
-
-        await api.Received(1).RefreshUploadUrl(id);
-        var row = await db.VideosToUpload.FirstAsync(cancellationToken: TestContext.Current.CancellationToken);
-        Assert.True(row.Uploaded);
-
-        File.Delete(v.FullFileName);
-    }
-
-    [Fact(Timeout = 1000)]
-    public async Task MonitorProgress_ForwardsToPlatformNotification()
+    private static async Task AddJobs(
+        TestVideosDbContextFactory factory,
+        params VideosToUpload[] jobs)
     {
-        var (worker, db, uploader, api, platform, channel) = CreateSut();
-        // Preload a message into the channel before work starts
-        await channel.Writer.WriteAsync(
-            new UploadProgressEvent { FileName = "vid.mp4", FileSize = 100, SendBytes = 50 },
-            TestContext.Current.CancellationToken);
-
-        await worker.Work(TestContext.Current.CancellationToken);
-
-        platform.Received().UploadProgressNotification("vid.mp4", 50, 100);
-    }
-
-    [Fact(Timeout = 10000)]
-    public async Task Work_DoesNotComplete_SharedChannel()
-    {
-        // The channel is a DI singleton in the app: it must survive a session so
-        // later uploads can keep reporting progress.
-        var (worker, db, uploader, api, platform, channel) = CreateSut();
-
-        await worker.Work(TestContext.Current.CancellationToken);
-
-        Assert.False(channel.Reader.Completion.IsCompleted);
-        Assert.True(channel.Writer.TryWrite(
-            new UploadProgressEvent { FileName = "x", FileSize = 1, SendBytes = 1 }));
-    }
-
-    [Fact(Timeout = 10000)]
-    public async Task SecondSession_OnSameChannel_StillForwardsProgress()
-    {
-        // Mirrors production: each foreground-service start makes a new worker but
-        // shares the singleton channel. A first completed session must not break
-        // progress reporting for the next one.
-        var db = CreateDb();
-        var uploader = Substitute.For<IVideoUploader>();
-        var api = Substitute.For<IDanceHttpApiClient>();
-        var channel = Channel.CreateUnbounded<UploadProgressEvent>();
-
-        var firstWorker = new UploadWorker(db, uploader, api, channel);
-        firstWorker.SetPlatformNotification(Substitute.For<IPlatformNotification>());
-        await firstWorker.Work(TestContext.Current.CancellationToken);
-
-        var secondPlatform = Substitute.For<IPlatformNotification>();
-        var secondWorker = new UploadWorker(db, uploader, api, channel);
-        secondWorker.SetPlatformNotification(secondPlatform);
-        await channel.Writer.WriteAsync(
-            new UploadProgressEvent { FileName = "v2.mp4", FileSize = 100, SendBytes = 40 },
-            TestContext.Current.CancellationToken);
-
-        await secondWorker.Work(TestContext.Current.CancellationToken);
-
-        secondPlatform.Received().UploadProgressNotification("v2.mp4", 40, 100);
+        await using var db = factory.CreateDbContext();
+        db.VideosToUpload.AddRange(jobs);
+        await db.SaveChangesAsync();
     }
 }

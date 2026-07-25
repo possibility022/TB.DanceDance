@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Nalu;
 using Serilog;
 using TB.DanceDance.API.Contracts.Features.Groups.Model;
+using TB.DanceDance.API.Contracts.Features.Videos;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.Pages.Upload;
@@ -12,13 +13,16 @@ public partial class UploadVideoPageModel : ObservableObject,
     IEnteringAware<UploadVideoIntent>
 {
     private readonly IDanceHttpApiClient apiClient;
-    private readonly IVideoUploader videoUploader;
+    private readonly IUploadQueueService uploadQueue;
     private readonly INavigationService navigationService;
 
-    public UploadVideoPageModel(IDanceHttpApiClient apiClient, IVideoUploader videoUploader, INavigationService navigationService)
+    public UploadVideoPageModel(
+        IDanceHttpApiClient apiClient,
+        IUploadQueueService uploadQueue,
+        INavigationService navigationService)
     {
         this.apiClient = apiClient;
-        this.videoUploader = videoUploader;
+        this.uploadQueue = uploadQueue;
         this.navigationService = navigationService;
     }
 
@@ -109,33 +113,20 @@ public partial class UploadVideoPageModel : ObservableObject,
         {
             UploadButtonPressed = true;
             UploadButtonEnabled = false;
-            foreach (FileResult file in SelectedFiles)
-            {
-                if (uploadTo == UploadTo.Event)
-                {
-                    await videoUploader.UploadVideoToEvent(file.FullPath, EventId!.Value,
-                        CancellationToken.None); //todo cancellation token
-                }
-                else if (uploadTo == UploadTo.Group)
-                {
-                    await videoUploader.UploadVideoToGroup(file.FullPath, Groups[SelectedGroupIndex].Id,
-                        CancellationToken.None);
-                }
-                else if (uploadTo == UploadTo.Private)
-                {
-                    await videoUploader.UploadVideoToPrivate(file.FullPath, CancellationToken.None);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException(nameof(uploadTo));
-                }
-            }
+            var requests = SelectedFiles.Select(CreateQueueRequest).ToArray();
+            var results = await uploadQueue.EnqueueAsync(requests);
+            var succeeded = results.Count(x => x.Succeeded);
+            var failed = results.Count - succeeded;
 
             await Shell.Current.CurrentPage.DisplayAlertAsync(
-                "Dodano", "Nagranie zostało dodane do kolejki wysyłania.",
+                failed == 0 ? "Dodano" : "Dodano częściowo",
+                failed == 0
+                    ? $"Dodano do kolejki: {succeeded}."
+                    : $"Dodano do kolejki: {succeeded}. Nie udało się dodać: {failed}.",
                 "OK");
 
-            await navigationService.GoToAsync(Navigation.Relative().Pop());
+            if (succeeded > 0)
+                await navigationService.GoToAsync(Navigation.Relative().Pop());
         }
         catch (Exception ex)
         {
@@ -147,6 +138,23 @@ public partial class UploadVideoPageModel : ObservableObject,
             UploadButtonPressed = false;
         }
     }
+
+    private UploadQueueRequest CreateQueueRequest(FileResult file) =>
+        uploadTo switch
+        {
+            UploadTo.Event => new UploadQueueRequest(
+                file.FullPath,
+                SharingWithType.Event,
+                EventId!.Value),
+            UploadTo.Group => new UploadQueueRequest(
+                file.FullPath,
+                SharingWithType.Group,
+                Groups[SelectedGroupIndex].Id),
+            UploadTo.Private => new UploadQueueRequest(
+                file.FullPath,
+                SharingWithType.Private),
+            _ => throw new ArgumentOutOfRangeException(nameof(uploadTo))
+        };
 
     private void SetGroupUploadStyle()
     {

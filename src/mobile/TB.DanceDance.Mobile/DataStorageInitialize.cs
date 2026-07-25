@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TB.DanceDance.Mobile.Library.Data;
+﻿using TB.DanceDance.Mobile.Library.Data;
+using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 
 namespace TB.DanceDance.Mobile;
 
@@ -15,8 +15,30 @@ public class DataStorageInitialize : IMauiInitializeService
     public void Initialize(IServiceProvider services)
     {
         Serilog.Log.Information("Initializing data storage started");
-        dbContext.Database.EnsureCreated();
-        dbContext.Database.Migrate();
+        UploadQueueSchemaUpgrader.UpgradeAsync(dbContext).GetAwaiter().GetResult();
+        CleanupCompletedStagedFiles();
         Serilog.Log.Information("Initializing data storage complete");
+    }
+
+    private void CleanupCompletedStagedFiles()
+    {
+        var completedJobs = dbContext.VideosToUpload
+            .Where(job => job.State == UploadJobState.Completed && job.OwnsFile)
+            .ToArray();
+
+        foreach (var job in completedJobs)
+        {
+            try
+            {
+                File.Delete(job.FullFileName);
+                job.OwnsFile = false;
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Warning(ex, "Could not clean completed upload file {Path}", job.FullFileName);
+            }
+        }
+
+        dbContext.SaveChanges();
     }
 }
