@@ -62,12 +62,16 @@ export class UploadDialog {
   readonly open = input(false);
   /** Pre-select a target on open, e.g. 'e:<eventId>' or 'g:<groupId>'. */
   readonly preselectedTargetKey = input<string | undefined>(undefined);
+  /** Optional display name for a preselected event/group not yet in the targets list. */
+  readonly preselectedTargetLabel = input<string | undefined>(undefined);
   readonly closed = output<void>();
 
   readonly today = new Date().toISOString().slice(0, 10);
 
   readonly targetsLoading = signal(true);
-  readonly targets = signal<readonly UploadTarget[]>([]);
+  readonly targets = signal<readonly UploadTarget[]>([
+    { key: 'private', label: 'Private library', type: SharingWithType.Private },
+  ]);
 
   readonly stage = signal<Stage>('form');
   readonly files = signal<readonly File[]>([]);
@@ -96,8 +100,11 @@ export class UploadDialog {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
+        // Refresh assigned groups/events so a just-created event is selectable,
+        // then apply the caller-provided target (event/group page context).
         this.resetToForm();
-        this.applyPreselectedKey();
+        this.ensureAndApplyPreselected();
+        this.loadTargets();
       });
   }
 
@@ -127,10 +134,15 @@ export class UploadDialog {
           ]);
           this.targetsLoading.set(false);
           if (this.open()) {
-            this.applyPreselectedKey();
+            this.ensureAndApplyPreselected();
           }
         },
-        error: () => this.targetsLoading.set(false),
+        error: () => {
+          this.targetsLoading.set(false);
+          if (this.open()) {
+            this.ensureAndApplyPreselected();
+          }
+        },
       });
   }
 
@@ -223,14 +235,57 @@ export class UploadDialog {
 
   retryUpload(): void {
     this.resetToForm();
-    this.applyPreselectedKey();
+    this.ensureAndApplyPreselected();
   }
 
-  private applyPreselectedKey(): void {
+  /**
+   * Make sure the caller-provided event/group key exists in the dropdown (even when
+   * getMyAccess is stale or still loading), then select it. Without this, opening
+   * upload from an event page silently falls back to the private library.
+   */
+  private ensureAndApplyPreselected(): void {
     const key = this.preselectedTargetKey();
-    if (key && this.targets().some((t) => t.key === key)) {
-      this.form.controls.targetKey.setValue(key);
+    if (!key || key === 'private') {
+      return;
     }
+
+    if (!this.targets().some((t) => t.key === key)) {
+      const synthesized = this.targetFromKey(key, this.preselectedTargetLabel());
+      if (!synthesized) {
+        return;
+      }
+      this.targets.update((existing) => [...existing, synthesized]);
+    }
+
+    this.form.controls.targetKey.setValue(key);
+  }
+
+  private targetFromKey(key: string, label?: string): UploadTarget | null {
+    if (key.startsWith('e:')) {
+      const id = key.slice(2);
+      if (!id) {
+        return null;
+      }
+      return {
+        key,
+        label: label ? `Event: ${label}` : 'Event',
+        type: SharingWithType.Event,
+        sharedWith: id,
+      };
+    }
+    if (key.startsWith('g:')) {
+      const id = key.slice(2);
+      if (!id) {
+        return null;
+      }
+      return {
+        key,
+        label: label ? `Group: ${label}` : 'Group',
+        type: SharingWithType.Group,
+        sharedWith: id,
+      };
+    }
+    return null;
   }
 
   private resetToForm(): void {
@@ -241,7 +296,15 @@ export class UploadDialog {
     this.files.set([]);
     this.fileRows.set([]);
     this.uploadItems.set([]);
-    this.form.reset({ name: '', recordedDate: '', targetKey: 'private' });
+    const key = this.preselectedTargetKey();
+    const hasPreselected = !!key && key !== 'private';
+    this.form.reset({
+      name: '',
+      recordedDate: '',
+      // Prefer the contextual target immediately; ensureAndApplyPreselected()
+      // confirms it exists in the options list right after.
+      targetKey: hasPreselected ? key : 'private',
+    });
   }
 
   private updateUploadItem(index: number, patch: Partial<UploadItem>): void {
@@ -271,6 +334,7 @@ export class UploadDialog {
       fileName: file.name,
       recordedTimeUtc: recordedDate ? new Date(recordedDate) : new Date(file.lastModified),
       sharingWithType: target.type,
+      // Omitted for private (undefined); group/event id otherwise.
       sharedWith: target.sharedWith as string,
     };
   }

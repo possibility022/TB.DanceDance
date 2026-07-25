@@ -110,6 +110,7 @@
 <app-upload-dialog
   [open]="uploadModalOpen()"
   [preselectedTargetKey]="uploadTargetKey()"
+  [preselectedTargetLabel]="selected()?.name"
   (closed)="closeUploadDialog()"
 />
 
