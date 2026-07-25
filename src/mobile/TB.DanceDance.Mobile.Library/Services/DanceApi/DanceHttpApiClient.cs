@@ -16,34 +16,39 @@ public class DanceHttpApiClient : IDanceHttpApiClient
 {
     private readonly ITokenProviderService primaryTokenProviderService;
     private readonly HttpClient httpClient;
+    private readonly UserAccessCache userAccessCache;
 
     public DanceHttpApiClient(IHttpClientFactory httpClientFactory,
-
-        [FromKeyedServices(TokenStorage.PrimaryStorageKey)]ITokenProviderService primaryTokenProviderService)
+        [FromKeyedServices(TokenStorage.PrimaryStorageKey)]ITokenProviderService primaryTokenProviderService,
+        UserAccessCache userAccessCache)
     {
         this.primaryTokenProviderService = primaryTokenProviderService;
+        this.userAccessCache = userAccessCache;
         this.httpClient = httpClientFactory.CreateClient(nameof(DanceHttpApiClient));
     }
 
-    public async Task RenameVideoAsync(Guid videoId, string newName)
+    public async Task RenameVideoAsync(Guid videoId, string newName, CancellationToken cancellationToken = default)
     {
         var request = new RenameVideoRequest() { NewName = newName };
-        var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/rename", request);
+        using var response = await httpClient.PostAsJsonAsync($"/api/videos/{videoId}/rename", request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task DeleteVideoAsync(Guid videoId)
+    public async Task DeleteVideoAsync(Guid videoId, CancellationToken cancellationToken = default)
     {
-        var response = await httpClient.DeleteAsync($"/api/videos/{videoId}");
+        using var response = await httpClient.DeleteAsync($"/api/videos/{videoId}", cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<GetUserAccessResponse> GetUserAccesses()
+    public Task<GetUserAccessResponse> GetUserAccesses(CancellationToken cancellationToken = default) =>
+        userAccessCache.GetOrCreateAsync(FetchUserAccesses, cancellationToken);
+
+    private async Task<GetUserAccessResponse> FetchUserAccesses(CancellationToken cancellationToken)
     {
-        var response = await httpClient.GetAsync("/api/videos/accesses/my");
+        using var response = await httpClient.GetAsync("/api/videos/accesses/my", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<GetUserAccessResponse>();
+        var content = await response.Content.ReadFromJsonAsync<GetUserAccessResponse>(cancellationToken);
         return content ?? new GetUserAccessResponse
         {
             Assigned  = new GetUserAccessSet(),
@@ -52,30 +57,31 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         };
     }
 
-    public async Task RequestAccess(RequestAccessRequest accessRequest)
+    public async Task RequestAccess(RequestAccessRequest accessRequest, CancellationToken cancellationToken = default)
     {
-        var response = await httpClient.PostAsJsonAsync("/api/videos/accesses/request", accessRequest);
+        using var response = await httpClient.PostAsJsonAsync("/api/videos/accesses/request", accessRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
+        userAccessCache.Invalidate();
     }
 
-    public async Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize)
+    public async Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var response = await httpClient.GetAsync($"/api/groups/videos?page={page}&pageSize={pageSize}");
+        using var response = await httpClient.GetAsync($"/api/groups/videos?page={page}&pageSize={pageSize}", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoFromGroupInformation>>();
+        var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoFromGroupInformation>>(cancellationToken);
 
         return content ?? new PagedResponse<VideoFromGroupInformation> { PageNumber = page, PageSize = pageSize };
     }
 
-    public async Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize)
+    public async Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await httpClient.GetAsync($"/api/events/{eventId}/videos?page={page}&pageSize={pageSize}");
+            using var response = await httpClient.GetAsync($"/api/events/{eventId}/videos?page={page}&pageSize={pageSize}", cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>();
+            var content = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>(cancellationToken);
 
             return content ?? new PagedResponse<VideoInformation> { PageNumber = page, PageSize = pageSize };
         }
@@ -122,40 +128,52 @@ public class DanceHttpApiClient : IDanceHttpApiClient
         return content;
     }
 
-    public async Task<Stream> GetStream(string videoBlobId)
+    public async Task<Stream> GetStream(string videoBlobId, CancellationToken cancellationToken = default)
     {
-        var responseMessage = await httpClient.GetAsync($"/api/videos/{videoBlobId}/stream", HttpCompletionOption.ResponseHeadersRead);
-        responseMessage.EnsureSuccessStatusCode();
-
-        return await responseMessage.Content.ReadAsStreamAsync();
+        var responseMessage = await httpClient.GetAsync($"/api/videos/{videoBlobId}/stream", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        try
+        {
+            responseMessage.EnsureSuccessStatusCode();
+            var stream = await responseMessage.Content.ReadAsStreamAsync(cancellationToken);
+            return new ResponseDisposingStream(stream, responseMessage);
+        }
+        catch
+        {
+            responseMessage.Dispose();
+            throw;
+        }
     }
 
-    public (Uri uri, string authToken) GetVideoUri(string videoBlobId)
+    public async Task<(Uri uri, string authToken)> GetVideoUri(string videoBlobId, CancellationToken cancellationToken = default)
     {
-        var token = primaryTokenProviderService.GetValidAccessTokenNoFetch();
+        var token = await primaryTokenProviderService
+            .GetAccessTokenSilently()
+            .WaitAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(token))
+            throw new InvalidOperationException("A valid access token is required to play video.");
 
         var builder = new UriBuilder(httpClient.BaseAddress!)
         {
             Path = $"/api/videos/{videoBlobId}/stream"
         };
 
-        return (builder.Uri, token!);
+        return (builder.Uri, token);
     }
 
-    public async Task CreateEvent(string eventName, DateTime eventDate)
+    public async Task CreateEvent(string eventName, DateTime eventDate, CancellationToken cancellationToken = default)
     {
         var body = new CreateNewEventRequest() { Event = new EventModel() { Date = eventDate, Name = eventName } };
-        var res = await httpClient.PostAsJsonAsync($"/api/events", body);
+        using var res = await httpClient.PostAsJsonAsync($"/api/events", body, cancellationToken);
 
         res.EnsureSuccessStatusCode();
     }
 
-    public async Task<PagedResponse<VideoInformation>> GetMyVideos(int page, int pageSize)
+    public async Task<PagedResponse<VideoInformation>> GetMyVideos(int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        var response = await httpClient.GetAsync($"/api/videos/my?page={page}&pageSize={pageSize}", CancellationToken.None);
+        using var response = await httpClient.GetAsync($"/api/videos/my?page={page}&pageSize={pageSize}", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var videos = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>();
+        var videos = await response.Content.ReadFromJsonAsync<PagedResponse<VideoInformation>>(cancellationToken);
         return videos ?? new PagedResponse<VideoInformation> { PageNumber = page, PageSize = pageSize };
     }
 

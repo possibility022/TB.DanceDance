@@ -1,30 +1,32 @@
-﻿using TB.DanceDance.Mobile.Library.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 
 namespace TB.DanceDance.Mobile;
 
-public class DataStorageInitialize : IMauiInitializeService
+public sealed class DataStorageInitialize : IUploadStoreInitializer
 {
-    private readonly VideosDbContext dbContext;
+    private readonly IDbContextFactory<VideosDbContext> dbContextFactory;
+    private readonly Lazy<Task> initialization;
 
-    public DataStorageInitialize(VideosDbContext dbContext)
+    public DataStorageInitialize(IDbContextFactory<VideosDbContext> dbContextFactory)
     {
-        this.dbContext = dbContext;
+        this.dbContextFactory = dbContextFactory;
+        initialization = new Lazy<Task>(InitializeCoreAsync, LazyThreadSafetyMode.ExecutionAndPublication);
     }
-    
-    public void Initialize(IServiceProvider services)
+
+    public Task EnsureInitializedAsync(CancellationToken cancellationToken = default) =>
+        initialization.Value.WaitAsync(cancellationToken);
+
+    private async Task InitializeCoreAsync()
     {
         Serilog.Log.Information("Initializing data storage started");
-        UploadQueueSchemaUpgrader.UpgradeAsync(dbContext).GetAwaiter().GetResult();
-        CleanupCompletedStagedFiles();
-        Serilog.Log.Information("Initializing data storage complete");
-    }
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+        await UploadQueueSchemaUpgrader.UpgradeAsync(dbContext);
 
-    private void CleanupCompletedStagedFiles()
-    {
-        var completedJobs = dbContext.VideosToUpload
+        var completedJobs = await dbContext.VideosToUpload
             .Where(job => job.State == UploadJobState.Completed && job.OwnsFile)
-            .ToArray();
+            .ToArrayAsync();
 
         foreach (var job in completedJobs)
         {
@@ -39,6 +41,7 @@ public class DataStorageInitialize : IMauiInitializeService
             }
         }
 
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
+        Serilog.Log.Information("Initializing data storage complete");
     }
 }

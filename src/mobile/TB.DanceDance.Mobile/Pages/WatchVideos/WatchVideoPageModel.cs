@@ -5,28 +5,36 @@ using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 namespace TB.DanceDance.Mobile.Pages.WatchVideos;
 
-public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<WatchVideoIntent>
+public partial class WatchVideoPageModel : ObservableObject,
+    IEnteringAware<WatchVideoIntent>,
+    ILeavingAware
 {
     private readonly IDanceHttpApiClient apiClient;
+    private CancellationTokenSource? loadingCancellation;
 
     public WatchVideoPageModel(IDanceHttpApiClient apiClient)
     {
         this.apiClient = apiClient;
     }
 
-    private async Task LoadData(string videoBlobId)
+    private async Task LoadData(string videoBlobId, CancellationToken cancellationToken)
     {
 #if DEBUG
         var path = Path.Combine(FileSystem.Current.CacheDirectory, videoBlobId + ".mp4");
-        await using var stream = await apiClient.GetStream(videoBlobId);
+        await using var stream = await apiClient.GetStream(videoBlobId, cancellationToken);
         try
         {
             using var fileStream = File.OpenWrite(path);
 
-            await stream.CopyToAsync(fileStream);
-            await fileStream.FlushAsync();
+            await stream.CopyToAsync(fileStream, cancellationToken);
+            await fileStream.FlushAsync(cancellationToken);
 
             Media = MediaSource.FromFile(path);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (File.Exists(path))
+                File.Delete(path);
         }
         catch (Exception ex)
         {
@@ -38,7 +46,7 @@ public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<Watc
 #else
         try
         {
-            var (uri, token) = apiClient.GetVideoUri(videoBlobId);
+            var (uri, token) = await apiClient.GetVideoUri(videoBlobId, cancellationToken);
             var headers = new Dictionary<string, string>
             {
                 ["Authorization"] = "Bearer " + token
@@ -46,6 +54,9 @@ public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<Watc
             var mediaSource = MediaSource.FromUri(uri, headers);
             if (mediaSource != null)
                 Media = mediaSource;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
         }
         catch (Exception ex)
         {
@@ -55,10 +66,22 @@ public partial class WatchVideoPageModel : ObservableObject, IEnteringAware<Watc
 
     }
 
-    [ObservableProperty] private MediaSource media = null;
+    [ObservableProperty] private MediaSource? media;
 
     public async ValueTask OnEnteringAsync(WatchVideoIntent intent)
     {
-        await LoadData(intent.VideoBlobId);
+        loadingCancellation?.Cancel();
+        loadingCancellation?.Dispose();
+        loadingCancellation = new CancellationTokenSource();
+        await LoadData(intent.VideoBlobId, loadingCancellation.Token);
+    }
+
+    public ValueTask OnLeavingAsync()
+    {
+        loadingCancellation?.Cancel();
+        loadingCancellation?.Dispose();
+        loadingCancellation = null;
+        Media = null;
+        return ValueTask.CompletedTask;
     }
 }

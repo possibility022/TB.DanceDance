@@ -11,6 +11,8 @@
 
     <!-- Bulma $primary = $turquoise = hsl(171,100%,41%) -->
     <Color x:Key="Primary">#00D1B2</Color>
+    <!-- darker brand tone for small icons on light surfaces (WCAG non-text contrast) -->
+    <Color x:Key="PrimaryIcon">#007A68</Color>
     <!-- lightened teal for dark-theme surfaces / legibility -->
     <Color x:Key="PrimaryDark">#19E0C6</Color>
     <!-- Bulma $text = $grey-dark = hsl(221,14%,29%), used as text on light controls -->
@@ -20,6 +22,11 @@
     <Color x:Key="SecondaryDarkText">#19E0C6</Color>
     <!-- Bulma $link = $blue = hsl(233,100%,63%) -->
     <Color x:Key="Tertiary">#4258FF</Color>
+    <Color x:Key="Link">#4258FF</Color>
+    <Color x:Key="Danger">#D7263D</Color>
+    <Color x:Key="DangerDark">#FF6B7A</Color>
+    <Color x:Key="IconLight">#404654</Color>
+    <Color x:Key="IconDark">#D6D9E0</Color>
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>

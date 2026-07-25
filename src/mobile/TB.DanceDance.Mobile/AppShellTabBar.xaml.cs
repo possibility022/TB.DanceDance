@@ -4,9 +4,6 @@ namespace TB.DanceDance.Mobile;
 
 public partial class AppShellTabBar
 {
-    private static readonly Color ActiveColor = GetColor("Primary", Colors.Teal);
-    private static readonly Color InactiveColor = GetColor("Gray500", Colors.Gray);
-
     private ShellItem Item => BindingContext as ShellItem ??
                               throw new InvalidOperationException(
                                   "AppShellTabBar must have a ShellItem as its BindingContext");
@@ -14,7 +11,26 @@ public partial class AppShellTabBar
     public AppShellTabBar()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
+
+    private void OnLoaded(object? sender, EventArgs e)
+    {
+        if (Application.Current is not null)
+            Application.Current.RequestedThemeChanged += OnRequestedThemeChanged;
+        if (BindingContext is ShellItem item)
+            UpdateCurrentItem(item.CurrentItem);
+    }
+
+    private void OnUnloaded(object? sender, EventArgs e)
+    {
+        if (Application.Current is not null)
+            Application.Current.RequestedThemeChanged -= OnRequestedThemeChanged;
+    }
+
+    private void OnRequestedThemeChanged(object? sender, AppThemeChangedEventArgs e) =>
+        UpdateCurrentItem(Item.CurrentItem);
 
     protected override void OnBindingContextChanged()
     {
@@ -44,12 +60,15 @@ public partial class AppShellTabBar
     private void UpdateCurrentItem(ShellSection currentItem)
     {
         var selectedIndex = ShellItem?.Items.IndexOf(currentItem) ?? 0;
+        var darkTheme = Application.Current?.RequestedTheme == AppTheme.Dark;
+        var activeColor = GetColor(darkTheme ? "PrimaryDark" : "PrimaryIcon", Colors.Teal);
+        var inactiveColor = GetColor(darkTheme ? "Gray400" : "Gray500", Colors.Gray);
 
         for (var i = 0; i < Buttons.Count; i++)
         {
             if (Buttons[i] is ImageButton { Source: FontImageSource source })
             {
-                source.Color = i == selectedIndex ? ActiveColor : InactiveColor;
+                source.Color = i == selectedIndex ? activeColor : inactiveColor;
             }
         }
     }

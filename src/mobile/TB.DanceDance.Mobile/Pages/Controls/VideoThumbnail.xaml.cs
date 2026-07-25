@@ -19,13 +19,13 @@ public partial class VideoThumbnail
 
     public static readonly BindableProperty HasThumbnailProperty = HasThumbnailPropertyKey.BindableProperty;
 
-    private static readonly BindablePropertyKey ResolvedThumbnailUrlPropertyKey = BindableProperty.CreateReadOnly(
-        nameof(ResolvedThumbnailUrl),
-        typeof(string),
+    private static readonly BindablePropertyKey ResolvedThumbnailSourcePropertyKey = BindableProperty.CreateReadOnly(
+        nameof(ResolvedThumbnailSource),
+        typeof(ImageSource),
         typeof(VideoThumbnail),
         null);
 
-    public static readonly BindableProperty ResolvedThumbnailUrlProperty = ResolvedThumbnailUrlPropertyKey.BindableProperty;
+    public static readonly BindableProperty ResolvedThumbnailSourceProperty = ResolvedThumbnailSourcePropertyKey.BindableProperty;
 
     private readonly NetworkAddressResolver? networkAddressResolver =
         IPlatformApplication.Current?.Services.GetService<NetworkAddressResolver>();
@@ -48,7 +48,7 @@ public partial class VideoThumbnail
     /// on the Android emulator), since &lt;Image&gt;/UriImageSource loads bypass the app's
     /// HttpClient pipeline and the DebuggingUrlHandler that normally handles this.
     /// </summary>
-    public string? ResolvedThumbnailUrl => (string?)GetValue(ResolvedThumbnailUrlProperty);
+    public ImageSource? ResolvedThumbnailSource => (ImageSource?)GetValue(ResolvedThumbnailSourceProperty);
 
     private static void OnThumbnailUrlChanged(BindableObject bindable, object oldValue, object newValue)
     {
@@ -56,7 +56,19 @@ public partial class VideoThumbnail
         var url = newValue as string;
 
         control.SetValue(HasThumbnailPropertyKey, !string.IsNullOrWhiteSpace(url));
-        control.SetValue(ResolvedThumbnailUrlPropertyKey,
-            string.IsNullOrWhiteSpace(url) ? null : control.networkAddressResolver?.Resolve(url) ?? url);
+        var resolvedUrl = string.IsNullOrWhiteSpace(url)
+            ? null
+            : control.networkAddressResolver?.Resolve(url) ?? url;
+
+        control.SetValue(
+            ResolvedThumbnailSourcePropertyKey,
+            Uri.TryCreate(resolvedUrl, UriKind.Absolute, out var uri)
+                ? new UriImageSource
+                {
+                    Uri = uri,
+                    CachingEnabled = true,
+                    CacheValidity = TimeSpan.FromDays(1)
+                }
+                : null);
     }
 }

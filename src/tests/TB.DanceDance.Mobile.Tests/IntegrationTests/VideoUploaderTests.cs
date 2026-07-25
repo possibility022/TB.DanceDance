@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using TB.DanceDance.API.Contracts.Features.Videos;
+using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
 
@@ -12,6 +13,29 @@ public class UploadQueueServiceTests : IDisposable
         Path.Combine(Path.GetTempPath(), $"upload-queue-{Guid.NewGuid():N}");
 
     [Fact]
+    public async Task Enqueue_WaitsForStoreInitialization()
+    {
+        var factory = new TestVideosDbContextFactory();
+        var scheduler = Substitute.For<IUploadScheduler>();
+        var initializer = Substitute.For<IUploadStoreInitializer>();
+        initializer
+            .EnsureInitializedAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new InvalidOperationException("not initialized")));
+        var service = new UploadQueueService(
+            factory,
+            scheduler,
+            new UploadQueueOptions { StagingDirectory = stagingDirectory },
+            initializer,
+            Substitute.For<IUploadQueueChangeNotifier>());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.EnqueueAsync(
+                [],
+                cancellationToken: TestContext.Current.CancellationToken));
+        await scheduler.DidNotReceiveWithAnyArgs().ScheduleAsync();
+    }
+
+    [Fact]
     public async Task Enqueue_CopiesAllValidFiles_AndSchedulesOnce()
     {
         var factory = new TestVideosDbContextFactory();
@@ -19,6 +43,7 @@ public class UploadQueueServiceTests : IDisposable
         var service = CreateService(factory, scheduler);
         var first = CreateFile([1, 2, 3]);
         var second = CreateFile([4, 5]);
+        var stagingProgress = new List<UploadStagingProgress>();
 
         try
         {
@@ -26,7 +51,7 @@ public class UploadQueueServiceTests : IDisposable
             [
                 new UploadQueueRequest(first, SharingWithType.Private),
                 new UploadQueueRequest(second, SharingWithType.Group, Guid.NewGuid())
-            ]);
+            ], new SynchronousProgress<UploadStagingProgress>(stagingProgress.Add));
 
             Assert.All(results, result => Assert.True(result.Succeeded));
             await using var db = factory.CreateDbContext();
@@ -40,6 +65,45 @@ public class UploadQueueServiceTests : IDisposable
                 Assert.Equal(Guid.Empty, job.RemoteVideoId);
             });
             await scheduler.Received(1).ScheduleAsync(Arg.Any<CancellationToken>());
+            Assert.Contains(stagingProgress, value =>
+                value.FileName == Path.GetFileName(first)
+                && value.CopiedBytes == value.TotalBytes);
+        }
+        finally
+        {
+            File.Delete(first);
+            File.Delete(second);
+        }
+    }
+
+    [Fact]
+    public async Task Enqueue_CancellationRemovesPreviouslyStagedFiles()
+    {
+        var factory = new TestVideosDbContextFactory();
+        var scheduler = Substitute.For<IUploadScheduler>();
+        var service = CreateService(factory, scheduler);
+        var first = CreateFile([1, 2, 3]);
+        var second = CreateFile([4, 5, 6]);
+        using var cancellation = new CancellationTokenSource();
+        var progress = new SynchronousProgress<UploadStagingProgress>(value =>
+        {
+            if (value.FileName == Path.GetFileName(second))
+                cancellation.Cancel();
+        });
+
+        try
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                service.EnqueueAsync(
+                    [
+                        new UploadQueueRequest(first, SharingWithType.Private),
+                        new UploadQueueRequest(second, SharingWithType.Private)
+                    ],
+                    progress,
+                    cancellation.Token));
+
+            Assert.False(Directory.Exists(stagingDirectory)
+                         && Directory.EnumerateFiles(stagingDirectory).Any());
         }
         finally
         {
@@ -146,7 +210,12 @@ public class UploadQueueServiceTests : IDisposable
     private UploadQueueService CreateService(
         TestVideosDbContextFactory factory,
         IUploadScheduler scheduler) =>
-        new(factory, scheduler, new UploadQueueOptions { StagingDirectory = stagingDirectory });
+        new(
+            factory,
+            scheduler,
+            new UploadQueueOptions { StagingDirectory = stagingDirectory },
+            Substitute.For<IUploadStoreInitializer>(),
+            Substitute.For<IUploadQueueChangeNotifier>());
 
     private static string CreateFile(byte[] content)
     {
@@ -160,5 +229,10 @@ public class UploadQueueServiceTests : IDisposable
         if (Directory.Exists(stagingDirectory))
             Directory.Delete(stagingDirectory, recursive: true);
         GC.SuppressFinalize(this);
+    }
+
+    private sealed class SynchronousProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
     }
 }

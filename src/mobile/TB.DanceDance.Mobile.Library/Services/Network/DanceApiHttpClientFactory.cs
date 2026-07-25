@@ -36,6 +36,7 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
     }
 
     private HttpClient? danceApiClient;
+    private readonly Lock clientLock = new();
 
 #if DEBUG
     public const string ApiMainUrl = "https://localhost:7068";
@@ -46,9 +47,12 @@ public class DanceApiHttpClientFactory : IHttpClientFactory, IDisposable
 #endif
 
     private HttpClient ResolveClientForDanceApi()
-    {       
-        danceApiClient ??= InitializeDanceApiClient();
-        return danceApiClient;
+    {
+        if (danceApiClient is not null)
+            return danceApiClient;
+
+        lock (clientLock)
+            return danceApiClient ??= InitializeDanceApiClient();
     }
     
     private HttpClient InitializeDanceApiClient()

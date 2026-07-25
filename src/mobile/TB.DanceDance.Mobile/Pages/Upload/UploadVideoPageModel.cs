@@ -10,11 +10,13 @@ namespace TB.DanceDance.Mobile.Pages.Upload;
 
 public partial class UploadVideoPageModel : ObservableObject,
     IAppearingAware,
-    IEnteringAware<UploadVideoIntent>
+    IEnteringAware<UploadVideoIntent>,
+    ILeavingAware
 {
     private readonly IDanceHttpApiClient apiClient;
     private readonly IUploadQueueService uploadQueue;
     private readonly INavigationService navigationService;
+    private CancellationTokenSource pageLifetime = new();
 
     public UploadVideoPageModel(
         IDanceHttpApiClient apiClient,
@@ -33,6 +35,7 @@ public partial class UploadVideoPageModel : ObservableObject,
     [ObservableProperty] private int selectedGroupIndex = -1;
     [ObservableProperty] private bool uploadButtonEnabled = false;
     [ObservableProperty] private bool uploadButtonPressed = false;
+    [ObservableProperty] private double stagingProgress;
     [ObservableProperty] private bool groupSelectorAvailable = false;
     [ObservableProperty] private Guid? eventId;
 
@@ -66,11 +69,13 @@ public partial class UploadVideoPageModel : ObservableObject,
 
     public async ValueTask OnAppearingAsync()
     {
+        if (pageLifetime.IsCancellationRequested)
+            pageLifetime = new CancellationTokenSource();
         try
         {
             if (uploadTo == UploadTo.Group)
             {
-                var accesses = await apiClient.GetUserAccesses();
+                var accesses = await apiClient.GetUserAccesses(pageLifetime.Token);
                 Groups = accesses?.Assigned.Groups.ToList() ?? [];
             }
         }
@@ -78,6 +83,13 @@ public partial class UploadVideoPageModel : ObservableObject,
         {
             Serilog.Log.Error(ex, "Failed to get groups");
         }
+    }
+
+    public ValueTask OnLeavingAsync()
+    {
+        pageLifetime.Cancel();
+        pageLifetime.Dispose();
+        return ValueTask.CompletedTask;
     }
 
     [RelayCommand]
@@ -113,8 +125,13 @@ public partial class UploadVideoPageModel : ObservableObject,
         {
             UploadButtonPressed = true;
             UploadButtonEnabled = false;
+            StagingProgress = 0;
             var requests = SelectedFiles.Select(CreateQueueRequest).ToArray();
-            var results = await uploadQueue.EnqueueAsync(requests);
+            var progress = new Progress<UploadStagingProgress>(value =>
+                StagingProgress = value.TotalBytes <= 0
+                    ? 0
+                    : Math.Clamp((double)value.CopiedBytes / value.TotalBytes, 0, 1));
+            var results = await uploadQueue.EnqueueAsync(requests, progress, pageLifetime.Token);
             var succeeded = results.Count(x => x.Succeeded);
             var failed = results.Count - succeeded;
 

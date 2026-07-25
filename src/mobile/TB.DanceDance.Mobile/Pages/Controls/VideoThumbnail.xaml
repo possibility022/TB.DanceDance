@@ -2,8 +2,11 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:fonts="clr-namespace:TB.DanceDance.Mobile.Resources.Fonts"
              x:Class="TB.DanceDance.Mobile.Pages.Controls.VideoThumbnail"
-             x:Name="VideoThumbnailRoot">
+             x:Name="VideoThumbnailRoot"
+             x:DataType="controls:VideoThumbnail">
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
@@ -11,7 +14,7 @@
     </ContentView.Resources>
 
     <Grid HeightRequest="160" HorizontalOptions="Fill">
-        <Image Source="{Binding ResolvedThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
+        <Image Source="{Binding ResolvedThumbnailSource, Source={x:Reference VideoThumbnailRoot}}"
                Aspect="AspectFill"
                IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
 
@@ -34,11 +37,12 @@
                     WidthRequest="48"
                     HorizontalOptions="Center"
                     VerticalOptions="Center">
-                <Polygon Points="0,0 0,22 19,11"
-                         Fill="{StaticResource Primary}"
-                         HorizontalOptions="Center"
-                         VerticalOptions="Center"
-                         Margin="16,11,0,0" />
+                <Label Text="{x:Static fonts:MaterialIcons.Play}"
+                       FontFamily="MaterialRound"
+                       FontSize="28"
+                       TextColor="{StaticResource PrimaryIcon}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
             </Border>
         </Grid>
     </Grid>

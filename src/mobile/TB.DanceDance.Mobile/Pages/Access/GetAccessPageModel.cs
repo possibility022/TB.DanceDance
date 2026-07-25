@@ -38,7 +38,7 @@ public record AccessModel
     public Guid Id { get; set; }
 }
 
-public partial class GetAccessPageModel : ObservableObject, IAppearingAware
+public partial class GetAccessPageModel : ObservableObject, IAppearingAware, ILeavingAware
 {
     private readonly IDanceHttpApiClient apiClient;
 
@@ -53,12 +53,22 @@ public partial class GetAccessPageModel : ObservableObject, IAppearingAware
     [ObservableProperty] bool canBeRequested;
     
     bool isLoaded = false;
+    private CancellationTokenSource pageLifetime = new();
 
     
     public async ValueTask OnAppearingAsync()
     {
+        if (pageLifetime.IsCancellationRequested)
+            pageLifetime = new CancellationTokenSource();
         if (!isLoaded)
             await Refresh();
+    }
+
+    public ValueTask OnLeavingAsync()
+    {
+        pageLifetime.Cancel();
+        pageLifetime.Dispose();
+        return ValueTask.CompletedTask;
     }
 
     [RelayCommand]
@@ -86,7 +96,7 @@ public partial class GetAccessPageModel : ObservableObject, IAppearingAware
                         .ToArray()
                 };
 
-                await apiClient.RequestAccess(request);
+                await apiClient.RequestAccess(request, pageLifetime.Token);
 
                 await Refresh();
             }
@@ -122,7 +132,7 @@ public partial class GetAccessPageModel : ObservableObject, IAppearingAware
 
     private async Task LoadFromApi()
     {
-        var response = await apiClient.GetUserAccesses();
+        var response = await apiClient.GetUserAccesses(pageLifetime.Token);
         var list = new List<AccessModel>();
 
         list.AddRange(response.Available.Groups.Select(g => MapFromGroup(g, false, response.Pending.Groups)));

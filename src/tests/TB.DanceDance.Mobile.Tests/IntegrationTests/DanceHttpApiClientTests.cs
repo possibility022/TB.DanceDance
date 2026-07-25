@@ -43,7 +43,7 @@ public class DanceHttpApiClientTests : IDisposable
 
         server = WireMockServer.Start();
         var factory = new TestHttpClientFactory(server.Url!);
-        client = new DanceHttpApiClient(factory, tokenProvider);
+        client = new DanceHttpApiClient(factory, tokenProvider, new UserAccessCache());
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class DanceHttpApiClientTests : IDisposable
                 .WithHeader("Content-Type", "application/json")
                 .WithBody(JsonSerializer.Serialize(obj, serializerOptions)));
 
-        // Second call returns null body
+        // After cache invalidation, the next call returns a null body.
         server.Given(Request.Create().WithPath("/api/videos/accesses/my").UsingGet())
             .InScenario("useraccess")
             .WhenStateIs("second")
@@ -115,11 +115,17 @@ public class DanceHttpApiClientTests : IDisposable
                 .WithStatusCode(200)
                 .WithHeader("Content-Type", "application/json")
                 .WithBody("null"));
+        server.Given(Request.Create().WithPath("/api/videos/accesses/request").UsingPost())
+            .RespondWith(Response.Create().WithStatusCode(204));
 
         var r1 = await client.GetUserAccesses();
         Assert.NotNull(r1);
         Assert.NotEmpty(r1.Assigned.Events);
 
+        var cached = await client.GetUserAccesses();
+        Assert.Same(r1, cached);
+
+        await client.RequestAccess(new RequestAccessRequest());
         var r2 = await client.GetUserAccesses();
         Assert.NotNull(r2);
         Assert.Empty(r2.Assigned.Events);
@@ -272,13 +278,13 @@ public class DanceHttpApiClientTests : IDisposable
     }
 
     [Fact]
-    public void GetVideoUri_IncludesAccessTokenQuery()
+    public async Task GetVideoUri_IncludesAccessTokenQuery()
     {
-        tokenProvider.GetValidAccessTokenNoFetch()
+        tokenProvider.GetAccessTokenSilently()
             .Returns("tok123");
 
         var blobId = "xyz";
-        (var uri, var token) = client.GetVideoUri(blobId);
+        (var uri, var token) = await client.GetVideoUri(blobId);
         Assert.StartsWith(server.Url, uri.ToString());
         Assert.Contains($"/api/videos/{blobId}/stream", uri.AbsolutePath);
         Assert.Equal("tok123", token);

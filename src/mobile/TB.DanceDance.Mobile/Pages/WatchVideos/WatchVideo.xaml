@@ -9,7 +9,8 @@
              Shell.NavBarHasShadow="false"
              x:Class="TB.DanceDance.Mobile.Pages.WatchVideos.WatchVideo">
     <ContentPage.Content>
-        <toolkit:MediaElement Source="{Binding Media}"
+        <toolkit:MediaElement x:Name="Player"
+                              Source="{Binding Media}"
                               ShouldShowPlaybackControls="True"
                               ShouldAutoPlay="True"
                               ShouldLoopPlayback="True"

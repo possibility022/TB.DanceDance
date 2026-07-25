@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Diagnostics;
 using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.Auth;
@@ -20,14 +21,18 @@ public sealed class UploadWorker(
     IVideoUploader videoUploader,
     IDanceHttpApiClient apiClient,
     [FromKeyedServices(TokenStorage.PrimaryStorageKey)] ITokenProviderService tokenProvider,
-    UploadExecutionGate executionGate)
+    UploadExecutionGate executionGate,
+    IUploadStoreInitializer storeInitializer,
+    IUploadQueueChangeNotifier changeNotifier)
 {
     private const int MaxAttempts = 8;
+    private static readonly TimeSpan ProgressPersistenceInterval = TimeSpan.FromSeconds(2);
 
     public async Task<UploadRunResult> Work(
         IProgress<UploadProgressEvent>? progress,
         CancellationToken cancellationToken)
     {
+        await storeInitializer.EnsureInitializedAsync(cancellationToken);
         using var execution = await executionGate.EnterAsync(cancellationToken);
         using var authentication = BackgroundAuthenticationContext.RequireSilentAuthentication();
 
@@ -58,6 +63,7 @@ public sealed class UploadWorker(
                     : UploadRunResult.Complete;
 
             await ProcessJob(dbContext, job, progress, cancellationToken);
+            changeNotifier.NotifyChanged();
             if (job.State == UploadJobState.WaitingForAuthentication)
                 return UploadRunResult.Retry;
         }
@@ -93,10 +99,17 @@ public sealed class UploadWorker(
             job.UpdatedAtUtc = DateTime.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            var lastPersistenceTimestamp = Stopwatch.GetTimestamp();
+            var progressPersistence = Task.CompletedTask;
             var byteProgress = new InlineProgress<long>(bytes =>
             {
                 job.UploadedBytes = bytes;
-                PersistProgress(job.Id, bytes);
+                if (progressPersistence.IsCompleted
+                    && Stopwatch.GetElapsedTime(lastPersistenceTimestamp) >= ProgressPersistenceInterval)
+                {
+                    lastPersistenceTimestamp = Stopwatch.GetTimestamp();
+                    progressPersistence = PersistProgressAsync(job.Id, bytes);
+                }
                 progress?.Report(new UploadProgressEvent
                 {
                     FileName = job.FileName,
@@ -115,6 +128,7 @@ public sealed class UploadWorker(
                 await videoUploader.Upload(job, byteProgress, cancellationToken);
             }
 
+            await progressPersistence;
             job.Uploaded = true;
             job.UploadedBytes = job.FileSize;
             job.State = UploadJobState.Completed;
@@ -127,6 +141,7 @@ public sealed class UploadWorker(
                 job.OwnsFile = false;
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
+            changeNotifier.NotifyChanged();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -275,18 +290,19 @@ public sealed class UploadWorker(
         }
     }
 
-    private void PersistProgress(Guid jobId, long uploadedBytes)
+    private async Task PersistProgressAsync(Guid jobId, long uploadedBytes)
     {
         try
         {
-            using var dbContext = dbContextFactory.CreateDbContext();
-            var persisted = dbContext.VideosToUpload.Find(jobId);
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+            var persisted = await dbContext.VideosToUpload.FindAsync(jobId);
             if (persisted is null)
                 return;
 
             persisted.UploadedBytes = uploadedBytes;
             persisted.UpdatedAtUtc = DateTime.UtcNow;
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
+            changeNotifier.NotifyChanged();
         }
         catch (Exception ex)
         {
