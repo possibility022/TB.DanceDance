@@ -15,6 +15,7 @@ public partial class UploadManagerPageModel : ObservableObject, IAppearingAware
     private readonly IUploadQueueService uploadQueue;
     private readonly IUploadNetworkSettings networkSettings;
     private readonly IUploadScheduler uploadScheduler;
+    private int refreshInProgress;
 
     public UploadManagerPageModel(
         IDbContextFactory<VideosDbContext> dbContextFactory,
@@ -91,11 +92,20 @@ public partial class UploadManagerPageModel : ObservableObject, IAppearingAware
     }
 
     [RelayCommand]
-    private async Task Refresh()
+    private Task Refresh() => RefreshCore(showIndicator: true);
+
+    public Task RefreshLiveAsync() => RefreshCore(showIndicator: false);
+
+    private async Task RefreshCore(bool showIndicator)
     {
+        if (Interlocked.Exchange(ref refreshInProgress, 1) != 0)
+            return;
+
         try
         {
-            IsRefreshing = true;
+            if (showIndicator)
+                IsRefreshing = true;
+
             await using var dbContext = await dbContextFactory.CreateDbContextAsync();
             ToUpload = await dbContext.VideosToUpload
                 .OrderBy(r => r.State == UploadJobState.Completed)
@@ -109,9 +119,9 @@ public partial class UploadManagerPageModel : ObservableObject, IAppearingAware
         }
         finally
         {
-            IsRefreshing = false;
+            if (showIndicator)
+                IsRefreshing = false;
+            Interlocked.Exchange(ref refreshInProgress, 0);
         }
     }
-
-    public Task RefreshLiveAsync() => IsRefreshing ? Task.CompletedTask : Refresh();
 }
