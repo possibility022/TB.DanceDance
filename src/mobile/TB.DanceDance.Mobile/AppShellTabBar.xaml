@@ -3,6 +3,7 @@
 <Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
       xmlns:local="clr-namespace:TB.DanceDance.Mobile"
+      xmlns:fonts="clr-namespace:TB.DanceDance.Mobile.Resources.Fonts"
       SafeAreaEdges="None"
       x:Class="TB.DanceDance.Mobile.AppShellTabBar">
 
@@ -15,7 +16,7 @@
         <Grid x:Name="Buttons"
               ColumnDefinitions="*,*,*,*"
               SafeAreaEdges="None"
-              Padding="20,4">
+              Padding="16,4">
             <Grid.Resources>
                 <Style TargetType="ImageButton">
                     <Setter Property="Padding" Value="12"/>
@@ -24,31 +25,39 @@
                 </Style>
             </Grid.Resources>
             <!-- Wydarzenia (event) -->
-            <ImageButton Grid.Column="0" Clicked="IconClicked">
+            <ImageButton Grid.Column="0"
+                         Clicked="IconClicked"
+                         SemanticProperties.Description="Wydarzenia">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="&#xe878;" FontFamily="MaterialRound" Size="24"
-                                     Color="{StaticResource Gray500}"/>
+                    <FontImageSource Glyph="{x:Static fonts:MaterialIcons.Event}" FontFamily="MaterialRound" Size="24"
+                                     Color="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                 </ImageButton.Source>
             </ImageButton>
             <!-- Lekcje Reg. (group) -->
-            <ImageButton Grid.Column="1" Clicked="IconClicked">
+            <ImageButton Grid.Column="1"
+                         Clicked="IconClicked"
+                         SemanticProperties.Description="Grupy">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="&#xe7ef;" FontFamily="MaterialRound" Size="24"
-                                     Color="{StaticResource Gray500}"/>
+                    <FontImageSource Glyph="{x:Static fonts:MaterialIcons.Group}" FontFamily="MaterialRound" Size="24"
+                                     Color="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                 </ImageButton.Source>
             </ImageButton>
             <!-- Osobiste (video_library) -->
-            <ImageButton Grid.Column="2" Clicked="IconClicked">
+            <ImageButton Grid.Column="2"
+                         Clicked="IconClicked"
+                         SemanticProperties.Description="Moje nagrania">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="&#xe04a;" FontFamily="MaterialRound" Size="24"
-                                     Color="{StaticResource Gray500}"/>
+                    <FontImageSource Glyph="{x:Static fonts:MaterialIcons.VideoLibrary}" FontFamily="MaterialRound" Size="24"
+                                     Color="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                 </ImageButton.Source>
             </ImageButton>
             <!-- Konto (account_circle) -->
-            <ImageButton Grid.Column="3" Clicked="IconClicked">
+            <ImageButton Grid.Column="3"
+                         Clicked="IconClicked"
+                         SemanticProperties.Description="Konto">
                 <ImageButton.Source>
-                    <FontImageSource Glyph="&#xe853;" FontFamily="MaterialRound" Size="24"
-                                     Color="{StaticResource Gray500}"/>
+                    <FontImageSource Glyph="{x:Static fonts:MaterialIcons.AccountCircle}" FontFamily="MaterialRound" Size="24"
+                                     Color="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                 </ImageButton.Source>
             </ImageButton>
         </Grid>

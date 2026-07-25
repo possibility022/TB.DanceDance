@@ -7,11 +7,10 @@
              x:DataType="account:AccountPageModel"
              x:Class="TB.DanceDance.Mobile.Pages.Account.AccountPage"
              Title="Konto">
-    <Grid Margin="10,20,10,10">
-        <VerticalStackLayout Spacing="20" VerticalOptions="Start">
+    <Grid Margin="{StaticResource PagePadding}">
+        <VerticalStackLayout Spacing="{StaticResource SpaceLarge}" VerticalOptions="Start">
             <Label Text="{Binding UserDisplay, StringFormat='Zalogowany: {0}'}"
-                   IsVisible="{Binding HasUserDisplay}"
-                   FontSize="16" />
+                   IsVisible="{Binding HasUserDisplay}" />
             <controls:FillButton Text="Uzyskaj Dostępy"
                                  Command="{Binding NavigateToGetAccessCommand}" />
             <controls:FillButton Text="Wyloguj"

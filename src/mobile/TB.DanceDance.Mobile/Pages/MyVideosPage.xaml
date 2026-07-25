@@ -17,7 +17,7 @@
     </ContentPage.Resources>
     <ContentPage.Content>
         <Grid>
-            <Grid Margin="10">
+            <Grid Margin="{StaticResource PagePadding}">
                 <RefreshView IsRefreshing="{Binding IsRefreshing}"
                              Command="{Binding RefreshCommand}">
                     <CollectionView ItemsSource="{Binding Videos}"
@@ -25,19 +25,20 @@
                                     RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Video">
-                                <Border Padding="0" Margin="0,10,0,0" StrokeShape="RoundRectangle 8" IsEnabled="{Binding Converted}">
+                                <Border Style="{StaticResource VideoCard}" IsEnabled="{Binding Converted}">
                                         <VerticalStackLayout Spacing="0">
                                             <controls:VideoThumbnail
                                                 ThumbnailUrl="{Binding ThumbnailUrl}"
                                                 HorizontalOptions="Fill" />
 
-                                            <Grid Padding="10">
+                                            <Grid Padding="{StaticResource CardPadding}"
+                                                  ColumnSpacing="{StaticResource SpaceSmall}">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition></ColumnDefinition>
                                                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                                                 </Grid.ColumnDefinitions>
-                                                <VerticalStackLayout Grid.Column="0">
-                                                    <Label Text="{Binding Name}" FontSize="24">
+                                                <VerticalStackLayout Grid.Column="0" Spacing="{StaticResource SpaceXSmall}">
+                                                    <Label Text="{Binding Name}" Style="{StaticResource CardTitle}">
                                                         <Label.GestureRecognizers>
                                                             <TapGestureRecognizer
                                                             Command="{Binding NavigateToWatchVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
@@ -48,11 +49,11 @@
                                                     Text="{Binding When, Converter={StaticResource DateTimeConverter}}" />
                                                     <Label Text="Nagranie nie jest gotowe."
                                                        IsVisible="{Binding Converted, Converter={StaticResource InverseBooleanConverter}}"
-                                                       TextColor="{StaticResource Magenta}">
+                                                       TextColor="{StaticResource Link}">
                                                     </Label>
                                                 </VerticalStackLayout>
 
-                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Spacing="15">
+                                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Spacing="{StaticResource SpaceSmall}">
                                                     <controls:ShareButton
                                                                  Command="{Binding ShareVideoCommand, Source={RelativeSource AncestorType={x:Type pages:MyVideosPageModel}}, x:DataType=pages:MyVideosPageModel}"
                                                                  CommandParameter="{Binding Id}"/>
@@ -75,7 +76,7 @@
                         <CollectionView.Footer>
                             <ActivityIndicator IsRunning="{Binding IsLoadingMore}"
                                                IsVisible="{Binding IsLoadingMore}"
-                                               Margin="0,10" />
+                                               Margin="0,12" />
                         </CollectionView.Footer>
                     </CollectionView>
                 </RefreshView>

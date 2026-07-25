@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
              xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
+             xmlns:fonts="clr-namespace:TB.DanceDance.Mobile.Resources.Fonts"
              x:Class="TB.DanceDance.Mobile.Pages.Controls.VideoThumbnail"
              x:Name="VideoThumbnailRoot"
              x:DataType="controls:VideoThumbnail">
@@ -36,11 +37,12 @@
                     WidthRequest="48"
                     HorizontalOptions="Center"
                     VerticalOptions="Center">
-                <Polygon Points="0,0 0,22 19,11"
-                         Fill="{StaticResource Primary}"
-                         HorizontalOptions="Center"
-                         VerticalOptions="Center"
-                         Margin="16,11,0,0" />
+                <Label Text="{x:Static fonts:MaterialIcons.Play}"
+                       FontFamily="MaterialRound"
+                       FontSize="28"
+                       TextColor="{StaticResource PrimaryIcon}"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
             </Border>
         </Grid>
     </Grid>

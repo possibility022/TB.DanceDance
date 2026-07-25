@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:sys="clr-namespace:System;assembly=netstandard">
+
+    <sys:Double x:Key="SpaceXSmall">4</sys:Double>
+    <sys:Double x:Key="SpaceSmall">8</sys:Double>
+    <sys:Double x:Key="SpaceMedium">12</sys:Double>
+    <sys:Double x:Key="SpaceLarge">16</sys:Double>
+    <sys:Double x:Key="SpaceXLarge">24</sys:Double>
+
+    <Thickness x:Key="PagePadding">16</Thickness>
+    <Thickness x:Key="CardPadding">12</Thickness>
+    <Thickness x:Key="ListCardMargin">0,0,0,12</Thickness>
+    <Thickness x:Key="FabMargin">16</Thickness>
+</ResourceDictionary>

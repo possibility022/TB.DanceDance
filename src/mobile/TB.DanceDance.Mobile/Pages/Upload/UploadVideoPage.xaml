@@ -9,8 +9,8 @@
              x:Name="UploadVideoPageView"
              x:Class="TB.DanceDance.Mobile.Pages.Upload.UploadVideoPage">
     <ContentPage.Content>
-        <Grid Margin="10, 0, 10, 0">
-            <VerticalStackLayout Spacing="10">
+        <Grid Margin="{StaticResource PagePadding}">
+            <VerticalStackLayout Spacing="{StaticResource SpaceMedium}">
                 <Picker
                     IsVisible="{Binding GroupSelectorAvailable}"
                     ItemsSource="{Binding Groups}"
@@ -34,10 +34,8 @@
                     BindableLayout.ItemsSource="{Binding SelectedFiles}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="storage:FileResult">
-                            <Border>
-                                <VerticalStackLayout Spacing="10">
-                                    <Label Text="{Binding FileName}" FontSize="24" />
-                                </VerticalStackLayout>
+                            <Border Style="{StaticResource ListCard}">
+                                <Label Text="{Binding FileName}" Style="{StaticResource CardTitle}" />
                             </Border>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>

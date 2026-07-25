@@ -7,8 +7,10 @@
              x:DataType="upload:UploadManagerPageModel"
              x:Class="TB.DanceDance.Mobile.Pages.Upload.UploadManagerPage">
     <ContentPage.Content>
-        <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="10">
-            <HorizontalStackLayout Spacing="10">
+        <Grid Margin="{StaticResource PagePadding}"
+              RowDefinitions="Auto,Auto,Auto,*"
+              RowSpacing="{StaticResource SpaceMedium}">
+            <HorizontalStackLayout Spacing="{StaticResource SpaceSmall}">
                 <Switch IsToggled="{Binding UploadOnlyOnWiFi}" />
                 <Label Text="Wysyłaj tylko przez WiFi"
                        VerticalOptions="Center" />
@@ -24,18 +26,18 @@
                 <CollectionView ItemsSource="{Binding ToUpload}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="models:VideosToUpload">
-                            <Border Padding="10"
-                                        Margin="0,10,0,0">
-                                    <VerticalStackLayout Spacing="6">
-                                        <HorizontalStackLayout>
+                            <Border Style="{StaticResource ListCard}">
+                                    <VerticalStackLayout Spacing="{StaticResource SpaceSmall}">
+                                        <HorizontalStackLayout Spacing="{StaticResource SpaceSmall}"
+                                                               VerticalOptions="Center">
                                             <CheckBox IsEnabled="False" IsChecked="{Binding Uploaded}" />
-                                            <Label Text="{Binding FileName}" FontSize="20" />
+                                            <Label Text="{Binding FileName}" Style="{StaticResource CardTitle}" />
                                         </HorizontalStackLayout>
                                         <Label Text="{Binding State, StringFormat='Status: {0}'}" />
                                         <Label Text="{Binding LastError}"
-                                               TextColor="{AppThemeBinding Light=DarkRed, Dark=LightPink}" />
+                                               TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}" />
                                         <ProgressBar Progress="{Binding Progress}" />
-                                        <HorizontalStackLayout Spacing="8">
+                                        <HorizontalStackLayout Spacing="{StaticResource SpaceSmall}">
                                             <Button Text="Ponów"
                                                     IsVisible="{Binding CanRetry}"
                                                     Command="{Binding RetryCommand, Source={RelativeSource AncestorType={x:Type upload:UploadManagerPageModel}}, x:DataType=upload:UploadManagerPageModel}"
