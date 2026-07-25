@@ -2,8 +2,10 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:converters="clr-namespace:TB.DanceDance.Mobile.Converters"
+             xmlns:controls="clr-namespace:TB.DanceDance.Mobile.Pages.Controls"
              x:Class="TB.DanceDance.Mobile.Pages.Controls.VideoThumbnail"
-             x:Name="VideoThumbnailRoot">
+             x:Name="VideoThumbnailRoot"
+             x:DataType="controls:VideoThumbnail">
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:NegativeBoolConverter x:Key="InverseBooleanConverter" />
@@ -11,7 +13,7 @@
     </ContentView.Resources>
 
     <Grid HeightRequest="160" HorizontalOptions="Fill">
-        <Image Source="{Binding ResolvedThumbnailUrl, Source={x:Reference VideoThumbnailRoot}}"
+        <Image Source="{Binding ResolvedThumbnailSource, Source={x:Reference VideoThumbnailRoot}}"
                Aspect="AspectFill"
                IsVisible="{Binding HasThumbnail, Source={x:Reference VideoThumbnailRoot}}" />
 

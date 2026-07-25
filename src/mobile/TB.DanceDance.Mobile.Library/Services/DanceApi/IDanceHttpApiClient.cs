@@ -9,12 +9,12 @@ namespace TB.DanceDance.Mobile.Library.Services.DanceApi;
 
 public interface IDanceHttpApiClient
 {
-    Task RenameVideoAsync(Guid videoId, string newName);
-    Task DeleteVideoAsync(Guid videoId);
-    Task<GetUserAccessResponse> GetUserAccesses();
-    Task RequestAccess(RequestAccessRequest accessRequest);
-    Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize);
-    Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize);
+    Task RenameVideoAsync(Guid videoId, string newName, CancellationToken cancellationToken = default);
+    Task DeleteVideoAsync(Guid videoId, CancellationToken cancellationToken = default);
+    Task<GetUserAccessResponse> GetUserAccesses(CancellationToken cancellationToken = default);
+    Task RequestAccess(RequestAccessRequest accessRequest, CancellationToken cancellationToken = default);
+    Task<PagedResponse<VideoFromGroupInformation>> GetVideosFromGroups(int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<PagedResponse<VideoInformation>> GetVideosForEvent(Guid eventId, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<RefreshUploadUrlResponse> RefreshUploadUrl(
         Guid videoId,
         CancellationToken cancellationToken = default);
@@ -26,10 +26,10 @@ public interface IDanceHttpApiClient
         DateTime recordedTimeUtc,
         CancellationToken cancellationToken = default
     );
-    Task<Stream> GetStream(string videoBlobId);
-    (Uri uri, string authToken) GetVideoUri(string videoBlobId);
-    Task CreateEvent(string eventName, DateTime eventDate);
-    Task<PagedResponse<VideoInformation>> GetMyVideos(int page, int pageSize);
+    Task<Stream> GetStream(string videoBlobId, CancellationToken cancellationToken = default);
+    Task<(Uri uri, string authToken)> GetVideoUri(string videoBlobId, CancellationToken cancellationToken = default);
+    Task CreateEvent(string eventName, DateTime eventDate, CancellationToken cancellationToken = default);
+    Task<PagedResponse<VideoInformation>> GetMyVideos(int page, int pageSize, CancellationToken cancellationToken = default);
     Task<SharedLinkResponse?> GetSharingLinkAsync(Guid videoId, CancellationToken token = default);
     Task RevokeShareLinkAsync(string linkId, CancellationToken token = default);
 }

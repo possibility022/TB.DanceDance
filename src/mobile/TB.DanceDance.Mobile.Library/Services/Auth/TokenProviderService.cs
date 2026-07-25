@@ -9,6 +9,7 @@ public class TokenProviderService : ITokenProviderService
     private readonly OidcClient oidcClient;
     private readonly TokenStorage tokenStorage;
     private readonly (string, int) authority;
+    private readonly SemaphoreSlim tokenRefreshGate = new(1, 1);
 
     public TokenProviderService(OidcClient oidcClient, TokenStorage tokenStorage)
     {
@@ -22,8 +23,13 @@ public class TokenProviderService : ITokenProviderService
 
     private async Task<SecurityToken?> FetchAccessToken(bool allowInteractiveLogin)
     {
+        await tokenRefreshGate.WaitAsync();
         try
         {
+            if (tokenStorage.Token?.AccessToken is not null
+                && tokenStorage.Token.AccessTokenExpiration >= DateTimeOffset.Now.AddMinutes(5))
+                return tokenStorage.Token;
+
             if (tokenStorage.Token?.RefreshToken is null)
                 await tokenStorage.LoadRefreshTokenFromStorage();
 
@@ -45,31 +51,35 @@ public class TokenProviderService : ITokenProviderService
                     return tokenStorage.Token;
                 }
             }
+            if (!allowInteractiveLogin)
+                return null;
+
+            var response = await oidcClient.LoginAsync();
+
+            if (response?.IsError == false)
+            {
+                tokenStorage.SetToken(new SecurityToken()
+                {
+                    RefreshToken = response.RefreshToken,
+                    AccessToken = response.AccessToken,
+                    IdentityToken = response.IdentityToken,
+                    AccessTokenExpiration = response.AccessTokenExpiration
+                });
+
+                await tokenStorage.SaveRefreshTokenInStorage();
+            }
+
+            return tokenStorage.Token;
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not get token silently");
-        }
-
-        if (!allowInteractiveLogin)
+            Log.Error(ex, "Could not get token");
             return null;
-
-        var response = await oidcClient.LoginAsync();
-
-        if (response?.IsError == false)
-        {
-            tokenStorage.SetToken(new SecurityToken()
-            {
-                RefreshToken = response.RefreshToken,
-                AccessToken = response.AccessToken,
-                IdentityToken = response.IdentityToken,
-                AccessTokenExpiration = response.AccessTokenExpiration
-            });
-            
-            await tokenStorage.SaveRefreshTokenInStorage();
         }
-
-        return tokenStorage.Token;
+        finally
+        {
+            tokenRefreshGate.Release();
+        }
     }
 
     /// <summary>

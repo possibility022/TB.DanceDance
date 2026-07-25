@@ -13,7 +13,7 @@ using TB.DanceDance.Mobile.Pages.WatchVideos;
 
 namespace TB.DanceDance.Mobile.Pages;
 
-public partial class MyVideosPageModel : ObservableObject, IAppearingAware
+public partial class MyVideosPageModel : ObservableObject, IAppearingAware, ILeavingAware
 {
     private const int PageSize = 20;
 
@@ -27,6 +27,7 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
     private readonly INavigationService navigationService;
     private bool videosLoaded = false;
     private int currentPage = 0;
+    private CancellationTokenSource pageLifetime = new();
 
     public MyVideosPageModel(IDanceHttpApiClient apiClient, VideoProvider videoProvider, IPopupService popupService, INavigationService navigationService)
     {
@@ -45,8 +46,17 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
 
     public async ValueTask OnAppearingAsync()
     {
+        if (pageLifetime.IsCancellationRequested)
+            pageLifetime = new CancellationTokenSource();
         if (!videosLoaded)
             await Refresh();
+    }
+
+    public ValueTask OnLeavingAsync()
+    {
+        pageLifetime.Cancel();
+        pageLifetime.Dispose();
+        return ValueTask.CompletedTask;
     }
 
 
@@ -72,7 +82,7 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
                 return;
             }
 
-            await apiClient.RenameVideoAsync(videoId, newName);
+            await apiClient.RenameVideoAsync(videoId, newName, pageLifetime.Token);
             video.Name = newName;
 
             await Refresh();
@@ -99,7 +109,7 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
             if (!confirmed)
                 return;
 
-            await apiClient.DeleteVideoAsync(videoId);
+            await apiClient.DeleteVideoAsync(videoId, pageLifetime.Token);
             Videos.Remove(video);
         }
         catch (Exception ex)
@@ -159,7 +169,7 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
             IsLoadingMore = true;
 
             var nextPage = currentPage + 1;
-            var (items, totalCount) = await videoProvider.GetMyVideos(nextPage, PageSize);
+            var (items, totalCount) = await videoProvider.GetMyVideos(nextPage, PageSize, pageLifetime.Token);
 
             foreach (var video in items)
                 Videos.Add(video);
@@ -179,7 +189,10 @@ public partial class MyVideosPageModel : ObservableObject, IAppearingAware
 
     private async Task LoadData()
     {
-        var (items, totalCount) = await videoProvider.GetMyVideos(page: 1, PageSize);
+        var (items, totalCount) = await videoProvider.GetMyVideos(
+            page: 1,
+            pageSize: PageSize,
+            cancellationToken: pageLifetime.Token);
         Videos = new ObservableCollection<Video>(items);
         currentPage = 1;
         CanLoadMore = Videos.Count < totalCount;

@@ -88,6 +88,7 @@ public static class MauiProgram
 
         builder.Services.AddScoped<UploadWorker>();
         builder.Services.AddSingleton<UploadExecutionGate>();
+        builder.Services.AddSingleton<IUploadQueueChangeNotifier, UploadQueueChangeNotifier>();
         builder.Services.AddSingleton<IUploadNetworkSettings, UploadNetworkSettings>();
 #if ANDROID
         builder.Services.AddSingleton<IUploadScheduler, AndroidUploadScheduler>();
@@ -101,7 +102,9 @@ public static class MauiProgram
         builder.Services.AddScoped<IUploadQueueService, UploadQueueService>();
 
         builder.Services.AddTransient<VideoProvider>();
-        builder.Services.AddTransient<IMauiInitializeService, DataStorageInitialize>();
+        builder.Services.AddSingleton<DataStorageInitialize>();
+        builder.Services.AddSingleton<IUploadStoreInitializer>(services =>
+            services.GetRequiredService<DataStorageInitialize>());
 
         var networkAddressResolver = new NetworkAddressResolver(DeviceInfo.Platform);
         builder.Services.AddSingleton(networkAddressResolver);
@@ -114,17 +117,20 @@ public static class MauiProgram
         var authSettingsFactory = new AuthSettingsFactory(browserFactory, networkAddressResolver, DeviceInfo.Platform);
         builder.Services.AddSingleton(authSettingsFactory);
 
-        var handler = DanceApiHttpClientFactory.CreateBaseHttpMessageHandlerChain(networkAddressResolver);
-
-        var primaryOptions = authSettingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.AuthMainUrl);
-
-        var primaryTokenStorage = new TokenStorage(TokenStorage.PrimaryStorageKey);
-
-        builder.Services.AddKeyedSingleton(TokenStorage.PrimaryStorageKey, primaryTokenStorage);
-
-        var primaryTokenProvider = new TokenProviderService(new OidcClient(primaryOptions), primaryTokenStorage);
-
-        builder.Services.AddKeyedSingleton<ITokenProviderService>(TokenStorage.PrimaryStorageKey, primaryTokenProvider);
+        builder.Services.AddKeyedSingleton<TokenStorage>(
+            TokenStorage.PrimaryStorageKey,
+            (_, _) => new TokenStorage(TokenStorage.PrimaryStorageKey));
+        builder.Services.AddKeyedSingleton<ITokenProviderService>(
+            TokenStorage.PrimaryStorageKey,
+            (services, _) =>
+            {
+                var resolver = services.GetRequiredService<NetworkAddressResolver>();
+                var settingsFactory = services.GetRequiredService<AuthSettingsFactory>();
+                var handler = DanceApiHttpClientFactory.CreateBaseHttpMessageHandlerChain(resolver);
+                var options = settingsFactory.GetClientOptions(handler, DanceApiHttpClientFactory.AuthMainUrl);
+                var storage = services.GetRequiredKeyedService<TokenStorage>(TokenStorage.PrimaryStorageKey);
+                return new TokenProviderService(new OidcClient(options), storage);
+            });
 
         // Popups
         builder.Services.AddTransientPopup<SharingPopup, SharingPopupViewModel>();
@@ -135,9 +141,10 @@ public static class MauiProgram
             options.UseSqlite(Constants.VideosDatabasePath);
         });
 
-        builder.Services.AddTransient<IHttpClientFactory, DanceApiHttpClientFactory>();
+        builder.Services.AddSingleton<IHttpClientFactory, DanceApiHttpClientFactory>();
 
         builder.Services.AddTransient<IVideoUploader, VideoUploader>();
+        builder.Services.AddSingleton<UserAccessCache>();
         builder.Services.AddScoped<IDanceHttpApiClient, DanceHttpApiClient>();
 
 

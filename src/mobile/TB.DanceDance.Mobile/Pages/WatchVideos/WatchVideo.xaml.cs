@@ -7,4 +7,17 @@ public partial class WatchVideo : ContentPage
         BindingContext = model;
         InitializeComponent();
     }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        Player.ShouldKeepScreenOn = true;
+    }
+
+    protected override void OnDisappearing()
+    {
+        Player.Stop();
+        Player.ShouldKeepScreenOn = false;
+        base.OnDisappearing();
+    }
 }

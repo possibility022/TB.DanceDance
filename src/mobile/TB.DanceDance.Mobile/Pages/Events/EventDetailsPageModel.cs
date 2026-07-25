@@ -14,7 +14,8 @@ using WatchVideoPageModel = TB.DanceDance.Mobile.Pages.WatchVideos.WatchVideoPag
 namespace TB.DanceDance.Mobile.Pages.Events;
 
 public partial class EventDetailsPageModel : ObservableObject,
-    IEnteringAware<EventDetailsIntent>
+    IEnteringAware<EventDetailsIntent>,
+    ILeavingAware
 {
     private const int PageSize = 20;
 
@@ -22,6 +23,7 @@ public partial class EventDetailsPageModel : ObservableObject,
     private readonly IDanceHttpApiClient apiClient;
     private readonly INavigationService navigationService;
     private int currentPage = 0;
+    private CancellationTokenSource pageLifetime = new();
 
     public EventDetailsPageModel(VideoProvider videoProvider, IDanceHttpApiClient apiClient, INavigationService navigationService)
     {
@@ -60,7 +62,7 @@ public partial class EventDetailsPageModel : ObservableObject,
                 return;
             }
 
-            await apiClient.RenameVideoAsync(videoId, newName);
+            await apiClient.RenameVideoAsync(videoId, newName, pageLifetime.Token);
             video.Name = newName;
 
             await Refresh();
@@ -87,7 +89,7 @@ public partial class EventDetailsPageModel : ObservableObject,
             if (!confirmed)
                 return;
 
-            await apiClient.DeleteVideoAsync(videoId);
+            await apiClient.DeleteVideoAsync(videoId, pageLifetime.Token);
             Videos.Remove(video);
         }
         catch (Exception ex)
@@ -112,8 +114,17 @@ public partial class EventDetailsPageModel : ObservableObject,
 
     public async ValueTask OnEnteringAsync(EventDetailsIntent intent)
     {
+        if (pageLifetime.IsCancellationRequested)
+            pageLifetime = new CancellationTokenSource();
         EventId = intent.EventId;
         await Refresh();
+    }
+
+    public ValueTask OnLeavingAsync()
+    {
+        pageLifetime.Cancel();
+        pageLifetime.Dispose();
+        return ValueTask.CompletedTask;
     }
 
     [RelayCommand]
@@ -146,7 +157,8 @@ public partial class EventDetailsPageModel : ObservableObject,
             IsLoadingMore = true;
 
             var nextPage = currentPage + 1;
-            var (items, totalCount) = await videoProvider.GetEventVideos(EventId, nextPage, PageSize);
+            var (items, totalCount) = await videoProvider.GetEventVideos(
+                EventId, nextPage, PageSize, pageLifetime.Token);
 
             foreach (var video in items)
                 Videos.Add(video);
@@ -168,7 +180,11 @@ public partial class EventDetailsPageModel : ObservableObject,
     {
         if (eventId != Guid.Empty)
         {
-            var (items, totalCount) = await videoProvider.GetEventVideos(eventId, page: 1, PageSize);
+            var (items, totalCount) = await videoProvider.GetEventVideos(
+                eventId,
+                page: 1,
+                pageSize: PageSize,
+                cancellationToken: pageLifetime.Token);
             Videos = new ObservableCollection<Video>(items);
             currentPage = 1;
             CanLoadMore = Videos.Count < totalCount;

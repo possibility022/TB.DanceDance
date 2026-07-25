@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using System.Net;
 using TB.DanceDance.API.Contracts.Features.Videos;
+using TB.DanceDance.Mobile.Library.Data;
 using TB.DanceDance.Mobile.Library.Data.Models.Storage;
 using TB.DanceDance.Mobile.Library.Services.Auth;
 using TB.DanceDance.Mobile.Library.Services.DanceApi;
@@ -23,9 +24,17 @@ public class UploadWorkerTests
         var uploader = Substitute.For<IVideoUploader>();
         var api = Substitute.For<IDanceHttpApiClient>();
         var tokenProvider = Substitute.For<ITokenProviderService>();
+        var storeInitializer = Substitute.For<IUploadStoreInitializer>();
         tokenProvider.GetAccessTokenSilently().Returns(authenticated ? "token" : null);
         return (
-            new UploadWorker(factory, uploader, api, tokenProvider, new UploadExecutionGate()),
+            new UploadWorker(
+                factory,
+                uploader,
+                api,
+                tokenProvider,
+                new UploadExecutionGate(),
+                storeInitializer,
+                Substitute.For<IUploadQueueChangeNotifier>()),
             factory,
             uploader,
             api,

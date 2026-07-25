@@ -5,28 +5,26 @@
              xmlns:models="clr-namespace:TB.DanceDance.Mobile.Library.Data.Models.Storage;assembly=TB.DanceDance.Mobile.Library"
              xmlns:upload="clr-namespace:TB.DanceDance.Mobile.Pages.Upload"
              x:DataType="upload:UploadManagerPageModel"
-             x:Name="UploadManagerPageView"
              x:Class="TB.DanceDance.Mobile.Pages.Upload.UploadManagerPage">
     <ContentPage.Content>
-        <StackLayout Margin="10" Spacing="10">
+        <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="10">
             <HorizontalStackLayout Spacing="10">
                 <Switch IsToggled="{Binding UploadOnlyOnWiFi}" />
                 <Label Text="Wysyłaj tylko przez WiFi"
                        VerticalOptions="Center" />
             </HorizontalStackLayout>
             <Label Text="Postęp wysyłania jest wyświetlany w powiadomieniu. Aplikacja nie ma uprawnienień do ich wyświetlania. Kliknij przycisk aby pozwolić na wyświetlanie powiadomień. (Nie spamujemy :))"
+                   Grid.Row="1"
                    IsVisible="{Binding NotificationBlocked}"
                    />
-            <Button Text="Ustaw uprawnienia" IsVisible="{Binding NotificationBlocked}" Command="{Binding AskNotificationPermissionsCommand}"/>
-            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+            <Button Grid.Row="2" Text="Ustaw uprawnienia" IsVisible="{Binding NotificationBlocked}" Command="{Binding AskNotificationPermissionsCommand}"/>
+            <RefreshView Grid.Row="3"
+                         IsRefreshing="{Binding IsRefreshing}"
                          Command="{Binding RefreshCommand}">
-                <ScrollView Margin="0,10,0,0">
-                    <StackLayout
-                        BindableLayout.ItemsSource="{Binding ToUpload}">
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="models:VideosToUpload">
-                                <Border Padding="10"
-                                        Width="0"
+                <CollectionView ItemsSource="{Binding ToUpload}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:VideosToUpload">
+                            <Border Padding="10"
                                         Margin="0,10,0,0">
                                     <VerticalStackLayout Spacing="6">
                                         <HorizontalStackLayout>
@@ -40,20 +38,19 @@
                                         <HorizontalStackLayout Spacing="8">
                                             <Button Text="Ponów"
                                                     IsVisible="{Binding CanRetry}"
-                                                    Command="{Binding Source={x:Reference UploadManagerPageView}, Path=BindingContext.RetryCommand}"
+                                                    Command="{Binding RetryCommand, Source={RelativeSource AncestorType={x:Type upload:UploadManagerPageModel}}, x:DataType=upload:UploadManagerPageModel}"
                                                     CommandParameter="{Binding .}" />
                                             <Button Text="Anuluj"
                                                     IsVisible="{Binding CanCancel}"
-                                                    Command="{Binding Source={x:Reference UploadManagerPageView}, Path=BindingContext.CancelCommand}"
+                                                    Command="{Binding CancelCommand, Source={RelativeSource AncestorType={x:Type upload:UploadManagerPageModel}}, x:DataType=upload:UploadManagerPageModel}"
                                                     CommandParameter="{Binding .}" />
                                         </HorizontalStackLayout>
                                     </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </StackLayout>
-                </ScrollView>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
             </RefreshView>
-        </StackLayout>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

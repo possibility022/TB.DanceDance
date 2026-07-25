@@ -27,6 +27,8 @@
                     </Picker.Behaviors>
                 </Picker>
                 <ActivityIndicator IsRunning="true" IsVisible="{Binding UploadButtonPressed}" />
+                <ProgressBar Progress="{Binding StagingProgress}"
+                             IsVisible="{Binding UploadButtonPressed}" />
                 <Button Text="Wybierz Nagranie" Command="{Binding PickVideosCommand}" />
                 <VerticalStackLayout
                     BindableLayout.ItemsSource="{Binding SelectedFiles}">
