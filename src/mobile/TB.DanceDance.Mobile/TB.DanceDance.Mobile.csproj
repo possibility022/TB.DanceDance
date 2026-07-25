@@ -116,17 +116,17 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="14.2.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="15.0.0" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="10.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="Duende.IdentityModel.OidcClient" Version="7.1.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.6.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.70" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
-		<PackageReference Include="Nalu.Maui" Version="10.7.7" />
-		<PackageReference Include="Nalu.Maui.Navigation" Version="10.7.7" />
-		<PackageReference Include="Serilog" Version="4.3.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
+		<PackageReference Include="Nalu.Maui" Version="10.7.9" />
+		<PackageReference Include="Nalu.Maui.Navigation" Version="10.7.9" />
+		<PackageReference Include="Serilog" Version="4.4.0" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
 		<PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
@@ -191,8 +191,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
-	  <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.10.2.1" />
 	  <PackageReference Include="Serilog.Sinks.Xamarin" Version="1.0.0" />
+	  <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.9.1.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-ios'">
