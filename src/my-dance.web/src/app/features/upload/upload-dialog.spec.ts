@@ -63,7 +63,10 @@ describe('UploadDialog', () => {
         getMyAccess: vi.fn(() => throwError(() => new Error('x'))),
       });
       expect(component.targetsLoading()).toBe(false);
-      expect(component.targets()).toEqual([]);
+      // Private library remains available even when assigned targets fail to load.
+      expect(component.targets()).toEqual([
+        { key: 'private', label: 'Private library', type: SharingWithType.Private },
+      ]);
     });
   });
 
@@ -149,14 +152,40 @@ describe('UploadDialog', () => {
       expect(component.form.getRawValue().targetKey).toBe('private');
     });
 
-    it('ignores a preselected key that is not in the targets list', () => {
+    it('synthesizes and selects a preselected key that is not yet in the targets list', () => {
       const { fixture, component } = createFixture({});
 
       fixture.componentRef.setInput('preselectedTargetKey', 'e:unknown');
+      fixture.componentRef.setInput('preselectedTargetLabel', 'New Workshop');
       fixture.componentRef.setInput('open', true);
       fixture.detectChanges();
 
-      expect(component.form.getRawValue().targetKey).toBe('private');
+      expect(component.form.getRawValue().targetKey).toBe('e:unknown');
+      expect(component.targets().some((t) => t.key === 'e:unknown')).toBe(true);
+      expect(component.targets().find((t) => t.key === 'e:unknown')).toMatchObject({
+        type: SharingWithType.Event,
+        sharedWith: 'unknown',
+        label: 'Event: New Workshop',
+      });
+    });
+
+    it('uploads to the preselected event even when that event was missing from the initial targets', () => {
+      const { fixture, component, uploads } = createFixture({});
+
+      fixture.componentRef.setInput('preselectedTargetKey', 'e:brand-new');
+      fixture.componentRef.setInput('preselectedTargetLabel', 'Brand New');
+      fixture.componentRef.setInput('open', true);
+      fixture.detectChanges();
+
+      component.files.set([file('lesson.mp4')]);
+      component.submit();
+
+      expect(uploads.produceUploadUrl).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sharingWithType: SharingWithType.Event,
+          sharedWith: 'brand-new',
+        }),
+      );
     });
 
     it('close() emits the closed event and resets state', () => {
