@@ -107,6 +107,10 @@ public class ThumbnailPipelineEndpointTests(WebAppFixture App) : TestBaseWithAss
         db.AddRange(owner, video, share);
         await db.SaveChangesAsync(Cancellation);
 
+        // Source blob must exist (or converted as fallback) for the converter listing to return it.
+        var blobs = App.CreateBlobFactory().GetBlobDataService(BlobContainer.VideosToConvert);
+        await blobs.Upload(video.SourceBlobId, new MemoryStream([1, 2, 3]));
+
         var converterClient = App.CreateAuthorizedClient(TestDataBuilder.RandomUserId(), ApiScopes.Convert);
         var ownerClient = App.CreateAuthorizedClient(owner.Id, ApiScopes.Read);
 
