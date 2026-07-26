@@ -3,6 +3,7 @@ using Domain;
 using Infrastructure.Data;
 using Infrastructure.Data.BlobStorage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using TB.DanceDance.Tests.TestsFixture;
 
 namespace TB.DanceDance.Tests.Features.Videos;
@@ -43,7 +44,7 @@ public class VideoUploaderTests : BaseTestClass
         }
         
         factory = new BlobDataServiceFactory(blobStorageFixture.GetConnectionString());
-        this.uploaderService = new VideoUploaderService(factory, runtimeDbContext);
+        this.uploaderService = new VideoUploaderService(factory, runtimeDbContext, NullLogger<VideoUploaderService>.Instance);
     }
 
     private async Task MakeAllExistingVideosIneligible()
@@ -72,6 +73,12 @@ public class VideoUploaderTests : BaseTestClass
     {
         var toConvert = factory.GetBlobDataService(BlobContainer.VideosToConvert);
         await toConvert.Upload(sourceBlobId, new MemoryStream([1, 2, 3]));
+    }
+
+    private async Task UploadConvertedBlob(string blobId)
+    {
+        var published = factory.GetBlobDataService(BlobContainer.Videos);
+        await published.Upload(blobId, new MemoryStream([1, 2, 3, 4]));
     }
 
     [Fact]
@@ -386,6 +393,7 @@ public class VideoUploaderTests : BaseTestClass
         var v = new VideoDataBuilder().OwnedBy(user).Converted(true).WithBlobId(blobId).Build();
         SeedDbContext.AddRange(user, v);
         await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await UploadSourceBlob(v.SourceBlobId);
 
         var result = await uploaderService.GetNextVideoForThumbnailAsync(TestContext.Current.CancellationToken);
 
@@ -393,6 +401,63 @@ public class VideoUploaderTests : BaseTestClass
         Assert.Equal(v.Id, result!.Value.Id);
         Assert.Equal(blobId, result.Value.BlobId);
         Assert.True(result.Value.Sas.IsAbsoluteUri);
+        Assert.Contains("videostoconvert", result.Value.Sas.AbsolutePath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task GetNextVideoForThumbnailAsync_FallsBackToConvertedBlob_WhenSourceMissing()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        var blobId = Guid.NewGuid().ToString();
+        var v = new VideoDataBuilder().OwnedBy(user).Converted(true).WithBlobId(blobId).Build();
+        SeedDbContext.AddRange(user, v);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        // Source blob intentionally not uploaded — only the converted one exists
+        await UploadConvertedBlob(blobId);
+
+        var result = await uploaderService.GetNextVideoForThumbnailAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(v.Id, result!.Value.Id);
+        Assert.True(result.Value.Sas.IsAbsoluteUri);
+        Assert.Contains("/videos/", result.Value.Sas.AbsolutePath, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("videostoconvert", result.Value.Sas.AbsolutePath, StringComparison.OrdinalIgnoreCase);
+
+        SeedDbContext.ChangeTracker.Clear();
+        var locked = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == v.Id, TestContext.Current.CancellationToken);
+        Assert.NotNull(locked.LockedTill);
+        Assert.True(locked.LockedTill > DateTime.UtcNow);
+    }
+
+    [Fact]
+    public async Task GetNextVideoForThumbnailAsync_SkipsVideo_WhenNeitherBlobExists()
+    {
+        await MakeAllExistingVideosIneligible();
+        var user = new UserDataBuilder().Build();
+        var missingBoth = new VideoDataBuilder()
+            .OwnedBy(user)
+            .Converted(true)
+            .WithBlobId(Guid.NewGuid().ToString())
+            .Build();
+        var withSource = new VideoDataBuilder()
+            .OwnedBy(user)
+            .Converted(true)
+            .WithBlobId(Guid.NewGuid().ToString())
+            .SharedAt(DateTime.UtcNow.AddMinutes(-1)) // older, so missingBoth is preferred first
+            .Build();
+        SeedDbContext.AddRange(user, missingBoth, withSource);
+        await SeedDbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await UploadSourceBlob(withSource.SourceBlobId);
+
+        var result = await uploaderService.GetNextVideoForThumbnailAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(result);
+        Assert.Equal(withSource.Id, result!.Value.Id);
+
+        SeedDbContext.ChangeTracker.Clear();
+        var skipped = await SeedDbContext.Videos.AsNoTracking().FirstAsync(x => x.Id == missingBoth.Id, TestContext.Current.CancellationToken);
+        Assert.Null(skipped.LockedTill);
     }
 
     [Fact]
