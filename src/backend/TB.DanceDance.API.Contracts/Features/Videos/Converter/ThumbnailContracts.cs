@@ -2,6 +2,17 @@ using System;
 
 namespace TB.DanceDance.API.Contracts.Features.Videos.Converter
 {
+    public class VideosMissingThumbnailsRequest
+    {
+        public int Limit { get; set; } = 10;
+    }
+
+    public class VideoMissingThumbnailModel
+    {
+        public Guid VideoId { get; set; }
+        public string SourceBlobId { get; set; } = string.Empty;
+    }
+
     public class VideoToThumbnailModel
     {
         public Guid Id { get; set; }

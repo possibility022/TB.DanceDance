@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Models;
+using TB.DanceDance.API.Contracts.Features.Videos.Converter;
 
 namespace Application.Features.Videos;
 
@@ -15,6 +16,7 @@ public interface IVideoUploaderService
     Task<SharedBlob?> GetSasForConvertedVideoAsync(Guid videoId, CancellationToken cancellationToken);
 
     Task<(Guid Id, string BlobId, string FileName, Uri Sas)?> GetNextVideoForThumbnailAsync(CancellationToken cancellationToken);
+    Task<List<VideoMissingThumbnailModel>> GetVideosMissingThumbnailsAsync(int limit, CancellationToken cancellationToken);
     Task<SharedBlob?> GetSasForThumbnailUploadAsync(Guid videoId, CancellationToken cancellationToken);
     Task<bool> PublishThumbnailAsync(Guid videoId, CancellationToken cancellationToken);
 }

@@ -57,6 +57,100 @@ public class ThumbnailPipelineEndpointTests(WebAppFixture App) : TestBaseWithAss
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("", 10)]
+    [InlineData("?limit=3", 3)]
+    [InlineData("?limit=20", 12)]
+    public async Task GetVideosMissingThumbnails_RespectsLimit_AndReturnsSourceIds(string query, int expectedCount)
+    {
+        await MakeAllExistingVideosIneligibleForThumbnail();
+        var owner = new UserDataBuilder().Build();
+        var now = DateTime.UtcNow;
+        var videos = Enumerable.Range(0, 12)
+            .Select(i => new VideoDataBuilder().OwnedBy(owner).Converted()
+                .SharedAt(now.AddMinutes(-i)).Build())
+            .ToArray();
+
+        await using var db = App.CreateDbContext();
+        db.Add(owner);
+        db.AddRange(videos);
+        await db.SaveChangesAsync(Cancellation);
+        var client = App.CreateAuthorizedClient(TestDataBuilder.RandomUserId(), ApiScopes.Convert);
+
+        var response = await client.GetFromJsonAsync<List<VideoMissingThumbnailModel>>(
+            ApiRoutes.Converter.VideosMissingThumbnails + query, JsonOptions, Cancellation);
+
+        Assert.NotNull(response);
+        Assert.Equal(videos.Take(expectedCount).Select(v => v.Id), response.Select(v => v.VideoId));
+        Assert.Equal(videos.Take(expectedCount).Select(v => v.SourceBlobId), response.Select(v => v.SourceBlobId));
+        // Listing candidates does not claim conversion work.
+        db.ChangeTracker.Clear();
+        Assert.All(await db.Videos.Where(v => videos.Select(x => x.Id).Contains(v.Id)).ToListAsync(Cancellation),
+            v => Assert.Null(v.LockedTill));
+    }
+
+    [Fact]
+    public async Task GetVideosMissingThumbnails_ExcludesIneligibleVideos_AndAllowsExpiredLocks()
+    {
+        await MakeAllExistingVideosIneligibleForThumbnail();
+        var owner = new UserDataBuilder().Build();
+        var notConverted = new VideoDataBuilder().OwnedBy(owner).Build();
+        var hasThumbnail = new VideoDataBuilder().OwnedBy(owner).Converted().WithThumbnailBlobId("thumb").Build();
+        var locked = new VideoDataBuilder().OwnedBy(owner).Converted().Build();
+        locked.LockedTill = DateTime.UtcNow.AddHours(1);
+        var expired = new VideoDataBuilder().OwnedBy(owner).Converted().Build();
+        expired.LockedTill = DateTime.UtcNow.AddHours(-1);
+        await using var db = App.CreateDbContext();
+        db.AddRange(owner, notConverted, hasThumbnail, locked, expired);
+        await db.SaveChangesAsync(Cancellation);
+        var client = App.CreateAuthorizedClient(TestDataBuilder.RandomUserId(), ApiScopes.Convert);
+
+        var response = await client.GetFromJsonAsync<List<VideoMissingThumbnailModel>>(
+            ApiRoutes.Converter.VideosMissingThumbnails, JsonOptions, Cancellation);
+
+        Assert.NotNull(response);
+        Assert.Equal(expired.Id, Assert.Single(response).VideoId);
+    }
+
+    [Fact]
+    public async Task GetVideosMissingThumbnails_ReturnsEmptyArray_WhenNoCandidates()
+    {
+        await MakeAllExistingVideosIneligibleForThumbnail();
+        var client = App.CreateAuthorizedClient(TestDataBuilder.RandomUserId(), ApiScopes.Convert);
+
+        var response = await client.GetFromJsonAsync<List<VideoMissingThumbnailModel>>(
+            ApiRoutes.Converter.VideosMissingThumbnails, JsonOptions, Cancellation);
+
+        Assert.NotNull(response);
+        Assert.Empty(response);
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    [InlineData("invalid")]
+    public async Task GetVideosMissingThumbnails_RejectsInvalidLimit(string limit)
+    {
+        var client = App.CreateAuthorizedClient(TestDataBuilder.RandomUserId(), ApiScopes.Convert);
+        var response = await client.GetAsync(ApiRoutes.Converter.VideosMissingThumbnails + "?limit=" + limit, Cancellation);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetVideosMissingThumbnails_WithReadScopeOnly_ReturnsForbidden()
+    {
+        var client = App.CreateAuthorizedClient(TestDataBuilder.RandomUserId(), ApiScopes.Read);
+        var response = await client.GetAsync(ApiRoutes.Converter.VideosMissingThumbnails, Cancellation);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetVideosMissingThumbnails_WithoutAuthentication_ReturnsUnauthorized()
+    {
+        var response = await App.CreateAnonymousClient().GetAsync(ApiRoutes.Converter.VideosMissingThumbnails, Cancellation);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     [Fact]
     public async Task GetThumbnails_WithReadScopeOnly_ReturnsForbidden()
     {
