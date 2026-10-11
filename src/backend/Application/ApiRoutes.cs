@@ -64,6 +64,7 @@ public static class ApiRoutes
         public const string Upload = $"{Base}/videos/{{videoId}}/publish";
         public const string GetPublishSas = $"{Base}/videos/{{videoId}}/sas";
         public const string Thumbnails = $"{Base}/thumbnails";
+        public const string VideosMissingThumbnails = $"{Base}/videos-missing-thumbnails";
         public const string GetThumbnailSas = $"{Base}/videos/{{videoId}}/thumbnail/sas";
         public const string PublishThumbnail = $"{Base}/videos/{{videoId}}/thumbnail/publish";
     }

@@ -4,6 +4,7 @@ using Domain.Models;
 using Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using TB.DanceDance.API.Contracts.Features.Videos.Converter;
 
 namespace Application.Features.Videos;
 
@@ -134,6 +135,26 @@ public class VideoUploaderService : IVideoUploaderService
         await danceDbContext.SaveChangesAsync(cancellationToken);
 
         return sas;
+    }
+
+    public Task<List<VideoMissingThumbnailModel>> GetVideosMissingThumbnailsAsync(int limit, CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(limit);
+        var now = DateTime.UtcNow;
+
+        return danceDbContext.Videos
+            .AsNoTracking()
+            .Where(v => v.Converted && v.ThumbnailBlobId == null &&
+                (v.LockedTill == null || v.LockedTill < now))
+            .OrderByDescending(v => v.SharedDateTime)
+            .ThenBy(v => v.Id)
+            .Take(limit)
+            .Select(v => new VideoMissingThumbnailModel
+            {
+                VideoId = v.Id,
+                SourceBlobId = v.SourceBlobId
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<(Guid Id, string BlobId, string FileName, Uri Sas)?> GetNextVideoForThumbnailAsync(CancellationToken cancellationToken)
